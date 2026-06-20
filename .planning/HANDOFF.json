@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-06-20T21:03:48.625Z",
+  "phase": "01",
+  "phase_name": "mvp-core-loop-adhd-safe-mechanics",
+  "phase_dir": ".planning/phases/01-mvp-core-loop-adhd-safe-mechanics",
+  "plan": 4,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "position": "post-execute-phase, post-code-review-fix, pre-verification",
+  "completed_tasks": [
+    {"id": 1, "name": "Plan 01-01: Walking Skeleton — game loop, HTML, CSS, all JS modules", "status": "done", "commit": "see git log"},
+    {"id": 2, "name": "Plan 01-02: XP persistence — PersistenceStore, localStorage save/load", "status": "done", "commit": "see git log"},
+    {"id": 3, "name": "Plan 01-03: Weighted question selection + EWMA accuracy tracking", "status": "done", "commit": "37f9db1"},
+    {"id": 4, "name": "Plan 01-04: Grunge CSS polish + SVG feTurbulence grain + WCAG verification", "status": "done", "commit": "a4f28e6"},
+    {"id": 5, "name": "Code review (standard depth) — 01-REVIEW.md", "status": "done", "commit": "6514b1a"},
+    {"id": 6, "name": "Code review fixes — CR-01, CR-02, WR-01, WR-02, WR-03 (5/5 fixed)", "status": "done", "commit": "5d21dc9"}
+  ],
+  "remaining_tasks": [
+    {"id": 7, "name": "Phase verification — spawn gsd-verifier, create 01-VERIFICATION.md", "status": "not_started"},
+    {"id": 8, "name": "Update roadmap — mark phase 01 complete (gsd-tools query phase.complete)", "status": "not_started"},
+    {"id": 9, "name": "Lifecycle: audit — gsd-audit-milestone", "status": "not_started"},
+    {"id": 10, "name": "Lifecycle: complete — gsd-complete-milestone v1.0", "status": "not_started"},
+    {"id": 11, "name": "Lifecycle: cleanup — gsd-cleanup", "status": "not_started"}
+  ],
+  "blockers": [],
+  "async_jobs": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "SVG feTurbulence grain at baseFrequency=0.9, numOctaves=4, opacity=0.05 via CSS data URI", "rationale": "Locked in CONTEXT.md; zero file weight; pure inline; matches grunge aesthetic requirement", "phase": "01"},
+    {"decision": "EWMA accuracy tracking drives weighted question selection (70% hard tables 6-9, 30% easy 1-5)", "rationale": "Adaptive difficulty prevents memorization while building confidence", "phase": "01"},
+    {"decision": "Fisher-Yates shuffle for answer positions", "rationale": "Unbiased position randomization prevents answer-location memorization", "phase": "01"},
+    {"decision": "fieldset change listener (not click) for answer input", "rationale": "Arrow-key radio navigation fires change events, not click events — CR-02 fix", "phase": "01"},
+    {"decision": "aria-live=polite on level-up overlay (not assertive)", "rationale": "Polite does not interrupt screen reader; assertive would be too aggressive for a game — WR-01 fix", "phase": "01"}
+  ],
+  "uncommitted_files": [
+    ".planning/ROADMAP.md",
+    ".planning/STATE.md",
+    ".planning/config.json",
+    ".planning/phases/01-mvp-core-loop-adhd-safe-mechanics/01-04-SUMMARY.md"
+  ],
+  "next_action": "Run /gsd-autonomous — it will detect phase 01 is all plans done + code review done but unverified (no VERIFICATION.md), spawn gsd-verifier, then run lifecycle (audit → complete → cleanup)",
+  "context_notes": "All 14 v1 requirements are implemented and code-reviewed. The app is a single HTML file (math-lab.html) ~31KB. Worktree isolation degraded (origin/HEAD unresolved) so the autonomous workflow ran sequentially on the main working tree — this remains the case. STATE.md status is 'verifying' which is correct. The uncommitted files (.planning/ROADMAP.md, STATE.md, config.json, 01-04-SUMMARY.md) contain progress state from the paused autonomous run and should be committed as WIP."
+}

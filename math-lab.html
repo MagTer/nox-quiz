@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math Lab</title>
+  <style>
+    /* -------------------------------------------------------
+       CSS Custom Properties — all locked from CONTEXT.md
+    ------------------------------------------------------- */
+    :root {
+      --bg:           #0a0a0a;
+      --bg-card:      #141414;
+      --text:         #e8e8e8;
+      --text-muted:   #888888;
+      --accent:       #00ff88;
+      --danger:       #ff3333;
+      --border:       #333333;
+      --grain-opacity: 0.05;
+    }
+
+    /* -------------------------------------------------------
+       Reset
+    ------------------------------------------------------- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* -------------------------------------------------------
+       Body — dark grunge base
+    ------------------------------------------------------- */
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Impact', 'Arial Black', Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* -------------------------------------------------------
+       Grain texture overlay — SVG feTurbulence data URI
+       baseFrequency 0.9, numOctaves 4: subtle noise at 5% opacity
+    ------------------------------------------------------- */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: var(--grain-opacity);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+    }
+
+    /* -------------------------------------------------------
+       HUD — always-visible header with glass depth
+    ------------------------------------------------------- */
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 24px;
+      background: rgba(10, 10, 10, 0.92);
+      backdrop-filter: blur(4px);
+      border-bottom: 1px solid var(--border);
+      z-index: 1000;
+    }
+
+    /* -------------------------------------------------------
+       Level badge — accented bordered pill
+    ------------------------------------------------------- */
+    #level-display {
+      font-size: 0.9rem;
+      font-weight: 900;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* -------------------------------------------------------
+       XP bar — segmented blocks rendered by JS
+    ------------------------------------------------------- */
+    #xp-bar {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0;
+    }
+
+    .xp-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 6px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .xp-segment {
+      display: inline-block;
+      width: 12px;
+      height: 16px;
+      margin: 0 2px;
+      background: #333;
+      border-radius: 2px;
+    }
+
+    .xp-segment.filled {
+      background: var(--accent);
+      box-shadow: 0 0 4px rgba(0, 255, 136, 0.6);
+    }
+
+    /* -------------------------------------------------------
+       Game board — centered question card
+    ------------------------------------------------------- */
+    #game-board {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 80px 24px 40px;
+    }
+
+    /* -------------------------------------------------------
+       Fieldset reset — remove browser default styles
+    ------------------------------------------------------- */
+    fieldset {
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* -------------------------------------------------------
+       Question fieldset card — depth via box-shadow
+    ------------------------------------------------------- */
+    #question-fieldset {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px 32px;
+      background: var(--bg-card);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      width: 100%;
+      max-width: 520px;
+    }
+
+    #question-legend {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: Arial, sans-serif;
+      font-weight: 400;
+      padding: 0 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* -------------------------------------------------------
+       Question text — large, bold, grunge typography
+       Color is var(--text) (#e8e8e8) — NOT accent (#00ff88)
+       WCAG AA: #e8e8e8 on #141414 ≈ 15:1 — well above 4.5:1
+    ------------------------------------------------------- */
+    #question-text {
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 32px;
+      letter-spacing: -0.02em;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    /* -------------------------------------------------------
+       Answer options — 2×2 grid
+    ------------------------------------------------------- */
+    #options-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Visually-hidden radio buttons — labels are click targets */
+    .option-item input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    .option-item label {
+      display: block;
+      padding: 18px 16px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.4rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--text);
+      transition: border-color 0.08s, background 0.08s, transform 0.08s;
+      user-select: none;
+    }
+
+    /* Hover only when not disabled — prevents visual confusion during feedback */
+    #options-list:not(.locked) .option-item:not(.disabled) label:hover {
+      border-color: var(--accent);
+      background: rgba(0, 255, 136, 0.05);
+      transform: translateY(-1px);
+    }
+
+    /* Correct answer — green */
+    .option-item.correct label {
+      border-color: var(--accent);
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--accent);
+    }
+
+    /* Wrong answer — red */
+    .option-item.wrong label {
+      border-color: var(--danger);
+      background: rgba(255, 51, 51, 0.12);
+      color: var(--danger);
+    }
+
+    /* Disabled — all options locked after answering */
+    .option-item.disabled label {
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    /* -------------------------------------------------------
+       Level-up overlay — full-screen celebration flash
+    ------------------------------------------------------- */
+    #levelup-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 255, 136, 0.15);
+      font-size: clamp(3rem, 10vw, 6rem);
+      font-weight: 900;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 30px var(--accent);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 10000;
+    }
+
+    @keyframes levelUpFlash {
+      0%   { opacity: 0; transform: scale(0.8); }
+      15%  { opacity: 1; transform: scale(1.05); }
+      70%  { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1); }
+    }
+
+    #levelup-overlay.active {
+      animation: levelUpFlash 0.8s ease-out forwards;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HUD: always visible header with level badge and XP bar -->
+  <header id="hud">
+    <span id="level-display">Level 1</span>
+    <div id="xp-bar"><span class="xp-label">XP</span><!-- Segments rendered by JS --></div>
+  </header>
+
+  <!-- Game board: centered question card -->
+  <main id="game-board">
+    <fieldset id="question-fieldset">
+      <legend id="question-legend">Choose the correct answer</legend>
+      <p id="question-text">Loading...</p>
+      <ul id="options-list">
+        <!-- Answer options rendered by JS -->
+      </ul>
+    </fieldset>
+  </main>
+
+  <!-- Level-up celebration overlay -->
+  <div id="levelup-overlay" aria-live="polite"></div>
+
+  <script>
+    'use strict';
+
+    /* ==========================================================
+       MODULE 1: CONFIG
+       All magic numbers in one place — locked values from CONTEXT.md
+    ========================================================== */
+    const CONFIG = {
+      XP_EASY:           10,   // XP for correct answer on tables 1–5
+      XP_HARD:           20,   // XP for correct answer on tables 6–9
+      BASE_XP:           200,  // XP required for Level 1 → Level 2
+      LEVEL_MULT:        1.3,  // per-level threshold multiplier
+      ADVANCE_DELAY_MS:  1000, // delay before auto-advancing to next question (1s)
+      SEGMENT_COUNT:     20,   // number of XP bar segments
+      HARD_TABLES:       [6, 7, 8, 9],
+      EASY_TABLES:       [1, 2, 3, 4, 5],
+      SAVE_KEY:          'mathlab_save_v1', // localStorage key (locked in CONTEXT.md)
+      ACCURACY_ALPHA:    0.15,  // EWMA weight for new answer
+      MASTERY_THRESHOLD: 0.80,  // 80% accuracy over last 10 to reduce drilling
+      STRUGGLE_THRESHOLD: 0.60, // below this → 1.5× weight boost
+      STRUGGLE_BOOST:    1.5,
+      MASTERY_WINDOW:    10     // sliding window size for mastery check
+    };
+
+    /* ==========================================================
+       MODULE 2: XpCalculator
+       Pure XP math — level thresholds and per-table XP amounts
+    ========================================================== */
+    const XpCalculator = (() => {
+      return {
+        getLevelThreshold(level) {
+          return Math.round(CONFIG.BASE_XP * Math.pow(CONFIG.LEVEL_MULT, level - 1));
+        },
+        calculateXp(table) {
+          return CONFIG.HARD_TABLES.includes(table) ? CONFIG.XP_HARD : CONFIG.XP_EASY;
+        }
+      };
+    })();
+
+    /* ==========================================================
+       MODULE 3: PlayerState
+       Closure-based state: XP, level, accuracy EWMA, history window
+    ========================================================== */
+    const PlayerState = (() => {
+      let xp = 0;
+      let level = 1;
+      // EWMA per table — hard tables start lower (higher initial weight in selector)
+      const accuracy = { 1: 0.5, 2: 0.5, 3: 0.5, 4: 0.5, 5: 0.5,
+                         6: 0.4, 7: 0.4, 8: 0.4, 9: 0.4 };
+      // Sliding window: last N answers per table for mastery check
+      const history = {};  // { table: [true, false, ...] }
+
+      return {
+        getXp()    { return xp; },
+        getLevel() { return level; },
+
+        // Add XP; detect level-up with surplus carry-over
+        // Returns true if a level-up occurred
+        addXp(points) {
+          xp += points;
+          const threshold = XpCalculator.getLevelThreshold(level);
+          if (xp >= threshold) {
+            xp -= threshold;  // carry over surplus XP (not xp = 0)
+            level++;
+            return true;      // signal level-up to caller
+          }
+          return false;
+        },
+
+        // EWMA: recent answers weighted more
+        updateAccuracy(table, isCorrect) {
+          const prev = accuracy[table] !== undefined ? accuracy[table] : 0.5;
+          accuracy[table] = prev * (1 - CONFIG.ACCURACY_ALPHA) +
+                            (isCorrect ? 1 : 0) * CONFIG.ACCURACY_ALPHA;
+          // Update sliding window for mastery check
+          if (!history[table]) history[table] = [];
+          history[table].push(isCorrect);
+          if (history[table].length > CONFIG.MASTERY_WINDOW) {
+            history[table].shift();
+          }
+        },
+
+        getAccuracy(table) {
+          return accuracy[table] !== undefined ? accuracy[table] : 0.5;
+        },
+
+        // Mastery: 80%+ correct over last MASTERY_WINDOW answers for this table
+        isMastered(table) {
+          const h = history[table] || [];
+          if (h.length < CONFIG.MASTERY_WINDOW) return false;
+          return h.filter(Boolean).length / h.length >= CONFIG.MASTERY_THRESHOLD;
+        },
+
+        toJSON() {
+          return { xp, level, accuracy: Object.assign({}, accuracy),
+                   history: Object.assign({}, history) };
+        },
+
+        // Security: only copy explicitly named keys — no Object.assign(this, data) spread
+        // Handles JSON string-keyed accuracy/history objects (JSON.parse coerces numeric keys to strings)
+        fromJSON(data) {
+          if (!data || typeof data !== 'object') return;
+          // Validate types before assignment
+          xp    = (typeof data.xp === 'number' && data.xp >= 0) ? data.xp : 0;
+          level = (typeof data.level === 'number' && data.level >= 1)
+                    ? Math.floor(data.level) : 1;
+          if (data.accuracy && typeof data.accuracy === 'object') {
+            Object.entries(data.accuracy).forEach(([k, v]) => {
+              const table = parseInt(k, 10);
+              if (table >= 1 && table <= 9 && typeof v === 'number' && v >= 0 && v <= 1) {
+                accuracy[table] = v;
+              }
+            });
+          }
+          if (data.history && typeof data.history === 'object') {
+            Object.entries(data.history).forEach(([k, v]) => {
+              const table = parseInt(k, 10);
+              if (table >= 1 && table <= 9 && Array.isArray(v)) {
+                // Only keep boolean values; clamp to window size
+                history[table] = v.filter(x => typeof x === 'boolean')
+                                   .slice(-CONFIG.MASTERY_WINDOW);
+              }
+            });
+          }
+        },
+
+        reset() {
+          xp    = 0;
+          level = 1;
+          CONFIG.EASY_TABLES.forEach(t => { accuracy[t] = 0.5; delete history[t]; });
+          CONFIG.HARD_TABLES.forEach(t => { accuracy[t] = 0.4; delete history[t]; });
+        }
+      };
+    })();
+
+    /* ==========================================================
+       MODULE 4: PersistenceStore
+       Full localStorage implementation — Plan 02
+       Versioned JSON save/load with validation and QuotaExceededError handling
+    ========================================================== */
+    const PersistenceStore = (() => {
+      const KEY     = CONFIG.SAVE_KEY;
+      const VERSION = 1;
+
+      function defaults() {
+        return {
+          version:  VERSION,
+          xp:       0,
+          level:    1,
+          accuracy: { 1: 0.5, 2: 0.5, 3: 0.5, 4: 0.5, 5: 0.5,
+                      6: 0.4, 7: 0.4, 8: 0.4, 9: 0.4 },
+          history:  {}
+        };
+      }
+
+      return {
+        load() {
+          try {
+            const raw = localStorage.getItem(KEY);
+            if (raw === null) return defaults();
+
+            let data;
+            try {
+              data = JSON.parse(raw);
+            } catch (e) {
+              console.warn('[MathLab] Save data corrupt — using defaults');
+              return defaults();
+            }
+
+            if (data.version !== VERSION) {
+              console.warn('[MathLab] Save version mismatch — using defaults');
+              return defaults();
+            }
+
+            // Validate top-level numeric fields
+            if (typeof data.xp !== 'number' || !isFinite(data.xp) || data.xp < 0) {
+              console.warn('[MathLab] Save data invalid (xp) — using defaults');
+              return defaults();
+            }
+            if (typeof data.level !== 'number' || !Number.isInteger(data.level) ||
+                data.level < 1) {
+              console.warn('[MathLab] Save data invalid (level) — using defaults');
+              return defaults();
+            }
+
+            return data;
+          } catch (e) {
+            console.warn('[MathLab] Load failed:', e);
+            return defaults();
+          }
+        },
+
+        save(playerState) {
+          try {
+            const serialized = JSON.stringify({
+              version: VERSION,
+              ...playerState.toJSON()
+            });
+            localStorage.setItem(KEY, serialized);
+          } catch (e) {
+            if (e.name === 'QuotaExceededError') {
+              console.warn('[MathLab] localStorage full — progress may not save');
+            } else {
+              console.warn('[MathLab] Save failed:', e);
+            }
+          }
+        }
+      };
+    })();
+
+    /* ==========================================================
+       MODULE 5: QuestionSelector — full weighted implementation (Plan 03)
+       Bias hard tables (6–9) by ~70%, boost struggling tables 1.5×,
+       reduce mastered tables; Fisher-Yates shuffle for unbiased position.
+    ========================================================== */
+    const QuestionSelector = (() => {
+
+      // Fisher-Yates uniform shuffle — not sort(random) which is biased
+      // In-place, returns shuffled array.
+      const shuffle = (arr) => {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      };
+
+      // Build weight map for all 9 tables driven by playerState accuracy.
+      // Hard tables: base weight (1 - acc)^1.5, boosted if struggling, reduced if mastered.
+      // Easy tables: base weight (1 - acc)^0.8 * 0.3 so they average ~30% total selection.
+      // Edge case: if total weight rounds to zero (all mastered), reset to equal weights.
+      const calculateWeights = (playerState) => {
+        const weights = {};
+
+        CONFIG.HARD_TABLES.forEach(table => {
+          const acc = playerState.getAccuracy(table);
+          let w = Math.pow(1 - acc, 1.5);
+          if (acc < CONFIG.STRUGGLE_THRESHOLD) w *= CONFIG.STRUGGLE_BOOST;
+          if (playerState.isMastered(table))   w *= 0.3;
+          weights[table] = w;
+        });
+
+        CONFIG.EASY_TABLES.forEach(table => {
+          const acc = playerState.getAccuracy(table);
+          let w = Math.pow(1 - acc, 0.8) * 0.3;
+          if (playerState.isMastered(table)) w *= 0.3;
+          weights[table] = w;
+        });
+
+        // Guard: if all weights are ~zero (all tables mastered), reset to equal
+        const total = Object.values(weights).reduce((a, b) => a + b, 0);
+        if (total < 1e-9) {
+          const allTables = [...CONFIG.HARD_TABLES, ...CONFIG.EASY_TABLES];
+          allTables.forEach(t => { weights[t] = 1.0; });
+        }
+
+        return weights;
+      };
+
+      // Weighted random table selection from weights map.
+      // Rolls a random number in [0, total) and walks the weights.
+      const weightedRandom = (weights) => {
+        const total = Object.values(weights).reduce((a, b) => a + b, 0);
+        let roll = Math.random() * total;
+        for (const [table, w] of Object.entries(weights)) {
+          roll -= w;
+          if (roll <= 0) return parseInt(table, 10);
+        }
+        // Fallback (floating point rounding edge): return first hard table
+        return CONFIG.HARD_TABLES[0];
+      };
+
+      // Distractor generation: ±1/±2 multiplicand on same table (CONTEXT.md locked decision).
+      // Adds one wrong-table distractor (from a different hard table) for variety.
+      // Deduplicates: all candidates filtered v !== answer && v > 0.
+      // Returns exactly 3 distractors — pads if necessary, never returns duplicates.
+      const generateDistractors = (answer, table, multiplicand) => {
+        const pool = new Set();
+
+        // Primary candidates: ±1 and ±2 multiplicand on the same table
+        [-2, -1, 1, 2].forEach(d => {
+          const v = table * (multiplicand + d);
+          if (v > 0 && v !== answer) pool.add(v);
+        });
+
+        // One wrong-table distractor (pick first hard table that isn't current)
+        const wrongTable = CONFIG.HARD_TABLES.find(t => t !== table) || CONFIG.EASY_TABLES[0];
+        const wrongVal = wrongTable * multiplicand;
+        if (wrongVal > 0 && wrongVal !== answer) pool.add(wrongVal);
+
+        // Extend if still under 3: try ±3 offsets on same table
+        if (pool.size < 3) {
+          [-3, 3].forEach(d => {
+            const v = table * (multiplicand + d);
+            if (v > 0 && v !== answer) pool.add(v);
+          });
+        }
+
+        // Fisher-Yates shuffle the pool, pick first 3
+        const poolArr = shuffle([...pool]);
+        const chosen = poolArr.slice(0, 3);
+
+        // Last-resort pad (should be unreachable for multiplicand 1–10 range)
+        while (chosen.length < 3) {
+          let pad = answer + chosen.length + 1;
+          while (pad === answer || chosen.includes(pad)) pad++;
+          chosen.push(pad);
+        }
+
+        return chosen;
+      };
+
+      return {
+        // Full weighted selectNext — accepts PlayerState to read accuracy
+        selectNext(playerState) {
+          const weights     = calculateWeights(playerState);
+          const table       = weightedRandom(weights);
+          const multiplicand = Math.floor(Math.random() * 10) + 1;
+          const answer      = table * multiplicand;
+          const distractors = generateDistractors(answer, table, multiplicand);
+          const options     = shuffle([answer, ...distractors]);
+          return {
+            table,
+            multiplicand,
+            answer,
+            options,
+            question: table + ' × ' + multiplicand  // × (multiplication sign)
+          };
+        }
+      };
+    })();
+
+    /* ==========================================================
+       DOM CACHE + RENDERER + INPUT HANDLER + APP
+       These live inside DOMContentLoaded — they access DOM elements
+    ========================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+
+      /* ----------------------------------------------------------
+         DOM Cache — populated once at init; never queried again
+      ---------------------------------------------------------- */
+      const DOM = {};
+      DOM.levelDisplay   = document.getElementById('level-display');
+      DOM.xpBar          = document.getElementById('xp-bar');
+      DOM.questionText   = document.getElementById('question-text');
+      DOM.optionsList    = document.getElementById('options-list');
+      DOM.levelupOverlay = document.getElementById('levelup-overlay');
+      DOM.questionLegend = document.getElementById('question-legend');
+
+      /* ----------------------------------------------------------
+         MODULE 6: Renderer
+         All DOM updates go through here — no DOM writes elsewhere
+      ---------------------------------------------------------- */
+      const Renderer = {
+        updateHud(xp, level) {
+          DOM.levelDisplay.textContent = 'Level ' + level;
+          this.renderXpBar(xp, level);
+        },
+
+        renderXpBar(xp, level) {
+          const threshold   = XpCalculator.getLevelThreshold(level);
+          // Clamp: prevent negative or over-full bar on edge cases (e.g. level-up surplus)
+          const filledCount = Math.min(
+            CONFIG.SEGMENT_COUNT,
+            Math.max(0, Math.floor((xp / threshold) * CONFIG.SEGMENT_COUNT))
+          );
+          // Use DocumentFragment for batch DOM insertion (performance)
+          const frag = document.createDocumentFragment();
+          // Re-create the XP label so it survives the innerHTML clear below
+          const xpLabel = document.createElement('span');
+          xpLabel.className = 'xp-label';
+          xpLabel.textContent = 'XP';
+          frag.appendChild(xpLabel);
+          for (let i = 0; i < CONFIG.SEGMENT_COUNT; i++) {
+            const seg = document.createElement('div');
+            seg.className = 'xp-segment' + (i < filledCount ? ' filled' : '');
+            frag.appendChild(seg);
+          }
+          DOM.xpBar.innerHTML = '';
+          DOM.xpBar.appendChild(frag);
+          // Accessibility tooltip: show numeric progress on hover
+          DOM.xpBar.title = xp + ' / ' + threshold + ' XP';
+        },
+
+        showQuestion(questionObj) {
+          // Security: textContent, never innerHTML
+          DOM.questionText.textContent = questionObj.question + ' = ?';
+          DOM.questionLegend.textContent = 'Choose the correct answer';
+          DOM.optionsList.innerHTML = '';
+          questionObj.options.forEach((val, i) => {
+            const li    = document.createElement('li');
+            li.className = 'option-item';
+
+            const input = document.createElement('input');
+            input.type  = 'radio';
+            input.name  = 'answer';
+            input.id    = 'opt-' + i;
+            input.value = String(val);
+
+            const label = document.createElement('label');
+            label.setAttribute('for', 'opt-' + i);
+            label.textContent = String(val);  // textContent, not innerHTML
+
+            li.appendChild(input);
+            li.appendChild(label);
+            DOM.optionsList.appendChild(li);
+          });
+        },
+
+        showLevelUpOverlay(newLevel) {
+          DOM.levelupOverlay.textContent = 'LEVEL ' + newLevel + '!';
+          DOM.levelupOverlay.classList.add('active');
+          DOM.levelupOverlay.addEventListener('animationend', () => {
+            DOM.levelupOverlay.classList.remove('active');
+          }, { once: true });
+        },
+
+        clearFeedback() {
+          const items = DOM.optionsList.querySelectorAll('.option-item');
+          items.forEach(item => {
+            item.classList.remove('correct', 'wrong', 'disabled');
+          });
+        }
+      };
+
+      /* ----------------------------------------------------------
+         MODULE 7: InputHandler
+         Event delegation on optionsList; 1s feedback lock
+      ---------------------------------------------------------- */
+      const InputHandler = {
+        currentQuestion: null,
+        locked: false,
+
+        setup() {
+          // Change listener on the fieldset captures both click and arrow-key navigation.
+          // Radio inputs fire 'change' on arrow-key selection; 'click' alone misses it.
+          // event.target.value is the canonical source (set to String(val) in showQuestion).
+          document.getElementById('question-fieldset').addEventListener('change', (event) => {
+            if (InputHandler.locked) return;
+            if (event.target.tagName !== 'INPUT' || event.target.type !== 'radio') return;
+            InputHandler.handleAnswer(event.target.value);
+          });
+        },
+
+        handleAnswer(selectedValue) {
+          InputHandler.locked = true;
+
+          // Disable all options immediately
+          const items = Array.from(DOM.optionsList.querySelectorAll('.option-item'));
+          items.forEach(item => item.classList.add('disabled'));
+
+          // Validate: parse selected value as integer
+          const selected = parseInt(selectedValue, 10);
+          const isCorrect = selected === InputHandler.currentQuestion.answer;
+
+          // Match by input value — canonical source, not label text
+          const findItemByValue = (val) =>
+            items.find(item => {
+              const inp = item.querySelector('input[type="radio"]');
+              return inp && parseInt(inp.value, 10) === val;
+            });
+
+          if (isCorrect) {
+            const clickedItem = findItemByValue(selected);
+            if (clickedItem) clickedItem.classList.add('correct');
+
+            // Award XP
+            const xpAwarded = XpCalculator.calculateXp(
+              InputHandler.currentQuestion.table
+            );
+            const leveledUp = PlayerState.addXp(xpAwarded);
+            if (leveledUp) {
+              Renderer.showLevelUpOverlay(PlayerState.getLevel());
+            }
+          } else {
+            const clickedItem = findItemByValue(selected);
+            if (clickedItem) clickedItem.classList.add('wrong');
+
+            // Reveal correct answer in green
+            const correctItem = findItemByValue(InputHandler.currentQuestion.answer);
+            if (correctItem) correctItem.classList.add('correct');
+          }
+
+          // Update accuracy tracking and HUD
+          PlayerState.updateAccuracy(
+            InputHandler.currentQuestion.table, isCorrect
+          );
+          PersistenceStore.save(PlayerState);
+          Renderer.updateHud(PlayerState.getXp(), PlayerState.getLevel());
+
+          // Auto-advance after 1s feedback delay
+          // IMPORTANT: This setTimeout is the feedback pause — NOT a visible timer.
+          // No UI element changes during this window except the feedback colors.
+          setTimeout(() => {
+            InputHandler.locked = false;
+            App.nextQuestion();
+          }, CONFIG.ADVANCE_DELAY_MS);
+        }
+      };
+
+      /* ----------------------------------------------------------
+         App — bootstrap and game flow
+      ---------------------------------------------------------- */
+      const App = {
+        nextQuestion() {
+          const q = QuestionSelector.selectNext(PlayerState);
+          InputHandler.currentQuestion = q;
+          Renderer.showQuestion(q);
+        }
+      };
+
+      /* ----------------------------------------------------------
+         Bootstrap — load saved state and start the game
+      ---------------------------------------------------------- */
+      const savedData = PersistenceStore.load();
+      PlayerState.fromJSON(savedData);
+      InputHandler.setup();
+      Renderer.updateHud(PlayerState.getXp(), PlayerState.getLevel());
+      App.nextQuestion();
+
+      /* ----------------------------------------------------------
+         Persistence triggers — save on tab hide and window close
+         visibilitychange is more reliable than beforeunload on mobile
+      ---------------------------------------------------------- */
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) PersistenceStore.save(PlayerState);
+      });
+      window.addEventListener('beforeunload', () => {
+        PersistenceStore.save(PlayerState);
+      });
+
+      /* ----------------------------------------------------------
+         Debug helper — DevTools only; not visible in the UI.
+         Usage: debugAccuracy() in the browser console to inspect
+         per-table accuracy and mastery state for UAT.
+      ---------------------------------------------------------- */
+      window.debugAccuracy = () => {
+        const tables = [...CONFIG.HARD_TABLES, ...CONFIG.EASY_TABLES];
+        console.table(tables.map(t => ({
+          table: t,
+          accuracy: PlayerState.getAccuracy(t).toFixed(3),
+          mastered: PlayerState.isMastered(t)
+        })));
+      };
+
+    }); // end DOMContentLoaded
+  </script>
+</body>
+</html>
