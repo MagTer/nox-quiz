@@ -2,7 +2,20 @@
 
 ## What This Is
 
-A standalone local web app (single HTML file) for a 12-year-old girl to practice multiplication tables in a way she actually enjoys. The app targets the 6–9 times tables while mixing in easier ones for confidence, uses a dark grunge aesthetic, and rewards progress with XP and leveling up — no pink, no pressure.
+A standalone local web app (single HTML file) for a 12-year-old girl to practice multiplication tables through a dungeon crawler game. She fights enemies by solving multiplication problems — correct answers attack, wrong answers let the enemy hit back. Dark grunge aesthetic, no pink, no timers, no pressure.
+
+## Current Milestone: v2.0 Dungeon Crawler
+
+**Goal:** Transform the math practice app into a dungeon crawler where multiplication is the combat mechanic — she fights enemies to go deeper, she doesn't just answer questions.
+
+**Target features:**
+- Room-by-room dungeon exploration (5–6 rooms per floor, 3 floors + boss)
+- Combat: correct answer attacks enemy, wrong answer = take damage (HP system)
+- 3 enemy types: Goblin (easy tables), Skeleton (medium), Dragon boss (hard, multi-hit)
+- Loot drops: sword upgrade, shield, health potions
+- Progressive floor difficulty: ×2×3×5 → ×4×6×7 → ×7×8×9 → boss
+- No permadeath: die = restart the floor
+- Session-scoped runs (~5–10 min); adaptive accuracy tracking from v1 carries over
 
 ## Core Value
 
@@ -73,4 +86,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-20 after initialization*
+*Last updated: 2026-06-20 — v2.0 Dungeon Crawler milestone started*

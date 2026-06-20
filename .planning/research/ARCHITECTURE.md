@@ -1,750 +1,480 @@
 # Architecture Research
 
-**Domain:** Single-file gamified educational web app (vanilla JS)
+**Domain:** Dungeon crawler combat layer on top of existing single-file vanilla JS math app
 **Researched:** 2026-06-20
 **Confidence:** HIGH
 
-## Standard Architecture
-
-### System Overview
-
-A single-file game app operates as a unified namespace with tightly coupled modules (closures) to avoid globals while maintaining simplicity. The architecture centers on a game loop that drives the entire experience.
-
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                      GAME LOOP ORCHESTRATOR                        │
-│  (requestAnimationFrame → Update → Render → repeat)               │
-├────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌──────────────────┐  ┌─────────────────┐   │
-│  │  INPUT HANDLER  │  │  STATE MANAGER   │  │  RENDERER       │   │
-│  │ (events, input) │  │ (XP, level, Qs)  │  │ (DOM updates)   │   │
-│  └────────┬────────┘  └────────┬─────────┘  └────────┬────────┘   │
-│           │                    │                     │             │
-├───────────┴────────────────────┴─────────────────────┴─────────────┤
-│  GAME STATE LAYER (shared via closure/namespace)                  │
-│  ┌──────────────────────────────────────────────────────────────┐ │
-│  │  PlayerState (XP, level, accuracy by table, session count)  │ │
-│  │  QuestionQueue (current Q, history, weighting calculations)│ │
-│  │  PersistenceStore (localStorage interface)                 │ │
-│  └──────────────────────────────────────────────────────────────┘ │
-├────────────────────────────────────────────────────────────────────┤
-│  SERVICE LAYER (pure functions for computation)                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐            │
-│  │ XP & Leveling│  │ Question     │  │ Persistence  │            │
-│  │ Calculator   │  │ Selector     │  │ Manager      │            │
-│  └──────────────┘  └──────────────┘  └──────────────┘            │
-└────────────────────────────────────────────────────────────────────┘
-```
-
-### Component Responsibilities
-
-| Component | Responsibility | Implementation |
-|-----------|----------------|-----------------|
-| **Game Loop** | Coordinate frame timing, call update/render | `requestAnimationFrame` callback with delta time accumulation |
-| **Input Handler** | Capture user interactions (clicks, keyboard) | Event listeners on document; pass to state updates |
-| **State Manager** | Hold and modify game state | Closure object with getter/setter methods; single source of truth |
-| **Question Selector** | Choose weighted next question based on accuracy history | Algorithm: prioritize weak tables (6–9), weight by recent misses |
-| **XP/Level Engine** | Calculate XP earned, determine level ups | Exponential curve (e.g., 100 XP per level, 1.5x multiplier) |
-| **Renderer** | Update DOM to reflect current state | Query game state, update DOM elements (no virtual DOM overhead) |
-| **Persistence Manager** | Save/load state from localStorage | JSON serialize state; version and migrate on load |
-
-## Recommended Project Structure
-
-Since this is a **single HTML file**, the internal organization uses the namespace module pattern with closures:
-
-```
-index.html
-├── <style> — Embedded CSS
-│   ├── Reset & layout
-│   ├── Game board styling
-│   ├── UI components (buttons, modals)
-│   └── Animations & transitions
-│
-├── <div> — Semantic HTML structure
-│   ├── #app — Root container
-│   ├── #game-board — Question & choices display
-│   ├── #hud — XP bar, level display, session stats
-│   ├── #level-up-modal — Overlay for celebrations
-│   └── #menu — Pause/settings (optional v2)
-│
-└── <script> — Embedded JavaScript, organized as:
-    │
-    ├── Config object — Constants
-    │   ├── XP curves, table weights, question pool
-    │   └── DOM selectors, animation timings
-    │
-    ├── PersistenceStore — localStorage wrapper
-    │   ├── load() → player state object
-    │   ├── save(state) → JSON to localStorage
-    │   └── migrate() → version check & upgrades
-    │
-    ├── PlayerState — Game state holder (closure)
-    │   ├── xp, level, accuracy[table], sessionCount
-    │   ├── getLevel(), addXp(), updateAccuracy()
-    │   └── toJSON() for persistence
-    │
-    ├── QuestionSelector — Question weighting logic
-    │   ├── selectNext(playerState) → { question, options, answer }
-    │   ├── calculateWeights() → distribution by weakness
-    │   └── recordAnswer(isCorrect) → update history
-    │
-    ├── XpCalculator — XP reward rules
-    │   ├── calculateXp(table, isCorrect, difficulty) → points
-    │   ├── getLevelThreshold(level) → XP required
-    │   └── detectLevelUp(xp) → new level?
-    │
-    ├── Renderer — DOM updates
-    │   ├── renderQuestion(q, options)
-    │   ├── updateHud(playerState)
-    │   ├── showLevelUp(newLevel)
-    │   └── animateXpGain(points)
-    │
-    ├── InputHandler — Event listeners
-    │   ├── onAnswerClick(index) → validate & flow
-    │   ├── onPauseClick() → pause game (v2)
-    │   └── setupEventListeners()
-    │
-    ├── GameLoop — Main orchestrator
-    │   ├── lastTimestamp, accumulatedDelta
-    │   ├── tick(timestamp) → update(delta) + render()
-    │   ├── update(delta) → advance question timing, check level-ups
-    │   ├── render() → Renderer.updateHud() + DOM sync
-    │   └── start() → requestAnimationFrame loop
-    │
-    └── App — Initialization
-        ├── Load persisted state
-        ├── Initialize all systems
-        └── Start game loop
-```
-
-### Structure Rationale
-
-- **Single file:** No HTTP requests, no build step, instant portability to Windows. All code loads synchronously in one parse.
-- **Closure-based modules:** Each logical component (PlayerState, QuestionSelector, etc.) is an IIFE that returns a public API, keeping internals private without polluting globals.
-- **No frameworks:** Vanilla DOM operations are fast and transparent for a simple UI. No virtual DOM overhead; direct `textContent` and `classList` updates.
-- **Config object at top:** Magic numbers isolated; easy to tune game balance without touching logic.
-- **PersistenceStore abstraction:** localStorage logic isolated; can swap for IndexedDB later if needed without touching game logic.
-- **Service layer separation:** XpCalculator, QuestionSelector, and Renderer are pure-ish functions that don't depend on the full app state; easy to test with console or dev tools.
-
-## Architectural Patterns
-
-### Pattern 1: Module Closure (Namespace Pattern)
-
-**What:** Each component is an IIFE that returns a public API object; internal state is private via closure.
-
-**When to use:** Single-file apps where you need modularity without build tools or frameworks.
-
-**Trade-offs:**
-- ✅ Works in any browser, zero dependencies
-- ✅ Minimal performance overhead
-- ✅ Code organization is clear despite no file separation
-- ❌ No tree-shaking; all modules load regardless of use
-- ❌ Debugging requires DevTools to inspect closure variables
-- ❌ Refactoring to multi-file is more work later
-
-**Example:**
-```javascript
-const PlayerState = (() => {
-  let xp = 0;
-  let level = 1;
-  const accuracy = {}; // { 1: 0.85, 2: 0.9, ... 9: 0.6 }
-
-  return {
-    getXp() { return xp; },
-    addXp(points) { 
-      xp += points;
-      this.checkLevelUp();
-    },
-    getLevel() { return level; },
-    checkLevelUp() {
-      const threshold = XpCalculator.getLevelThreshold(level);
-      if (xp >= threshold) {
-        level++;
-        return true; // Signal for celebration
-      }
-      return false;
-    },
-    getAccuracy(table) { return accuracy[table] || 0; },
-    updateAccuracy(table, correct) {
-      const current = accuracy[table] || 0;
-      // Simple running average; could be ewma for recency weighting
-      accuracy[table] = (current * 0.9) + (correct ? 0.1 : 0);
-    },
-    toJSON() {
-      return { xp, level, accuracy };
-    },
-    fromJSON(data) {
-      xp = data.xp || 0;
-      level = data.level || 1;
-      Object.assign(accuracy, data.accuracy || {});
-    }
-  };
-})();
-```
-
-### Pattern 2: Fixed-Step Game Loop with Delta Time
-
-**What:** Game logic runs at a fixed timestep (e.g., 60 Hz) to ensure determinism; rendering is uncapped. Delta time accumulates across frames to handle variable browser refresh rates.
-
-**When to use:** Games with physics or timing that must be stable across devices; ensures reproducibility.
-
-**Trade-offs:**
-- ✅ Timing is predictable; no sudden jumps or slow-mo glitches
-- ✅ Game state is independent of frame rate
-- ✅ Can easily debug by changing timestep multiplier (slow-mo)
-- ❌ Extra code complexity; accumulation logic can be confusing
-- ❌ Overkill for turn-based (not real-time) games
-
-**For this app:** The math quiz is turn-based, so a simpler event-driven model is sufficient. Use fixed-step only if you add timed animations (e.g., XP +50 floating upward).
-
-**Example:**
-```javascript
-const GameLoop = (() => {
-  const FIXED_TIMESTEP = 1 / 60; // 16.67 ms per game tick
-  let lastTimestamp = null;
-  let accumulatedDelta = 0;
-
-  const tick = (timestamp) => {
-    if (lastTimestamp === null) lastTimestamp = timestamp;
-    let delta = (timestamp - lastTimestamp) / 1000; // Convert to seconds
-    lastTimestamp = timestamp;
-    
-    // Cap delta to prevent huge jumps (e.g., tab lost focus)
-    delta = Math.min(delta, 0.1);
-    
-    accumulatedDelta += delta;
-    
-    // Update at fixed timestep
-    while (accumulatedDelta >= FIXED_TIMESTEP) {
-      update(FIXED_TIMESTEP);
-      accumulatedDelta -= FIXED_TIMESTEP;
-    }
-    
-    render(); // Render with current accumulated time (for smooth animations)
-    requestAnimationFrame(tick);
-  };
-
-  return {
-    start() {
-      requestAnimationFrame(tick);
-    },
-    update(dt) {
-      // Advance question animations, check level-ups, etc.
-      // dt is always 1/60 for determinism
-    },
-    render() {
-      // Update DOM based on current state
-    }
-  };
-})();
-```
-
-### Pattern 3: Weighted Question Selection via Accuracy History
-
-**What:** Questions are selected based on a probability distribution that prioritizes weak tables and recent mistakes.
-
-**When to use:** Adaptive difficulty + spaced-repetition feel in educational games.
-
-**Trade-offs:**
-- ✅ Keeps user focused on weak spots
-- ✅ Feels dynamic; not a rigid sequence
-- ✅ Simple to implement (no ML needed)
-- ❌ Requires careful tuning to avoid repetitive feel
-- ❌ Weak tables might dominate if not balanced with easier questions
-
-**Example (simplified):**
-```javascript
-const QuestionSelector = (() => {
-  const ALL_TABLES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  const TARGET_TABLES = [6, 7, 8, 9]; // Focus area
-  
-  const calculateWeights = (playerState) => {
-    const weights = {};
-    
-    ALL_TABLES.forEach(table => {
-      const accuracy = playerState.getAccuracy(table);
-      
-      if (TARGET_TABLES.includes(table)) {
-        // Weak table gets higher weight
-        // Inverse: low accuracy = high probability
-        weights[table] = (1 - accuracy) ** 1.5;
-      } else {
-        // Easier tables get lower weight but not zero
-        // Occasional confidence boosts
-        weights[table] = (1 - accuracy) ** 0.8 * 0.3;
-      }
-    });
-    
-    return weights;
-  };
-
-  const selectNext = (playerState) => {
-    const weights = calculateWeights(playerState);
-    const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
-    let roll = Math.random() * totalWeight;
-    let selected = null;
-    
-    for (const [table, weight] of Object.entries(weights)) {
-      roll -= weight;
-      if (roll <= 0) {
-        selected = parseInt(table);
-        break;
-      }
-    }
-    
-    const multiplicand = Math.floor(Math.random() * 10) + 1; // 1–10
-    const answer = selected * multiplicand;
-    const options = generateMultipleChoice(answer);
-    
-    return {
-      table: selected,
-      multiplicand,
-      answer,
-      options,
-      question: `${selected} × ${multiplicand} = ?`
-    };
-  };
-
-  return { selectNext };
-})();
-```
-
-### Pattern 4: XP & Level Curve (Exponential Progression)
-
-**What:** Each level requires more XP than the last, following an exponential curve. This creates longer engagement sessions (Skinner Box principle) and a sense of growing achievement.
-
-**When to use:** Games with progression mechanics; XP should feel like it matters without requiring infinite grind.
-
-**Trade-offs:**
-- ✅ Early levels feel fast (quick wins); later levels require commitment
-- ✅ Clear visual progress (level ↑) motivates return sessions
-- ✅ Easily tunable (adjust multiplier or base)
-- ❌ Can feel grindy if curve is too steep
-- ❌ Requires playtesting to get right for target age/ability
-
-**Example:**
-```javascript
-const XpCalculator = (() => {
-  const BASE_XP_PER_LEVEL = 100; // Level 1 requires 100 XP
-  const LEVEL_MULTIPLIER = 1.2;  // Each level is 1.2x harder
-  const CORRECT_XP = 10;          // Base XP for correct answer
-  
-  const getLevelThreshold = (level) => {
-    // XP required to reach this level (cumulative)
-    return BASE_XP_PER_LEVEL * Math.pow(LEVEL_MULTIPLIER, level - 1);
-  };
-
-  const getTotalXpForLevel = (level) => {
-    // Total XP accumulated to reach this level
-    let total = 0;
-    for (let i = 1; i < level; i++) {
-      total += getLevelThreshold(i);
-    }
-    return total;
-  };
-
-  const calculateXp = (table, isCorrect, accuracy) => {
-    let points = 0;
-    if (isCorrect) {
-      points = CORRECT_XP;
-      // Difficulty modifier: harder tables worth more
-      if (table >= 6) points *= 1.5; // 6–9 tables are priority
-      // Accuracy modifier: consistently correct = bonus
-      if (accuracy >= 0.8) points *= 1.2;
-    }
-    return points;
-  };
-
-  return {
-    getLevelThreshold,
-    getTotalXpForLevel,
-    calculateXp
-  };
-})();
-```
-
-### Pattern 5: localStorage Versioning & Migration
-
-**What:** State is serialized to JSON and stored in localStorage. Version number allows safe schema updates without losing player progress.
-
-**When to use:** Any game that persists state locally; future-proofs against adding new features (new accuracy columns, new currencies, etc.).
-
-**Trade-offs:**
-- ✅ Simple, no backend needed
-- ✅ Fast (synchronous)
-- ✅ Survives browser restart
-- ❌ Limited to ~5–10 MB per domain
-- ❌ No conflict resolution if user plays on multiple devices
-- ❌ Can be cleared by cache/cookie wipe
-
-**Example:**
-```javascript
-const PersistenceStore = (() => {
-  const STORAGE_KEY = 'mathlab_player_v2';
-  const CURRENT_VERSION = 2;
-
-  const migrate = (data, fromVersion) => {
-    if (fromVersion === 1) {
-      // v1 → v2: added table-level difficulty tracking
-      data.accuracy = data.accuracy || {};
-      // Backfill missing tables
-      for (let i = 1; i <= 9; i++) {
-        if (!(i in data.accuracy)) {
-          data.accuracy[i] = 0.5; // Neutral baseline
-        }
-      }
-    }
-    data.version = CURRENT_VERSION;
-    return data;
-  };
-
-  const load = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return getDefaultState();
-      
-      const data = JSON.parse(raw);
-      if (data.version < CURRENT_VERSION) {
-        data = migrate(data, data.version);
-      }
-      return data;
-    } catch (e) {
-      console.error('localStorage load failed:', e);
-      return getDefaultState();
-    }
-  };
-
-  const save = (playerState) => {
-    try {
-      const data = {
-        version: CURRENT_VERSION,
-        ...playerState.toJSON()
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error('localStorage save failed:', e);
-      // Silently fail; game continues in memory
-    }
-  };
-
-  const getDefaultState = () => ({
-    version: CURRENT_VERSION,
-    xp: 0,
-    level: 1,
-    accuracy: { 1: 0.5, 2: 0.5, 3: 0.5, 4: 0.5, 5: 0.5,
-                6: 0.4, 7: 0.4, 8: 0.4, 9: 0.4 },
-    sessionCount: 0
-  });
-
-  return { load, save };
-})();
-```
-
-## Data Flow
-
-### Main Event Loop
-
-```
-requestAnimationFrame(timestamp)
-    ↓
-GameLoop.tick(timestamp)
-    ├─→ Calculate delta time
-    ├─→ Update(delta) — Game state advance
-    │   ├─→ Check if time for next question render
-    │   ├─→ Detect level-ups
-    │   └─→ Update animations/particles if any
-    ├─→ Render() — DOM sync
-    │   ├─→ Query PlayerState for XP/level/accuracy
-    │   ├─→ Update HUD display
-    │   └─→ (Animate transitions)
-    └─→ requestAnimationFrame(callback) — Loop continues
-```
-
-### User Answers a Question
-
-```
-User clicks answer choice
-    ↓
-InputHandler.onAnswerClick(index)
-    ├─→ Get current question & user selection
-    ├─→ Validate: is it correct?
-    ├─→ Calculate XP earned
-    │   └─→ XpCalculator.calculateXp(table, isCorrect, accuracy)
-    ├─→ Update PlayerState
-    │   ├─→ PlayerState.addXp(points)
-    │   ├─→ PlayerState.updateAccuracy(table, isCorrect)
-    │   └─→ Detect level-up (internal to PlayerState)
-    ├─→ PersistenceStore.save(PlayerState)
-    ├─→ Select next question
-    │   └─→ QuestionSelector.selectNext(PlayerState)
-    ├─→ Renderer updates HUD & question display
-    └─→ (Next frame will animate transitions)
-```
-
-### Initialization & State Restore
-
-```
-App.init()
-    ↓
-PersistenceStore.load() → prev player data or defaults
-    ↓
-PlayerState.fromJSON(data) → hydrate game state
-    ↓
-Renderer.renderQuestion() & Renderer.updateHud()
-    ↓
-GameLoop.start() → begins requestAnimationFrame loop
-```
-
-### Key Data Flows
-
-1. **Question Selection Flow:** PlayerState (accuracy by table) → QuestionSelector (weighting algorithm) → Question object (table, multiplicand, options) → Renderer (DOM update)
-
-2. **XP Reward Flow:** Answer validation → XpCalculator (apply modifiers) → XP points → PlayerState.addXp() → Level-up detection → PersistenceStore.save() → Renderer celebration
-
-3. **Persistence Flow:** PlayerState.toJSON() → localStorage (versioned) → on next session: load() → PlayerState.fromJSON() → game resumes
-
-## Scaling Considerations
-
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| **1 session (MVP)** | Single HTML file; all modules in one file; no optimization needed. Focus on game feel. |
-| **Multiple sessions (v2+)** | localStorage persistence is already built-in; question weighting can stay simple (inverse accuracy). |
-| **Offline indicator (future)** | Add Service Worker for offline capability; same architecture, SW just intercepts fetch. |
-| **Mobile version (future)** | Touch events added to InputHandler; responsive CSS media queries. Single file still works. |
-| **Analytics (future)** | Add optional events layer; post to server if online, queue locally if offline. Doesn't change game logic. |
-
-### Scaling Priorities
-
-1. **First concern:** Game feel is mushy — animations lag or stutter. Fix: profile DOM updates; batch them. Use `requestAnimationFrame` to sync with browser refresh (already in pattern).
-
-2. **Second concern:** XP grind feels tedious. Fix: tune curve (LEVEL_MULTIPLIER, BASE_XP_PER_LEVEL); playtest with target user. Adjust weighting so weak tables appear 60–70% of the time.
-
-3. **Third concern:** localStorage quota full (5–10 MB). Fix: at 1-2 years of play, ~500 KB used for state + history. Unlikely to hit limit; if it does, add optional cloud save (v3+).
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Global Variables Outside Namespace
-
-**What people do:** Write game logic directly into global scope; no closure wrapping.
-
-```javascript
-// ❌ DON'T DO THIS
-let playerXp = 0;
-let playerLevel = 1;
-
-function addXp(points) {
-  playerXp += points;
-}
-```
-
-**Why it's wrong:** Naming collisions; hard to refactor; pollutes debugger; difficult to test in isolation.
-
-**Do this instead:** Wrap in closure IIFE; return public API only.
-
-```javascript
-// ✅ DO THIS
-const PlayerState = (() => {
-  let xp = 0;
-  let level = 1;
-  
-  return {
-    addXp(points) { xp += points; },
-    getXp() { return xp; }
-  };
-})();
-```
-
-### Anti-Pattern 2: DOM Queries Inside Hot Loops
-
-**What people do:** Repeatedly query the DOM for the same element inside `update()` or `render()`.
-
-```javascript
-// ❌ DON'T DO THIS
-const render = () => {
-  for (let i = 0; i < 1000; i++) {
-    document.getElementById('xp-display').textContent = playerState.getXp();
-  }
-};
-```
-
-**Why it's wrong:** DOM queries are expensive; doing it repeatedly wastes CPU; UI feels janky.
-
-**Do this instead:** Cache DOM reference; update once.
-
-```javascript
-// ✅ DO THIS
-const xpDisplay = document.getElementById('xp-display');
-
-const render = () => {
-  xpDisplay.textContent = playerState.getXp();
-};
-```
-
-### Anti-Pattern 3: Tightly Coupled State & UI
-
-**What people do:** Render code directly modifies state; state changes directly manipulate DOM; hard to reason about what affects what.
-
-```javascript
-// ❌ DON'T DO THIS
-const onAnswerClick = (idx) => {
-  const isCorrect = answers[idx] === correctAnswer;
-  if (isCorrect) playerXp += 10; // State change
-  document.getElementById('xp').textContent = playerXp; // UI change in event handler
-  document.getElementById('choices').innerHTML = ''; // Side effect
-};
-```
-
-**Why it's wrong:** Logic is scattered; hard to test; refactoring breaks things; UI and state get out of sync.
-
-**Do this instead:** Separate concerns: update state, then let render pull from state.
-
-```javascript
-// ✅ DO THIS
-const onAnswerClick = (idx) => {
-  const isCorrect = validateAnswer(idx, currentQuestion);
-  const xpEarned = XpCalculator.calculateXp(currentQuestion.table, isCorrect);
-  PlayerState.addXp(xpEarned); // Update state only
-  PlayerState.updateAccuracy(currentQuestion.table, isCorrect);
-  // Render will be called by game loop and read from state
-};
-
-const render = () => {
-  Renderer.updateHud(PlayerState);
-  Renderer.renderQuestion(QuestionSelector.selectNext(PlayerState));
-};
-```
-
-### Anti-Pattern 4: Over-Eager Weighting Algorithm
-
-**What people do:** Make question selection so complex that weak tables *always* appear, and it feels repetitive.
-
-```javascript
-// ❌ DON'T DO THIS
-const selectNext = (playerState) => {
-  const weakTables = [6, 7, 8, 9].filter(t => playerState.getAccuracy(t) < 0.7);
-  // If user is weak at everything, only drill weak tables forever
-  return randomFromArray(weakTables);
-};
-```
-
-**Why it's wrong:** Feels like punishment; no confidence-building breaks; user gives up.
-
-**Do this instead:** Mix weak tables (60–70%) with easier ones (30–40%) to maintain engagement and confidence.
-
-```javascript
-// ✅ DO THIS
-const weights = {};
-ALL_TABLES.forEach(table => {
-  const accuracy = playerState.getAccuracy(table);
-  if (TARGET_TABLES.includes(table)) {
-    weights[table] = (1 - accuracy) ** 1.5; // Prioritize weak
-  } else {
-    weights[table] = (1 - accuracy) ** 0.8 * 0.3; // Occasional confidence boosts
-  }
-});
-```
-
-### Anti-Pattern 5: No Version Control on localStorage
-
-**What people do:** Change the schema of player state (add a new field) without migration; old saves break or lose data.
-
-```javascript
-// ❌ DON'T DO THIS
-const save = (playerState) => {
-  localStorage.setItem('game_state', JSON.stringify(playerState));
-};
-
-// Later, you add a `sessionCount` field. Old saves don't have it.
-// playerState.sessionCount is undefined; bugs ensue.
-```
-
-**Why it's wrong:** Players lose progress; feel betrayed; uninstall; bad review.
-
-**Do this instead:** Include version number; detect and migrate on load.
-
-```javascript
-// ✅ DO THIS
-const CURRENT_VERSION = 2;
-
-const load = () => {
-  const raw = localStorage.getItem('game_state');
-  const data = JSON.parse(raw);
-  
-  if (data.version < CURRENT_VERSION) {
-    data = migrate(data, data.version);
-  }
-  
-  return data;
-};
-```
-
-## Integration Points
-
-### External Services
-
-| Service | Integration | Notes |
-|---------|-------------|-------|
-| **localStorage** | `PersistenceStore.load()` / `.save()` | Synchronous; ~5–10 MB limit. Consider IndexedDB if you add analytics/history logs later. |
-| **RequestAnimationFrame** | `GameLoop.start()` callback | Built-in browser API; no dependency. Automatically syncs to refresh rate. |
-| **DOM Events** | `InputHandler.setupEventListeners()` | Attach to document or specific elements; no framework events needed. |
-| **Future: Cloud Save** | Optional async `PersistenceStore.syncCloud()` | Not in MVP; would post state to server if online, queue if offline. |
-
-### Internal Boundaries
-
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| **InputHandler ↔ PlayerState** | Events → State mutations | InputHandler calls PlayerState methods; no return value needed. |
-| **PlayerState ↔ Renderer** | Getter methods → DOM updates | Renderer queries PlayerState; one-way pull. Keeps them loosely coupled. |
-| **QuestionSelector ↔ PlayerState** | Reads accuracy → Returns Question object | Selector is pure; reads state, no mutations. Easy to test. |
-| **XpCalculator ↔ PlayerState** | Receives params → Returns points | Calculator doesn't touch state; PlayerState.addXp() applies it. |
-| **GameLoop ↔ All** | Calls update() then render() | GameLoop coordinates; others don't know about it. |
-| **PersistenceStore ↔ PlayerState** | toJSON() / fromJSON() | Serialization is bidirectional; state owns its own schema. |
-
-## Build Order for Implementation
-
-**Recommended phase sequencing** (based on dependencies):
-
-1. **PlayerState + Config** — Foundation; everything else reads from it.
-2. **PersistenceStore** — Load defaults; save/restore state.
-3. **Renderer** — Display the UI; pull from state.
-4. **QuestionSelector + XpCalculator** — Question logic; independent of UI.
-5. **InputHandler** — Wire up interactivity.
-6. **GameLoop** — Orchestrate the flow.
-7. **Polish** — Animations, transitions, sound effects (if any).
-
-**Dependency graph:**
-```
-Config
-  ↓
-PlayerState
-  ├─→ PersistenceStore (load/save)
-  ├─→ XpCalculator (read-only)
-  └─→ QuestionSelector (read-only)
-       ↓
-    Renderer (reads PlayerState & Questions)
-       ↓
-    InputHandler (mutates PlayerState)
-       ↓
-    GameLoop (coordinates all)
-```
-
-## Sources
-
-- [Game Programming Patterns: Game Loop](https://gameprogrammingpatterns.com/game-loop.html)
-- [JavaScript Game Foundations - Game Loop by Jake Gordon](https://jakesgordon.com/writing/javascript-game-foundations-the-game-loop/)
-- [Time-Based Animation with requestAnimationFrame](https://dr-nick-nagel.github.io/blog/raf-time.html)
-- [Performant Game Loops in JavaScript by Aleksandr Hovhannisyan](https://www.aleksandrhovhannisyan.com/blog/javascript-game-loop/)
-- [Module Design Pattern by DigitalOcean](https://www.digitalocean.com/community/conceptual-articles/module-design-pattern-in-javascript)
-- [How JavaScript works: Module Pattern by Lawrence Eagles](https://medium.com/sessionstack-blog/how-javascript-works-the-module-pattern-comparing-commonjs-amd-umd-and-es6-modules-437f77548437)
-- [State Management Without Libraries by Adam Morelli](https://www.adammorelli.com/blog/vanilla-state-management)
-- [Quick & Easy Game State Saving with localStorage by Scott Westover](https://scottwestover.dev/post/2023/04/quick-and-easy-game-state-saving-with-javascript-and-localstorage/)
-- [Adaptive Difficulty and Stealth Assessment in Collaborative Game-Based Learning (Rjiba, 2025)](https://onlinelibrary.wiley.com/doi/10.1002/cae.70102)
-- [Spaced Repetition Algorithm: FSRS on GitHub](https://github.com/open-spaced-repetition/fsrs4anki/wiki/Spaced-Repetition-Algorithm:-A-Three%E2%80%90Day-Journey-from-Novice-to-Expert)
-- [Medium: Spaced Repetition for All by Shane Mooney](https://medium.com/tech-quizlet/spaced-repetition-for-all-cognitive-science-meets-big-data-in-a-procrastinating-world-59e4d2c8ede1)
-- [Creating HTML5 Games in Vanilla JavaScript by Geng Sng](https://medium.com/@snggeng/creating-html5-games-in-vanilla-javascript-part-i-4b37ba947e10)
-- [How I structure my vanilla JS projects by Go Make Things](https://gomakethings.com/how-i-structure-my-vanilla-js-projects/)
+> **Scope note:** This document supersedes the v1 ARCHITECTURE.md for the v2.0 Dungeon Crawler milestone. It focuses specifically on how to integrate new dungeon modules into the existing codebase without breaking v1 math engine behaviour, how to migrate the save schema from v1 to v2, how to render rooms and enemies in pure DOM+CSS, and what build order makes sense given module dependencies.
 
 ---
 
-*Architecture research for: Single-file gamified math practice web app*
+## System Overview
+
+The v2 architecture adds three new layers — dungeon state, combat engine, and dungeon renderer — that sit *around* the existing math engine, not inside it. The existing modules (CONFIG, XpCalculator, PlayerState, PersistenceStore, QuestionSelector, Renderer, InputHandler, App) are modified minimally. The new modules consume the existing ones; the existing ones do not know about the dungeon.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         HUD (extended)                               │
+│  Level | XP bar | HP bar | Floor/Room indicator                     │
+├─────────────────────────────────────────────────────────────────────┤
+│                        GAME SCREENS (one visible at a time)          │
+│  ┌─────────────────┐  ┌────────────────┐  ┌───────────────────┐    │
+│  │  DUNGEON VIEW   │  │  COMBAT VIEW   │  │  FLOOR COMPLETE   │    │
+│  │  Room map,      │  │  Enemy sprite, │  │  Loot summary,    │    │
+│  │  door choices   │  │  HP bars,      │  │  continue button  │    │
+│  │  (between fights│  │  question card │  │                   │    │
+│  └────────┬────────┘  └───────┬────────┘  └────────┬──────────┘    │
+│           │ (enter room)      │ (answer)             │ (cleared)    │
+├───────────┴───────────────────┴──────────────────────┴──────────────┤
+│                        ORCHESTRATOR: App                             │
+│  mode: 'dungeon' | 'combat' | 'loot' | 'floor-complete'            │
+│  Routes events and screen transitions                               │
+├─────────────────────────────────────────────────────────────────────┤
+│  NEW MODULES                          EXISTING (v1) MODULES         │
+│  ┌──────────────┐  ┌───────────┐      ┌────────────────────────┐   │
+│  │ DungeonState │  │FloorConfig│      │ PlayerState (extended) │   │
+│  │ floor, room, │  │enemy types│      │ xp, level, accuracy,   │   │
+│  │ enemyHp,     │  │tables per │      │ + hp, maxHp            │   │
+│  │ playerHp,    │  │floor,     │      └────────────────────────┘   │
+│  │ loot         │  │room count │      ┌────────────────────────┐   │
+│  └──────┬───────┘  └─────┬─────┘      │ QuestionSelector       │   │
+│         │                │            │ (unchanged; used by    │   │
+│  ┌──────┴───────┐         │            │ CombatEngine)          │   │
+│  │CombatEngine  │◄────────┘            └────────────────────────┘   │
+│  │Wraps Question│                      ┌────────────────────────┐   │
+│  │Selector;     │                      │ XpCalculator           │   │
+│  │damage calc;  │                      │ (unchanged)            │   │
+│  │hit/miss logic│                      └────────────────────────┘   │
+│  └──────┬───────┘                      ┌────────────────────────┐   │
+│         │                              │ PersistenceStore v2    │   │
+│  ┌──────┴──────────────┐               │ migrates v1 → v2 on    │   │
+│  │ DungeonRenderer     │               │ first load             │   │
+│  │ Room display,       │               └────────────────────────┘   │
+│  │ enemy sprite,       │                                            │
+│  │ HP bars, loot anims │                                            │
+│  └─────────────────────┘                                            │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Component Responsibilities
+
+### Existing modules — what changes vs. what is untouched
+
+| Module | v2 Change | Rationale |
+|--------|-----------|-----------|
+| **CONFIG** | Add dungeon constants block (HP values, damage amounts, loot drop rates, floor counts). Existing keys are untouched. | Single source of truth; all new magic numbers co-located with old ones. |
+| **XpCalculator** | No change. | XP is still awarded per correct answer, same formula. |
+| **PlayerState** | Add `hp` and `maxHp` fields. Keep all accuracy/history logic intact. Add `takeDamage(amount)`, `heal(amount)`, `resetHp()` methods. | HP is session-scoped (resets on floor restart); accuracy data is persistent. Both live in one state object because they share the save/load cycle. |
+| **PersistenceStore** | Bump VERSION to 2. Add `migrate(data, fromVersion)` function. v1→v2 migration adds `dungeon` sub-object with defaults (floor 1, room 1, no loot) without touching accuracy/history. Change SAVE_KEY to `mathlab_save_v2` to guarantee a clean migration path. | Existing v1 save at `mathlab_save_v1` is read once, migrated, written to v2 key. Old key is left (not deleted) so a rollback remains possible. |
+| **QuestionSelector** | No change. | CombatEngine calls `selectNext(playerState)` with the same interface; the floor config is resolved before calling selector, not inside it. |
+| **Renderer** | Rename to `MathRenderer` (or keep as `Renderer`). Its methods still manage the question card and HUD XP/level display. HP bar is owned by `DungeonRenderer`. | Keeps separation of concerns: `Renderer` owns math feedback UI; `DungeonRenderer` owns everything dungeon-visual. |
+| **InputHandler** | Add awareness of `App.mode`. When mode is `'dungeon'`, ignore answer events. When mode is `'combat'`, route as before. | InputHandler already has a `locked` flag; mode check is a one-line guard added to `handleAnswer`. |
+| **App** | Add `mode` field and `transition(newMode)` method. Bootstrap now also initialises `DungeonState`. | App becomes the screen router. Current `App.nextQuestion()` becomes `App.nextCombatRound()` internally; external API stays. |
+
+### New modules — full responsibility definitions
+
+| Module | Responsibility | Does NOT own |
+|--------|---------------|-------------|
+| **FloorConfig** | Static data: enemy name, sprite variant, HP values, which multiplication tables to use, loot drop table per floor. Returns config object for a given floor number. Pure data, no state. | Any game logic. It is a lookup table, not a controller. |
+| **DungeonState** | Runtime dungeon state: current floor number, current room index, current enemy HP, current enemy type, loot inventory (array of collected items), rooms-cleared count. Exposes `enterRoom()`, `dealDamageToEnemy(amount)`, `isEnemyDefeated()`, `collectLoot(item)`, `toJSON()`, `fromJSON()`. | Player HP (owned by PlayerState). Question logic. |
+| **CombatEngine** | Bridges math answers to combat outcomes. On correct answer: calculates damage using table difficulty + optional weapon modifier, calls `DungeonState.dealDamageToEnemy(damage)`. On wrong answer: calculates enemy damage, calls `PlayerState.takeDamage(damage)`. Calls `QuestionSelector.selectNext(playerState, tablePool)` where `tablePool` comes from `FloorConfig` for the current floor. Decides if combat round ends (enemy HP ≤ 0) or player HP ≤ 0. | DOM. QuestionSelector internals. Rendering. |
+| **DungeonRenderer** | All DOM manipulation for the dungeon view: room layout, enemy sprite (CSS-drawn), HP bars for both player and enemy, loot drop animations, floor-complete screen. Reads from `DungeonState`, `PlayerState` (for player HP), and `FloorConfig` (for enemy name/sprite variant). Owns a separate DOM cache (`DUNGEON_DOM`) populated at init. | Question rendering (that is `Renderer`'s territory). State mutations. |
+
+---
+
+## Recommended Module Insertion Order in the Single HTML File
+
+Because all modules are sequential `const` declarations in one `<script>` block, order equals dependency order.
+
+```
+<script>
+  'use strict';
+
+  // --- EXISTING (minimal changes noted) ---
+  const CONFIG           // + dungeon constants block appended
+  const XpCalculator     // unchanged
+  const PlayerState      // + hp/maxHp fields and HP methods
+  const PersistenceStore // + VERSION=2, migrate(), new SAVE_KEY
+
+  // --- NEW: static data, no dependencies ---
+  const FloorConfig      // pure data; depends only on CONFIG
+
+  // --- EXISTING ---
+  const QuestionSelector // unchanged
+
+  // --- NEW: stateful dungeon objects ---
+  const DungeonState     // depends on FloorConfig
+
+  // --- NEW: combat bridge ---
+  const CombatEngine     // depends on QuestionSelector, DungeonState,
+                         //   PlayerState, XpCalculator, FloorConfig
+
+  document.addEventListener('DOMContentLoaded', () => {
+
+    // DOM caches
+    const DOM         = { /* existing math DOM refs */ }
+    const DUNGEON_DOM = { /* new dungeon DOM refs */ }
+
+    // --- EXISTING renderer ---
+    const Renderer       // unchanged; uses DOM cache
+
+    // --- NEW dungeon renderer ---
+    const DungeonRenderer // uses DUNGEON_DOM + reads DungeonState,
+                          //   PlayerState, FloorConfig
+
+    // --- EXISTING (one-line mode guard added) ---
+    const InputHandler
+
+    // --- EXISTING (mode field + transition() added) ---
+    const App
+
+    // Bootstrap
+    // ...
+  });
+</script>
+```
+
+---
+
+## Save Schema: v1 → v2 Migration
+
+### v1 schema (current)
+
+```json
+{
+  "version": 1,
+  "xp": 0,
+  "level": 1,
+  "accuracy": { "1": 0.5, "2": 0.5, "3": 0.5, "4": 0.5, "5": 0.5,
+                "6": 0.4, "7": 0.4, "8": 0.4, "9": 0.4 },
+  "history":  {}
+}
+```
+
+### v2 schema (target)
+
+```json
+{
+  "version": 2,
+  "xp": 0,
+  "level": 1,
+  "accuracy": { "1": 0.5, ... "9": 0.4 },
+  "history":  {},
+  "dungeon": {
+    "floor": 1,
+    "roomsCleared": 0,
+    "loot": []
+  }
+}
+```
+
+### Migration logic
+
+```javascript
+// Inside PersistenceStore:
+const VERSION = 2;
+const KEY = 'mathlab_save_v2';
+const LEGACY_KEY = 'mathlab_save_v1';
+
+function migrate(data, fromVersion) {
+  if (fromVersion === 1) {
+    // Carry forward all math progress; add dungeon sub-object
+    data.dungeon = { floor: 1, roomsCleared: 0, loot: [] };
+    data.version = 2;
+  }
+  return data;
+}
+
+function load() {
+  // 1. Try v2 key first
+  let raw = localStorage.getItem(KEY);
+  if (!raw) {
+    // 2. Fall back to v1 key (migration path)
+    raw = localStorage.getItem(LEGACY_KEY);
+  }
+  if (!raw) return defaults();
+
+  const data = JSON.parse(raw);
+  if (data.version < VERSION) return migrate(data, data.version);
+  return data;
+}
+```
+
+**Key constraint:** Player HP (`hp`, `maxHp`) is NOT in the save schema. HP is session-scoped — the player always starts a floor at full HP. HP is held in `PlayerState` in memory only. The save schema only persists progress that should survive a browser close.
+
+**DungeonState floor/room progress** is also NOT persisted in v2. Dungeon runs are session-scoped (the game design specifies "no permadeath: die = restart the floor"). There is no benefit to saving mid-floor state — on reload the player starts fresh at floor 1. The `dungeon` object in the save schema is reserved for future cross-session dungeon progress (e.g., "deepest floor reached") but is not functionally used in v2 gameplay.
+
+---
+
+## Data Flow
+
+### Combat round flow (the core loop replacement)
+
+```
+User enters a room
+    ↓
+App.transition('combat')
+    ├─→ FloorConfig.get(DungeonState.floor) → enemy config
+    ├─→ DungeonState.enterRoom(enemyConfig) → reset enemy HP
+    ├─→ CombatEngine.startRound() → calls QuestionSelector.selectNext(
+    │       playerState, enemyConfig.tablePools
+    │   ) → question object
+    ├─→ Renderer.showQuestion(question)     (existing)
+    └─→ DungeonRenderer.renderCombat(
+            DungeonState, PlayerState, enemyConfig
+        )
+
+User selects answer
+    ↓
+InputHandler.handleAnswer(selectedValue)  (existing path, with mode guard)
+    ↓
+CombatEngine.resolveAnswer(isCorrect, question)
+    ├─→ [correct] → damage = CombatEngine.calcPlayerDamage(question.table,
+    │       DungeonState.loot)
+    │   DungeonState.dealDamageToEnemy(damage)
+    │   XpCalculator.calculateXp(question.table) → PlayerState.addXp(xp)
+    │   DungeonRenderer.animatePlayerAttack(damage)
+    │
+    ├─→ [wrong] → damage = FloorConfig.enemyDamage(DungeonState.floor)
+    │   PlayerState.takeDamage(damage)
+    │   DungeonRenderer.animateEnemyAttack(damage)
+    │
+    ├─→ PlayerState.updateAccuracy(table, isCorrect)  (existing)
+    ├─→ PersistenceStore.save(PlayerState, DungeonState)
+    ├─→ Renderer.updateHud(PlayerState)               (existing)
+    └─→ DungeonRenderer.updateHpBars(DungeonState, PlayerState)
+         ↓
+CombatEngine.checkOutcome()
+    ├─→ enemy HP ≤ 0 → App.transition('loot')
+    │   DungeonRenderer.showLootDrop(FloorConfig.rollLoot())
+    │
+    ├─→ player HP ≤ 0 → App.transition('defeat')
+    │   DungeonRenderer.showDefeatScreen()
+    │   → on confirm: DungeonState.resetFloor(); App.transition('dungeon')
+    │
+    └─→ neither → CombatEngine.startRound() (next question)
+```
+
+### Screen transitions
+
+```
+App.mode:
+
+  'dungeon'  ←──────────────────────────────┐
+      ↓ (player clicks a room door)          │
+  'combat'                                   │
+      ↓ (enemy defeated)                     │
+  'loot'                                     │
+      ↓ (player clicks continue)             │
+  'dungeon'  (if rooms remain on floor)      │
+      ↓ (all rooms cleared on floor)         │
+  'floor-complete'                           │
+      ↓ (player clicks next floor)           │
+  'dungeon'  (floor counter incremented) ───►┘
+
+  'combat'
+      ↓ (player HP = 0)
+  'defeat'
+      ↓ (player clicks retry)
+  'dungeon'  (floor reset, room 1)
+```
+
+---
+
+## Rendering Approach: Pure DOM + CSS (No Canvas)
+
+The single-file constraint and zero-dependency rule means no canvas libraries. Rooms and enemies are rendered entirely in HTML+CSS.
+
+### Enemy sprites — CSS character approach
+
+Enemies are CSS-drawn characters using layered `div` elements with `border-radius`, `box-shadow`, and CSS custom properties for colour variants. This is the same technique used for CSS art (e.g., pure CSS animals). Complexity is kept low — silhouette-level, not pixel-art detail.
+
+Each enemy type is defined by a CSS class on a root container `div`. The `DungeonRenderer` sets the class based on `FloorConfig.enemyType`:
+
+```html
+<div id="enemy-sprite" class="enemy goblin">
+  <!-- All parts are CSS pseudoelements or child divs -->
+  <div class="enemy-body"></div>
+  <div class="enemy-head"></div>
+</div>
+```
+
+```css
+.enemy.goblin { --enemy-color: #4a7c3f; --enemy-size: 80px; }
+.enemy.skeleton { --enemy-color: #c8c8c0; --enemy-size: 90px; }
+.enemy.dragon { --enemy-color: #8b1a1a; --enemy-size: 120px; }
+```
+
+Hit and defeat animations are CSS `@keyframes` triggered by adding/removing a class (`enemy-hit`, `enemy-defeated`). No JavaScript animation code is needed.
+
+### HP bars — CSS width transition
+
+HP bars are `div` elements where a fill `div`'s `width` is set to a percentage via JavaScript `style.width`. CSS `transition: width 0.3s ease` handles smooth animation automatically.
+
+```html
+<div class="hp-bar-track">
+  <div id="enemy-hp-fill" class="hp-bar-fill enemy-hp"></div>
+</div>
+<div class="hp-bar-track">
+  <div id="player-hp-fill" class="hp-bar-fill player-hp"></div>
+</div>
+```
+
+```javascript
+// DungeonRenderer:
+updateHpBars(dungeonState, playerState) {
+  const enemyPct = Math.max(0,
+    dungeonState.enemyHp / dungeonState.enemyMaxHp * 100
+  );
+  const playerPct = Math.max(0,
+    playerState.getHp() / playerState.getMaxHp() * 100
+  );
+  DUNGEON_DOM.enemyHpFill.style.width = enemyPct + '%';
+  DUNGEON_DOM.playerHpFill.style.width = playerPct + '%';
+}
+```
+
+### Room layout — CSS grid + state classes
+
+The dungeon view shows the current floor's rooms as a row of room cards. Each card is a `<button>` (accessible, keyboard-navigable). Cleared rooms get a `cleared` class, the active combat room gets `active`, locked rooms get `locked` (disabled attribute).
+
+```html
+<div id="room-row" role="list">
+  <!-- Rendered by DungeonRenderer.renderRoomRow(DungeonState, FloorConfig) -->
+</div>
+```
+
+Loot inventory is a flex row of icon `div` elements at the bottom of the dungeon view. Icons use Unicode characters (e.g., ⚔ for sword upgrade, 🛡 for shield) styled in the grunge colour palette — no images needed.
+
+### Screen visibility — CSS class toggle (no display switching in JS)
+
+Each screen section exists in the DOM at all times. `App.transition(mode)` adds/removes a single `active` class. CSS handles `display`:
+
+```css
+.game-screen { display: none; }
+.game-screen.active { display: flex; }
+```
+
+This avoids the common pitfall of setting `display` in JS and then needing to undo it. `DOMContentLoaded` renders all screens; only the CSS class controls which one is visible.
+
+---
+
+## Build Order
+
+The dungeon system can be built in two independently testable phases:
+
+### Phase A — Combat works without rooms (combat-only stub)
+
+Build in this order:
+
+1. **CONFIG extension** — Add HP values, damage constants, loot config. No behaviour change.
+2. **PlayerState HP methods** — `takeDamage()`, `heal()`, `resetHp()`, `getHp()`, `getMaxHp()`. Can be verified in the console immediately.
+3. **FloorConfig** — Static data only. No DOM needed.
+4. **DungeonState** — State object with `enterRoom()`, `dealDamageToEnemy()`, `isEnemyDefeated()`. No DOM needed.
+5. **CombatEngine** — Wire `QuestionSelector` output to damage logic. At this point, the combat loop works: answer a question → enemy HP decreases → when zero, combat ends. Test entirely in DevTools console by calling `CombatEngine.resolveAnswer(true, fakeQuestion)`.
+6. **PersistenceStore v2 migration** — Update VERSION, add migrate(), test with existing v1 save to confirm math accuracy data is preserved.
+
+At the end of Phase A, the game is still the v1 question loop visually, but underneath `CombatEngine` is resolving damage correctly. This is the "can combat work before rooms work" answer: yes. The room navigation view is a display concern; the combat engine is pure logic.
+
+### Phase B — Dungeon visuals and screen routing
+
+7. **HTML structure** — Add dungeon-view, combat-view (wraps existing question card), defeat-screen, floor-complete-screen sections to the HTML. Add `DUNGEON_DOM` cache.
+8. **DungeonRenderer** — Enemy sprites, HP bars, room row, loot icons, screen animations. Test visuals in isolation by calling `DungeonRenderer.renderCombat(fakeDungeonState, fakePlayerState, fakeEnemyConfig)`.
+9. **App mode routing** — Add `mode` field and `transition()` method. Wire `App.transition('combat')` call when a room button is clicked. Wire defeat and floor-complete transitions.
+10. **InputHandler mode guard** — Add `if (App.mode !== 'combat') return;` guard at the top of `handleAnswer`.
+11. **End-to-end flow integration** — Walk through a full floor: enter room → fight → defeat enemy → collect loot → next room → floor complete.
+
+---
+
+## Integration Points: New vs. Modified vs. Untouched
+
+| Module | Status | Change Description |
+|--------|--------|-------------------|
+| CONFIG | Modified | Add `DUNGEON` constants block. No existing keys removed or renamed. |
+| XpCalculator | Untouched | No change. |
+| PlayerState | Modified | Add `hp`, `maxHp` private vars. Add `takeDamage`, `heal`, `resetHp`, `getHp`, `getMaxHp`. Add `hp`-related field to `toJSON` (for in-session state; NOT to save schema). |
+| PersistenceStore | Modified | VERSION 1→2. New SAVE_KEY. Add `migrate()` function. Legacy key read on first load. |
+| QuestionSelector | Untouched | `selectNext(playerState)` signature unchanged. CombatEngine passes a playerState reference as before. Floor-specific table weighting is handled by CombatEngine adjusting which tables appear in FloorConfig, not by changing QuestionSelector internals. |
+| Renderer | Untouched | Keeps all existing methods. DungeonRenderer is a separate object. |
+| InputHandler | Modified | One-line mode guard at top of `handleAnswer`. `setup()` unchanged. |
+| App | Modified | Add `mode` string field. Add `transition(newMode)` method. `nextQuestion` renamed `nextCombatRound` (internal only; no external callers beyond App itself). Bootstrap now calls `DungeonState.init()`. |
+| **FloorConfig** | New | Static floor data only. |
+| **DungeonState** | New | Session-scoped dungeon state. |
+| **CombatEngine** | New | Combat resolution logic. Bridges QuestionSelector to DungeonState/PlayerState. |
+| **DungeonRenderer** | New | All dungeon visual DOM operations. |
+
+---
+
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Leaking dungeon logic into QuestionSelector
+
+**What people do:** Add `floorNumber` or `enemyType` parameters to `QuestionSelector.selectNext()` to change table weighting per floor.
+
+**Why it's wrong:** QuestionSelector's accuracy-based weighting is the core learning mechanic. Floor-specific table filtering belongs in FloorConfig. Mixing them makes QuestionSelector stateful about the dungeon and breaks the v1 math loop.
+
+**Do this instead:** CombatEngine reads `FloorConfig.get(floor).tablePools` and validates that the question returned by QuestionSelector uses an allowed table. If not (edge case: all weak tables mastered), CombatEngine re-rolls or uses a fallback pool. QuestionSelector remains a pure accuracy-driven selector.
+
+### Anti-Pattern 2: Merging DungeonState into PlayerState
+
+**What people do:** Add `floor`, `enemyHp`, `roomsCleared` directly onto the PlayerState closure to avoid a second state object.
+
+**Why it's wrong:** PlayerState is the persistent player identity (XP, level, accuracy). DungeonState is the ephemeral run. They have different lifecycles: PlayerState persists to localStorage on every answer; DungeonState resets on floor restart. Merging them means HP and enemy state pollute the save schema, the toJSON/fromJSON validation logic, and the v2 migration path.
+
+**Do this instead:** Keep them separate. PersistenceStore.save() receives both objects and knows which fields to persist from each. A clear signature: `save(playerState, dungeonState)` where only `playerState.toJSON()` fields and `dungeon: { floor, roomsCleared, loot }` from DungeonState go into localStorage.
+
+### Anti-Pattern 3: Rendering dungeon state from InputHandler
+
+**What people do:** Add `DungeonRenderer.updateHpBars()` calls inside `InputHandler.handleAnswer()` because that is where the answer is processed.
+
+**Why it's wrong:** InputHandler already calls Renderer, PersistenceStore, and PlayerState from within handleAnswer — it is already the most entangled function in v1. Adding DungeonRenderer calls there makes it own four different concerns and is the most likely place for hard-to-trace bugs.
+
+**Do this instead:** `handleAnswer` calls `CombatEngine.resolveAnswer()`. CombatEngine is the single place that decides what changed (player HP, enemy HP, XP) and then calls both `Renderer.updateHud()` and `DungeonRenderer.updateHpBars()` at the end of its resolution. InputHandler's only job remains delegating the selected value.
+
+### Anti-Pattern 4: Multiple save keys for the same player
+
+**What people do:** Write dungeon state to a separate `mathlab_dungeon_v1` key and math state to `mathlab_save_v2`, reasoning that they are "independent data."
+
+**Why it's wrong:** Two save keys means two `try/catch` blocks, two quota checks, two migration paths, two consistency problems (they can become out of sync if one write succeeds and the other fails mid-session). localStorage writes are synchronous — keep them atomic in a single key.
+
+**Do this instead:** One key (`mathlab_save_v2`), one JSON object with two sub-schemas: the existing math fields at the root and a `dungeon` object for dungeon progress. One write, one read, one migration function.
+
+### Anti-Pattern 5: Canvas for enemy sprites
+
+**What people do:** Reach for `<canvas>` to draw enemies because it feels like the "game" approach.
+
+**Why it's wrong:** Canvas requires a drawing library or significant hand-rolled render code. It does not integrate with CSS animations (which are hardware-accelerated and free). It is harder to make accessible. It adds complexity that the single-file constraint cannot absorb without a major code size increase.
+
+**Do this instead:** CSS character art (layered divs with border-radius). Three enemy types can each be a distinct CSS class applying colour and shape variations. Hit animations are CSS `@keyframes`. The visual result is stylised and grunge-appropriate, not photorealistic — which matches the project aesthetic.
+
+---
+
+## Scalability Notes
+
+This architecture is deliberately session-local. There is no meaningful scale dimension beyond "does it work well for one user on one device." The constraints that apply:
+
+| Concern | Bound | Mitigation |
+|---------|-------|------------|
+| localStorage size | ~5 MB | v2 save schema adds ~50 bytes (dungeon sub-object). Total save size remains under 5 KB. No issue. |
+| DOM node count | v2 adds ~30 nodes (room row, HP bars, enemy sprite) | Still tiny. DocumentFragment batch-insertion for room row render. |
+| Combat loop performance | ~1 ms per answer resolution | No loops, no rAF needed for combat logic. All synchronous, immediate. |
+| CSS animation concurrency | Hit flash + HP bar transition simultaneously | CSS composites independently. No JS animation needed. No conflict. |
+
+---
+
+## Sources
+
+All findings from direct inspection of the v1 source file (`math-lab.html`) and established patterns from:
+
+- v1 ARCHITECTURE.md (this project's existing research, 2026-06-20) — closure module pattern, localStorage versioning, DOM cache pattern. Confidence: HIGH (direct codebase evidence).
+- Game Programming Patterns: State — separate ephemeral run state from persistent player identity. Confidence: HIGH.
+- MDN CSS Transitions — `transition: width` for HP bars; hardware-accelerated, no JS needed. Confidence: HIGH.
+- CSS-Tricks: Grainy Gradients + CSS character art patterns — confirms pure CSS is viable for stylised sprite work. Confidence: HIGH.
+- localStorage atomicity — single-key design from v1 PersistenceStore; extending rather than splitting is the safe migration path. Confidence: HIGH (direct code pattern).
+
+---
+
+*Architecture research for: Dungeon crawler integration layer on existing single-file math app*
 *Researched: 2026-06-20*

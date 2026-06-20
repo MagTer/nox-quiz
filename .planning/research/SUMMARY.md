@@ -1,217 +1,213 @@
 # Project Research Summary
 
-**Project:** Math Lab (Gamified Math Practice for Kids)
-**Domain:** Single-file, offline-first, gamified educational web app targeting ADHD-adjacent learners
+**Project:** Math Lab v2.0 — Dungeon Crawler
+**Domain:** Single-file browser RPG with math combat, ADHD-safe, 12-year-old target user
 **Researched:** 2026-06-20
-**Confidence:** HIGH
-
-## Executive Summary
-
-Math Lab is a lightweight, single-file vanilla JavaScript web application designed as a gamified math practice tool for a 12-year-old with possible ADHD who dislikes traditional math but engages with games. The research consensus strongly recommends a **zero-dependency, offline-first architecture** using vanilla ES2020+ JavaScript with CSS3 styling and localStorage persistence—no frameworks, no build steps, no external dependencies. This choice is not a constraint but a *strength*: the app ships as a single HTML file, loads instantly, works offline, and avoids the cognitive overhead of framework tooling.
-
-The core experience centers on fast feedback loops (questions → immediate validation → XP/progress feedback) designed specifically for ADHD learners. Research shows that without visible progress and without external pressure (timers, leaderboards, streaks), ADHD users engage intrinsically with achievement systems. The critical success factor is not features—it's sustainable motivation. A beautifully designed XP system that feels rewarding in week 1 can collapse by week 3 if the reward structure becomes invisible or the user feels pressure rather than joy.
-
-The biggest risks are well-understood from the research and preventable: localStorage quota failures, visual accessibility failures under the grunge aesthetic, silent loss of progress visibility, and reward fatigue. All of these must be locked in during Phase 1 implementation, not deferred. The roadmap should be structured to prioritize these non-negotiable mechanics early, then layer engagement features on top.
-
-## Key Findings
-
-### Recommended Stack
-
-**Single-file vanilla JavaScript approach with no external dependencies.** The research firmly establishes that for a self-contained, offline-first tool, any framework (React, Vue, Svelte) adds unnecessary overhead and breaks the portability requirement. The stack is intentionally minimal:
-
-**Core technologies:**
-- **Vanilla ES2020+ JavaScript** — All game logic, state management, event handling. No transpilation needed. Mature browser support (Chrome 85+, Firefox 78+, Safari 14+, Edge 85+). Framework overhead (30–50 KB for React/Vue) is wasted on a linear game loop.
-- **HTML5 semantic forms** — Radio buttons with `<fieldset>` + `<legend>` + `<label>` provide accessible multiple-choice without ARIA overhead. Native keyboard navigation, screen reader friendly.
-- **CSS3 (2023+)** — Pure CSS gradients for grunge textures, CSS custom properties for dark mode, CSS animations for transitions. No image assets, no external resources. Responsive by design.
-- **localStorage API** — Native browser storage, 5–10 MB per origin, synchronous writes safe in beforeunload, error handling for quota exceeded. Good enough for game state under 100 KB.
-- **requestAnimationFrame** — Game loop backbone. Synced to 60 FPS, pauses when tab loses focus (power efficient), standard since 2012.
-
-**Key decisions:**
-- No dependencies, no CDN calls. Everything inlined in a single HTML file.
-- CSS-only animations preferred over JavaScript for performance (hardware accelerated).
-- localStorage with version-based migration for future schema updates.
-- Confidence: **HIGH** — this pattern is proven across 2025 web dev community; single-file apps are an established pattern.
-
-### Expected Features
-
-**Must-have (Table Stakes — blockers if missing):**
-1. **Multiple-choice answers (4 options)** — Reduces friction; large tap targets; keyboard accessible.
-2. **Immediate feedback** — Visual + audio confirmation within 300 ms.
-3. **XP bar + level system** — Tangible progress metric that resets visually on level-up.
-4. **No countdown timer** — Critical ADHD requirement. Timers trigger cortisol spikes and working-memory collapse.
-5. **Dark aesthetic + grunge design** — Visual preference stated in requirements; aligns with target user.
-6. **localStorage persistence** — Sessions auto-save; user can close and return without friction.
-7. **Mixed difficulty (6–9 tables + easier 1–5 confidence-builders)** — 70% target-difficulty, 30% confidence.
-8. **Clear problem display** — High contrast, large fonts, no visual clutter.
-
-**Should-have (Differentiators — Phase 2):**
-- **Novelty rotation** (3–4 mini-game formats) — Prevents habituation and engagement cliff.
-- **Difficulty self-calibration** — Seamless adaptation tracks weak tables and weights them.
-- **Session checkpoints** (break suggestions after 20 min) — Respects ADHD attention span.
-- **Audio feedback** (reward sounds + optional ambient) — Dopamine reinforcement without overload.
-- **Cosmetic progression** (avatar colors, styles) — Visual achievement independent of math performance.
-
-### Architecture Approach
-
-**Single HTML file with modular closure-based JavaScript components.** The architecture centers on a fixed-timestep game loop that separates update logic (game state) from render logic (DOM updates). State is held in a closure-based `PlayerState` object; input flows through an `InputHandler`; rendering is delegated to a `Renderer` component; persistence is abstracted behind a `PersistenceStore` interface.
-
-**Major components and responsibilities:**
-1. **Game Loop** — Coordinates frame timing, accumulates delta time, calls update() then render()
-2. **Input Handler** — Captures user interactions; delegates to state updates
-3. **State Manager (PlayerState)** — Holds game state: XP, level, accuracy by table, session count
-4. **Question Selector** — Implements weighted question selection based on accuracy history
-5. **XP/Level Calculator** — Exponential progression curve; computes rewards; detects level-ups
-6. **Persistence Manager** — Wraps localStorage with error handling, versioning, migration
-7. **Renderer** — Updates DOM to reflect current state; caches references
-
-### Critical Pitfalls (Prevention Required)
-
-1. **Reward Fatigue (week 3 engagement cliff)** — XP systems feel exciting for 1–3 weeks, then collapse. *Prevention:* Mix variable milestone lengths, separate progress tracking from reward, include intentional rest mechanics, test with target user at week 1/3/6.
-
-2. **Cognitive Overload from Visual Clutter** — Dark themes can amplify visual stress if not designed carefully. *Prevention:* Use near-black (#0A0A0A) + soft white (#E8E8E8), limit animations, provide light mode toggle, test contrast (4.5:1 minimum).
-
-3. **Answer Position Bias** — Correct answer clustering allows pattern guessing rather than learning. *Prevention:* Randomize order every question, log 50+ sessions to verify position ≈25% each, vary distractors.
-
-4. **Pressure-Induced Failure** — Even soft timers create cortisol spikes in ADHD users. *Prevention:* No timers, period. Fast feedback instead. No streaks or comparison mechanics.
-
-5. **localStorage Corruption and Data Loss** — Quota exceeded causes silent write failures. *Prevention:* Wrap every operation in try/catch for QuotaExceededError, check available space, version storage keys, test recovery.
-
-6. **No Progress Visibility** — Users can't see improvement without session summaries. *Prevention:* Show session summary after every session, track mastery per problem, show historical progress.
-
-7. **Dark Theme Accessibility Trap** — Accent colors become unreadable on dark backgrounds. 10–15% with astigmatism struggle. *Prevention:* Verify contrast ratios, use near-black + soft white, provide light mode toggle.
-
-8. **Analysis Paralysis from Feature Creep** — Too many modes/settings create menu paralysis. *Prevention:* MVP ships single mode, no toggles, difficulty adapts automatically, defer topic selection.
-
-## Implications for Roadmap
-
-Based on research, three-phase structure recommended:
-
-### Phase 1: MVP Core Loop + ADHD-Safe Mechanics
-
-**Rationale:** Foundation phase. Must establish game loop, state management, and prevent catastrophic pitfalls before shipping. These decisions are hard to change later.
-
-**Delivers:**
-- Single-file HTML game with vanilla JS game loop
-- Multiple-choice question → immediate feedback → XP gain → next question flow
-- XP/level system with visual feedback (bar, celebration animation)
-- Dark grunge aesthetic with accessible contrast ratios (4.5:1 minimum, light mode toggle)
-- localStorage persistence with error handling and versioning
-- Mixed difficulty (70% hard tables 6–9, 30% easy 1–5) with no timers or pressure
-- Session summary showing progress and mastery tracking per table
-- Answer randomization verified (no position bias)
-
-**Addresses:** All 8 must-haves from FEATURES.md. Prevents all 8 critical pitfalls from PITFALLS.md.
-
-**Research flags:** None—well-documented patterns. Standard across game dev community (HIGH confidence).
+**Confidence:** HIGH (stack + architecture), MEDIUM (feature tuning + loot economy)
 
 ---
-
-### Phase 2: Engagement & Gamification Polish
-
-**Rationale:** After MVP validation (1–2 weeks with target user), add features that prevent reward fatigue and increase novelty. Depends on Phase 1 foundation.
-
-**Delivers:**
-- Novelty rotation (3–4 mini-game formats; same math, different presentation every 3–5 problems)
-- Difficulty self-calibration (weighted question selection based on accuracy per table; 60–70% weak tables, 30–40% confidence builders)
-- Session checkpoints (break suggestions after 20 min screen time; optional, encouraged)
-- Cosmetic progression system (unlock avatar colors, weapon styles, grunge-themed cosmetics)
-- Enhanced audio feedback (optional ambient music + reward sounds; fully toggleable)
-- Session summary expanded (mastery tracking, historical progress graphs, trend vs. last session)
-
-**Addresses:** Differentiators (features 9–13 from FEATURES.md). Prevents reward fatigue through variable rewards and cosmetic unlocks.
-
-**Research flags:**
-- **Reward curve tuning:** Exponential curve needs Phase 1 data. Plan 2–3 iteration cycles based on engagement metrics.
-- **Novelty format design:** 3–4 distinct question formats need wireframes + target user testing during Phase 2 planning.
-
----
-
-### Phase 3: Optional Enhancements (Conditional)
-
-**Rationale:** Only pursued if Phase 1–2 engagement metrics justify continued development.
-
-**Potential deliverables:**
-- Streak mechanic (celebration-focused, no punishment for gaps)
-- Visual progress map (pixel-art or grunge-themed "world" showing "you are here")
-- Customizable session goals (time-based: 10/15/20 min; achievement-based: 2/3/5 level-ups)
-- High-contrast mode (accessibility toggle)
-
-**Explicitly deferred (out of scope):**
-- Leaderboards, public/private, competitive modes
-- Timed challenges, pressure mechanics
-- Signup/login, user accounts, data collection
-- Ads, monetization, paywalls
-- Social features, multiplayer
-
-### Phase Ordering Rationale
-
-1. **Phase 1 must ship first** because:
-   - Pitfall prevention (timers, localStorage, contrast, progress visibility) must be locked in by design, not retrofitted.
-   - ADHD-safe mechanics are prerequisite to measuring real engagement. Can't test reward fatigue if users are anxious.
-   - Architectural decisions (closure modules, game loop, persistence versioning) are set here; changing later requires rework.
-
-2. **Phase 2 follows immediately** because:
-   - Reward fatigue risk is highest after MVP validation (1–2 weeks). Must add novelty and cosmetics early to prevent week-3 cliff.
-   - Difficulty self-calibration requires data from Phase 1. Once data exists, algorithm can be added cleanly.
-   - Session checkpoints and progress tracking leverage Phase 1's infrastructure; minimal rework.
-
-3. **Phase 3 is optional and dependent** because:
-   - MVP is complete and valuable without these features.
-   - Only pursued if engagement metrics justify continued development.
-   - Implementation is independent; no architectural changes needed.
-
-### Research Flags for Planning
-
-**Phases needing deeper research during planning:**
-- **Phase 2 (Novelty formats):** Design of 3–4 mini-game formats needs domain-specific iteration. Suggest wireframes + testing mental model with target user during Phase 2 planning.
-- **Phase 2 (Reward curve):** XP multiplier, level thresholds, cosmetic unlock timing need tuning based on Phase 1 engagement data. Plan for 2–3 iteration cycles.
-- **Phase 3 (Cloud save):** If multi-device sync becomes a requirement, research IndexedDB vs. cloud backend (Firebase, AWS). Currently out of scope.
-
-**Phases with standard patterns (skip research-phase during planning):**
-- **Phase 1 (Game loop, localStorage, dark theme):** All patterns well-documented and proven. Standard patterns from game dev community. No additional research needed.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| **Stack** | HIGH | Consensus across 2025 web dev community. Single-file vanilla JS is proven pattern. Researched with official MDN docs and community projects. |
-| **Features** | HIGH | Must-haves informed by ADHD research and competitive analysis (Prodigy, Khan, DreamBox). Differentiators grounded in gamification science and neurodivergent UX research. Anti-features backed by educational app literature. |
-| **Architecture** | HIGH | Closure modules, game loop, weighted question selection, and persistence strategies are standard across modern game dev. Code examples provided are production-tested patterns. No novel approaches; well-established best practices. |
-| **Pitfalls** | HIGH | All 8 pitfalls are well-sourced from peer-reviewed research, domain-specific literature, and technical security/reliability sources. Reward fatigue, visual accessibility, pressure-induced failure backed by educational research. Storage corruption is proven technical risk. Prevention strategies are actionable and testable. |
+| Stack | HIGH | All v2 additions are pure vanilla JS/CSS extensions of proven v1 patterns. No new dependencies introduced. Emoji sprites, CSS HP bars, data-screen switching — all MDN-documented, battle-tested. |
+| Architecture | HIGH | Module boundaries are clean and directly derived from inspecting the existing v1 codebase. Build order is dependency-driven. Migration path is low-risk. |
+| Features | MEDIUM | Genre conventions (HP bars, turn-based combat, loot) are well-established. ADHD-specific tuning (damage numbers, pacing, death framing) rests on research consensus but needs real-user validation. |
+| Pitfalls | HIGH | ADHD punishment research is well-sourced (PMC studies). Scope creep, localStorage migration, and CSS screen-state patterns are engineering truths confirmed across multiple sources. |
+| Combat balance | LOW | Exact HP values, damage per wrong answer, and loot drop rates are informed guesses. No empirical data exists for this specific user. Balance requires live playtesting. |
 
-**Overall confidence: HIGH**
-
-All four research streams (Stack, Features, Architecture, Pitfalls) converge on same architecture and feature set. No contradictions or major uncertainties. Research quality is strong across all domains.
-
-### Gaps to Address During Planning
-
-1. **Target user validation:** Research assumes 12-year-old with possible ADHD based on PROJECT.md. Phase 1 UAT must validate actual user's response to no-timer mechanics, dark aesthetic, and reward structure. If real user rejects assumptions, roadmap may need revision.
-
-2. **Reward curve tuning:** Exponential XP curve provided in ARCHITECTURE.md (BASE_XP = 100, LEVEL_MULTIPLIER = 1.2) is starting point. Phase 1 playtesting will reveal if levels feel too fast (boring by day 2) or too slow (grind fatigue). Plan 2–3 iterations during Phase 2.
-
-3. **Difficulty self-calibration threshold:** When should a table be considered "mastered"? (Current proposal: 7/10 correct in recent history). This threshold affects question weighting heavily. Phase 1 data will inform optimal threshold.
-
-4. **Question pool size:** How many unique distractors per problem type are needed to prevent memorization? (Current proposal: 8+ per table). Needs validation during Phase 1 content creation. Include in UAT checklist.
-
-5. **Cloud integration future path:** If multi-device sync becomes a requirement later (Phase 3+), research needed on IndexedDB vs. cloud backends (Firebase, AWS). Currently out of scope but flag for potential future research phase.
-
-## Sources
-
-**Primary Sources (HIGH Confidence):**
-- STACK.md: MDN documentation (localStorage, requestAnimationFrame, HTML5 forms, CSS gradients), GitHub single-file-apps projects
-- FEATURES.md: Peer-reviewed ADHD gamification research, competitive analysis (Prodigy/Khan/DreamBox), educational UX studies
-- ARCHITECTURE.md: Game Programming Patterns (official reference), performant JS game loops, module design patterns, spaced repetition algorithms
-- PITFALLS.md: Systematic review of gamification effectiveness, cortisol/math performance research, dark mode accessibility guidelines, multiple-choice assessment design
-
-**All research files cite HIGH-confidence sources:**
-- Official W3C documentation (HTML/CSS/JavaScript standards)
-- MDN Web Docs (API reference and best practices)
-- Peer-reviewed educational research (ADHD, gamification, math anxiety)
-- Technical security and reliability sources
-- Game development community consensus (published patterns)
+**Overall confidence:** HIGH for architecture and stack decisions. MEDIUM/LOW for game-feel tuning — plan to iterate on CONFIG values post-launch.
 
 ---
 
-*Research synthesis completed: 2026-06-20*
-*Confidence: HIGH across all areas*
-*Ready for roadmap planning: YES*
+## Executive Summary
+
+Math Lab v2.0 adds a dungeon crawler combat layer on top of the existing v1 math engine. The core design insight across all four research files is identical: **the dungeon is a wrapper, not a replacement**. The v1 QuestionSelector, XpCalculator, PlayerState, and PersistenceStore remain essentially unchanged. Three new modules (GameFSM / DungeonState, CombatEngine, DungeonRenderer) sit around the existing engine, consuming it without modifying its internals. This is the correct architecture for a single-file app — additive, not invasive.
+
+The recommended approach is to build in two independently testable phases: Phase A establishes the combat logic (FSM, DungeonState, CombatEngine, save migration) entirely in-memory before any visuals are touched; Phase B adds the dungeon renderer, screen routing, and HTML structure. This means the math-to-combat bridge can be verified in the browser console before a single new DOM element exists. This separation is the most important risk mitigation for the project.
+
+The single biggest risk is not technical — it is ADHD safety. All research converges on the same finding: standard dungeon crawler conventions (escalating damage, time pressure, stat comparison, loot choices) are individually harmful for ADHD learners when imported without modification. Every combat mechanic must pass an explicit ADHD-safety checklist before implementation. Wrong-answer damage must be small and non-compounding, death must be a gentle floor restart with no stat loss, loot must auto-apply with no choice required, and no implicit timer or streak mechanic may be introduced in any form. Violating any of these is not a quality issue — it is a product-killing issue. The user will stop opening the app.
+
+---
+
+## Key Findings
+
+### Recommended Stack
+
+The v1 stack (vanilla ES2020+, CSS3, localStorage, requestAnimationFrame) carries forward unchanged. v2 adds no new dependencies. The dungeon layer uses a plain JS FSM object (20 lines) for game phase management, a separate DungeonState closure for session-scoped run data, `data-screen` attribute on `<main>` driving CSS visibility for all screens, CSS `@keyframes` + `animationend` for all combat feedback, Unicode emoji at 5–6rem for enemy sprites, and CSS `transition: width` on a `<div>` fill element for HP bars.
+
+**Core technologies (v2 additions):**
+- GameFSM: game phase controller — prevents if/else spaghetti across 5 game states
+- DungeonState: ephemeral run state — kept separate from persistent PlayerState by design
+- CombatEngine: bridges QuestionSelector output to damage logic — single responsibility
+- DungeonRenderer: all dungeon DOM operations — separate from existing Renderer (math feedback)
+- FloorConfig: static enemy data and table pools per floor — pure lookup, no state
+- PersistenceStore v2: bumps schema version, migrates v1 save data without losing XP/accuracy
+
+### Expected Features
+
+**Must have (table stakes) — v2.0 launch:**
+- HP bars for player and enemy — core feedback loop; without this combat has no stakes
+- Turn-based combat: correct answer attacks, wrong answer takes damage — the mechanic
+- 3 enemy types with distinct visuals and stat differences (Goblin / Skeleton / Dragon)
+- 5 rooms per floor, 3 floors + boss, fixed structure (not procedural)
+- Multiple questions per enemy to defeat (3–5 correct answers, not 1-shot)
+- Die = restart floor only — retain all XP, level, and cross-run loot. Non-negotiable.
+- 3 loot types (sword / shield / potion), max 1 of each held, auto-applied (no choice)
+- Visual combat feedback: floating damage numbers, enemy shake, HP bar drain
+- XP bonus on enemy defeat — bridges dungeon outcomes to existing v1 progression
+- Floor summary screen after clearing a floor
+
+**Should have — v2.1 after validation:**
+- Enemy flavor text and taunts
+- HP recovery on floor clear
+- Loot persistence across floor retries
+- Enemy HP scaling with player level
+
+**Defer to v2.2+:**
+- Personal best tracking per floor
+- Additional enemy types
+- Cosmetic loot
+
+**Anti-features — never build these:**
+- Timer-based combat (any form)
+- Full permadeath / full game reset on death
+- Loot choice between two items
+- Combo multiplier / streak mechanic
+- Enemy rage mode / charge animation
+- Comparison stats on death screen
+- Procedurally generated floors
+
+### Architecture Approach
+
+The v2 architecture adds three new layers around the existing math engine, not inside it. Existing modules are modified minimally: CONFIG extended, PlayerState gains HP methods, PersistenceStore bumps to version 2, InputHandler gains one mode guard, App gains a `transition()` method. Four new modules — FloorConfig, DungeonState, CombatEngine, DungeonRenderer — slot into the existing single-`<script>` block in dependency order.
+
+**Major components:**
+1. **GameFSM** — enforces legal state transitions between EXPLORE / COMBAT / LOOT / TRANSITION / DEAD
+2. **DungeonState** — holds floor, room, enemy HP, player HP, loot inventory (session-scoped, not persisted)
+3. **CombatEngine** — resolves answers into damage values; calls QuestionSelector with enemy table pools; checks win/death conditions
+4. **DungeonRenderer** — owns all dungeon DOM: room row, enemy sprite, HP bars, loot animations, screen transitions
+5. **FloorConfig** — static enemy data and table pools per floor; pure lookup, no state
+6. **PersistenceStore v2** — reads v1 key on first load, migrates, writes to `mathlab_save_v2`; HP and combat state NOT persisted
+
+**Critical architecture rules:**
+- Do NOT leak dungeon logic into QuestionSelector (preserves EWMA adaptive learning)
+- Do NOT merge DungeonState into PlayerState (different lifecycles)
+- Do NOT render from InputHandler (all DOM updates flow through CombatEngine → DungeonRenderer)
+- Do NOT use multiple localStorage keys (one key, one JSON, one migration function)
+
+### Critical Pitfalls
+
+1. **Dungeon scope creep kills the project before launch** — Hard-freeze scope before any code. Write a "won't build" list before coding starts. Evaluate every addition as: "Can she play without this?" If yes, defer.
+
+2. **Wrong-answer damage becomes a punishment loop** — Cap damage so no encounter is lethal with 3–4 wrong answers. Start player at 100 HP. Wrong-answer damage: 5–10 HP. Test explicitly at 30% wrong-answer rate.
+
+3. **ADHD-unsafe patterns sneaking in via standard RPG conventions** — Five patterns to check every UI element against: implicit time pressure, death stripping progress, comparison stats, sensory overload from animations (all under 500ms), loot choice requiring decision under stress.
+
+4. **CSS/DOM screen state becomes spaghetti** — Establish a single `renderScreen(stateName)` function before building any screen. Use `data-screen` attribute on `<main>`. Scope all screen CSS under `#screen-X`.
+
+5. **v1 localStorage schema breaks v2 without migration** — Read `schemaVersion` on first load. Migrate v1 data carrying forward XP, level, accuracy. Write to new key `mathlab_save_v2`. Leave old key intact. Test with real v1 data before shipping.
+
+6. **Enemy difficulty gating adaptive tables** — Do NOT force specific multiplication tables by floor. Floor determines enemy HP and XP reward. Question difficulty remains EWMA-driven from v1. This preserves the core learning value inside the dungeon structure.
+
+7. **Loot economy breaking at accuracy extremes** — Model at both 30% and 70% wrong-answer rates before coding drop rates. One guaranteed item per floor as safety valve. Target: 60–80% HP at floor end across both extremes.
+
+---
+
+## Implications for Roadmap
+
+### Phase 2: Combat Foundation (Logic Only)
+**Rationale:** Combat logic must be verifiable in isolation before any DOM work begins. All new modules in this phase are testable in the browser console without touching HTML.
+**Delivers:** CONFIG extension with dungeon constants, PlayerState HP methods, FloorConfig static data, DungeonState, GameFSM, CombatEngine, PersistenceStore v2 migration
+**Addresses:** Turn-based combat loop, HP system, enemy stat differentiation, floor progression structure
+**Avoids:** Anti-pattern of rendering from InputHandler; localStorage migration pitfall built first not retrofitted; EWMA adaptive tables preserved
+**Research flag:** Standard patterns — skip research phase.
+
+### Phase 3: Screen Architecture and HTML Structure
+**Rationale:** Screen routing must be established before any screen's content is built. The `data-screen` / `renderScreen()` pattern must be locked in first.
+**Delivers:** All `<section>` screen panels in HTML, `DUNGEON_DOM` cache, `App.transition()` mode routing, `InputHandler` mode guard, `data-screen` CSS visibility system
+**Addresses:** CSS/DOM screen spaghetti pitfall; DOM panel architecture
+**Avoids:** Screen visibility bugs where two screens are partially visible simultaneously
+**Research flag:** Standard patterns — skip research phase.
+
+### Phase 4: Dungeon Renderer and Combat Visuals
+**Rationale:** With logic and routing in place, the renderer can be built and tested against real state.
+**Delivers:** DungeonRenderer (full), enemy sprites (emoji at 5–6rem), CSS HP bars with color transitions, room row layout, floating damage numbers, hit/hurt CSS @keyframes, floor-complete screen
+**Addresses:** Visual combat feedback, HP bars, floor summary; CSS animations without canvas
+**Avoids:** ADHD sensory overload — all animations under 500ms, no screen shake, no flashing
+**Research flag:** Standard patterns, but ADHD animation limits require explicit checklist review at this phase.
+
+### Phase 5: Full Floor Loop Integration and Balance
+**Rationale:** End-to-end floor flow requires all prior phases complete. Balance tuning is only meaningful with the full loop running.
+**Delivers:** End-to-end playable floor run, floor summary wired, death/retry screen wired, loot drop system with auto-apply, XP bonus on enemy defeat, full 3-floor + boss structure
+**Addresses:** All MVP features; loot economy balance; wrong-answer damage tuning
+**Avoids:** Scope creep — this phase ships the explicit MVP list and nothing more
+**Research flag:** Needs balance validation. Model loot economy at 30% and 70% wrong-answer rates before locking CONFIG values.
+
+### Phase 6: Polish and ADHD Safety Audit
+**Rationale:** A dedicated audit phase after the game is playable catches ADHD-unsafe violations before they reach the user.
+**Delivers:** ADHD safety checklist pass (all 5 unsafe patterns verified absent), flavor text and enemy taunts, UX copy review ("Attack" not "answer correctly"), final localStorage migration test with real v1 data
+**Addresses:** ADHD-unsafe patterns sneaking in; floor repetition feeling like reskinned quiz
+**Research flag:** Flavor text tone requires the 12-year-old's input — content decisions, not implementation.
+
+### Phase Ordering Rationale
+
+- Logic before visuals: prevents building screens before the state machine is solid
+- Screen routing before screen content: central `renderScreen()` must exist before any screen is built
+- Full loop before balance tuning: balance numbers are meaningless in isolation
+- ADHD audit last but not skippable: holistic audit only possible once the full game exists
+
+### Research Flags
+
+Phases needing deeper research during planning:
+- **Phase 5 (balance):** HP values, damage-per-wrong-answer, and loot drop rates are LOW confidence. Build all as named CONFIG constants so tuning is single-line changes.
+
+Phases with standard patterns (skip research):
+- **Phases 2, 3, 4, 6:** All patterns derived directly from v1 codebase or MDN-documented web APIs.
+
+---
+
+## Open Questions Requiring User Decisions Before Requirements
+
+1. **Enemy table pools: fully adaptive, floor-gated, or blended?** PROJECT.md specifies floor-specific table gates (×2×3×5 → ×4×6×7 → ×7×8×9). PITFALLS.md warns against hard-gating. **Recommendation: blended** — floor gates the pool, EWMA weights within that pool. Needs an explicit call.
+
+2. **Rooms per floor: 5 or 6?** PROJECT.md says 5–6. Research recommends 5 (entrance + 3 combat + 1 boss). Recommendation: 5.
+
+3. **Loot persistence across floor retries in v2.0 MVP?** Scoped as v2.1. If "die = start floor fresh including loot" is acceptable for launch, this simplifies localStorage schema significantly. Needs a call.
+
+4. **Enemy sprites: emoji or CSS-drawn shapes?** Emoji recommended for speed and readability. CSS shapes are more grunge-consistent but higher maintenance. Final call on aesthetic.
+
+5. **Flavor text and enemy taunts in v2.0 or v2.1?** Floor repetition is a critical pitfall. Even 3 lines per enemy prevents the "same room 15 times" feeling. Recommend including in v2.0 as low-effort insurance.
+
+---
+
+## Gaps to Address
+
+- **Combat balance values:** Starting values (player HP 100, wrong-answer damage 5–10, enemy HP 8/14/30) are estimates. Plan a tuning iteration after first 2–3 real play sessions.
+- **Boss encounter multi-phase design:** What changes at phase 2 of the dragon boss fight? Underdefined. Needs explicit design before Phase 5 implementation.
+- **Floor-to-floor enemy visual differentiation:** Strategy for making floor 1 goblin look distinct from floor 3 enemies needs content decisions before Phase 4.
+
+---
+
+## Sources
+
+### Primary (HIGH confidence)
+- MDN Web Docs — CSS `data-*`, `@keyframes`, `animationend`, `transition`, `clip-path`
+- MDN Web Docs — localStorage API, error handling, quota limits
+- Existing v1 codebase (`math-lab.html`) — module boundary conventions, animationend + `{ once: true }` pattern
+
+### Secondary (MEDIUM confidence)
+- PMC: Reward and Punishment Sensitivity in Children with ADHD
+- Medevel: Customizing Game Mechanics for ADHD
+- Roleplayingtips.com: The Ultimate Guide to 5 Room Dungeons
+- Prodigy Math Game Battles wiki — math-combat integration reference
+- Game Programming Patterns: State — separate ephemeral run state from persistent player identity
+
+### Tertiary (LOW confidence)
+- Combat balance values (HP, damage, drop rates) — informed guesses; require live tuning
+
+---
+*Research completed: 2026-06-20*
+*Synthesized from: STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md*
+*Ready for roadmap: yes*

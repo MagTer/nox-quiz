@@ -1,192 +1,276 @@
-# Feature Landscape: Math Lab
+# Feature Research
 
-**Domain:** Gamified educational math practice for kids age 12
+**Domain:** Browser-based dungeon crawler with math combat — 12-year-old girl, ADHD-safe, single HTML file
 **Researched:** 2026-06-20
-**Target Context:** 12-year-old girl, possible ADHD, dislikes traditional math but engages with games
+**Confidence:** MEDIUM (web research, cross-checked against existing educational game analysis and game design literature)
+**Scope:** v2.0 dungeon crawler layer added to existing math practice engine (v1 XP/level/adaptive weighting already built)
 
 ---
 
-## Table Stakes
+## Context: What Already Exists (v1 Engine — Do Not Re-Scope)
 
-Features users expect. Missing = app feels incomplete or boring. These are baseline expectations set by existing educational games (Prodigy, Khan Academy, DreamBox) and what makes a "game" feel like a game.
+The v1 engine provides these capabilities that the dungeon crawler builds on top of:
+- Weighted question selection (70% hard tables 6–9, 30% easy 1–5)
+- EWMA accuracy tracking per multiplication table
+- XP and level system persisted in localStorage
+- 4-option multiple-choice interface
+- Immediate answer feedback
 
-| Feature | Why Expected | Complexity | ADHD Consideration | Notes |
-|---------|--------------|------------|-------------------|-------|
-| **Progress visibility (XP bar + level)** | Every game since 2000s has progression; kids check it constantly. Tangible proof they're improving motivates return. | Low | CRITICAL: ADHD learners need frequent, visible micro-feedback. A 2-3 problem jump showing XP gain satisfies the dopamine hit before attention dips (~7 min). | Must reset/refill visually on level-up; not just "you're 8/10." |
-| **Multiple choice answers (4 options)** | Reduces friction when stuck; prevents frustration meltdown. Lower barrier to "trying" when you don't know. | Low | TABLE STAKES for ADHD: typed input requires sustained focus + fine motor control. Multiple choice lets them reason without motor tax. | Prodigy, Khan, DreamBox all use it. Screen reader compatible. |
-| **Immediate feedback** | Users need to know instantly if they're right/wrong; delayed feedback breaks engagement and learning. | Low | CRITICAL for ADHD: delays trigger "what did I do wrong?" rumination. Instant = move forward, no spiral. | "Correct!" or "Try again" within 300ms. Visual + audio cues. |
-| **No external time pressure (no countdown timer)** | Timers trigger stress responses, esp. for anxious or ADHD learners. Math anxiety + time = working memory collapse. | Low | CRITICAL: Research shows amygdala lights up after ~90s of countdown. Timed tests increase error rates. This is non-negotiable for ADHD-profile kids. | Fast-paced ≠ timed. Let them go at their pace. |
-| **Session checkpoints (level milestones)** | Provides natural stopping points; prevents "just one more" fatigue spirals. Psychologically satisfying. | Low | ESSENTIAL for ADHD: Pomodoro-style breaks (20–25 min is a sweet spot) with breaks offered after consistent errors show fatigue. | Offer a break after Level 5, 10, 15 etc. Optional, but encouraged. |
-| **Dark aesthetic + grunge design** | Visual preference stated in requirements; aligns with how the target user expects "cool" to look. No bubbly/pastel = no eye-roll. | Medium | ADHD learners report 61–73% preference for dark backgrounds; 14% better retention in 30-min sessions. Reduces eye strain = sustained focus. | Bold fonts, high contrast. Avoid clutter. |
-| **Offline persistence (localStorage)** | App saves XP/level locally; no server dependency means it works anywhere, anytime. Returns to the game = reward is waiting. | Low | ADHD learners benefit from "auto-save" as a friction reduction; no manual save steps to forget. | Must survive browser close/reopen. |
-| **Visual problem clarity** | Math problem must be obvious at a glance; no mental parsing needed. Font size, spacing, high contrast. | Low | CRITICAL for ADHD: visual clutter = cognitive overload. "What am I being asked?" must be instant. | Follows accessibility best practices; benefits all learners. |
+The dungeon layer wraps this engine: every combat encounter IS a question. The math engine stays unchanged; only what frames it changes.
 
 ---
 
-## Differentiators
+## Table Stakes (Users Expect These)
 
-Features that set the product apart. Not expected, but valued. These transform "yet another drill" into "I actually want to play this."
+Features the target user assumes exist in any dungeon game. Missing these = "this isn't really a dungeon game."
 
-| Feature | Value Proposition | Complexity | ADHD Fit | Implementation Notes |
-|---------|-------------------|------------|----------|----------------------|
-| **Novelty rotation (mini-quest variety)** | Dopamine dips ~7 min into repetitive tasks. Rotating between 3–4 mini-game formats (e.g., "Pick the answer," "Is it bigger?", "Find the pair") keeps attention fresh without changing the core math. | Medium | DIFFERENTIATOR: ADHD brains are hardwired for novelty-seeking. If every problem is identical, attention collapses by minute 5. Rotation prevents habituation. | Rotate every 3–5 problems. E.g., Q1–3 standard MC, Q4–6 "arrange in order," Q7 "fastest fingers" (no timer, just feel). |
-| **Avatar/cosmetic progression system** | As you level up, unlock cosmetics (clothes, colors, weapon skins) for a player character or companion. Zero power (doesn't improve math), but deeply motivating. | Medium | WORKS for ADHD: visual reward loop independent of math performance. Aesthetic achievement = dopamine without cognitive friction. Aligns with "dark grunge" aesthetic. | Start simple: unlock darker color variants, edgy tattoos, weapon glows. Avoid gacha/monetization pressure. |
-| **Streak/consistency mechanic** | "You've practiced 5 days straight!" badges. Gamifies habit-building without pressure. | Low | CAUTIOUS: streaks can backfire for ADHD (shame spiral if broken). Frame as "celebrate consistency," not "don't break it." Optional toggle to disable. | Show "You're on a 3-day streak!" non-punitively. Bonus XP for streaks, but no punishment for breaks. |
-| **Difficulty self-calibration** | App tracks which times tables you're fastest/slowest on. Adapts without asking; seamlessly mixes easier (6–5) with harder (9×9) to keep you in the "challenge sweet spot." | High | EXCELLENT for ADHD: removes decision fatigue. Spaced repetition of weak areas without the user thinking about it. DreamBox does this well. | Track latency + error rate per problem type. Weight weak areas into next 10 problems. |
-| **Visual progress map (optional "world" metaphor)** | Instead of abstract levels, show a visual landscape: "Level 1 = Desert," "Level 5 = Ice Kingdom," etc. Aesthetic journey, not just numbers. | Medium | OPTIONAL: Not table stakes, but appeals to fantasy-loving kids. Can be skipped for MVP but scales the game's "story." | Simple pixel-art or grunge-themed biomes. One-screen map showing "you are here." |
-| **Confidence-building mixed practice** | Deliberately sprinkle in 2–3 "easy" problems (times tables 1–5) into every session to guarantee wins early. Psychological: early wins prevent learned helplessness. | Low | KEY for ADHD learners with math anxiety: success early = "I can do this" → willingness to tackle harder problems. Prodigy and DreamBox both do this. | 70% target-difficulty (6–9), 30% confidence (1–5) per session. |
-| **Sound design (ambient + reward sounds)** | Gentle background audio (chiptune, lo-fi beats) creates ambiance; satisfying "ding!" on correct answer. Optional toggle for silent mode. | Medium | ADHD-friendly if well-done: audio cues help with attention; reward sounds trigger dopamine. Bad audio = sensory overload. Make it optional. | Keep background music ~60dB. Short, non-jarring win sounds. Reward cascade (coins/sparkles) on streaks. |
-| **Customizable session goals ("Play for 15 min" vs "Level up 2 times")** | Let the learner choose what "done" means today. Reduces decision fatigue and respects autonomy. | Low | EMPOWERING for ADHD: gives illusion of control. "I'll do 20 problems today" vs "I'll play till Level 3" = self-determination. | Radio buttons at session start: Time-based (10/15/20 min) or Achievement-based (2/3/5 level-ups). |
+| Feature | Why Expected | Complexity | ADHD/Age Fit | Notes |
+|---------|--------------|------------|--------------|-------|
+| **HP bars for player and enemy** | Every dungeon/RPG/combat game since Pokemon has visible health. Seeing the enemy's HP shrink is the core feedback loop. | LOW | CRITICAL: Visual, immediate, no reading required. HP bar fills/drains give dopamine hit per correct answer. | Player HP ~100, enemy HP scales by tier. Show as filled bar + number. |
+| **Turn-based combat (player acts, then enemy acts)** | Roblox RPGs, Pokemon, Prodigy Math — all use turn structure. Pre-teens expect to control their pace; real-time combat adds stress. | LOW | TABLE STAKES for ADHD: Turn-based = no time pressure. Player can think. Matches existing no-timer philosophy. | Sequence: question appears → player answers → if correct, player attacks; if wrong, enemy attacks → next question. |
+| **Multiple enemy types with visible differences** | Goblins vs skeletons vs dragons — visual variety signals "I'm making progress." Identical enemies feel like a treadmill. | LOW-MED | Novelty prevents habituation. ADHD brains need visual change to maintain interest. | 3 types confirmed: Goblin (easy), Skeleton (medium), Dragon (hard). Each needs distinct art/description even if text-based. |
+| **Room-by-room floor exploration** | Minecraft/Roblox players understand "rooms to clear" as progress unit. "You've cleared 3 of 5 rooms" is tangible. | MED | Chunked progress = ADHD-friendly. Each room is a micro-session. "Just one more room" is less commitment than "one more floor." | 5 rooms per floor (entrance, 3 combat rooms, boss room). Classic 5-room dungeon structure is proven for short sessions. |
+| **Loot after defeating enemy** | Every game in this genre drops loot. Loot = variable reward = dopamine. No loot = combat feels pointless. | LOW | Variable reward schedule (not every kill drops loot) is highly motivating for ADHD. Unpredictability sustains attention. | 3 loot types: weapon upgrade (more attack), potion (restore HP), armor (reduce incoming damage). Simple item holding, no complex inventory. |
+| **Boss at end of each floor** | Bosses are a genre convention. A floor without a boss feels incomplete. Builds anticipation. | MED | Predictable structure (boss at floor end) reduces anxiety. Pre-teens want to know what's coming. | Dragon boss for floor 3 confirmed. Floor 1-2 mini-bosses can be stronger versions of existing enemies. |
+| **Die = restart floor, not full game** | Permadeath is hostile for casual players, especially pre-teens. Minecraft uses this pattern (respawn near death point). | LOW | CRITICAL for ADHD: Full-game reset triggers shame spiral and app avoidance. Floor restart maintains a sense of progression. | Retain XP/level on death. Lose only loot from current floor run. "Try floor 2 again?" with clear framing, no shame. |
+| **Floor/difficulty progression (3 floors + boss)** | There must be an end goal visible. "Floor 2 of 4" gives orientation. Without it, the game feels infinite and purposeless. | MED | Goal visibility is executive-function scaffolding. "I'm on floor 2, almost to the boss" = clear session objective. | Math difficulty maps to floor: Floor 1 = ×2×3×5, Floor 2 = ×4×6×7, Floor 3 = ×7×8×9, Boss = hardest tables. |
+| **Visual combat feedback (hit animations, damage numbers)** | Every game shows damage numbers floating up. No visual = combat feels disconnected from answers. | LOW | Fast, purposeful animation is ADHD-positive. Idle/waiting screens break engagement. | "+12 damage!" floating text. Enemy "shakes" on hit. Player HP bar drains on wrong answer. CSS animations only. |
+
+---
+
+## Differentiators (What Makes This Worth Opening Again)
+
+Features that go beyond genre expectations and create "I actually want to play this" vs "I play it because it's there."
+
+| Feature | Value Proposition | Complexity | ADHD Fit | Notes |
+|---------|-------------------|------------|----------|-------|
+| **Math difficulty tied to enemy type, not floor** | Goblins always ask easy tables (1–5), Skeletons ask medium (4–7), Dragons ask hard (7–9). Player perceives the _enemy_ as the challenge, not the math. The narrative does the pedagogical work. | MED | Reframes "hard math" as "hard enemy." ADHD learners respond better to challenge framed as game difficulty vs academic difficulty. Reduces math anxiety. | Goblin: uses CONFIG.EASY_TABLES. Skeleton: mixed 4–7. Dragon: CONFIG.HARD_TABLES. Leverages existing EWMA weighting. |
+| **HP recovery on floor clear** | Clearing all rooms on a floor restores a portion of HP (e.g., 30 HP). Creates "push your luck" tension without timer pressure. | LOW | Reward for completion. ADHD learners often undervalue what they've already done; a concrete HP reward for clearing a floor makes effort visible. | "Floor cleared! +30 HP." Show animation. Full HP restore between floors via potion OR as milestone reward. |
+| **Loot that persists across floor restart** | If player dies and retries floor, they keep any loot earned in previous attempts (just not from the current failed run). Gives incremental progress even on hard floors. | LOW | Prevents "all that work for nothing" feeling. ADHD players are highly sensitive to sunk-cost frustration. Small retained rewards make retrying feel worth it. | Store loot in localStorage by floor key. Clear per-run loot on death but preserve cross-run loot. |
+| **Enemy flavor text / taunts** | Short, edgy text from enemies ("Think you can handle me?", "Wrong answer, loser!") adds personality without cuteness. Grunge tone. | LOW | Micro-narrative keeps attention. 1–2 sentences of personality. Pre-teens read short text; long lore walls = instant skip. | Change taunt by enemy type. Goblin: dumb/overconfident. Skeleton: spooky/sarcastic. Dragon: menacing. No humor that reads as "for babies." |
+| **XP from combat, not just math** | Currently XP comes from correct answers. In dungeon mode, defeating an enemy gives bonus XP on top. Enemy-specific XP values reward harder fights. | LOW | XP as combat reward creates stronger narrative link between math and game outcome. Prodigy uses this successfully; it's the gold standard for this age group. | Goblin defeated = +15 XP bonus. Skeleton = +25 XP. Dragon = +50 XP. Stack on top of existing per-answer XP. |
+| **Floor summary screen** | After clearing a floor: "Floor 1 cleared! Enemies defeated: 6. Damage taken: 30. Loot found: 2 items. XP earned: 180." Feels like a report card you want to beat. | LOW | Session summary is ADHD goldmine: clear start/end, explicit achievement, motivates "beat my score" on replay. Maps to existing session-summary feature. | Show before transitioning to next floor. Store floor-best stats in localStorage for "personal best" comparison. |
+| **Enemy HP scales with player level** | If player is Level 8, enemies have more HP than at Level 2. Ensures the game stays challenging as the v1 XP system levels player up. | LOW-MED | Prevents mastery plateau. ADHD learners disengage when challenge disappears. Keeps the game in the "flow zone" automatically. | Simple scaling: enemy_hp = base_hp * (1 + player_level * 0.05). Cap at 2x base HP. |
+| **Multiple questions per enemy (not 1-shot)** | Each enemy requires 3–5 correct answers to defeat, not just 1. Creates a combat arc per encounter instead of a rapid-fire quiz. | MED | Pacing. One-question combat feels like the old quiz app wearing a costume. Multi-answer combat makes the enemy feel like a real obstacle. Research shows 3–5 turns is the sweet spot for pre-teen engagement before an encounter feels "too long." | Goblin: 3 correct answers to defeat. Skeleton: 4. Dragon boss: 8 (multi-phase). |
 
 ---
 
 ## Anti-Features
 
-Features to explicitly NOT build. These hurt engagement, especially for ADHD learners.
+Features that seem like good ideas for a dungeon crawler but actively harm this specific user and context.
 
-| Anti-Feature | Why Avoid | What Happens | What to Do Instead |
-|--------------|-----------|---------------|--------------------|
-| **Countdown timers** | Time pressure triggers amygdala activation (~90s threshold). Math anxiety + timer = working-memory shutdown, increased errors, avoidance. | User quits mid-session. Stress association with math deepens. Learned helplessness. | Fast feedback without time constraint. If speed matters later, introduce it gradually *after* confidence is built, and make it optional. |
-| **Leaderboards (public/social)** | Competition is demotivating for ADHD learners who already perceive themselves as "bad at math." Comparison spiral. | User sees they're "last" or "slow" and stops trying. Shame. | Personal progress bars only ("You beat your Level 3 time!"). Optional local friend leaderboards if requested, not default. |
-| **Punitive streaks** | "You lost your 10-day streak!" shaming. ADHD learners often struggle with consistency (executive dysfunction); streaks become guilt spirals. | User avoids app after missing one day. Negative association. | Celebrate consistency without punishment for gaps. "Welcome back! You had a 3-day streak." No "failed" states. |
-| **Long problem sets without breaks** | Sessions >20–25 min drain ADHD working memory. Error rate skyrockets after 16–20 min. | User makes careless errors. Blames themselves. Frustration peaks. | Offer breaks after 20 min of screen time. Celebrate breaks as part of the game ("Rest time = brain power recovery!"). |
-| **Cluttered, colorful, "busy" visual design** | Visual chaos = cognitive overload for ADHD. Competing colors, animations, text density. | User can't focus on the actual problem. Attention fragments. | Dark, clean aesthetic. One problem per screen. High contrast. Minimal animations (fast, purposeful, not decorative). |
-| **Forced pink/bubbly/"girly" aesthetic** | Target user explicitly rejects this. Feels patronizing and misses the mark. | User won't open the app. "It's not for me." | Dark grunge aesthetic. Bold fonts. Edgy/cool vibe. No assumptions about gender presentation. |
-| **Typo-prone or grammatically awkward copy** | "Your doing great!" or unclear instructions feel sloppy and undermine credibility. | User perceives low quality. Less trust. Less investment. | Clean, error-checked copy. Clear instructions ("Pick the right answer" not "Select which of these is the answer"). |
-| **Mandatory accounts / data collection** | Adds friction (password, email), privacy concerns, compliance overhead. Local-only is a feature. | User friction increases. Trust decreases. Setup barrier. | Keep offline, localStorage-only. No login. No tracking beyond local session data. |
-| **Ads** | Interrupts flow. Especially toxic for ADHD (task-switching is hard). Creates scarcity/pressure ("limited time!"). | Session interrupted. Cognitive reset needed. Frustration. | Ad-free by design. No monetization pressure. Keep the experience clean. |
-| **Tapping/typing speed requirements for motor control** | Fine-motor speed penalties increase frustration for dyspraxia-adjacent or ADHD-spectrum learners. | User feels slow/incompetent. Avoidance. | Multiple choice (large tap targets). No speed-based scoring. Accessibility first. |
+| Anti-Feature | Why Requested | Why Harmful | What to Do Instead |
+|--------------|---------------|-------------|-------------------|
+| **Timer-based combat ("answer in 10 seconds or enemy attacks")** | Adds urgency/excitement, common in math games. | ADHD-critical: Time pressure triggers working-memory shutdown. Math anxiety + timer = guaranteed wrong answer + frustration. App avoidance follows. War Solution (steam game) uses speed-scaling; this game must not. | No timers, period. Fast feedback without time constraint. Enemy attacks only on wrong answer, never on "too slow." |
+| **Full permadeath (die anywhere = back to floor 1)** | "Roguelike authenticity." | Pre-teens with ADHD will quit the app, not retry. Lose 8 minutes of progress on Floor 3 = shame + learned helplessness. Research: casual players (especially kids) need to feel run was never wasted. | Die = restart current floor only. Retain XP, level, and cross-run loot. No exception. |
+| **Complex inventory management (many items, slots, upgrades)** | RPG depth, "it's what dungeon crawlers do." | Cognitive load. Managing 10 items across 3 slots when you just want to fight a goblin breaks the math-combat flow. Inventory UI becomes the game. | Max 3 held items at a time. Simple: weapon (damage boost), armor (defense boost), potion (use to heal). No crafting, no merging, no slots. |
+| **Procedurally generated floors** | Replayability. | Increases implementation complexity 10x for a single-file vanilla JS app. Also removes the player's ability to "learn the dungeon" — familiarity is comforting for ADHD players. | Fixed floor/room structure. Same 5 rooms per floor, same enemy types per tier. Novelty comes from which specific math questions appear, not the map. |
+| **Social/multiplayer dungeon features** | "Can my friend play too?" | Breaks offline-only constraint. Also, this user's core value is solitary practice she controls. Social adds pressure. | Single-player only. No scores shared online, no co-op rooms. |
+| **Multiple playable characters with different stats** | "Customization." | Adds menu complexity before combat starts. Pre-teen will spend 5 minutes on character select instead of 5 minutes on math. Also increases scope significantly. | One character, cosmetically adjustable. Unlock visual upgrades (weapon skin, armor color) via loot/level-up. Stats are universal. |
+| **Random loot that can downgrade stats** | "Risk/reward tension." | Cognitive load + frustration. Equipping loot should always feel good. A player who gets "weaker sword" as a drop will stop collecting loot. | All drops are upgrades or consumables. No downgrades, no duplicate-slot replacement. Simple: loot is always good, always clear in value. |
+| **Story-heavy cutscenes between rooms** | "It's an RPG!" | Text walls break flow. ADHD learners skip all reading beyond ~2 sentences. Story investment requires sessions longer than 5–10 min. | Flavor text max 2 sentences. Enemy taunts, floor intros as 1-line popups only. World-building deferred to future scope. |
+| **Stamina/energy systems (limit how much you can play)** | "Prevents burnout." | Creates anxiety about "wasting" play time. Also removes player autonomy — a key ADHD motivator. | No stamina. Play as long or short as desired. Session goals are voluntary (from v1 should-have feature). |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Core Loop:
-  Problem Display → Answer Selection (MC) → Instant Feedback
-    ↓
-  XP Gain → Progress Bar → Level Up (visual + audio celebration)
-    ↓
-  localStorage Save (automatic, invisible)
+Dungeon Layer depends on v1 Math Engine:
+  v1 QuestionSelector (weighted tables, EWMA accuracy)
+      └──feeds──> CombatEncounter (each question = one combat turn)
+                      └──requires──> EnemyState (HP, type, attack power)
+                                         └──requires──> EnemyConfig (Goblin/Skeleton/Dragon stats)
 
-Session Lifecycle:
-  Session Start (choose goal: time or levels)
-    ↓
-  Problem Loop (novelty rotation, mixed difficulty)
-    ↓
-  Break Checkpoint (after 20 min or 20 problems)
-    ↓
-  Session End (show XP earned, level progress, streak)
-    ↓
-  Save to localStorage
+Combat Loop (per room):
+  RoomEntry
+      └──spawns──> Enemy (type determined by floor/room index)
+                      └──drives──> CombatEncounter
+                                      └──on correct answer──> PlayerAttack (enemy HP -damage)
+                                      └──on wrong answer──> EnemyAttack (player HP -damage)
+                                      └──on enemy HP = 0──> EnemyDefeat
+                                                                └──triggers──> LootDrop (weighted random)
+                                                                └──triggers──> XPBonus (enemy-type value)
 
-Progression:
-  Difficulty Self-Calibration feeds into:
-    → Next session's problem mix
-    → Avatar cosmetic unlocks (independent)
-    → Confidence tracking (invisible to user)
+Floor Progression:
+  RoomCleared (all enemies in room defeated)
+      └──unlocks──> NextRoom
+                      └──if final room──> BossEncounter
+                                              └──on defeat──> FloorComplete
+                                                                  └──restores HP (partial)
+                                                                  └──shows FloorSummary
+                                                                  └──unlocks NextFloor
 
-Optional (do not block MVP):
-  Streak → (optional) avatar cosmetics
-  Visual Progress Map → session flow (cosmetic only)
-  Sound Design → every feedback loop (can be disabled)
+Death Handler:
+  PlayerHP = 0
+      └──triggers──> DeathScreen ("Floor X cleared X rooms")
+                      └──option──> RetryFloor (reset room index, restore full player HP, keep cross-run loot)
+                      └──option──> ReturnToStart (keep all XP/level, reset dungeon)
+
+Loot System:
+  LootDrop
+      └──updates──> PlayerStats (weapon_damage, armor_reduction, potion_count)
+                      └──persisted in localStorage (dungeon-scoped, cleared on full dungeon reset)
+
+XP Bridge:
+  CombatEncounter XP ──adds to──> v1 PlayerState.xp (existing engine)
+  EnemyDefeat bonus XP ──adds to──> v1 PlayerState.xp (existing engine)
+  Level up logic unchanged (v1 handles this)
 ```
+
+### Key Dependency Notes
+
+- **CombatEncounter depends on v1 QuestionSelector** — the math question IS the combat mechanic. The dungeon layer is a wrapper, not a replacement.
+- **EnemyConfig determines which table tier QuestionSelector uses** — Goblin pulls from EASY_TABLES config, Dragon pulls from HARD_TABLES. This is the only modification to the v1 question selection.
+- **Loot is floor-scoped in localStorage** — persists across floor retries but resets on full dungeon reset. Separate key from v1 PlayerState.
+- **Death handler is new** — v1 has no death state. This is the biggest new state machine addition.
+- **FloorSummary extends v1 SessionSummary concept** — reuses the pattern, adds dungeon-specific metrics.
 
 ---
 
-## MVP Recommendation
+## MVP Definition
 
-**Prioritize these features for launch. Ship with just these and validate learning + engagement with the target user.**
+### Launch With (v2.0 — This Milestone)
 
-### Must-Have (Blocker if Missing)
+What's needed for the dungeon crawler to feel like a real game, not a reskinned quiz.
 
-1. **Multiple choice answers (4 options)** – Without this, friction skyrockets.
-2. **Immediate feedback (correct/try again)** – Core game loop requirement.
-3. **XP bar + level system** – Progression is the motivator; without it, it's just a drill.
-4. **No countdown timer** – ADHD-critical. A timed version breaks the whole value prop.
-5. **Dark aesthetic** – Visual coherence with user expectations. A bright, bubbly version won't be opened.
-6. **localStorage persistence** – Sessions must save. No return = no habit.
-7. **Mixed difficulty (6–9 + easier tables for confidence)** – Confidence-building is table stakes per PROJECT.md requirements.
-8. **Problem clarity (clean display, large fonts, high contrast)** – Accessibility = usability for all, especially ADHD.
+- [ ] **HP system (player + enemy)** — Without this there's no stakes. Core feature of the milestone.
+- [ ] **Turn-based combat loop** — correct answer = player attacks, wrong answer = enemy attacks. The core mechanic.
+- [ ] **3 enemy types with different HP and attack values** — Goblin (easy), Skeleton (medium), Dragon (hard).
+- [ ] **5 rooms per floor, 3 floors + boss floor** — 20 rooms total. Fixed structure.
+- [ ] **Boss at end of floor 3** — Dragon boss, harder tables, more HP. Climax moment.
+- [ ] **Die = restart floor (keep XP and level)** — Non-negotiable. Permadeath breaks the user.
+- [ ] **3 loot types: weapon upgrade, armor, potion** — Keep at most 1 of each. No complex inventory.
+- [ ] **Multiple questions per enemy (3–5 correct answers to defeat)** — Makes combat feel like combat.
+- [ ] **Visual combat feedback (HP bars, floating damage numbers, enemy shake)** — Without this combat feels inert.
+- [ ] **Enemy difficulty matches floor** — Floor 1: easy tables, Floor 3: hard tables. Bridges to v1 adaptive weighting.
+- [ ] **XP bonus on enemy defeat** — Bridges dungeon actions to existing XP progression.
+- [ ] **Floor summary screen** — "Floor cleared! XP: 180, enemies: 6." Satisfying endpoint per floor.
 
-### Should-Have (Ship by Phase 2)
+### Add After Validation (v2.1)
 
-9. **Novelty rotation (3–4 mini-quest formats)** – This is the differentiator that prevents "I'm bored by problem 30."
-10. **Difficulty self-calibration** – Seamless adaptation keeps users in the challenge zone.
-11. **Session checkpoints (break suggestions after 20 min)** – Prevents fatigue spiral; respects ADHD attention patterns.
-12. **Audio feedback (reward sounds + optional ambient)** – Dopamine reinforcement without overload.
-13. **Cosmetic progression (unlock avatar colors/styles)** – Visual achievement independent of math performance.
+- [ ] **Enemy flavor text/taunts** — Adds personality. Low effort, deferred to not block launch.
+- [ ] **HP recovery on floor clear** — Reward for full-floor clears. Adds strategic layer.
+- [ ] **Loot persistence across floor retries** — Quality-of-life that reduces retry frustration. Adds localStorage complexity.
+- [ ] **Enemy HP scales with player level** — Prevents mastery plateau. Requires tuning based on real play data.
 
-### Nice-to-Have (Defer to Phase 3+)
+### Future Consideration (v2.2+)
 
-14. **Streak mechanic (celebration, no punishment)** – Habit tracking, but low priority for MVP.
-15. **Visual progress map** – Aesthetic journey, but not essential for core gameplay.
-16. **Customizable session goals** – Autonomy feature, valuable but not critical for validation.
-
-### Explicitly Do NOT Include in MVP
-
-- Leaderboards (any form)
-- Timed challenges
-- Punitive mechanics
-- Ads or monetization
-- Social features / multiplayer
-- Signup/login
-- Pink or bubbly aesthetic
+- [ ] **Personal best tracking per floor** — "Beat your floor 2 record!" Replayability driver, needs data from v2.0 sessions.
+- [ ] **Additional enemy types (4–5 total)** — Only if user asks for more variety after v2.0.
+- [ ] **Cosmetic loot (visual upgrades only)** — Depends on whether loot system feels motivating enough in v2.0.
 
 ---
 
-## MVP User Flow (30-Second Play)
+## Feature Prioritization Matrix
 
-```
-1. Open app → (localStorage loads XP/level)
-2. "Start playing?" → Pick session goal (15 min OR 2 levels)
-3. Problem 1 (6×7) → 4 options → tap → "Correct! +10 XP"
-4. XP bar fills partway, visual/audio celebration
-5. Problem 2 (3×4) → tap → "Try again!" → tap different → "Correct! +10 XP"
-6. Continue ~5 problems, then break offer ("Good work. Rest 2 min?")
-7. Resume → Problems 6–12 (mix of 6–9 + easy ones)
-8. Level up! → "Level 3!" + cosmetic unlock (darker avatar style)
-9. Session goal reached → "You earned 120 XP today! Come back tomorrow."
-10. Page reloads → localStorage shows "Level 3, 45/100 XP to Level 4"
-```
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| HP system (player + enemy) | HIGH | LOW | P1 |
+| Turn-based combat (correct = attack, wrong = damage) | HIGH | LOW | P1 |
+| 3 enemy types (Goblin/Skeleton/Dragon) | HIGH | LOW | P1 |
+| 5 rooms per floor, 3 floors + boss | HIGH | MED | P1 |
+| Multiple questions per enemy (3–5 turns) | HIGH | LOW | P1 |
+| Die = restart floor (keep XP) | HIGH | LOW | P1 |
+| Visual combat feedback (HP bars, damage numbers) | HIGH | LOW | P1 |
+| 3 loot types (weapon/armor/potion) | HIGH | LOW | P1 |
+| Floor summary screen | MED | LOW | P1 |
+| Enemy difficulty tied to floor/type | HIGH | LOW | P1 (leverages existing v1 config) |
+| XP bonus on enemy defeat | MED | LOW | P1 |
+| Enemy flavor text/taunts | MED | LOW | P2 |
+| HP recovery on floor clear | MED | LOW | P2 |
+| Loot persistence across floor retries | MED | MED | P2 |
+| Enemy HP scaling with player level | MED | LOW | P2 |
+| Personal best tracking per floor | LOW | LOW | P3 |
+| Additional enemy types | LOW | MED | P3 |
+
+**Priority key:**
+- P1: Must have for v2.0 launch
+- P2: Add in v2.1 after validation
+- P3: Future consideration
 
 ---
 
-## ADHD-Specific UX Principles (Woven Into Every Feature)
+## Competitor / Reference Feature Analysis
 
-These aren't separate features; they're design constraints that affect everything:
+| Feature | Prodigy Math | Math Dungeon Quest (itch.io) | Math Gauntlet | This App's Approach |
+|---------|--------------|------------------------------|---------------|---------------------|
+| Math→combat mapping | Correct answer = cast spell, magic points replenished by correct answers | Correct answer = attack, wrong = vulnerable | Faster answer = more damage (timed) | Correct = attack, wrong = take damage. No speed component. No timer. |
+| HP system | Hearts-based, 600 HP with scaling | Binary (attack/defend) | Hearts (lives) | Numeric HP bars, player 100 / enemy scales by type. Visual bar + number. |
+| Enemy variety | 8 elemental types with type advantages | Generic enemy types | Generic | 3 types: Goblin/Skeleton/Dragon. No elemental complexity. Simpler is better for this scope. |
+| Floor/progression | Level-gated world map, zones | Linear dungeon rooms | Linear waves | 3 floors + boss, 5 rooms each. Fixed, not procedural. |
+| Loot | Gear drops, cosmetics, pets | Basic items | No loot system | 3 item types, max 1 each. No cosmetics in v2.0. |
+| Permadeath | No permadeath, retry battle | Unclear | Lose hearts, retry | Die = restart floor. Retain all XP/level. |
+| Timer | None (turn-based) | None shown | Yes — core mechanic | Explicitly no timer. Against ADHD constraints. |
+| Session length | ~15–20 min typical | ~5–10 min per run | ~5 min | 5–10 min target. 5 rooms ~10 questions each = ~50 questions per floor at 30 sec each. |
 
-1. **Dopamine Reset Cycle**: Novelty every 3–7 min. Feedback every 2–3 seconds. No blank/waiting screens.
-2. **Working Memory Protection**: One problem at a time. No multi-step instructions. Visual + verbal clarity.
-3. **Executive Function Scaffolding**: Automatic saves (no "forgot to save"). Optional breaks, not forced. Clear session structure ("start → play → end").
-4. **Motivation by Progress, Not Pressure**: XP/levels intrinsic; timers/competition extrinsic (stressful).
-5. **Confidence-First Approach**: 30% easy problems sprinkled in. Guaranteed early wins. No shame in retrying.
-6. **Sensory Respect**: Dark mode (eye strain reduction, 14% better retention). Sound optional. Animations purposeful. No clutter.
+---
+
+## Age-Specific Design Notes: 12-Year-Old Roblox/Minecraft Player
+
+Research on what specifically hooks this demographic:
+
+**What Roblox and Minecraft players expect:**
+- Progress that is always visible (health bars, XP, floor count, room count)
+- No single mechanic dominates (variety within the session)
+- Aesthetic coherence — "does this feel cool?" is the first evaluation
+- Short feedback loops — reward every 1–3 minutes, not every 10
+- Control over pacing — "I'll do one more room" is a valid stopping point
+
+**What they reject:**
+- "For babies" aesthetics (bright colors, cute characters, simplified text)
+- Forced tutorials that explain things they can figure out
+- Grinding with no visible payoff
+- Text-heavy explanations
+- Anything that feels like school ("quiz," "test," "correct/incorrect" labels)
+
+**Framing guidance for copy:**
+- "Attack" not "answer correctly"
+- "Take damage" not "wrong answer"
+- "Defeated" not "failed"
+- "Dungeon run" not "practice session"
+- "Loot" not "reward"
+- Enemy is the obstacle, not the math problem
+
+---
+
+## ADHD-Specific Dungeon Crawler Constraints
+
+These modify how standard dungeon crawler conventions apply:
+
+1. **No accumulating wrong-answer penalty debt.** Standard dungeon crawlers might chain-punish: wrong answer → lose HP → next question → still at risk. For ADHD, this creates spiral anxiety. Limit: a single wrong answer deals limited, fixed damage. Player never feels "I can't recover from this."
+
+2. **Clear structure, always visible.** "Room 3 of 5, Floor 2 of 4" must always be on screen. ADHD learners lose orientation without persistent context. They can't reconstruct "where am I?" from memory.
+
+3. **Turn animation is short (≤600ms).** After answering, the hit animation (enemy shakes, HP drains, damage number floats) must resolve within 600ms. ADHD learners experience brief blank/waiting screens as disconnection. Instant-feeling response even if slightly animated.
+
+4. **Death screen is empathetic, not punishing.** "Floor 2, Room 3 — you fought well. Try again?" not "GAME OVER." Show what was accomplished, offer retry immediately. No countdown on the retry button.
+
+5. **Potion use is player-initiated.** Potions used any time (not just when HP low). Gives the player a sense of control. ADHD learners value autonomy highly.
+
+6. **No "you could have done better" comparisons on death screen.** Show what happened, not what didn't. "You cleared 2 rooms and defeated 8 enemies" — not "You almost made it to the boss."
 
 ---
 
 ## Sources
 
-Research confidence: **HIGH** for features 1–8 (table stakes), **MEDIUM** for features 9–13 (differentiators), **MEDIUM** for anti-features. Drawn from:
+Research confidence: **MEDIUM** (web research cross-checked across game design literature, educational game analysis, and ADHD-specific design research).
 
-- [Best Math Apps for Kids: 15 Top Educational Apps (2025)](https://www.jetlearn.com/blog/15-best-math-apps-for-kids-fun-and-engaging)
-- [Computer-assisted learning for improving ADHD individuals' executive functions through gamified interventions](https://www.sciencedirect.com/science/article/abs/pii/S1875952119300953)
-- [Embedding Gamification in Meaningful EdTech Lessons for Students with ADHD](https://pressbooks.pub/techcurr2023/chapter/embedding-gamification-in-meaningful-edtech-lessons-for-students-with-adhd/)
-- [Effectiveness of a gamified educational application on attention and academic performance in children with ADHD](https://www.researchgate.net/publication/398584473_Effectiveness_of_a_gamified_educational_application_on_attention_and_academic_performance_in_children_with_ADHD_an_8-week_randomized_controlled_trial)
-- [ADHD & Math: 15 Parent-Approved Strategies](https://www.monstermath.app/blog/adhd-and-math-15-parent-approved-strategies-to-help-your-child-thrive-cmbkre31m000611kbdtsnphce)
-- [Supporting comprehension: Multiple-choice over true-false practice tests](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12696125/)
-- [Interactive Learning: Online Audience Response Systems and Multiple Choice Questions](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10457716/)
-- [Math Anxiety in Autism, ADHD, Dyscalculia - What Works](https://www.monstermath.app/blog/math-anxiety-in-autism-adhd-dyscalculia/)
-- [XP and Leveling in Educational Apps](https://trophy.so/blog/when-your-app-needs-xp-system)
-- [Dark Mode & Dopamine Colors in Education UI/UX](https://colorwhistle.com/dark-mode-dopamine-education-design/)
-- [Dark Mode Usability in Educational Apps](https://lutpub.lut.fi/bitstream/10024/170147/1/mastersthesis_Sandeepani_Rappitigala_Jayasundara_Widanalage_Madushika.pdf)
-- [Gamification techniques for ADHD learners](https://dl.acm.org/doi/fullHtml/10.1145/3675888.3676047)
-- [Session length and break patterns for ADHD learners](https://queensonlineschool.com/tips-for-studying-with-adhd/)
-- [Prodigy, Khan Academy, DreamBox, Kahoot feature comparison](https://www.prodigygame.com/main-en/blog/best-math-apps-for-kids)
-- [DreamBox Learning Review 2026](https://kidedtools.com/blog/dreambox-learning-gamified-math-review-2026/)
+- [The Ultimate Guide to 5 Room Dungeons](https://www.roleplayingtips.com/5-room-dungeons/) — 5-room dungeon structure as proven short-session design pattern.
+- [Turn-Based Combat in E-Learning (The Mathinator)](https://gamingintraining.wordpress.com/2015/06/09/how-we-can-use-turn-based-combat-in-e-learning-with-the-help-of-vikings-and-the-mathinator/) — How correct/wrong answers map to combat actions in educational games.
+- [Math Dungeon Quest (synthbit.itch.io)](https://synthbit.itch.io/match-dungeon-quest) — Reference implementation: correct answer = attack, wrong = vulnerable.
+- [An Adaptive Fantasy RPG Where Students Battle Monsters by Solving Math](https://helovesmath.com/math-game/rpg-math-game/) — HP/XP/loot mechanics in math RPG context.
+- [Prodigy Math Game Battles](https://prodigy-game.fandom.com/wiki/Battles) — Industry standard for math-combat integration.
+- [Roguelike vs. Roguelite: What's the Difference?](https://screenrant.com/roguelike-roguelite-difference-permadeath-hades-rogue-slay-spire/) — Roguelite pattern for casual players, permadeath alternatives.
+- [Loot Drop Best Practices (gamedeveloper.com)](https://www.gamedeveloper.com/design/loot-drop-best-practices) — Minimal viable loot complexity for casual games.
+- [Customizing Game Mechanics for ADHD](https://medevel.com/customizing-game-mechanics-for-adhd-what-developers-need-to-know/) — Turn structure, feedback speed, session length for ADHD players.
+- [ADHD Games: Engaging Activities to Boost Focus and Learning](https://neurolaunch.com/adhd-games/) — ADHD engagement patterns in game contexts.
+- [What Drives Roblox's Incredible 2.3 Hour Avg Daily Session Times?](https://www.maxpowergaming.co/post/what-drives-roblox-s-incredible-2-3-hour-avg-daily-session-times) — What keeps this demographic engaged; short feedback loops, progress visibility, social and reward variety.
+- [How to Make a Roblox Game That Keeps Players Engaged](https://robloxera.com/blog/how-to-make-a-roblox-game-that-keeps-players-engaged) — First loop obvious, first minute useful, return hooks.
+- [Boss Battle Design and Structure](https://www.gamedeveloper.com/design/boss-battle-design-and-structure) — Boss design principles: test learned skills, satisfying reward, no debilitating failure.
 
 ---
 
-**Next Steps for Roadmap:**
-
-This feature landscape directly informs Phase 1 (MVP core loop) and Phase 2 (differentiators). The ADHD-specific principles should be treated as non-negotiable design constraints, not optional enhancements. Features 1–8 are shipped together; features 9–13 follow immediately in a "polish + engagement" phase.
+*Feature research for: Math Lab v2.0 Dungeon Crawler Milestone*
+*Researched: 2026-06-20*
+*Downstream: Requirements definition for dungeon crawler feature scope*

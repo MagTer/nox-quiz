@@ -1,18 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-current_phase: 01
-current_phase_name: mvp-core-loop-adhd-safe-mechanics
-status: verifying
-stopped_at: context exhaustion at 75% (2026-06-20)
-last_updated: "2026-06-20T20:21:29.351Z"
+milestone: v2.0
+milestone_name: Dungeon Crawler
+status: planning
+last_updated: "2026-06-20T21:39:56.336Z"
+last_activity: 2026-06-20
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Math Lab
@@ -31,17 +29,10 @@ progress:
 
 ## Current Position
 
-**Phase:** 01 (mvp-core-loop-adhd-safe-mechanics) — EXECUTING
-**Plan:** 4 of 4
-**Status:** Phase complete — ready for verification
-
-**Progress Bar:**
-
-```
-Roadmap:  [████████████████████████████████████████████████████] 100%
-Planning: [                                                      ] 0%
-Execute:  [                                                      ] 0%
-```
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-20 — Milestone v2.0 started
 
 ## Key Decisions
 

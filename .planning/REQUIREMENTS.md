@@ -33,19 +33,77 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **UX-03**: Text and UI elements meet WCAG 2.1 AA contrast on the dark theme
 - [x] **UX-04**: App is a single HTML file that runs locally in any browser on Windows with no install
 
-## v2 Requirements
+## v2.0 Requirements
 
-Deferred to future release. Tracked but not in current roadmap.
+Requirements for the Dungeon Crawler milestone. Continues phase numbering from Phase 1.
 
-### Engagement
+### Dungeon Structure
 
-- **ENG-01**: Session summary shown after a play session (questions answered, XP earned, accuracy)
+- [ ] **DC-01**: Dungeon has 5 rooms per floor (entrance → 3 combat rooms → boss room), 3 floors + boss floor
+- [ ] **DC-02**: Game phase FSM controls transitions: EXPLORE → COMBAT → LOOT → TRANSITION → DEAD
+- [ ] **DC-03**: Separate screens exist for: dungeon map, combat, loot drop, floor summary, death/retry
+
+### Combat
+
+- [ ] **COMB-01**: Turn-based math combat — correct answer attacks enemy, wrong answer deals damage to player
+- [ ] **COMB-02**: HP bars (CSS transition-animated) for both player and current enemy
+- [ ] **COMB-03**: Defeating an enemy requires 3–5 correct answers (not a 1-shot)
+- [ ] **COMB-04**: Visual combat feedback: floating damage numbers, HP bar drain animation after each hit
+- [ ] **COMB-05**: All combat copy is RPG-themed ("Attack!" not "Correct!", "You took a hit!" not "Wrong")
+
+### Enemies
+
+- [ ] **ENE-01**: 3 enemy types with distinct emoji sprites: 👺 Goblin (Floor 1), 💀 Skeleton (Floor 2), 🐉 Dragon (Floor 3 + boss)
+- [ ] **ENE-02**: Enemy HP and XP reward scale with floor number
+- [ ] **ENE-03**: Each enemy type has 3+ flavor text lines shown during combat to prevent repetition
+
+### Table Difficulty
+
+- [ ] **DIFF-01**: Each floor gates a specific multiplication table pool (Floor 1: ×2×3×5, Floor 2: ×4×6×7, Floor 3: ×7×8×9)
+- [ ] **DIFF-02**: Within each floor's pool, v1 EWMA accuracy weighting applies — harder-for-her tables appear more often
+
+### Progression
+
+- [ ] **PROG2-01**: XP is awarded on enemy defeat and feeds the existing v1 XP/level system
+- [ ] **PROG2-02**: Floor summary screen shown after each floor cleared (enemies defeated, XP earned, HP remaining)
+- [ ] **PROG2-03**: PersistenceStore upgraded to v2 schema; v1 XP and per-table accuracy data preserved on migration
+
+### Loot
+
+- [ ] **LOOT-01**: 3 loot item types: sword (attack boost), shield (damage reduction), health potion (HP restore)
+- [ ] **LOOT-02**: Player holds max 1 of each type; items auto-apply on pickup — no inventory choice required
+- [ ] **LOOT-03**: Loot resets on floor death/retry — the floor starts fresh each attempt
+
+### ADHD Safety
+
+- [ ] **ADHD-01**: No timers in any form — no turn timer, no session clock, no countdown anywhere
+- [ ] **ADHD-02**: Death = restart current floor only; XP and level never decrease
+- [ ] **ADHD-03**: Wrong-answer damage is capped so the player survives at least 5 wrong answers per fight
+- [ ] **ADHD-04**: All combat animations complete in ≤500ms; no screen flash or harsh shake effects
+- [ ] **ADHD-05**: Death screen shows no comparison stats (no "best run", no "questions answered")
+
+### Tech Constraints
+
+- [ ] **TECH2-01**: Single HTML file constraint preserved — all CSS and JS inline, no external dependencies
+- [ ] **TECH2-02**: `data-screen` attribute on `<main>` drives all screen switching via CSS (no innerHTML thrash)
+- [ ] **TECH2-03**: DungeonState is session-scoped only — HP, room position, and loot are never written to localStorage
+
+## Deferred Features
+
+Features scoped out of v2.0 but tracked for future milestones.
+
+### v2.1 Candidates
+
+- **ENG-01**: Enemy flavor text taunts upgrade — voiced/animated (v2.0 ships static text)
+- **LOOT-04**: Loot persists across floor retries within a run
+- **PROG2-04**: HP recovery on floor clear
+- **ENE-04**: Enemy HP scaling with player level
+
+### v3.0 Candidates
+
 - **ENG-02**: Audio feedback — reward sounds for correct answers and level-up (optional/mutable)
 - **ENG-03**: Novelty rotation — 2–3 alternative question formats to prevent habituation
 - **ENG-04**: Cosmetic progression — unlock visual styles/themes at level milestones
-
-### Notifications & Habit
-
 - **HAB-01**: Optional daily reminder / streak (non-punitive — no "you lost your streak" messaging)
 
 ## Out of Scope

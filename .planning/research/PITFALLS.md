@@ -1,221 +1,221 @@
-# Pitfalls Research: Gamified Math Practice for ADHD-Adjacent Users
+# Pitfalls Research: Dungeon Crawler Integration into Existing Math Game
 
-**Domain:** Educational gamification + single-file web app + dark UI + multiple choice math
+**Domain:** Adding dungeon crawler combat layer to existing single-HTML-file browser math game (ADHD-safe, 12-year-old target user)
 **Researched:** 2026-06-20
-**Confidence:** HIGH (educational research + community patterns + architecture-specific findings)
+**Confidence:** HIGH (game design patterns + ADHD research + single-file architecture constraints)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Reward Fatigue and Extrinsic Motivation Collapse
+### Pitfall 1: Dungeon Feature Scope Creep Kills the Project Before Launch
 
 **What goes wrong:**
-XP/leveling systems feel exciting for 1–3 weeks, then become invisible. Users stop pursuing levels because they've "beaten" the progression curve—each level takes longer, rewards feel arbitrary, and the intrinsic joy of learning erodes as chasing points becomes the only motivator. For ADHD users especially, this manifests as "forgetting why this matters" and abandoning the app despite technically "winning" sessions.
+The v1 quiz app is finished and working. v2 adds room navigation, HP combat, 3 enemy types, loot drops, floor progression, and a boss. That is already 5–6 independent subsystems. Each one feels small in isolation — "just add a map", "just add health potions" — but together they produce a scope that could take 3× longer than estimated. Over 70% of indie games exceeding their initial scope fail to meet deadlines. The common trajectory: start building rooms, decide they need animations, decide enemies need idle behavior, decide loot needs a UI inventory panel, ship nothing.
 
 **Why it happens:**
-Developers build reward systems assuming engagement = accumulation, but gamification research shows that once the novelty fades, extrinsic rewards can *undermine* intrinsic motivation. XP systems become quotas in users' minds—each missed session triggers guilt rather than joy. For neurodivergent users, external reward systems can feel like pressure, not celebration.
+The transition from a quiz app to a "game" creates infinite expansion surface. Every dungeon crawler reference (Roblox, Minecraft dungeons) the developer has in mind adds features subconsciously. Dungeon crawlers are a well-established genre with many expected affordances, and the temptation is to build them all.
 
 **How to avoid:**
-- Build progression with *variable* milestone lengths—don't follow exponential curves. Mix quick wins (5 XP for a right answer) with occasional surprises (bonus XP for streaks).
-- Separate "progress tracking" from "reward." Show growth in questions mastered, not just points accumulated.
-- Include intentional rest mechanics—no daily streaks, no FOMO-driven notifications. Let users return *because they want to*, not because they feel obligated.
-- Test with actual target user (the 12-year-old) at week 1, week 3, and week 6 to detect when reward salience drops.
+- Hard-freeze scope at: room navigation (text/icon-based, not animated maps), HP combat (player HP bar + enemy HP bar, no elaboration), 3 enemy archetypes (stat differences only, not unique mechanics), loot as passive stat bonuses (sword = +damage, shield = -damage taken, potion = +HP), floor progression (table difficulty gates). That is the complete list.
+- Write a "won't build" list before coding starts: no inventory UI, no item descriptions panel, no animated room transitions, no multiple ability types, no story dialogue, no achievement system in v2.
+- Evaluate every proposed addition with: "Can she play without this?" If yes, defer.
+- Assign phases to features explicitly. If it isn't assigned to a phase, it does not get built.
 
 **Warning signs:**
-- Session duration drops after week 2–3 despite app being feature-complete
-- User reports "I don't care about leveling up anymore"
-- Engagement spike at launch followed by cliff-like decline
-- User compares self to previous levels and feels unmotivated
+- Planning doc includes "it would be cool if..." sentences
+- Enemy types gain unique special attacks (rather than just different stat values)
+- Loot gains an inventory screen or comparison UI
+- A map/minimap gets designed
+- Session estimate grows past 2 weeks
 
 **Phase to address:**
-**Phase 2 (Core Gamification Mechanics)** — Reward system design and validation. Lock in sustainable motivation model before shipping. Test with ADHD-profile user during planning phase to detect friction early.
+Requirements phase — scope freeze before any code is written. Document the won't-build list explicitly. Revisit at each phase transition.
 
 ---
 
-### Pitfall 2: Cognitive Overload from Visual Clutter (Dark Theme Misapplication)
+### Pitfall 2: Wrong-Answer Damage Becomes a Punishment Loop for ADHD Users
 
 **What goes wrong:**
-Dark themes can amplify visual stress if not designed carefully. Harsh white-on-black text creates edge vibration (visual blooming), animations trigger overstimulation, and too many visual elements fragment attention. For ADHD brains, this is a *disaster*—the app becomes harder to use, not easier, despite looking "cool."
+The combat design is "correct answer attacks enemy, wrong answer takes damage." This sounds fun, but for a 12-year-old with ADHD who is also math-anxious, a streak of wrong answers triggers: HP drains → enemy stronger → more pressure → working memory collapses → more wrong answers → death → frustration → app closed. ADHD brains are more sensitive to punishment signals than neurotypical brains. A single bad run can permanently associate the app with failure. Research confirms that punishment-based feedback worsens math anxiety and undermines motivation in ADHD children.
 
 **Why it happens:**
-Developers assume "dark = easier on eyes," but dark theme requires careful contrast management. Pulling from web design defaults (pure #000 + pure #FFF), using too much saturation in accent colors, and adding uncontrolled animations create visual static. The "grunge" aesthetic can easily veer into overwhelming if not paired with strong information hierarchy.
+The combat mechanic naturally maps "wrong answer = bad outcome." Developers copy standard RPG logic without adjusting for a non-punishing educational context. The damage system feels balanced when playtested by an adult who can recover quickly; it is not balanced for a child mid-anxiety spiral.
 
 **How to avoid:**
-- Use near-black backgrounds (#111, #0A0A0A) paired with soft white text (#E8E8E8, #D4D4D4), not pure blacks/whites. Test contrast ratios (aim for 4.5:1 minimum, 7:1 preferred).
-- Limit color palette to 3–4 accent colors. Avoid neon saturation—use muted jewel tones or desaturated brights.
-- Minimize animations. No auto-play videos, no aggressive micro-interactions. Only use motion for *intentional* feedback (level-up notification, correct answer flash).
-- Provide a light mode toggle (even if not the default). Some users with astigmatism find dark mode harder to read.
-- Test with target user in session to identify visual discomfort early (eye strain, difficulty reading options).
+- Cap wrong-answer damage so it is never lethal in a single encounter. The enemy should be defeatable even with 3–4 wrong answers per fight.
+- Wrong answers show the correct answer immediately and let the player retry (possibly with a different choice set) rather than forcing move-on. The math teaching happens at the moment of error.
+- Death should cost nothing except restarting the current floor only (already planned). No XP loss, no loot loss. Death = mild inconvenience, not setback.
+- Add "grace HP" — the player starts with generous HP (e.g. 100) and damage from a wrong answer is small relative to that pool (e.g. 5–10). Enemy HP is tuned so 2–3 correct answers finish the fight regardless.
+- Enemy attacks on wrong answer should be visually dramatic but mechanically gentle. Flash and sound, small number.
 
 **Warning signs:**
-- User reports "headaches after using the app" or "it's hard to read"
-- Option text is hard to distinguish from background
-- Animations cause visible distraction or distress
-- Colors appear to "vibrate" or create visual shimmer on screen
-- User naturally increases browser zoom to read content
+- Playtesting shows the player dying in the first or second room more than 10% of attempts
+- The player loses HP faster than they gain it back from potions
+- Any single enemy can kill in fewer than 5 wrong answers
+- Wrong-answer rate on hard tables (×7, ×8, ×9) exceeds 30% in early testing — if so, those tables deal too much damage relative to her current mastery
 
 **Phase to address:**
-**Phase 1 (MVP Core)** — Dark theme implementation must follow accessibility guidelines from day one. Cannot defer. Test with both bright and dark environments.
+Combat design phase — define exact HP values and damage numbers before coding. Test specifically with 30%+ wrong-answer rate scenarios (simulate the worst session). Revisit after first real user session.
 
 ---
 
-### Pitfall 3: Option Order Bias Disguised as Learning
+### Pitfall 3: Floor Repetition Makes the Dungeon Feel Like the Quiz with a Skin
 
 **What goes wrong:**
-If the correct answer always appears in the same position (e.g., always "B"), users can *game* the system by guessing patterns rather than learning math. This is especially dangerous in multiple-choice because it looks like they're progressing (high success rate) when they're actually memorizing answer *patterns*, not multiplication facts. Randomizing without care creates its own bias (primacy/recency effects).
+5 rooms per floor × 3 floors = 15 rooms. If each room is "fight one enemy, answer questions, move to next room," the novelty wears off by floor 2. The dungeon skin evaporates and it feels like the v1 quiz with extra steps. Research on dungeon crawlers explicitly identifies this as a documented failure: "progressing through floors doesn't introduce any new features — players basically repeat what they did on the first floor but with stronger opponents."
 
 **Why it happens:**
-Quick implementation assumes "shuffle the options and call it done," but this overlooks that different children have different guessing strategies. Some favor first/last options, others click the same position repeatedly. Non-random shuffling creates predictable patterns.
+Minimizing scope (correctly) means each room is mechanically identical. But identical rooms create perceptual monotony quickly. The player's brain stops anticipating and starts grinding.
 
 **How to avoid:**
-- Randomize answer order on *every* question. No exceptions, no "seeding" with patterns.
-- Verify randomization is actually random by logging 50+ sessions and checking for position clustering. If position 1 is correct more than 26% of the time, randomization is broken.
-- Avoid using the *same* 4 options repeatedly (e.g., always "correct answer, off-by-one, off-by-five, completely wrong"). Vary distractors—sometimes include answers from different multiplication tables, sometimes adjacent factors.
-- Log which answers are chosen and validate that correct answers aren't being predicted by position rather than understanding.
-- Include a post-session breakdown showing "You got 8 right, but 2 were lucky guesses based on position"—make the pattern visible to learner.
+- Introduce minimal mechanical variety without adding new systems: room types. Example: Combat room (standard fight), Treasure room (loot drop, no fight), Boss room (end of floor, harder enemy, bigger reward). These three types are enough to break monotony.
+- Vary enemy visuals and flavour text per floor even if stats only change incrementally. Goblin floor 1 is a scraggly goblin; floor 2 is a goblin champion. Same mechanic, different text.
+- The boss encounter should feel genuinely different: multi-hit fight (player must answer 3–4 questions to win, not just 1–2), dramatic visual treatment.
+- Do not add more mechanics to fix repetition — add narrative flavour (room descriptions, enemy taunts, item flavour text) which costs hours not days.
 
 **Warning signs:**
-- Success rate is high but *only* for specific positions (e.g., 80% when correct answer is "C")
-- User clicks the same button position repeatedly without reading options
-- User's success rate is inconsistent between sessions (suggests position-guessing, not mastery)
-- Distractors never get selected (suggests they're obviously wrong, not plausibly wrong)
+- Playtesters describe floors 2 and 3 as "same as floor 1 but harder"
+- Player skips reading room descriptions after floor 1
+- Time spent per room drops sharply on floor 2 (losing interest signal)
+- Player explicitly asks "is there anything different on this floor?"
 
 **Phase to address:**
-**Phase 1 (MVP Core)** — Answer randomization must be correct from launch. Easy to verify, high impact on learning validity. Include option-position logging in analytics.
+Room/floor design phase — define room type variety and flavour text before implementing rooms. Even 3 lines of per-enemy flavour text changes the feel dramatically.
 
 ---
 
-### Pitfall 4: Pressure-Induced Failure (Timer Traps & Stress)
+### Pitfall 4: CSS/DOM Screen Management Becomes Spaghetti as Screens Multiply
 
 **What goes wrong:**
-Even a *soft* timer (gentle countdown, no penalty for going over) creates cortisol spike in ADHD and math-anxious users. Stress hormones spike, working memory collapses, and users fail problems they actually know. The app becomes associated with *anxiety*, not joy. They abandon it.
+v1 had one screen: the quiz. v2 needs: title/start screen, dungeon map/room selection, combat screen, loot screen, death/floor-fail screen, level-up overlay, floor-complete screen. That is 7 distinct UI states in a single HTML file. The naive approach — toggle `display:none` / `display:block` on each section via class manipulation — works for 2 screens but becomes a combinatorial mess by screen 5. A bug in the CSS class toggling leaves the combat screen visible under the loot screen. The state the JavaScript thinks it is in diverges from what CSS shows. This kind of visual state corruption is extremely difficult to debug in a single file.
 
 **Why it happens:**
-Developers often add timers to "encourage efficiency" or "simulate test conditions," not realizing that pressure mechanics harm the exact population (ADHD, math anxiety) most likely to use an educational app. The goal is intrinsic motivation, not exam prep.
+Single-file architecture does not enforce component encapsulation. Every screen's CSS bleeds into every other screen. Developers add `display:none` to one section, forget the z-index on an overlay, and the ordering of `classList.add/remove` calls creates race conditions. The complexity scales faster than expected because each new screen interacts with all existing screens.
 
 **How to avoid:**
-- **No timers. Period.** Not even "soft" countdowns. Not even leaderboards that create social pressure.
-- Use fast feedback instead: instant visual confirmation when an answer is selected ("✓ Correct! +10 XP"), then move to next question. Speed emerges naturally from confidence, not pressure.
-- Allow users to pause between sessions—no daily streaks, no "come back soon" notifications.
-- Session design: offer "Play one round" (5–10 questions) or "Play for 15 minutes" with natural stop points (level-ups, checkpoints). Let them bail without guilt.
-- Include difficulty scaling: if a user gets 3 wrong in a row, ease back to simpler tables (5s, 6s) to restore confidence before retrying harder ones.
+- Use a single JavaScript `currentScreen` variable as the ground truth. All DOM visibility is derived from this one variable. Never toggle screen visibility anywhere except the `renderScreen(state)` function.
+- Pattern: `document.querySelectorAll('.screen').forEach(s => s.hidden = true); document.getElementById(screenId).hidden = false;` — one toggle point, always consistent.
+- Name screens with explicit IDs matching the state machine: `screen-start`, `screen-combat`, `screen-loot`, `screen-floor-complete`, `screen-death`. Never use ad-hoc class names.
+- Keep each screen's CSS scoped: `.screen-combat .hp-bar` not `.hp-bar`. Prevents rules bleeding across screens.
+- Overlays (level-up, correct-answer flash) live in a separate layer above screens, never embedded in a screen's DOM.
 
 **Warning signs:**
-- User reports feeling "rushed" or "panicked"
-- Correct answers drop right after implementing a timer
-- User avoids app when mood is low (doesn't feel "ready")
-- Session engagement spikes only when specific external trigger (parent asks, reward promised), then crashes
+- Two screens are partially visible at the same time
+- A transition to a new screen requires more than one `classList` call outside the central render function
+- Screen-specific CSS rules start with generic selectors (`.button`, `.title`) that affect other screens
+- A new screen breaks an existing screen's layout
 
 **Phase to address:**
-**Phase 1 (MVP Core)** — Timer mechanics decision. This is non-negotiable and must be baked in early. Any pressure feature added later requires rework.
+Combat/screen architecture phase — establish the screen state machine pattern before building individual screens. Retrofitting this after 5 screens are built is expensive.
 
 ---
 
-### Pitfall 5: localStorage Corruption and Silent Data Loss
+### Pitfall 5: v1 localStorage Schema Breaks v2 Save State Without Migration
 
 **What goes wrong:**
-localStorage quota is hit (5MB limit across all data + other apps), data write silently fails with QuotaExceededError, app crashes or loses XP/level progress. User opens app the next day: "I lost all my progress!" Trust evaporates. For a game-like app where progress is the primary reason to return, this is catastrophic.
+v1 saves: `{ xp, level, accuracy }`. v2 adds: `{ currentFloor, playerHP, lootInventory, enemiesDefeated, floorProgress }`. If v2 reads v1 data naively, `currentFloor` is `undefined`, the game tries to render a floor that doesn't exist, and the app throws a JavaScript error. At best, the player sees a blank screen. At worst, XP and level from v1 are silently lost because the migration clobbers the old key. For a user who has been playing v1 for weeks, losing progress destroys trust immediately.
 
 **Why it happens:**
-Single-file apps often store progress without error handling. A single missing try/catch around `localStorage.setItem()` means the app fails silently. Worse, if the app auto-saves on every action and storage is full, it thrashes repeatedly, degrading performance.
+Developers test v2 on a clean browser profile where no v1 data exists. The migration problem only surfaces for real users who have existing saves. It is easy to forget that anyone who played v1 has data in localStorage that will conflict with v2's expected schema.
 
 **How to avoid:**
-- Wrap *every* localStorage operation in try/catch for QuotaExceededError.
-- Before writing, check available space: `navigator.storage.estimate()` and bail gracefully if < 100KB free.
-- Implement a compression strategy: serialize progress as minimal JSON (only essential XP, level, last-played-date), not verbose logs of every question.
-- Add a "storage status" indicator in dev tools / error logging—monitor quota usage across sessions.
-- Implement a versioning strategy for localStorage keys (e.g., `mathlab_v1_progress`). When the app updates, old data doesn't break new code.
-- Test data persistence across multiple sessions and verify XP/level survive app restart, browser restart, and localStorage quota near-full scenarios.
+- On v2 app start, read the stored `schemaVersion` key. If it is `undefined` (v1) or `"1"`, run a migration function before any game logic executes.
+- Migration from v1 to v2: read `xp`, `level`, `accuracy` from v1 keys, write them into the v2 save object under the new schema, add default values for all new v2 fields (`currentFloor: 1`, `playerHP: 100`, `lootInventory: []`), then write the complete v2 object and set `schemaVersion: "2"`.
+- Never delete v1 keys until after v2 keys are confirmed written successfully.
+- Test explicitly: create a v1 save in DevTools, then reload with v2 code. Verify XP and level survived and v2 defaults are correct.
+- Validate on load: after reading localStorage, check all required fields exist and are the correct type. If any are missing or wrong type, apply defaults rather than crashing.
 
 **Warning signs:**
-- XP/level mysteriously reset after a long session
-- Browser console shows "QuotaExceededError: DOM Exception 22"
-- App performance degrades after playing for 30+ minutes (storage thrashing)
-- User can't load progress on a different device (but they shouldn't expect cloud sync anyway—that's out of scope)
+- v2 development done entirely on a fresh browser profile — v1 migration never tested
+- No `schemaVersion` field in the v1 save design
+- The save/load code reads fields with no fallback defaults (e.g. `state.currentFloor` with no `?? 1` guard)
+- Tests only cover "fresh install" scenario
 
 **Phase to address:**
-**Phase 1 (MVP Core)** — localStorage implementation + error handling. Auditable from day one. Include in testing checklist: "Can we recover from full storage?"
+Save/state architecture phase — define the v2 schema and migration path before writing any save/load code. Include v1-to-v2 migration in the very first implementation of the save system.
 
 ---
 
-### Pitfall 6: Analysis Paralysis and Overfeature Creep
+### Pitfall 6: Accidental ADHD-Unsafe Patterns Sneaking in via Combat Mechanics
 
 **What goes wrong:**
-Early versions add "practice modes" (timed, untimed, drill, game), "difficulty settings" (easy, medium, hard), "topic selection" (6s, 7s, 8s, 9s, mixed), and suddenly a kid faces a menu with 50+ option combinations. Paralysis. They quit rather than choose. Every mode also dilutes focus—you're building 5 apps, not 1.
+Five ADHD-unsafe patterns can accidentally appear in the dungeon layer even when everyone agrees timers are banned:
+
+1. **Implicit time pressure from HP drain**: Seeing HP drop with each wrong answer creates urgency and cortisol spike. Even without a visible timer, a shrinking health bar is a countdown. The user rushes, makes more errors, takes more damage, spirals.
+2. **Death as hard punishment with XP/loot loss**: Any mechanic that strips progress earned inverts the reward loop. ADHD users experience this as "the game punishes me for struggling" and quit.
+3. **Comparison metrics accidentally added**: "Floor 2 best time: 3:22" or "Defeated in 7 questions (average: 4)" introduces performance comparison and social anxiety against a virtual past self.
+4. **Sensory overload from combat feedback**: Screen shake, flashing red damage overlays, loud sound effects, and simultaneous animations overwhelm working memory during a math question. The player is trying to think about 8×7 while the screen vibrates.
+5. **Loot/upgrade complexity requiring decision-making under stress**: "You found a sword (+2 attack) and a shield (+1 defense). Choose one." This choice requires comparison, risk assessment, and commitment — a cognitive load spike at a moment that should feel like reward, not work.
 
 **Why it happens:**
-Developers confuse "flexibility" with "engagement." But for ADHD users, choice can be overwhelming. The MVP should have *one* clear path: open app → get a question → answer → next question. Done.
+Each of these patterns is standard RPG design. Combat feedback is expected to be dramatic. Loot choices are expected to be interesting. Developers import genre conventions without filtering them through ADHD-safety requirements. The harm is not obvious until a real user session reveals the anxiety response.
 
 **How to avoid:**
-- Ship MVP with a single mode: "endless practice, mixed tables (6–9 with some easier ones), no settings."
-- Remove the practice menu. No toggles for "easy mode" vs. "hard mode." Difficulty should adapt automatically (algorithmic based on recent performance).
-- Defer topic selection to future phases. Once core engagement is validated, *then* let users pick which tables to focus on.
-- Every new feature added must justify itself: "Does this reduce confusion or increase it?" If the answer is "give users control," push back—control is a feature, not a solution.
-- During Phase 1 UAT, measure decision time before each question. If it's > 3 seconds, the UI is offering too many choices.
+- HP bar: use colour progression (green → amber → red) but never show a timer. Wrong-answer damage is small and shown as a number, not an animated drain.
+- Death: restart floor only. Zero XP loss. Zero loot loss. Death screen says "Try again?" not "You failed" or "Floor 2 — your best run: 5 questions."
+- No time tracking displayed anywhere. No session comparison stats. Progress is absolute ("You defeated 12 enemies today") not relative ("3 fewer than yesterday").
+- Combat animations: brief (under 0.5s), non-flashing, no screen shake. Sound effects optional and off by default.
+- Loot drops: automatic application, no choice required. "You found a Rusty Sword! +2 Attack." It just applies. If multiple items are possible, pick automatically based on what is most needed (low HP → potion, otherwise sword/shield).
 
 **Warning signs:**
-- Early testers spend more time in menus than playing
-- First-time users ask "which mode should I use?"
-- Feature requests cluster around "add a setting for X"—that's a sign settings are missing
-- Sessions are short—users get overwhelmed and leave
+- Player reports feeling "rushed" or "panicked" during a combat encounter
+- Player takes noticeably longer to answer questions mid-combat than pre-combat
+- Loot screen has a "choose between two items" design
+- Any animation runs longer than 500ms and overlaps with the question display
+- A "best run" or "last run" stat appears anywhere in the UI
 
 **Phase to address:**
-**Phase 1 (MVP Core)** — Scope discipline. Define "one clear path" and stick to it. Resist temptation to add settings. Document every deferred feature in backlog.
+Combat design + UI design phases — ADHD-safety checklist must be applied at both design and implementation review. Any new UI element requires an explicit check against these five patterns before merging.
 
 ---
 
-### Pitfall 7: No Progress Visibility (Silent Failure)
+### Pitfall 7: Enemy Difficulty Tied to Table Difficulty Creates Frustrating Gates
 
 **What goes wrong:**
-User gets 7 right, 3 wrong, and closes the app. No summary, no indication of progress or patterns. They have no idea if they're *actually* improving at multiplication. Without visible progress, intrinsic motivation evaporates ("Why should I come back? I don't even know if I'm better.").
+The planned design gates enemy types by multiplication table: Goblins = ×2×3×5, Skeletons = ×4×6×7, Dragon = ×7×8×9. This means a player who cannot answer ×8 questions reliably will die every time they face a Skeleton or Dragon — not because the combat is unfair, but because the math is hard and the combat damage adds punishment on top. The difficulty of the math and the difficulty of the combat are compounding rather than independent. The player cannot separate "I'm bad at ×8" from "I hate this game."
 
 **Why it happens:**
-Developers focus on game mechanics (XP, levels) but forget the core: learners need *feedback*. A 12-year-old with ADHD needs to see "You've mastered 6×7" or "You're still struggling with 8×9" so they know effort is working.
+Difficulty progression in a dungeon naturally maps to "harder enemies later." Multiplying that with harder math seems elegant but doubles the frustration gradient. v1 already used EWMA accuracy tracking to adaptively serve the right tables — v2 risks throwing that away by forcing hard tables on floor 3 regardless of where the player actually is.
 
 **How to avoid:**
-- After every session, show a summary: "You got 8 right, 2 wrong. Your best: 6×7. Keep working on: 8×9."
-- Track mastery per problem: if user gets 7× answered correctly in last 10 attempts, mark it as "confident."
-- Show historical progress: "Last week you got 60% on 8s. This week: 85%. Great progress!"
-- Include a visual progress bar for each table: "6s: ████████░░ 80% mastered"
-- Use this data to *personalize* difficulty: if 9s are struggled with, weight them more heavily in upcoming sessions.
-- Make progress *persistent*: the app should remember patterns across sessions, not reset the learning model each time.
+- Decouple math difficulty from floor difficulty. Floor number determines enemy HP and XP reward (visual/narrative progression). Question difficulty is still determined by EWMA accuracy from v1 (the existing adaptive system).
+- On floor 3, a Goblin-type enemy can still appear — it just has more HP. The player faces the Dragon boss having been prepared by questions at their actual mastery level, not force-fed ×9 tables they have never practiced.
+- Enemy type determines visual/aesthetic/flavour and HP/damage scaling. Table selection remains adaptive. This preserves v1's core value (confidence-building through appropriate challenge) inside the dungeon structure.
 
 **Warning signs:**
-- User can't articulate what they're getting better at
-- Session summaries are missing or vague
-- User's confidence doesn't match actual performance
-- Engagement drops after 2–3 sessions (not seeing progress)
+- Floor 2 question set contains exclusively ×6 and ×7 regardless of accuracy history
+- Player has not answered ×7 questions correctly in any prior session but floor 2 presents them exclusively
+- Death rate on floor 2 exceeds death rate on floor 3 (wrong difficulty curve)
+- Player says "I can't get past floor 2" when they can answer ×4 and ×5 fine
 
 **Phase to address:**
-**Phase 2 (Core Gamification Mechanics)** — Session feedback and progress tracking. Must include analytics/logging infrastructure in Phase 1, but the UI and reporting come in Phase 2.
+Combat design phase — explicitly document how the adaptive question system (EWMA from v1) integrates with floor progression. Test with a simulated player who has low accuracy on hard tables.
 
 ---
 
-### Pitfall 8: Dark Theme + Contrast Accessibility Trap
+### Pitfall 8: Loot Economy Becomes Either Meaningless or Overpowering
 
 **What goes wrong:**
-Accent colors (buttons, correct-answer highlights) are chosen for "cool grunge look" but become unreadable on dark backgrounds. Yellow correct-answer highlight on #111 background is barely visible. User misses feedback cues. Or, pure white text on pure black fatigues eyes and triggers astigmatism blur for 10–15% of users.
+Two failure modes: (a) loot drops are so common that every room gives an upgrade and the game becomes trivially easy by floor 2 — sword maxed, shield maxed, potions full — so there is no tension; (b) loot drops are so rare that the player runs an entire floor with no upgrades and the HP damage from wrong answers accumulates with no recovery mechanism. Both kill engagement. Too easy = boring. Too scarce = punishing. Dungeon crawler design literature explicitly identifies this as the primary pacing challenge.
 
 **Why it happens:**
-Designers don't test contrast ratios or test only on their own display (which may have different gamma/calibration). They rely on intuition ("this looks good") rather than accessibility standards. Astigmatism-related blur isn't obvious until you test with users who have it.
+Without playtesting calibration, loot frequency defaults to "what feels right" which is usually too generous (developer wants the player to feel rewarded) or too stingy (developer wants the loot to feel special).
 
 **How to avoid:**
-- Use a contrast checker (WebAIM, WAVE, or built-in browser dev tools) to verify 4.5:1 minimum for all text, 3:1 for UI controls.
-- Avoid pure #000 and pure #FFF combinations. Use near-black (#0A0A0A, #111) + soft white (#D4D4D4, #E8E8E8).
-- Test accent colors on dark backgrounds. Neon greens and yellows often fail contrast. Use muted jewel tones or desaturated brights.
-- Provide a light mode toggle (even if undocumented in first release). Test both.
-- Test in different lighting: bright sunlight, dim room, evening. Ask testers: "Can you read this comfortably for 20 minutes?"
-- Include a "high contrast mode" option for accessibility (bonus, not MVP).
+- Fix loot to structure: one guaranteed item per floor (in the treasure room), one potion available from a specific room type per floor. Boss drop is always a significant upgrade. Random loot in combat rooms is a bonus, not the primary source.
+- Potions are the safety valve. Ensure at least one potion is accessible per floor regardless of random drops. This caps the punishment floor of a bad run.
+- For v2 scope, item variety should be minimal: one sword tier, one shield, one potion. No comparison choices. Picking up a second sword could either upgrade the existing one (preferred) or be auto-converted to HP.
+- Design to targets: player should finish each floor with 60–80% HP on average with reasonable question accuracy. If internal playtesting shows average HP at floor end < 40%, add a potion drop. If > 90%, remove one.
 
 **Warning signs:**
-- User adjusts browser zoom just to read text
-- Option text blurs when eyes focus on it (astigmatism indicator)
-- User complains of eye strain after 10 minutes
-- Correct/incorrect feedback color is missed by testers
+- Player reaches floor 2 boss with full HP regardless of accuracy
+- Player dies on floor 1 with only potions and no sword drops
+- Loot screen appears more than 4 times in a single floor
+- Player never uses a potion because they never take meaningful damage
 
 **Phase to address:**
-**Phase 1 (MVP Core)** — Theme implementation. Contrast verification must be part of Definition of Done. Non-negotiable.
+Combat/loot design phase — define drop rates and structure before coding. Build a spreadsheet model or do a manual "pen and paper" run through 10 floors at 30% wrong-answer rate and 70% wrong-answer rate to verify the economy holds at both extremes.
 
 ---
 
@@ -223,13 +223,14 @@ Designers don't test contrast ratios or test only on their own display (which ma
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| No error handling on localStorage.setItem() | 20 lines of code saved | Data loss, app crash, loss of trust | NEVER—crashes are fatal for a game |
-| Hardcoded question pool (same 12 questions) | Questions written once, game "done" | User memorizes answers, stops learning after day 2 | NEVER—kill engagement entirely |
-| Auto-save on every keystroke (no debounce) | Simpler code, always in-sync | localStorage thrashing, performance cliff at 500+ sessions | Only if storage footprint < 100KB and tested at scale |
-| No session summary / feedback | MVP ships faster | Silent failure, no progress visibility, users quit | Never—progress visibility is core value |
-| Light mode forced off (no toggle) | Simpler CSS, "grunge aesthetic preserved" | 10–15% of users with astigmatism can't read text | Never—accessibility is baseline |
-| Single difficulty level (only hard tables) | Simpler content creation | User fails repeatedly, demoralizes, abandons | Never—confidence-building is core to engagement |
-| No analytics / progress tracking | Fewer database tables | Can't detect when users lose motivation, can't iterate | Only if you're OK being blind to engagement drop |
+| Inline all screen HTML in one flat `<body>` block | No screen abstraction needed | CSS bleeds between screens; toggling 7 screens requires tracking 7 visibility states manually | Never — use `hidden` attribute + central `renderScreen()` from day one |
+| Store dungeon state as flat top-level variables | Simple to read initially | v2 save schema is a pile of unrelated globals; migration becomes guess-work | Never — store all dungeon state in one `dungeonState` object |
+| Hardcode enemy stats as inline numbers | Fast to write | Rebalancing requires ctrl+F through all game logic | Only for initial prototyping; move to a `CONFIG` object before first real test |
+| No v1→v2 migration, just clear localStorage | No migration code to write | Users lose weeks of XP and level progress; trust destroyed | Never — always migrate v1 data |
+| Damage animations using `setTimeout` chains | Easier than CSS keyframes | Timers stack when player answers quickly; animations overlap; jank accumulates | Never — use CSS animations with `animationend` callbacks |
+| Loot as free choice between two items | More interesting decision | Adds cognitive load during what should be a reward moment; ADHD-unsafe | Never for this audience — auto-apply loot |
+| Add a "combo multiplier" for consecutive correct answers | Exciting escalating reward | Creates implicit pressure to not break the streak — ADHD-unsafe anxiety driver | Never — any streak mechanic creates implicit punishment for breaking it |
+| Enemy has a rage mode (attacks faster after low HP) | Dramatic climax | Introduces implicit time pressure; ADHD-unsafe | Never |
 
 ---
 
@@ -237,11 +238,12 @@ Designers don't test contrast ratios or test only on their own display (which ma
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| localStorage + analytics | Store raw logs, hit quota at 500 sessions | Store only summary stats (XP, level, last-played, mastery per table). Trim old sessions. |
-| Dark theme + accessible colors | Use pure #000 + pure #FFF, test on one monitor | Use near-black + soft white, test on multiple displays and in variable lighting |
-| Multiple choice + feedback | Show only "correct!" or "wrong" | Show correct answer, explain why, track which distractors were chosen to detect patterns |
-| localStorage + version updates | Old data format breaks on app update | Use versioned keys (mathlab_v1, mathlab_v2), migration function when app updates |
-| XP system + progress tracking | Track only points, not learning | Separate "XP earned" from "mastery achieved"—user sees both, they're decoupled |
+| v1 EWMA accuracy system + v2 combat | Ignore EWMA; assign questions by floor number | Feed floor enemy encounters through the same EWMA question selector; floor determines HP/reward scaling, not question difficulty |
+| v1 XP system + v2 dungeon progression | Create a second parallel XP track for dungeon | Unify: defeating enemies awards XP to the same v1 XP/level system; no parallel progression tracks |
+| v1 localStorage schema + v2 new fields | Add new fields to v1 key assuming backward compat | Read `schemaVersion`, run migration, write new unified save object under versioned key |
+| CSS for 7 screens in single file | Global selectors (`.title`, `.button`) applied to all screens | Scope all selectors under screen ID: `#screen-combat .button`; treat each screen as a CSS namespace |
+| CSS animations for damage feedback | Use `setTimeout` for animation timing | Use CSS `@keyframes` + `animationend` event; never `setTimeout` for visual state transitions |
+| Combat state + DOM state | Update DOM directly in combat logic | Combat logic writes to `gameState`; a single `render(gameState)` function owns all DOM updates |
 
 ---
 
@@ -249,22 +251,11 @@ Designers don't test contrast ratios or test only on their own display (which ma
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Re-rendering full DOM on every answer | Jank after 50+ questions, UI stutter | Use event delegation, update only the changed element | After 100+ questions in a session |
-| localStorage.setItem() on every keypress | App freezes, storage thrashing, quota errors | Debounce saves (batch updates every 5 seconds), only save on session end + level-up | After 30 minutes of continuous play |
-| Question pool loaded in memory uncompressed | App slows as question count grows | Lazy-load questions, compress JSON, stream from storage | If question pool exceeds 1MB (unlikely at 12-year-old scale) |
-| No analytics pruning | localStorage grows forever | Delete sessions older than 30 days, archive to localStorage only summary stats | After ~500 sessions (6 months of daily play) |
-| CSS recalculation on animation frame | Smooth animations become choppy | Use CSS transforms + will-change, avoid layout-triggering animations | After 3–4 concurrent animations |
-
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Storing app state unencrypted in localStorage | Sibling/friend cheats by opening dev tools and editing XP directly | Accept this risk—single-device, low-stakes game. If cheating becomes an issue, add a checksum validation (hash last 5 actions to detect edits) |
-| Exposing question logic in client-side code | User reads source to predict answers in advance | Questions are stored client-side by design (no server), so this is inherent. Focus on question randomization to defeat pattern-guessing |
-| No validation of progress claims | User manually edits localStorage to claim false progress | Single-device, local game—no leaderboard, no external claims. Self-cheating is their own problem. Add sanity checks if needed (XP > threshold alerts) |
-| Embedding user data in localStorage without structure | Accidental data corruption, version conflicts | Use versioned storage format (mathlab_v1_progress), validate schema on load, migrate safely on update |
+| Rendering all 7 screens in DOM simultaneously (just hidden) | Layout cost scales with all screen DOM even when hidden; forced layout on every combat update | Use `hidden` attribute (browser skips layout for hidden elements) not just `display:none` via class | After screen count exceeds 4 |
+| Combat animation loop using `setInterval` | Animation jank, CPU spin when tab hidden, potential memory leak | Use `requestAnimationFrame` + CSS animations; RAF pauses when tab hidden | Immediately — setInterval always runs |
+| Saving full dungeon state on every question answer | localStorage writes on every keypress; storage thrashing after 30+ minute sessions | Save only on: room cleared, floor complete, app hidden (`visibilitychange`), not on every answer | After 200+ answers in a session |
+| DOM manipulation inside combat loop per-frame | Reflow triggered every animation frame; UI jank | Batch DOM updates; read layout properties before writing; update HP bar via CSS custom property change only | Immediately on low-end laptop |
+| Accumulating `addEventListener` calls without cleanup | Memory leak; stale handlers fire multiple times per event after screen transitions | Remove event listeners when leaving a screen, or use event delegation on a stable parent | After 3+ screen transitions |
 
 ---
 
@@ -272,29 +263,28 @@ Designers don't test contrast ratios or test only on their own display (which ma
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Menu paralysis (too many modes/settings) | User can't decide where to start, leaves app | Single path: open → question → answer → repeat. No toggles in MVP |
-| No progress feedback after session | Silent failure, user doesn't know if they improved | Show session summary: questions right/wrong, tables mastered, patterns |
-| Harsh white-on-black contrast | Eye strain, astigmatism blur, unreadable text | Use near-black + soft white, test contrast ratios, provide light mode option |
-| Aggressive animations/visual clutter | ADHD overstimulation, distraction | Minimize motion, only for intentional feedback (level-up), muted colors |
-| Timed pressure (countdown, streak) | Cortisol spike, anxiety, failure for math-anxious users | No timers. Fast feedback instead (instant answer reveal, no penalty for speed) |
-| Samey questions (same 4 wrong answers every time) | User memorizes patterns, not math | Vary distractors—sometimes off-by-one, sometimes wrong table entirely, sometimes plausible mistakes |
-| No session summary | User can't see progress, motivation drops | Show: correct/wrong count, tables mastered, trend vs. last session |
-| Random shuffling not actually random | User guesses by position, not math understanding | Log answer positions, verify randomization in analytics, audit for bias |
+| HP bar shrinking too fast on wrong answers | Triggers urgency panic; ADHD cortisol response; math performance degrades | Small damage amounts; generous starting HP; HP loss animated slowly (not instant) |
+| Death screen with stats comparison ("Your best: 8 questions") | Comparison to past self creates shame; "I got worse" narrative | Death screen: simple "Try floor again?" — no stats, no comparison, no shame |
+| Room navigation requiring multiple clicks to advance | Friction breaks flow; ADHD brains need one clear next action | One button: "Enter Room" → combat starts immediately; no intermediate confirmation screen |
+| Loot choice requiring player to compare two items | Decision fatigue; cognitive load at reward moment | Auto-apply loot; announce what dropped; no choice required |
+| Floor complete screen with extensive stats breakdown | Information overload; player doesn't read it | Floor complete: brief celebration ("Floor 2 cleared! +150 XP"), single continue button, 2-second hold maximum |
+| Enemy having visible "charging attack" animation | Creates implicit time pressure ("I must answer before it attacks") | Enemy just waits indefinitely; no countdown, no charge animation, no urgency cues |
+| Progress reset on floor failure showing previous best | Creates comparison anxiety | Show only the current attempt; no historical comparison until after a successful run |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **localStorage persistence:** Verified that XP/level survive app close, browser close, and reload. Tested with storage quota near-full (QuotaExceededError handling tested). Data migration plan exists for app updates.
-- [ ] **Answer randomization:** Logged 50+ sessions and verified correct answer appears in each position ≈25% of the time. No position bias detected. Distractors vary (not always same wrong answers).
-- [ ] **Progress tracking:** Session summary shown after every session. Mastery per table visible. Historical trend available (last 7 days at minimum).
-- [ ] **Contrast accessibility:** All text passes 4.5:1 contrast ratio check. Tested on multiple displays and in variable lighting. No pure black/white used. Light mode toggle exists.
-- [ ] **No pressure mechanics:** No timers, no daily streaks, no leaderboards. Soft "come back soon" notifications (if any) are optional and can be disabled. Pressure-related features documented as *explicitly out of scope*.
-- [ ] **ADHD-friendly UX:** No auto-play video, no aggressive animations, single clear path to play. Tested with target user—no reports of distraction, overwhelm, or eye strain.
-- [ ] **Multiple choice design:** Correct answer doesn't cluster in any position. Distractors are plausibly wrong, not obviously wrong. User can't guess without math knowledge.
-- [ ] **Dark theme consistency:** Accent colors readable on dark background. Text soft enough for extended reading. Tested in bright and dim lighting.
-- [ ] **Error recovery:** App gracefully handles localStorage write failure (shows user-facing error, doesn't crash). Recovers from corrupted data (validation + fallback).
-- [ ] **Question variety:** At least 8 unique distractors per problem type (e.g., 8×7 has 8+ different wrong answers across all times it appears). User can't memorize.
+- [ ] **v1→v2 migration:** Tested by loading v2 with v1 data in localStorage. XP and level survive. New dungeon fields initialise to correct defaults. No crash on undefined fields.
+- [ ] **Combat balance at 30% accuracy:** Simulated a session where 30% of answers are wrong. Player can still complete floor 1 without dying. Floor 2 is survivable with potion use. Not trivially easy.
+- [ ] **Screen state machine:** Verify only one screen is ever visible at a time. Inspect DOM after every screen transition. No residual `hidden=false` on inactive screens.
+- [ ] **ADHD safety audit:** No timers (visible or hidden). No streak mechanics. No comparison stats on death screen. Wrong-answer damage is small. Death = restart floor only. Loot auto-applies.
+- [ ] **Adaptive tables preserved:** Questions during combat still come from EWMA accuracy selector, not hardcoded to floor number. A player weak on ×9 does not face exclusively ×9 on floor 3.
+- [ ] **CSS scope isolation:** All screen-specific CSS scoped under `#screen-X`. No global selectors that affect multiple screens. DevTools inspection of combat screen shows no styles leaking from other screens.
+- [ ] **Event listener cleanup:** All event listeners added when entering a screen are removed when leaving. No duplicate handlers firing after screen transitions.
+- [ ] **Loot economy balance:** Ran 10 simulated floors at 30% wrong-answer rate and 70% wrong-answer rate. Player ends floors with 50–85% HP in both scenarios. Adjust drop rates until both pass.
+- [ ] **Floor repetition check:** Played all 3 floors consecutively. Rooms feel distinct (at minimum: combat rooms, one treasure room per floor, boss room). Enemy flavour text is different per floor even if mechanics are the same.
+- [ ] **Save versioning:** `schemaVersion` field exists in save object. Loading save with missing `schemaVersion` triggers migration path, not crash.
 
 ---
 
@@ -302,14 +292,13 @@ Designers don't test contrast ratios or test only on their own display (which ma
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Reward fatigue sets in (engagement cliff) | MEDIUM | Reset progression curve (easier milestones, variable lengths), add new reward type (cosmetics, themes), gather user feedback. Requires Phase 3+ work. |
-| localStorage quota exceeded | LOW | Prune old sessions, compress stored data, clear test data. Can be done without code changes (but should add prevention in Phase 1). |
-| Answer position bias discovered | LOW | Re-randomize all questions, log new baseline, notify user. Quick fix if randomization logic is isolated. |
-| Contrast accessibility failure | LOW-MEDIUM | Adjust color palette, switch to near-black/soft-white, add light mode. If CSS is structured, this is quick. If colors hardcoded, medium effort. |
-| Pressure mechanics added and backfire | MEDIUM-HIGH | Remove timers, notifications, leaderboards. Requires UX redesign if deeply integrated. Easier if kept as toggles. |
-| Menu paralysis (too many options) | HIGH | Simplify to single path, move toggles to settings page (defer). Requires UX rework if menus are core flow. |
-| No progress tracking in shipped MVP | MEDIUM-HIGH | Add analytics infrastructure, session summaries, mastery tracking. Requires storage schema change + UI updates. Cannot be patched on top easily. |
-| Dark theme causes eye strain | LOW-MEDIUM | Implement light mode, adjust contrast, use near-black not pure black. If theme system is built cleanly, low cost. |
+| v1 data broken by v2 release without migration | HIGH | Ship hotfix that reads old key format and reconstructs valid v2 save; users must reload; XP may need manual restoration if already overwritten |
+| Combat punishes too hard (players dying repeatedly) | LOW | Reduce wrong-answer damage multiplier in CONFIG; increase starting HP; add one guaranteed potion to floor 1; deploys as single-file update |
+| Dungeon scope crept to unshippable size | HIGH | Cut features back to the fixed scope list; delete incomplete features; ship what works; document cut features in backlog |
+| Screen state corruption (two screens visible) | MEDIUM | Audit all `renderScreen` call sites; enforce single entry point pattern; test every screen transition |
+| ADHD-unsafe feature shipped (streak mechanic, timer) | MEDIUM | Remove feature entirely; do not "soften" it — any version of it re-introduces the unsafe pattern |
+| Loot economy broken (trivially easy or HP death spiral) | LOW | Adjust CONFIG drop rates and damage values; single-file rebalance deploys immediately |
+| Floor repetition complaint (boring by floor 2) | MEDIUM | Add per-room flavour text without touching mechanics; low code cost but requires content writing |
 
 ---
 
@@ -317,60 +306,40 @@ Designers don't test contrast ratios or test only on their own display (which ma
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Reward fatigue | Phase 2 (Gamification) | UAT: Test engagement curve across weeks 1–6. Measure session duration drop-off. Interview user about motivation. |
-| Cognitive overload (visual clutter) | Phase 1 (MVP) | UAT: User reports no eye strain, headaches, or overstimulation after 20-min session. Contrast audit passes. Light mode works. |
-| Option order bias | Phase 1 (MVP) | QA: Log 50+ sessions, audit position distribution. Success rate should be consistent across answer positions within ±5%. |
-| Pressure-induced failure | Phase 1 (MVP) | Design: No timers, no countdown, no streaks in scope. UAT: User reports no anxiety. Session success rate matches previous casual practice. |
-| localStorage corruption | Phase 1 (MVP) | QA: Test storage quota edge cases, QuotaExceededError handling, data persistence across restarts. Include in smoke tests. |
-| Analysis paralysis (feature creep) | Phase 1 (MVP) | UAT: First-time user opens app and can play without menu confusion (< 3 seconds to first question). |
-| No progress visibility | Phase 2 (Gamification) | UAT: User can articulate what they improved at. Session summary shown. Mastery per table visible. Trend data available. |
-| Dark theme accessibility | Phase 1 (MVP) | Accessibility audit: WCAG 2.1 AA contrast checks pass. Light mode toggle tested. User feedback: readable for 20 minutes. |
+| Dungeon scope creep | Requirements / planning phase | Won't-build list exists and is signed off before any code is written |
+| Wrong-answer damage punishment loop | Combat design phase | Combat tested at 30% accuracy rate; player can complete floor without death spiral |
+| Floor repetition | Room/floor design phase | Room types (combat / treasure / boss) defined before rooms are coded; flavour text written per enemy per floor |
+| CSS/DOM screen spaghetti | Screen architecture phase (first thing built) | Single `renderScreen()` function; one screen visible in DOM at all times; verified by inspection |
+| v1→v2 save migration | Save/state architecture phase | v1 data loads without crash; XP and level preserved; new fields initialised correctly |
+| ADHD-unsafe patterns sneaking in | Combat + UI design phases | Explicit ADHD checklist applied at design review and at code review; no timers, no streaks, no comparison stats anywhere |
+| Enemy difficulty gating adaptive tables | Combat design phase | EWMA integration document written before combat coded; test with simulated weak-×9 player on floor 3 |
+| Loot economy imbalance | Loot/drop design phase | Economy modelled at two accuracy extremes before implementation; drop rates in CONFIG not hardcoded |
 
 ---
 
 ## Sources
 
-**Educational Gamification & Engagement:**
-- [Gamification in Educational Apps to Enhance Learning Experiences - Eastern Peak](https://easternpeak.com/blog/gamification-strategies-in-educational-apps/)
-- [7 Gamification Mistakes & How to Avoid Them - Litmos](https://www.litmos.com/blog/articles/gamification-mistakes)
-- [Impact of gamification on school engagement: a systematic review - Frontiers](https://www.frontiersin.org/journals/education/articles/10.3389/feduc.2024.1466926/full)
-
-**ADHD UX & Neurodivergent Design:**
-- [UX Design for ADHD: When Focus Becomes a Challenge - Medium](https://medium.com/design-bootcamp/ux-design-for-adhd-when-focus-becomes-a-challenge-afe160804d94)
-- [UI/UX for ADHD: Designing Interfaces That Actually Help Students - Din Studio](https://din-studio.com/ui-ux-for-adhd-designing-interfaces-that-actually-help-students/)
-- [App design for people with ADHD - GoTDAH - Medium](https://medium.com/design-bootcamp/gotdah-fundaci%C3%B3n-ingada-b6405cfa8812)
-
-**Math Practice Engagement & Abandonment:**
-- [Why Student Engagement in Math Fails (and How to Fix It) - Techie Turtle Teacher](https://techieturtleteacher.com/lack-of-student-engagement-in-math-fix-it/)
-- [Daily 20-Minute Math Apps: How to Build Your Child's Confidence - Afficienta Blog](https://blog.afficienta.com/daily-20-minute-math-apps_-how-to-build-your-child%27s-confidence-in-2026/)
-
-**Math Anxiety & Pressure/Time Stress:**
-- [Choke or thrive? The relation between salivary cortisol and math performance - Academia](https://academia.edu/24474896/Choke_or_thrive_The_relation_between_salivary_cortisol_and_math_performance_depends_on_individual_differences_in_working_memory_and_math-anxiety)
-- [Succeeding in school: Stress boosts performance for confident students - ScienceDaily](https://www.sciencedaily.com/releases/2011/08/110809092045.htm)
-- [Endogenous and exogenous time pressure and math anxiety - ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/S0883035516310977)
-
-**Reward Fatigue & Burnout:**
-- [Streaks, Badges, and Burnout: When Learning Apps Feel Like ... - ScreenWise](https://screenwiseapp.com/guides/when-learning-feels-like-work)
-- [The Psychology of Gamification And Learning - BadgeOS](https://badgeos.org/the-psychology-of-gamification-and-learning-why-points-badges-motivate-users/)
-
-**Dark Theme & Accessibility:**
-- [Dark Mode UI: Best Practices and Common Mistakes to Avoid - Medium](https://medium.com/design-ninjas/dark-mode-ui-best-practices-and-common-mistakes-to-avoid-a96d7e5c9709)
-- [10 Common Dark Mode Design Mistakes - Medium](https://medium.com/@dollyborade07/10-common-dark-mode-design-mistakes-ui-designers-should-avoid-e81f08838fbc)
-- [Inclusive Dark Mode: Designing Accessible Dark Themes For All Users - Smashing Magazine](https://www.smashingmagazine.com/2025/04/inclusive-dark-mode-designing-accessible-dark-themes/)
-- [The Designer's Guide to Dark Mode Accessibility - AccessibilityChecker](https://www.accessibilitychecker.org/blog/dark-mode-accessibility/)
-
-**Multiple Choice Design & Assessment:**
-- [Designing Effective Multiple-Choice Questions (MCQs) - XB Software](https://xbsoftware.com/blog/how-to-design-multiple-choice-questions/)
-- [The Effects of Different Feedback Types on Learning With Mobile Quiz Apps - Frontiers](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2021.665144/full)
-
-**Single-File Web Apps & localStorage:**
-- [State Management in Single Page Applications (SPAs) - PixelFree Studio](https://blog.pixelfreestudio.com/state-management-in-single-page-applications-spas/)
-- [The Single-File App Architecture - DEV Community](https://dev.to/clawgenesis/the-single-file-app-architecture-why-i-stopped-reaching-for-a-backend-15ej)
-- [Making Your SPA Remember State with localStorage: 3 Patterns and Their Pitfalls - DEV Community](https://dev.to/linou518/making-your-spa-remember-state-with-localstorage-3-patterns-and-their-pitfalls-30jo)
-- [Using localStorage in Modern Applications - RxDB](https://rxdb.info/articles/localstorage.html)
+- [Feature Creep: The Silent Killer of Indie Game Dreams — Wayline](https://www.wayline.io/blog/feature-creep-silent-killer-indie-games)
+- [How to Avoid Scope Creep in Game Development — Codecks](https://www.codecks.io/blog/2025/how-to-avoid-scope-creep-in-game-development/)
+- [Why Rewards and Punishments Don't Work for ADHD Kids — We Thrive Learning](https://www.wethrivelearning.com/post/why-rewards-and-punishments-don-t-work-for-adhd-kids-and-what-actually-motivates-them)
+- [Reward and Punishment Sensitivity in Children with ADHD — PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC3268965/)
+- [Building Games for ADHD? What You're Probably Doing Wrong — Medevel](https://medevel.com/building-games-for-adhd-heres-what-youre-probably-doing-wrong-and-how-to-fix-it/)
+- [Customizing Game Mechanics for ADHD — Medevel](https://medevel.com/customizing-game-mechanics-for-adhd-what-developers-need-to-know/)
+- [ADHD-Friendly App Design: What to Look For — Monster Math Blog](https://www.monstermath.app/blog/adhd-friendly-app-design-what-to-look-for-and-what-to-avoid)
+- [What Makes a Dungeon Crawl Good — Skeleton Code Machine](https://www.skeletoncodemachine.com/p/what-makes-a-dungeon-crawl-good)
+- [How to Make Dungeon Crawling Less of a Crawl — Grimly Enthusiastic](https://grimlyenthusiastic.wordpress.com/2010/07/30/guide-to-good-dungeons/)
+- [Dynamic Game Difficulty Balancing — Wikipedia](https://en.wikipedia.org/wiki/Dynamic_game_difficulty_balancing)
+- [How Much Loot Is Too Much? — Cheat Code Central](https://www.cheatcc.com/articles/how-much-loot-is-too-much/)
+- [Balancing Loot Distribution in TTRPGs — TTRPG Games](https://www.ttrpg-games.com/blog/balancing-loot-distribution-in-ttrpgs/)
+- [Build a State Management System with Vanilla JavaScript — CSS-Tricks](https://css-tricks.com/build-a-state-management-system-with-vanilla-javascript/)
+- [Managing Complex State in Vanilla JavaScript — Java Code Geeks](https://www.javacodegeeks.com/2024/11/managing-complex-state-in-vanilla-javascript-a-comprehensive-guide.html)
+- [Simple Frontend Data Migration — Jan Monschke](https://janmonschke.com/simple-frontend-data-migration/)
+- [Pro Tips Using localStorage — Medium](https://medium.com/@mohamedelayadi/pro-tips-using-localstorage-51931f40f0be)
+- [Cross-Document View Transitions Gotchas — CSS-Tricks](https://css-tricks.com/cross-document-view-transitions-part-1/)
+- [Optimize DOM Size for Better Web Performance — DebugBear](https://www.debugbear.com/blog/excessive-dom-size)
 
 ---
 
-*Pitfalls research for: Gamified math practice (single-file web app, ADHD-friendly, dark grunge UX)*
+*Pitfalls research for: Dungeon crawler layer added to existing single-HTML-file math game (ADHD-safe, 12-year-old)*
 *Researched: 2026-06-20*
 *Confidence: HIGH*
