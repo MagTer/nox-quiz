@@ -1,10 +1,13 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.0
-milestone_name: Dungeon Crawler
-status: planning
-last_updated: "2026-06-20T21:39:56.336Z"
+milestone_name: Dungeon Crawler Phases
+current_phase_name: defining requirements
+status: executing
+stopped_at: context exhaustion at 75% (2026-06-20)
+last_updated: "2026-06-20T22:30:37.811Z"
 last_activity: 2026-06-20
+last_activity_desc: Milestone v2.0 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -31,7 +34,7 @@ progress:
 
 Phase: Not started (defining requirements)
 Plan: —
-Status: Defining requirements
+Status: Ready to execute
 Last activity: 2026-06-20 — Milestone v2.0 started
 
 ## Key Decisions

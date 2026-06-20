@@ -134,8 +134,16 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 02-01-PLAN.md — CONFIG.DUNGEON constants + GameFSM state machine + FloorConfig enemy definitions
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02-PLAN.md — CombatEngine (HP math, damage resolution, XP on kill) + DungeonState (session-scoped)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-03-PLAN.md — PersistenceStore v2 migration: auto-migrate v1 saves to mathlab_save_v2 on load
 
 **Research flag:** None — all patterns are standard vanilla JS / localStorage migration. No research phase required.
