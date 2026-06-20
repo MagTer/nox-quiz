@@ -47,7 +47,7 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 
 - [ ] **COMB-01**: Turn-based math combat — correct answer attacks enemy, wrong answer deals damage to player
 - [ ] **COMB-02**: HP bars (CSS transition-animated) for both player and current enemy
-- [ ] **COMB-03**: Defeating an enemy requires 3–5 correct answers (not a 1-shot)
+- [ ] **COMB-03**: Defeating an enemy requires 3–7 correct answers (not a 1-shot; Goblin=3, Skeleton=5, Dragon=7 based on HP/damage constants)
 - [ ] **COMB-04**: Visual combat feedback: floating damage numbers, HP bar drain animation after each hit
 - [ ] **COMB-05**: All combat copy is RPG-themed ("Attack!" not "Correct!", "You took a hit!" not "Wrong")
 
