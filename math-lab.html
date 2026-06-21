@@ -321,6 +321,21 @@
       MASTERY_WINDOW:    10     // sliding window size for mastery check
     };
 
+    // Dungeon Crawler constants — Phase 2 addition
+    CONFIG.DUNGEON = {
+      PLAYER_HP:       100,              // starting HP for the player each run
+      DAMAGE_CORRECT:  3,               // player deals this to enemy per correct answer
+      DAMAGE_WRONG:    8,               // enemy deals this to player per wrong answer
+      GOBLIN_HP:       9,               // Floor 1 enemy HP (3 correct answers to kill)
+      SKELETON_HP:     15,              // Floor 2 enemy HP (5 correct answers to kill)
+      DRAGON_HP:       21,              // Floor 3 enemy HP (7 correct answers to kill)
+      GOBLIN_XP:       30,              // XP awarded on Goblin defeat
+      SKELETON_XP:     50,              // XP awarded on Skeleton defeat
+      DRAGON_XP:       80,              // XP awarded on Dragon defeat
+      ROOMS_PER_FLOOR: 5,              // 1 entrance + 3 combat + 1 boss; used by Phase 5
+      SAVE_KEY_V2:     'mathlab_save_v2' // new localStorage key for v2 save format
+    };
+
     /* ==========================================================
        MODULE 2: XpCalculator
        Pure XP math — level thresholds and per-table XP amounts
