@@ -590,7 +590,15 @@
       SKELETON_XP:     50,              // XP awarded on Skeleton defeat
       DRAGON_XP:       80,              // XP awarded on Dragon defeat
       ROOMS_PER_FLOOR: 5,              // 1 entrance + 3 combat + 1 boss; used by Phase 5
-      SAVE_KEY_V2:     'mathlab_save_v2' // new localStorage key for v2 save format
+      SAVE_KEY_V2:     'mathlab_save_v2', // new localStorage key for v2 save format
+      BOSS_HP_MULT:    2,               // boss room enemy HP multiplier (floor enemy HP * 2)
+      FINAL_BOSS_HP:   40,              // Floor 4 Final Boss base HP
+      FINAL_BOSS_XP:   150,             // XP awarded on Final Boss defeat
+      MAX_FLOORS:      4,               // total number of dungeon floors
+      SWORD_BONUS:     1,               // extra damage to enemy per correct answer when sword held
+      SHIELD_REDUCTION: 3,              // damage reduction per wrong answer when shield held
+      POTION_HEAL:     25,              // HP restored instantly when potion picked up
+      LOOT_DROP_RATE:  0.6              // probability that a regular enemy drops loot (60%)
     };
 
     /* ==========================================================
@@ -1015,7 +1023,8 @@
       const FLOORS = {
         1: { enemy: 'Goblin',   emoji: '👺', hp: CONFIG.DUNGEON.GOBLIN_HP,   xpReward: CONFIG.DUNGEON.GOBLIN_XP,   tablePools: [2, 3, 5] },
         2: { enemy: 'Skeleton', emoji: '💀', hp: CONFIG.DUNGEON.SKELETON_HP, xpReward: CONFIG.DUNGEON.SKELETON_XP, tablePools: [4, 6, 7] },
-        3: { enemy: 'Dragon',   emoji: '🐉', hp: CONFIG.DUNGEON.DRAGON_HP,   xpReward: CONFIG.DUNGEON.DRAGON_XP,   tablePools: [7, 8, 9] }
+        3: { enemy: 'Dragon',   emoji: '🐉', hp: CONFIG.DUNGEON.DRAGON_HP,   xpReward: CONFIG.DUNGEON.DRAGON_XP,   tablePools: [7, 8, 9] },
+        4: { enemy: 'Dragon Lord', emoji: '🐲', hp: CONFIG.DUNGEON.FINAL_BOSS_HP, xpReward: CONFIG.DUNGEON.FINAL_BOSS_XP, tablePools: [7, 8, 9] }
       };
 
       return {
@@ -1256,6 +1265,11 @@
           'Smoke curls from its nostrils.',
           'The dragon lets out a low rumble.',
           'Its scales shimmer like obsidian.'
+        ],
+        'Dragon Lord': [
+          'An ancient power stirs in the darkness.',
+          'Its roar shakes the dungeon walls.',
+          'The Dragon Lord opens one eye.'
         ]
       };
 
