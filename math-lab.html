@@ -644,6 +644,39 @@
       };
     })();
 
+    /* MODULE 6: GameFSM — Dungeon state machine (Phase 2) */
+    const GameFSM = (() => {
+      let state = 'EXPLORE';
+
+      // Legal transitions: source state → Set of valid destination states
+      const TRANSITIONS = {
+        EXPLORE:       ['COMBAT'],
+        COMBAT:        ['LOOT', 'FLOOR_SUMMARY', 'DEAD'],
+        LOOT:          ['COMBAT', 'FLOOR_SUMMARY'],
+        FLOOR_SUMMARY: ['EXPLORE', 'DEAD'],
+        DEAD:          ['EXPLORE']
+      };
+
+      return {
+        getState() {
+          return state;
+        },
+
+        transition(next) {
+          const allowed = TRANSITIONS[state];
+          if (!allowed || !allowed.includes(next)) {
+            throw new Error('[GameFSM] Illegal transition: ' + state + ' → ' + next);
+          }
+          state = next;
+        },
+
+        reset() {
+          state = 'EXPLORE';
+        }
+      };
+    })();
+    window.GameFSM = GameFSM;
+
     /* ==========================================================
        DOM CACHE + RENDERER + INPUT HANDLER + APP
        These live inside DOMContentLoaded — they access DOM elements
