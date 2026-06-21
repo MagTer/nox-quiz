@@ -992,6 +992,37 @@
     })();
     window.CombatEngine = CombatEngine;
 
+    /* MODULE 10: App — JS routing layer (mode + transition + renderScreen)
+       Defined OUTSIDE DOMContentLoaded so window.App is available immediately.
+       nextQuestion() is a stub here; DOMContentLoaded wires App._nextQuestion
+       once Renderer and QuestionSelector are in scope.
+    */
+    const App = (() => {
+      let mode = 'quiz';  // 'quiz' | 'dungeon'
+
+      // renderScreen is the ONLY function that writes data-screen on main.
+      // Called exclusively from transition() — no other code path may call it.
+      function renderScreen(name) {
+        const main = document.getElementById('game-board');
+        if (main) main.setAttribute('data-screen', name);
+      }
+
+      return {
+        get mode() { return mode; },
+
+        transition(screenName) {
+          mode = (screenName === 'quiz') ? 'quiz' : 'dungeon';
+          renderScreen(screenName);
+        },
+
+        // Stub — real implementation wired via App._nextQuestion inside DOMContentLoaded
+        nextQuestion() {
+          if (typeof App._nextQuestion === 'function') App._nextQuestion();
+        }
+      };
+    })();
+    window.App = App;
+
     /* ==========================================================
        DOM CACHE + RENDERER + INPUT HANDLER + APP
        These live inside DOMContentLoaded — they access DOM elements
@@ -1008,6 +1039,7 @@
       DOM.optionsList    = document.getElementById('options-list');
       DOM.levelupOverlay = document.getElementById('levelup-overlay');
       DOM.questionLegend = document.getElementById('question-legend');
+      DOM.main           = document.getElementById('game-board');
 
       /* ----------------------------------------------------------
          MODULE 6: Renderer
@@ -1105,6 +1137,7 @@
         },
 
         handleAnswer(selectedValue) {
+          if (App.mode !== 'quiz') return;
           InputHandler.locked = true;
 
           // Disable all options immediately
@@ -1161,14 +1194,12 @@
       };
 
       /* ----------------------------------------------------------
-         App — bootstrap and game flow
+         App — wire nextQuestion() now that Renderer + QuestionSelector are in scope
       ---------------------------------------------------------- */
-      const App = {
-        nextQuestion() {
-          const q = QuestionSelector.selectNext(PlayerState);
-          InputHandler.currentQuestion = q;
-          Renderer.showQuestion(q);
-        }
+      App._nextQuestion = function() {
+        const q = QuestionSelector.selectNext(PlayerState);
+        InputHandler.currentQuestion = q;
+        Renderer.showQuestion(q);
       };
 
       /* ----------------------------------------------------------
