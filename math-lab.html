@@ -1570,6 +1570,79 @@
       };
 
       /* ----------------------------------------------------------
+         CombatInputHandler
+         Handles answer selection in the combat fieldset.
+         Mode guard (App.mode !== 'dungeon') is first — prevents firing in quiz mode.
+         Lock guard prevents re-entrant answers during the 1s feedback pause.
+      ---------------------------------------------------------- */
+      const CombatInputHandler = {
+        locked: false,
+        currentQuestion: null,
+
+        setup() {
+          document.getElementById('combat-question').addEventListener('change', (e) => {
+            if (App.mode !== 'dungeon') return;
+            if (CombatInputHandler.locked) return;
+            if (e.target.tagName !== 'INPUT' || e.target.type !== 'radio') return;
+            CombatInputHandler.handleAnswer(e.target.value);
+          });
+        },
+
+        handleAnswer(selectedValue) {
+          CombatInputHandler.locked = true;
+
+          const selected   = parseInt(selectedValue, 10);
+          const q          = CombatInputHandler.currentQuestion;
+          const isCorrect  = (selected === q.answer);
+          const result     = CombatEngine.resolveAnswer(isCorrect);
+
+          DungeonRenderer.updateHP(result.enemyHP, result.playerHP);
+
+          if (isCorrect) {
+            DungeonRenderer.showDamageNumber(
+              document.getElementById('combat-enemy-area'),
+              CONFIG.DUNGEON.DAMAGE_CORRECT,
+              true
+            );
+            DungeonRenderer.showFeedback(Math.random() < 0.2 ? 'Critical hit!' : 'Attack!');
+          } else {
+            DungeonRenderer.showDamageNumber(
+              document.getElementById('player-hp-container'),
+              CONFIG.DUNGEON.DAMAGE_WRONG,
+              false
+            );
+            DungeonRenderer.showFeedback('You took a hit!');
+          }
+
+          if (result.leveledUp) {
+            Renderer.showLevelUpOverlay(PlayerState.getLevel());
+            Renderer.updateHud(PlayerState.getXp(), PlayerState.getLevel());
+          }
+
+          if (result.killed) {
+            App.transition('loot');
+            return;
+          }
+
+          if (result.died) {
+            App.transition('dead');
+            return;
+          }
+
+          setTimeout(() => {
+            CombatInputHandler.locked = false;
+            CombatInputHandler.nextQuestion();
+          }, CONFIG.ADVANCE_DELAY_MS);
+        },
+
+        nextQuestion() {
+          const q = QuestionSelector.selectNext(PlayerState);
+          CombatInputHandler.currentQuestion = q;
+          DungeonRenderer.renderCombatQuestion(q);
+        }
+      };
+
+      /* ----------------------------------------------------------
          App — wire nextQuestion() now that Renderer + QuestionSelector are in scope
       ---------------------------------------------------------- */
       App._nextQuestion = function() {
@@ -1584,6 +1657,7 @@
       const savedData = PersistenceStore.load();
       PlayerState.fromJSON(savedData);
       InputHandler.setup();
+      CombatInputHandler.setup();
       Renderer.updateHud(PlayerState.getXp(), PlayerState.getLevel());
       App.nextQuestion();
 
