@@ -55,7 +55,7 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 
 - [x] **ENE-01**: 3 enemy types with distinct emoji sprites: 👺 Goblin (Floor 1), 💀 Skeleton (Floor 2), 🐉 Dragon (Floor 3 + boss)
 - [x] **ENE-02**: Enemy HP and XP reward scale with floor number
-- [ ] **ENE-03**: Each enemy type has 3+ flavor text lines shown during combat to prevent repetition
+- [x] **ENE-03**: Each enemy type has 3+ flavor text lines shown during combat to prevent repetition
 
 ### Table Difficulty
 

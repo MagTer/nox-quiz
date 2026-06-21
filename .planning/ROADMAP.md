@@ -267,12 +267,12 @@ Plans:
 3. Each of the 3 enemy types has at least 3 flavor text lines and the rotation logic prevents the same line appearing twice in a row — verified by triggering 6 consecutive combat exchanges against the same enemy type
 4. The app is loaded with a browser that has a real v1 `mathlab_save` localStorage key present; after load the player's pre-existing XP, level, and per-table accuracy are intact in the new `mathlab_save_v2` key; the v1 key is still present and unmodified
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Replace FLAVOR array placeholder lines with final edgy-menacing RPG copy (ENE-03)
+- [x] 06-01-PLAN.md — Replace FLAVOR array placeholder lines with final edgy-menacing RPG copy (ENE-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -292,7 +292,7 @@ Plans:
 | 3. Screen Architecture | 1/2 | In Progress|  |
 | 4. Dungeon Renderer | 0/3 | Planned | - |
 | 5. Full Floor Loop + Balance | 2/2 | Complete   | 2026-06-21 |
-| 6. Polish + ADHD Safety Audit | 0/2 | Pending | - |
+| 6. Polish + ADHD Safety Audit | 1/2 | In Progress|  |
 
 ---
 
