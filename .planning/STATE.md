@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dungeon Crawler Phases
-current_phase_name: defining requirements
+current_phase: 02
+current_phase_name: combat-foundation
 status: executing
 stopped_at: context exhaustion at 75% (2026-06-20)
-last_updated: "2026-06-20T22:30:37.811Z"
-last_activity: 2026-06-20
-last_activity_desc: Milestone v2.0 started
+last_updated: "2026-06-21T10:08:28.158Z"
+last_activity: 2026-06-21
+last_activity_desc: Phase 02 execution started
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 2
+  completed_phases: 1
+  total_plans: 7
+  completed_plans: 5
+  percent: 50
 ---
 
 # Project State: Math Lab
@@ -26,16 +27,16 @@ progress:
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
 
-**Current Focus:** Phase 01 — mvp-core-loop-adhd-safe-mechanics
+**Current Focus:** Phase 02 — combat-foundation
 
 **Tech Stack:** Single HTML file, vanilla ES2020+ JavaScript, CSS3, localStorage, no dependencies.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
+Phase: 02 (combat-foundation) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-20 — Milestone v2.0 started
+Last activity: 2026-06-21 — Phase 02 execution started
 
 ## Key Decisions
 
@@ -118,7 +119,7 @@ Last activity: 2026-06-20 — Milestone v2.0 started
 
 ## Session Continuity
 
-**Last session:** 2026-06-20T20:21:29.340Z
+**Last session:** 2026-06-21T10:07:51.383Z
 **Stopped at:** context exhaustion at 75% (2026-06-20)
 
 **Next steps:**
@@ -155,6 +156,9 @@ Last activity: 2026-06-20 — Milestone v2.0 started
 - [Phase ?]: HUD uses rgba(10,10,10,0.92) + backdrop-filter blur(4px) — grain shows subtly through, reinforcing dark aesthetic
 - [Phase ?]: Question text color is var(--text) #e8e8e8 — accent #00ff88 is decorative only (level badge, XP fills, correct border)
 - [Phase ?]: WCAG 2.1 AA verified: #e8e8e8 on #0a0a0a ~18:1, #888888 on #0a0a0a ~5.4:1 — UX-03 satisfied
+- [Phase ?]: TRANSITIONS map uses plain arrays not Set — simpler sufficient for 5 states
+- [Phase ?]: FloorConfig returns shallow copies via Object.assign plus spread array — prevents caller mutation of internal FLOORS data (T-02-03 mitigated)
+- [Phase ?]: CONFIG.DUNGEON appended as separate statement after CONFIG literal close — all dungeon constants in one sub-object, v1 fields untouched
 
 ## Performance Metrics
 
@@ -162,3 +166,4 @@ Last activity: 2026-06-20 — Milestone v2.0 started
 |-------|------|----------|-------|
 | Phase 01 P03 | 2 | 2 tasks | 1 files |
 | Phase 01 P04 | 1 | 2 tasks | 1 files |
+| Phase 02 P01 | 135 | 3 tasks | 1 files |

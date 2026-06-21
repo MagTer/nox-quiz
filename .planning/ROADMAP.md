@@ -131,12 +131,12 @@ Plans:
 5. On first load with a real v1 localStorage save present, PersistenceStore v2 reads the v1 key, migrates XP and per-table accuracy forward, writes to `mathlab_save_v2`, and the player's level and accuracy data are intact — v1 key is left untouched
 6. DungeonState (floor, room, player HP, enemy HP, loot inventory) is entirely session-scoped — closing and reopening the tab resets it; nothing from DungeonState appears in `mathlab_save_v2`
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — CONFIG.DUNGEON constants + GameFSM state machine + FloorConfig enemy definitions
+- [x] 02-01-PLAN.md — CONFIG.DUNGEON constants + GameFSM state machine + FloorConfig enemy definitions
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -248,7 +248,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 2. Combat Foundation | 0/3 | Planning complete | - |
+| 2. Combat Foundation | 1/3 | In Progress|  |
 | 3. Screen Architecture | 0/2 | Not started | - |
 | 4. Dungeon Renderer | 0/3 | Not started | - |
 | 5. Full Floor Loop + Balance | 0/4 | Not started | - |

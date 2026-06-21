@@ -40,26 +40,26 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 ### Dungeon Structure
 
 - [ ] **DC-01**: Dungeon has 5 rooms per floor (entrance → 3 combat rooms → boss room), 3 floors + boss floor
-- [ ] **DC-02**: Game phase FSM controls transitions: EXPLORE → COMBAT → LOOT → TRANSITION → DEAD
+- [x] **DC-02**: Game phase FSM controls transitions: EXPLORE → COMBAT → LOOT → TRANSITION → DEAD
 - [ ] **DC-03**: Separate screens exist for: dungeon map, combat, loot drop, floor summary, death/retry
 
 ### Combat
 
 - [ ] **COMB-01**: Turn-based math combat — correct answer attacks enemy, wrong answer deals damage to player
 - [ ] **COMB-02**: HP bars (CSS transition-animated) for both player and current enemy
-- [ ] **COMB-03**: Defeating an enemy requires 3–7 correct answers (not a 1-shot; Goblin=3, Skeleton=5, Dragon=7 based on HP/damage constants)
+- [x] **COMB-03**: Defeating an enemy requires 3–7 correct answers (not a 1-shot; Goblin=3, Skeleton=5, Dragon=7 based on HP/damage constants)
 - [ ] **COMB-04**: Visual combat feedback: floating damage numbers, HP bar drain animation after each hit
 - [ ] **COMB-05**: All combat copy is RPG-themed ("Attack!" not "Correct!", "You took a hit!" not "Wrong")
 
 ### Enemies
 
-- [ ] **ENE-01**: 3 enemy types with distinct emoji sprites: 👺 Goblin (Floor 1), 💀 Skeleton (Floor 2), 🐉 Dragon (Floor 3 + boss)
-- [ ] **ENE-02**: Enemy HP and XP reward scale with floor number
+- [x] **ENE-01**: 3 enemy types with distinct emoji sprites: 👺 Goblin (Floor 1), 💀 Skeleton (Floor 2), 🐉 Dragon (Floor 3 + boss)
+- [x] **ENE-02**: Enemy HP and XP reward scale with floor number
 - [ ] **ENE-03**: Each enemy type has 3+ flavor text lines shown during combat to prevent repetition
 
 ### Table Difficulty
 
-- [ ] **DIFF-01**: Each floor gates a specific multiplication table pool (Floor 1: ×2×3×5, Floor 2: ×4×6×7, Floor 3: ×7×8×9)
+- [x] **DIFF-01**: Each floor gates a specific multiplication table pool (Floor 1: ×2×3×5, Floor 2: ×4×6×7, Floor 3: ×7×8×9)
 - [ ] **DIFF-02**: Within each floor's pool, v1 EWMA accuracy weighting applies — harder-for-her tables appear more often
 
 ### Progression
