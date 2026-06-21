@@ -453,8 +453,8 @@
        Versioned JSON save/load with validation and QuotaExceededError handling
     ========================================================== */
     const PersistenceStore = (() => {
-      const KEY     = CONFIG.SAVE_KEY;
-      const VERSION = 1;
+      const KEY     = CONFIG.DUNGEON.SAVE_KEY_V2;
+      const VERSION = 2;
 
       function defaults() {
         return {
@@ -467,11 +467,67 @@
         };
       }
 
+      // Auto-migration from v1 save — runs once per user; v1 key is preserved
+      function migrate() {
+        try {
+          const raw = localStorage.getItem(CONFIG.SAVE_KEY);
+          if (raw === null) return null;
+
+          let data;
+          try {
+            data = JSON.parse(raw);
+          } catch (e) {
+            return null;
+          }
+
+          // Strict version check — only migrate exact v1 saves
+          if (data.version !== 1) return null;
+
+          // Validate required fields before writing v2
+          if (typeof data.xp !== 'number' || !isFinite(data.xp) || data.xp < 0) {
+            console.warn('[MathLab] v1 save invalid — skipping migration');
+            return null;
+          }
+          if (typeof data.level !== 'number' || !Number.isInteger(data.level) ||
+              data.level < 1) {
+            console.warn('[MathLab] v1 save invalid — skipping migration');
+            return null;
+          }
+
+          const v2Payload = {
+            version:  2,
+            xp:       data.xp,
+            level:    data.level,
+            accuracy: data.accuracy || {},
+            history:  data.history  || {}
+          };
+
+          try {
+            localStorage.setItem(KEY, JSON.stringify(v2Payload));
+          } catch (e) {
+            // QuotaExceededError or similar — return null, no loop possible
+            return null;
+          }
+
+          console.info('[MathLab] Migrated save from v1 → v2');
+          return v2Payload;
+        } catch (e) {
+          return null;
+        }
+      }
+
       return {
         load() {
           try {
             const raw = localStorage.getItem(KEY);
-            if (raw === null) return defaults();
+            if (raw === null) {
+              // No v2 save found — attempt migration from v1
+              const migrated = migrate();
+              if (migrated !== null) {
+                return migrated;  // bootstrap caller applies fromJSON uniformly (same as non-migration path)
+              }
+              return defaults();
+            }
 
             let data;
             try {
