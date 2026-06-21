@@ -494,12 +494,32 @@
             return null;
           }
 
+          // Sanitise accuracy and history before writing to disk — same rules as fromJSON
+          function sanitiseAccuracy(raw) {
+            const out = {};
+            Object.entries(raw).forEach(([k, v]) => {
+              const t = parseInt(k, 10);
+              if (t >= 1 && t <= 9 && typeof v === 'number' && v >= 0 && v <= 1) out[t] = v;
+            });
+            return out;
+          }
+          function sanitiseHistory(raw) {
+            const out = {};
+            Object.entries(raw).forEach(([k, v]) => {
+              const t = parseInt(k, 10);
+              if (t >= 1 && t <= 9 && Array.isArray(v)) {
+                out[t] = v.filter(x => typeof x === 'boolean').slice(-CONFIG.MASTERY_WINDOW);
+              }
+            });
+            return out;
+          }
+
           const v2Payload = {
             version:  2,
             xp:       data.xp,
             level:    data.level,
-            accuracy: data.accuracy || {},
-            history:  data.history  || {}
+            accuracy: sanitiseAccuracy(data.accuracy || {}),
+            history:  sanitiseHistory(data.history  || {})
           };
 
           try {
