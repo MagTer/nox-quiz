@@ -677,6 +677,33 @@
     })();
     window.GameFSM = GameFSM;
 
+    /* MODULE 7: FloorConfig — Enemy definitions per floor (Phase 2) */
+    const FloorConfig = (() => {
+      const FLOORS = {
+        1: { enemy: 'Goblin',   emoji: '👺', hp: CONFIG.DUNGEON.GOBLIN_HP,   xpReward: CONFIG.DUNGEON.GOBLIN_XP,   tablePools: [2, 3, 5] },
+        2: { enemy: 'Skeleton', emoji: '💀', hp: CONFIG.DUNGEON.SKELETON_HP, xpReward: CONFIG.DUNGEON.SKELETON_XP, tablePools: [4, 6, 7] },
+        3: { enemy: 'Dragon',   emoji: '🐉', hp: CONFIG.DUNGEON.DRAGON_HP,   xpReward: CONFIG.DUNGEON.DRAGON_XP,   tablePools: [7, 8, 9] }
+      };
+
+      return {
+        getFloor(floorNumber) {
+          if (!FLOORS[floorNumber]) {
+            throw new Error('[FloorConfig] Unknown floor: ' + floorNumber);
+          }
+          const f = FLOORS[floorNumber];
+          return Object.assign({}, f, { tablePools: [...f.tablePools] });
+        },
+
+        getAllFloors() {
+          return Object.keys(FLOORS).map(k => {
+            const num = parseInt(k, 10);
+            return Object.assign({ floor: num }, FLOORS[num], { tablePools: [...FLOORS[num].tablePools] });
+          });
+        }
+      };
+    })();
+    window.FloorConfig = FloorConfig;
+
     /* ==========================================================
        DOM CACHE + RENDERER + INPUT HANDLER + APP
        These live inside DOMContentLoaded — they access DOM elements
