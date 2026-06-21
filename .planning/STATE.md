@@ -5,15 +5,15 @@ milestone_name: Dungeon Crawler Phases
 current_phase: 02
 current_phase_name: combat-foundation
 status: executing
-stopped_at: context exhaustion at 75% (2026-06-20)
-last_updated: "2026-06-21T10:08:28.158Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-06-21T10:14:01.409Z"
 last_activity: 2026-06-21
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 50
 ---
 
@@ -34,7 +34,7 @@ progress:
 ## Current Position
 
 Phase: 02 (combat-foundation) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-21 — Phase 02 execution started
 
@@ -119,8 +119,10 @@ Last activity: 2026-06-21 — Phase 02 execution started
 
 ## Session Continuity
 
-**Last session:** 2026-06-21T10:07:51.383Z
-**Stopped at:** context exhaustion at 75% (2026-06-20)
+**Resume file:** None
+
+**Last session:** 2026-06-21T10:14:01.402Z
+**Stopped at:** Completed 02-02-PLAN.md
 
 **Next steps:**
 
@@ -159,6 +161,9 @@ Last activity: 2026-06-21 — Phase 02 execution started
 - [Phase ?]: TRANSITIONS map uses plain arrays not Set — simpler sufficient for 5 states
 - [Phase ?]: FloorConfig returns shallow copies via Object.assign plus spread array — prevents caller mutation of internal FLOORS data (T-02-03 mitigated)
 - [Phase ?]: CONFIG.DUNGEON appended as separate statement after CONFIG literal close — all dungeon constants in one sub-object, v1 fields untouched
+- [Phase ?]: DungeonState.get() uses Object.assign for loot snapshot — caller mutation cannot affect session state
+- [Phase ?]: CombatEngine reads all damage/HP/XP from CONFIG.DUNGEON constants — no magic numbers, Phase 5 tuning ready
+- [Phase ?]: getState() exposes floorDef.tablePools for Phase 3 QuestionSelector — DIFF-02 bridge set up in CombatEngine
 
 ## Performance Metrics
 
@@ -167,3 +172,4 @@ Last activity: 2026-06-21 — Phase 02 execution started
 | Phase 01 P03 | 2 | 2 tasks | 1 files |
 | Phase 01 P04 | 1 | 2 tasks | 1 files |
 | Phase 02 P01 | 135 | 3 tasks | 1 files |
+| Phase 02 P02 | 90 | 2 tasks | 1 files |
