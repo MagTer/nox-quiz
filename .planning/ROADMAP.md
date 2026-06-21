@@ -267,7 +267,16 @@ Plans:
 3. Each of the 3 enemy types has at least 3 flavor text lines and the rotation logic prevents the same line appearing twice in a row — verified by triggering 6 consecutive combat exchanges against the same enemy type
 4. The app is loaded with a browser that has a real v1 `mathlab_save` localStorage key present; after load the player's pre-existing XP, level, and per-table accuracy are intact in the new `mathlab_save_v2` key; the v1 key is still present and unmodified
 
-**Plans:** TBD (estimate: 2 plans)
+**Plans:** 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Replace FLAVOR array placeholder lines with final edgy-menacing RPG copy (ENE-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-02-PLAN.md — ADHD safety audit + RPG copy verification + write VERIFICATION.md (ADHD-01, ADHD-02, ADHD-04, ADHD-05)
 
 **Research flag:** Flavor text tone is a content decision requiring the target user's input — present candidate lines to her before locking. Implementation is trivial; the content is not.
 
@@ -283,7 +292,7 @@ Plans:
 | 3. Screen Architecture | 1/2 | In Progress|  |
 | 4. Dungeon Renderer | 0/3 | Planned | - |
 | 5. Full Floor Loop + Balance | 2/2 | Complete   | 2026-06-21 |
-| 6. Polish + ADHD Safety Audit | 0/2 | Not started | - |
+| 6. Polish + ADHD Safety Audit | 0/2 | Pending | - |
 
 ---
 
