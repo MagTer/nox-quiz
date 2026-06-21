@@ -1056,7 +1056,7 @@
       let loot     = { sword: false, shield: false, potions: 0 };
 
       return {
-        // Resets all state for a new run or floor retry
+        // Resets dungeon session state only — PlayerState XP and level are untouched (ADHD-03).
         init(floorNumber) {
           floor    = floorNumber;
           room     = 0;
@@ -1137,35 +1137,44 @@
         },
 
         // Core combat tick. All damage values read from CONFIG.DUNGEON — no magic numbers.
-        // Returns { enemyHP, playerHP, killed, died, leveledUp }.
+        // Loot snapshot taken once per call to avoid double-reads.
+        // Returns { enemyHP, playerHP, killed, died, leveledUp, effectiveDamageCorrect, effectiveDamageWrong }.
         resolveAnswer(isCorrect) {
           if (!floorDef) {
             throw new Error('[CombatEngine] resolveAnswer called before startCombat');
           }
+
+          // Loot-aware damage computation — read snapshot once per call
+          const lootSnapshot = DungeonState.get().loot;
+          const effectiveDamageCorrect = CONFIG.DUNGEON.DAMAGE_CORRECT +
+            (lootSnapshot.sword ? CONFIG.DUNGEON.SWORD_BONUS : 0);
+          const effectiveDamageWrong = Math.max(0, CONFIG.DUNGEON.DAMAGE_WRONG -
+            (lootSnapshot.shield ? CONFIG.DUNGEON.SHIELD_REDUCTION : 0));
+
           if (isCorrect) {
-            const newEnemyHP = Math.max(0, DungeonState.get().enemyHP - CONFIG.DUNGEON.DAMAGE_CORRECT);
+            const newEnemyHP = Math.max(0, DungeonState.get().enemyHP - effectiveDamageCorrect);
             DungeonState.setEnemyHP(newEnemyHP);
 
             if (newEnemyHP === 0) {
               // Enemy killed — award XP and transition to LOOT
               const leveledUp = PlayerState.addXp(floorDef.xpReward);
               GameFSM.transition('LOOT');
-              return { enemyHP: 0, playerHP: DungeonState.get().playerHP, killed: true, died: false, leveledUp };
+              return { enemyHP: 0, playerHP: DungeonState.get().playerHP, killed: true, died: false, leveledUp, effectiveDamageCorrect, effectiveDamageWrong };
             }
 
-            return { enemyHP: newEnemyHP, playerHP: DungeonState.get().playerHP, killed: false, died: false, leveledUp: false };
+            return { enemyHP: newEnemyHP, playerHP: DungeonState.get().playerHP, killed: false, died: false, leveledUp: false, effectiveDamageCorrect, effectiveDamageWrong };
 
           } else {
-            const newPlayerHP = Math.max(0, DungeonState.get().playerHP - CONFIG.DUNGEON.DAMAGE_WRONG);
+            const newPlayerHP = Math.max(0, DungeonState.get().playerHP - effectiveDamageWrong);
             DungeonState.setPlayerHP(newPlayerHP);
 
             if (newPlayerHP === 0) {
               // Player died — transition to DEAD
               GameFSM.transition('DEAD');
-              return { enemyHP: DungeonState.get().enemyHP, playerHP: 0, killed: false, died: true, leveledUp: false };
+              return { enemyHP: DungeonState.get().enemyHP, playerHP: 0, killed: false, died: true, leveledUp: false, effectiveDamageCorrect, effectiveDamageWrong };
             }
 
-            return { enemyHP: DungeonState.get().enemyHP, playerHP: newPlayerHP, killed: false, died: false, leveledUp: false };
+            return { enemyHP: DungeonState.get().enemyHP, playerHP: newPlayerHP, killed: false, died: false, leveledUp: false, effectiveDamageCorrect, effectiveDamageWrong };
           }
         },
 
@@ -1632,14 +1641,14 @@
           if (isCorrect) {
             DungeonRenderer.showDamageNumber(
               document.getElementById('combat-enemy-area'),
-              CONFIG.DUNGEON.DAMAGE_CORRECT,
+              result.effectiveDamageCorrect,
               true
             );
             DungeonRenderer.showFeedback(Math.random() < 0.2 ? 'Critical hit!' : 'Attack!');
           } else {
             DungeonRenderer.showDamageNumber(
               document.getElementById('player-hp-container'),
-              CONFIG.DUNGEON.DAMAGE_WRONG,
+              result.effectiveDamageWrong,
               false
             );
             DungeonRenderer.showFeedback('You took a hit!');
