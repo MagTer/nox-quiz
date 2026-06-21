@@ -341,8 +341,29 @@
     </section>
 
     <section data-panel="combat">
-      <h2>Combat</h2>
-      <p>(placeholder)</p>
+      <!-- Floor/room indicator — DungeonRenderer writes "Floor N · Room M/5" -->
+      <p id="combat-room-indicator"></p>
+
+      <!-- Enemy area: sprite + enemy HP bar; position:relative set in CSS for damage number float -->
+      <div id="combat-enemy-area">
+        <div id="combat-enemy-sprite"></div>
+        <div class="hp-bar-container" id="enemy-hp-container">
+          <div class="hp-bar hp-bar--enemy" id="enemy-hp-fill"></div>
+        </div>
+      </div>
+
+      <!-- Feedback text — DungeonRenderer populates with RPG feedback text -->
+      <p id="combat-feedback"></p>
+
+      <!-- Player HP bar — outside enemy area; position:relative set in CSS -->
+      <div class="hp-bar-container" id="player-hp-container">
+        <div class="hp-bar hp-bar--player" id="player-hp-fill"></div>
+      </div>
+
+      <!-- Combat question fieldset — separate from v1 #question-fieldset; DungeonRenderer renders options dynamically -->
+      <fieldset id="combat-question">
+        <ul id="combat-options-list"></ul>
+      </fieldset>
     </section>
 
     <section data-panel="loot">
