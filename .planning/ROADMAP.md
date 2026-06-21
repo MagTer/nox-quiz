@@ -107,7 +107,7 @@ Plans:
 - [x] **Phase 2: Combat Foundation** - GameFSM, DungeonState, CombatEngine, FloorConfig, and PersistenceStore v2 migration — all logic, no DOM touches (completed 2026-06-21)
 - [ ] **Phase 3: Screen Architecture** - All dungeon screen panels in HTML, data-screen CSS visibility system, App mode routing, InputHandler guard
 - [ ] **Phase 4: Dungeon Renderer** - DungeonRenderer, emoji enemy sprites, CSS HP bars, combat animations, floor-complete screen visuals
-- [ ] **Phase 5: Full Floor Loop + Balance** - End-to-end playable run, loot system, boss floor, death/retry, XP integration, balance tuning
+- [x] **Phase 5: Full Floor Loop + Balance** - End-to-end playable run, loot system, boss floor, death/retry, XP integration, balance tuning (completed 2026-06-21)
 - [ ] **Phase 6: Polish + ADHD Safety Audit** - Flavor text, RPG copy pass, ADHD safety checklist, localStorage migration test with real v1 data
 
 ---
@@ -235,7 +235,7 @@ Plans:
 4. After clearing a floor, the floor summary screen displays enemies defeated, XP earned this floor, and HP remaining — then the next floor loads
 5. At a 30% correct-answer rate, the player survives at least 5 wrong answers in a single combat encounter without dying — wrong-answer damage is capped and the cap value is a named CONFIG constant; at 70% correct rate the player finishes with HP above 40% at floor end
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -244,7 +244,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02-PLAN.md — DungeonRunner orchestration module + dungeon-map panel content + all button wiring + quiz HUD entry point + end-to-end smoke test
+- [x] 05-02-PLAN.md — DungeonRunner orchestration module + dungeon-map panel content + all button wiring + quiz HUD entry point + end-to-end smoke test
 
 **Research flag:** BALANCE VALUES ARE LOW CONFIDENCE. Before locking CONFIG, model the loot economy at both 30% and 70% correct-answer rates. Starting values (player HP: 100, wrong-answer damage: 5–10 HP, enemy HP: 8/14/30 by floor) are informed estimates only — expect at least one tuning iteration after first real play sessions. All HP, damage, drop-rate, and XP-reward values MUST be named CONFIG constants; no magic numbers in combat logic.
 
@@ -282,7 +282,7 @@ Plans:
 | 2. Combat Foundation | 3/3 | Complete    | 2026-06-21 |
 | 3. Screen Architecture | 1/2 | In Progress|  |
 | 4. Dungeon Renderer | 0/3 | Planned | - |
-| 5. Full Floor Loop + Balance | 1/2 | In Progress|  |
+| 5. Full Floor Loop + Balance | 2/2 | Complete   | 2026-06-21 |
 | 6. Polish + ADHD Safety Audit | 0/2 | Not started | - |
 
 ---

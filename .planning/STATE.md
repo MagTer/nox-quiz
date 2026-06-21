@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: Dungeon Crawler Phases
 current_phase: 05
 current_phase_name: full-floor-loop-balance
-status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-06-21T22:21:48.488Z"
+status: verifying
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-06-21T22:27:29.255Z"
 last_activity: 2026-06-21
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 14
-  completed_plans: 13
-  percent: 80
+  completed_plans: 14
+  percent: 100
 ---
 
 # Project State: Math Lab
@@ -35,7 +35,7 @@ progress:
 
 Phase: 05 (full-floor-loop-balance) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-21 — Phase 05 execution started
 
 ## Key Decisions
@@ -121,8 +121,8 @@ Last activity: 2026-06-21 — Phase 05 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-21T22:21:48.481Z
-**Stopped at:** Completed 05-01-PLAN.md
+**Last session:** 2026-06-21T22:27:29.247Z
+**Stopped at:** Completed 05-02-PLAN.md
 
 **Next steps:**
 
@@ -170,6 +170,9 @@ Last activity: 2026-06-21 — Phase 05 execution started
 - [Phase ?]: loot snapshot per resolveAnswer call prevents double-reads; single DungeonState.get().loot snapshot ensures combat tick consistency
 - [Phase ?]: effectiveDamageCorrect and effectiveDamageWrong returned on all resolveAnswer paths so handleAnswer can display accurate loot-modified floating damage numbers
 - [Phase ?]: DungeonState.init() confirmed ADHD-03 compliant — resets floor/room/playerHP/enemyHP/loot only; PlayerState XP and level never touched on dungeon reset
+- [Phase ?]: DungeonRunner preserves HP+loot by saving before startCombat() and restoring after — patches DungeonState.init() side effect without CombatEngine refactor
+- [Phase ?]: window.CombatInputHandler exported inside DOMContentLoaded for cross-scope DungeonRunner access to beginCombat()
+- [Phase ?]: Enter Dungeon button placed inside data-panel='quiz' section for CSS data-screen visibility scoping
 
 ## Performance Metrics
 
@@ -181,3 +184,4 @@ Last activity: 2026-06-21 — Phase 05 execution started
 | Phase 02 P02 | 90 | 2 tasks | 1 files |
 | Phase 02 P03 | 180 | - tasks | - files |
 | Phase 05 P01 | 83s | 2 tasks | 1 files |
+| Phase 05 P02 | 10m | 3 tasks | 1 files |

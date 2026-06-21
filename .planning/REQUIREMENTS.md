@@ -65,7 +65,7 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 ### Progression
 
 - [x] **PROG2-01**: XP is awarded on enemy defeat and feeds the existing v1 XP/level system
-- [ ] **PROG2-02**: Floor summary screen shown after each floor cleared (enemies defeated, XP earned, HP remaining)
+- [x] **PROG2-02**: Floor summary screen shown after each floor cleared (enemies defeated, XP earned, HP remaining)
 - [x] **PROG2-03**: PersistenceStore upgraded to v2 schema; v1 XP and per-table accuracy data preserved on migration
 
 ### Loot
@@ -78,7 +78,7 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 
 - [ ] **ADHD-01**: No timers in any form — no turn timer, no session clock, no countdown anywhere
 - [ ] **ADHD-02**: Death = restart current floor only; XP and level never decrease
-- [ ] **ADHD-03**: Wrong-answer damage is capped so the player survives at least 5 wrong answers per fight
+- [x] **ADHD-03**: Wrong-answer damage is capped so the player survives at least 5 wrong answers per fight
 - [ ] **ADHD-04**: All combat animations complete in ≤500ms; no screen flash or harsh shake effects
 - [ ] **ADHD-05**: Death screen shows no comparison stats (no "best run", no "questions answered")
 
