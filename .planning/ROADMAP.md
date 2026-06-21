@@ -165,7 +165,16 @@ Plans:
 3. InputHandler rejects answer submissions when `App.mode !== 'dungeon'` — the existing v1 quiz flow does not fire during dungeon combat
 4. The app remains a single HTML file with all CSS and JS inline and no external resource requests — file opens directly from disk with no server
 
-**Plans:** TBD (estimate: 2 plans)
+**Plans:** 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — HTML data-panel structure + CSS visibility system: wrap quiz in section[data-panel="quiz"], add 5 dungeon placeholder sections, CSS [data-panel] default:none + main[data-screen="X"] show rules
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-02-PLAN.md — JS routing: App elevated with mode + transition(), renderScreen(), window.App export, InputHandler mode guard
 
 **Research flag:** None — standard data-screen / CSS visibility pattern. No research phase required.
 
