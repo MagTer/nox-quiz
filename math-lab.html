@@ -834,6 +834,9 @@
         // Transitions FSM to COMBAT and seeds DungeonState with enemy HP.
         // Returns { enemy, emoji, enemyHP, playerHP }.
         startCombat(floorNumber) {
+          if (GameFSM.getState() === 'COMBAT') {
+            throw new Error('[CombatEngine] Cannot startCombat while already in COMBAT state — caller must transition FSM to EXPLORE first');
+          }
           floorDef     = FloorConfig.getFloor(floorNumber);
           currentFloor = floorNumber;
           DungeonState.setEnemyHP(floorDef.hp);
