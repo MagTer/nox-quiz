@@ -431,6 +431,15 @@
     /* -------------------------------------------------------
        Combat fieldset reset — no border/margin/padding
     ------------------------------------------------------- */
+    #combat-question-text {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 900;
+      font-family: 'Impact', 'Arial Black', Arial, sans-serif;
+      color: var(--text);
+      text-align: center;
+      letter-spacing: 0.05em;
+      margin: 0;
+    }
     #combat-question {
       border: none;
       margin: 0;
@@ -505,6 +514,9 @@
       <div class="hp-bar-container" id="player-hp-container">
         <div class="hp-bar hp-bar--player" id="player-hp-fill"></div>
       </div>
+
+      <!-- Combat question text — the multiplication expression e.g. "6 × 7 = ?" -->
+      <p id="combat-question-text"></p>
 
       <!-- Combat question fieldset — separate from v1 #question-fieldset; DungeonRenderer renders options dynamically -->
       <fieldset id="combat-question">
@@ -1301,6 +1313,10 @@
 
           // Clear feedback text for next question cycle.
           document.getElementById('combat-feedback').textContent = '';
+
+          // Show the multiplication expression so the player knows what to answer.
+          const qtextEl = document.getElementById('combat-question-text');
+          if (qtextEl) qtextEl.textContent = questionObj.question;
 
           // Refresh flavor text for the current enemy.
           const flavorEl = document.getElementById('combat-flavor');
