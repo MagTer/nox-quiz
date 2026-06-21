@@ -1357,9 +1357,7 @@
           const ds       = DungeonState.get();
           const floorDef = FloorConfig.getFloor(_currentFloor);
           const isBoss   = ds.room >= CONFIG.DUNGEON.ROOMS_PER_FLOOR;
-          const xpThisKill = isBoss
-            ? Math.round(floorDef.xpReward * CONFIG.DUNGEON.BOSS_HP_MULT)
-            : floorDef.xpReward;
+          const xpThisKill = floorDef.xpReward; // flat reward — CombatEngine already awarded it
           _floorXpEarned += xpThisKill;
 
           // Loot drop: boss always drops, regular enemies drop at LOOT_DROP_RATE probability
@@ -1415,6 +1413,8 @@
             _currentFloor         += 1;
             _floorEnemiesDefeated  = 0;
             _floorXpEarned         = 0;
+            GameFSM.reset();
+            CombatEngine.reset();
             DungeonState.init(_currentFloor);
             DungeonRunner.updateDungeonMap(_currentFloor);
             App.transition('dungeon-map');
@@ -1516,9 +1516,9 @@
         renderCombat(state) {
           _currentEnemy = state.enemy;
 
-          // Read floorDef.hp from CombatEngine to set the percentage denominator.
-          // Safe here: renderCombat() is only called after startCombat() has run.
-          _currentEnemyMaxHP = CombatEngine.getState().floorDef.hp;
+          // Use the actual enemy HP passed in (boss gets 2× base HP from DungeonRunner).
+          // Do NOT use floorDef.hp — that's always base HP, making boss bars drain 2× too fast.
+          _currentEnemyMaxHP = state.enemyHP;
 
           document.getElementById('combat-room-indicator').textContent =
             'Floor ' + state.floor + ' · Room ' + state.room + '/5';
@@ -1868,8 +1868,10 @@
           }
 
           if (result.killed) {
-            CombatInputHandler.locked = false;
-            DungeonRunner.afterKill();
+            setTimeout(function() {
+              CombatInputHandler.locked = false;
+              DungeonRunner.afterKill();
+            }, CONFIG.ADVANCE_DELAY_MS);
             return;
           }
 
