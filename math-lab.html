@@ -859,7 +859,8 @@
           }
           floorDef     = FloorConfig.getFloor(floorNumber);
           currentFloor = floorNumber;
-          DungeonState.setEnemyHP(floorDef.hp);
+          DungeonState.init(floorNumber);           // resets playerHP, room, loot (WR-01)
+          DungeonState.setEnemyHP(floorDef.hp);    // init sets enemyHP=null; seed it here
           GameFSM.transition('COMBAT');
           return {
             enemy:   floorDef.enemy,
