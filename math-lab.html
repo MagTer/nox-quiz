@@ -1589,6 +1589,7 @@
         },
 
         handleAnswer(selectedValue) {
+          if (!CombatInputHandler.currentQuestion) return;
           CombatInputHandler.locked = true;
 
           const selected   = parseInt(selectedValue, 10);
@@ -1620,11 +1621,13 @@
           }
 
           if (result.killed) {
+            CombatInputHandler.locked = false;
             App.transition('loot');
             return;
           }
 
           if (result.died) {
+            CombatInputHandler.locked = false;
             App.transition('dead');
             return;
           }
