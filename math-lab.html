@@ -273,6 +273,46 @@
     #levelup-overlay.active {
       animation: levelUpFlash 0.8s ease-out forwards;
     }
+
+    /* -------------------------------------------------------
+       Screen visibility system — data-screen / data-panel
+       All panels hidden by default; CSS shows the active one.
+       No JavaScript display toggling outside renderScreen().
+    ------------------------------------------------------- */
+    [data-panel] {
+      display: none;
+    }
+
+    main[data-screen="quiz"]          [data-panel="quiz"]          { display: block; }
+    main[data-screen="dungeon-map"]   [data-panel="dungeon-map"]   { display: flex; }
+    main[data-screen="combat"]        [data-panel="combat"]        { display: flex; }
+    main[data-screen="loot"]          [data-panel="loot"]          { display: flex; }
+    main[data-screen="floor-summary"] [data-panel="floor-summary"] { display: flex; }
+    main[data-screen="dead"]          [data-panel="dead"]          { display: flex; }
+
+    /* Dungeon placeholder panels — centered layout, full-height */
+    [data-panel]:not([data-panel="quiz"]) {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 80px 24px 40px;
+      gap: 16px;
+    }
+
+    [data-panel] h2 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    [data-panel] p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      font-family: Arial, sans-serif;
+    }
   </style>
 </head>
 <body>
@@ -293,6 +333,31 @@
         <!-- Answer options rendered by JS -->
       </ul>
     </fieldset>
+    </section>
+
+    <section data-panel="dungeon-map">
+      <h2>Dungeon Map</h2>
+      <p>(placeholder)</p>
+    </section>
+
+    <section data-panel="combat">
+      <h2>Combat</h2>
+      <p>(placeholder)</p>
+    </section>
+
+    <section data-panel="loot">
+      <h2>Loot</h2>
+      <p>(placeholder)</p>
+    </section>
+
+    <section data-panel="floor-summary">
+      <h2>Floor Summary</h2>
+      <p>(placeholder)</p>
+    </section>
+
+    <section data-panel="dead">
+      <h2>You Died</h2>
+      <p>(placeholder)</p>
     </section>
   </main>
 
