@@ -849,6 +849,9 @@
         // Core combat tick. All damage values read from CONFIG.DUNGEON — no magic numbers.
         // Returns { enemyHP, playerHP, killed, died, leveledUp }.
         resolveAnswer(isCorrect) {
+          if (!floorDef) {
+            throw new Error('[CombatEngine] resolveAnswer called before startCombat');
+          }
           if (isCorrect) {
             const newEnemyHP = Math.max(0, DungeonState.get().enemyHP - CONFIG.DUNGEON.DAMAGE_CORRECT);
             DungeonState.setEnemyHP(newEnemyHP);
@@ -878,6 +881,9 @@
 
         // Returns a snapshot of current combat state (floorDef exposes tablePools for Phase 3 use — DIFF-02)
         getState() {
+          if (!floorDef) {
+            throw new Error('[CombatEngine] getState called before startCombat');
+          }
           return {
             floor:    currentFloor,
             floorDef,
