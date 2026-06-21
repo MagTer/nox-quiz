@@ -84,8 +84,8 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 
 ### Tech Constraints
 
-- [ ] **TECH2-01**: Single HTML file constraint preserved — all CSS and JS inline, no external dependencies
-- [ ] **TECH2-02**: `data-screen` attribute on `<main>` drives all screen switching via CSS (no innerHTML thrash)
+- [x] **TECH2-01**: Single HTML file constraint preserved — all CSS and JS inline, no external dependencies
+- [x] **TECH2-02**: `data-screen` attribute on `<main>` drives all screen switching via CSS (no innerHTML thrash)
 - [x] **TECH2-03**: DungeonState is session-scoped only — HP, room position, and loot are never written to localStorage
 
 ## Deferred Features
