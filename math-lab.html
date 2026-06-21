@@ -1002,7 +1002,9 @@
 
       // renderScreen is the ONLY function that writes data-screen on main.
       // Called exclusively from transition() — no other code path may call it.
+      const VALID_SCREENS = new Set(['quiz', 'dungeon-map', 'combat', 'loot', 'floor-summary', 'dead']);
       function renderScreen(name) {
+        if (!VALID_SCREENS.has(name)) return;
         const main = document.getElementById('game-board');
         if (main) main.setAttribute('data-screen', name);
       }
@@ -1039,7 +1041,6 @@
       DOM.optionsList    = document.getElementById('options-list');
       DOM.levelupOverlay = document.getElementById('levelup-overlay');
       DOM.questionLegend = document.getElementById('question-legend');
-      DOM.main           = document.getElementById('game-board');
 
       /* ----------------------------------------------------------
          MODULE 6: Renderer
