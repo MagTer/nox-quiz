@@ -104,7 +104,7 @@ Plans:
 
 ### v2.0 Phase Summary
 
-- [ ] **Phase 2: Combat Foundation** - GameFSM, DungeonState, CombatEngine, FloorConfig, and PersistenceStore v2 migration — all logic, no DOM touches
+- [x] **Phase 2: Combat Foundation** - GameFSM, DungeonState, CombatEngine, FloorConfig, and PersistenceStore v2 migration — all logic, no DOM touches (completed 2026-06-21)
 - [ ] **Phase 3: Screen Architecture** - All dungeon screen panels in HTML, data-screen CSS visibility system, App mode routing, InputHandler guard
 - [ ] **Phase 4: Dungeon Renderer** - DungeonRenderer, emoji enemy sprites, CSS HP bars, combat animations, floor-complete screen visuals
 - [ ] **Phase 5: Full Floor Loop + Balance** - End-to-end playable run, loot system, boss floor, death/retry, XP integration, balance tuning
@@ -131,7 +131,7 @@ Plans:
 5. On first load with a real v1 localStorage save present, PersistenceStore v2 reads the v1 key, migrates XP and per-table accuracy forward, writes to `mathlab_save_v2`, and the player's level and accuracy data are intact — v1 key is left untouched
 6. DungeonState (floor, room, player HP, enemy HP, loot inventory) is entirely session-scoped — closing and reopening the tab resets it; nothing from DungeonState appears in `mathlab_save_v2`
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -144,7 +144,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — PersistenceStore v2 migration: auto-migrate v1 saves to mathlab_save_v2 on load
+- [x] 02-03-PLAN.md — PersistenceStore v2 migration: auto-migrate v1 saves to mathlab_save_v2 on load
 
 **Research flag:** None — all patterns are standard vanilla JS / localStorage migration. No research phase required.
 
@@ -248,7 +248,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 2. Combat Foundation | 2/3 | In Progress|  |
+| 2. Combat Foundation | 3/3 | Complete   | 2026-06-21 |
 | 3. Screen Architecture | 0/2 | Not started | - |
 | 4. Dungeon Renderer | 0/3 | Not started | - |
 | 5. Full Floor Loop + Balance | 0/4 | Not started | - |

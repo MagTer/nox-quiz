@@ -45,7 +45,7 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 
 ### Combat
 
-- [ ] **COMB-01**: Turn-based math combat — correct answer attacks enemy, wrong answer deals damage to player
+- [x] **COMB-01**: Turn-based math combat — correct answer attacks enemy, wrong answer deals damage to player
 - [ ] **COMB-02**: HP bars (CSS transition-animated) for both player and current enemy
 - [x] **COMB-03**: Defeating an enemy requires 3–7 correct answers (not a 1-shot; Goblin=3, Skeleton=5, Dragon=7 based on HP/damage constants)
 - [ ] **COMB-04**: Visual combat feedback: floating damage numbers, HP bar drain animation after each hit
@@ -60,13 +60,13 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 ### Table Difficulty
 
 - [x] **DIFF-01**: Each floor gates a specific multiplication table pool (Floor 1: ×2×3×5, Floor 2: ×4×6×7, Floor 3: ×7×8×9)
-- [ ] **DIFF-02**: Within each floor's pool, v1 EWMA accuracy weighting applies — harder-for-her tables appear more often
+- [x] **DIFF-02**: Within each floor's pool, v1 EWMA accuracy weighting applies — harder-for-her tables appear more often
 
 ### Progression
 
-- [ ] **PROG2-01**: XP is awarded on enemy defeat and feeds the existing v1 XP/level system
+- [x] **PROG2-01**: XP is awarded on enemy defeat and feeds the existing v1 XP/level system
 - [ ] **PROG2-02**: Floor summary screen shown after each floor cleared (enemies defeated, XP earned, HP remaining)
-- [ ] **PROG2-03**: PersistenceStore upgraded to v2 schema; v1 XP and per-table accuracy data preserved on migration
+- [x] **PROG2-03**: PersistenceStore upgraded to v2 schema; v1 XP and per-table accuracy data preserved on migration
 
 ### Loot
 
@@ -86,7 +86,7 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 
 - [ ] **TECH2-01**: Single HTML file constraint preserved — all CSS and JS inline, no external dependencies
 - [ ] **TECH2-02**: `data-screen` attribute on `<main>` drives all screen switching via CSS (no innerHTML thrash)
-- [ ] **TECH2-03**: DungeonState is session-scoped only — HP, room position, and loot are never written to localStorage
+- [x] **TECH2-03**: DungeonState is session-scoped only — HP, room position, and loot are never written to localStorage
 
 ## Deferred Features
 
