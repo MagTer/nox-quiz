@@ -465,6 +465,44 @@
       border-radius: 6px;
       cursor: pointer;
     }
+
+    /* -------------------------------------------------------
+       Quiz HUD — Enter Dungeon button (grunge outline style)
+    ------------------------------------------------------- */
+    #enter-dungeon-btn {
+      margin-top: 0.75rem;
+      padding: 0.5rem 1.25rem;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: 'Impact', 'Arial Black', Arial, sans-serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+    #enter-dungeon-btn:hover {
+      background: var(--accent);
+      color: #0a0a0a;
+    }
+
+    /* -------------------------------------------------------
+       Dungeon map — Enter Combat button (grunge outline style)
+    ------------------------------------------------------- */
+    #enter-combat-btn {
+      margin-top: 1rem;
+      padding: 0.5rem 1.5rem;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: 'Impact', 'Arial Black', Arial, sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+    #enter-combat-btn:hover {
+      background: var(--accent);
+      color: #0a0a0a;
+    }
   </style>
 </head>
 <body>
@@ -485,6 +523,7 @@
         <!-- Answer options rendered by JS -->
       </ul>
     </fieldset>
+    <button id="enter-dungeon-btn">Enter Dungeon</button>
     </section>
 
     <section data-panel="dungeon-map">
@@ -1830,7 +1869,7 @@
 
           if (result.killed) {
             CombatInputHandler.locked = false;
-            App.transition('loot');
+            DungeonRunner.afterKill();
             return;
           }
 
@@ -1861,6 +1900,16 @@
       };
       // Export so DungeonRunner (defined outside DOMContentLoaded) can call beginCombat()
       window.CombatInputHandler = CombatInputHandler;
+
+      /* ----------------------------------------------------------
+         Button wiring — Phase 5 dungeon navigation
+         All handlers delegate to DungeonRunner methods.
+      ---------------------------------------------------------- */
+      document.getElementById('enter-dungeon-btn').onclick  = function() { DungeonRunner.startRun(); };
+      document.getElementById('enter-combat-btn').onclick   = function() { DungeonRunner.enterCombat(); };
+      document.getElementById('loot-continue').onclick      = function() { DungeonRunner.afterLoot(); };
+      document.getElementById('floor-summary-continue').onclick = function() { DungeonRunner.advanceFloor(); };
+      document.getElementById('dead-retry').onclick         = function() { DungeonRunner.retryFloor(); };
 
       /* ----------------------------------------------------------
          App — wire nextQuestion() now that Renderer + QuestionSelector are in scope
