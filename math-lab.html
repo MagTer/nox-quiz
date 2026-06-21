@@ -405,6 +405,18 @@
     }
 
     /* -------------------------------------------------------
+       Flavor text — enemy RPG flavor line (muted, italic)
+    ------------------------------------------------------- */
+    #combat-flavor {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--text-muted);
+      font-family: Arial, sans-serif;
+      min-height: 1.3em;
+      text-align: center;
+    }
+
+    /* -------------------------------------------------------
        Room indicator — small muted uppercase label
     ------------------------------------------------------- */
     #combat-room-indicator {
@@ -482,6 +494,9 @@
           <div class="hp-bar hp-bar--enemy" id="enemy-hp-fill"></div>
         </div>
       </div>
+
+      <!-- Flavor text — DungeonRenderer writes enemy flavor line via textContent -->
+      <p id="combat-flavor"></p>
 
       <!-- Feedback text — DungeonRenderer populates with RPG feedback text -->
       <p id="combat-feedback"></p>
@@ -1187,6 +1202,203 @@
       };
     })();
     window.App = App;
+
+    /* ==========================================================
+       MODULE 11: DungeonRenderer
+       Owns all DOM writes for dungeon screens. Defined outside
+       DOMContentLoaded so window.DungeonRenderer is available as
+       soon as the script block executes (before DOM ready).
+       CombatInputHandler (Plan 03) calls these methods after each
+       combat answer. This module must be loaded before Plan 03.
+    ========================================================== */
+    const DungeonRenderer = (() => {
+
+      // Tracks current enemy max HP for percentage calculation.
+      // Updated in renderCombat() from CombatEngine.getState().floorDef.hp.
+      let _currentEnemyMaxHP = CONFIG.DUNGEON.GOBLIN_HP;
+
+      // Tracks the current enemy name for renderCombatQuestion() flavor refresh.
+      let _currentEnemy = '';
+
+      // Tracks last shown flavor line index per enemy name — prevents same-line repetition.
+      const lastFlavorIndex = {};
+
+      // FLAVOR arrays — 3 lines per enemy type.
+      // Each array uses textContent-safe RPG text.
+      // Words "correct", "wrong", "answer", "question" must NOT appear here.
+      const FLAVOR = {
+        Goblin: [
+          /* PLACEHOLDER — Phase 6 replaces with user-approved content */
+          'The goblin snarls at you.',
+          'It bares its rotten teeth.',
+          'The goblin charges forward.'
+        ],
+        Skeleton: [
+          /* PLACEHOLDER — Phase 6 replaces with user-approved content */
+          'Bones rattle in the dark.',
+          'Its hollow eye sockets stare.',
+          'The skeleton raises its blade.'
+        ],
+        Dragon: [
+          /* PLACEHOLDER — Phase 6 replaces with user-approved content */
+          'Smoke curls from its nostrils.',
+          'The dragon lets out a low rumble.',
+          'Its scales shimmer like obsidian.'
+        ]
+      };
+
+      // Returns a flavor line for the given enemy, avoiding the last-shown line.
+      // Uses a do-while loop to guarantee no immediate repetition when lines.length > 1.
+      function getFlavorText(enemyName) {
+        const lines = FLAVOR[enemyName];
+        if (!lines || lines.length === 0) return '';
+
+        let idx;
+        if (lines.length === 1) {
+          idx = 0;
+        } else {
+          do {
+            idx = Math.floor(Math.random() * lines.length);
+          } while (idx === lastFlavorIndex[enemyName]);
+        }
+
+        lastFlavorIndex[enemyName] = idx;
+        return lines[idx];
+      }
+
+      return {
+        // Initialises the combat panel display for a given state snapshot.
+        // Call after startCombat() so CombatEngine.getState() is available.
+        // state: { floor, room, enemy, emoji, enemyHP, playerHP }
+        renderCombat(state) {
+          _currentEnemy = state.enemy;
+
+          // Read floorDef.hp from CombatEngine to set the percentage denominator.
+          // Safe here: renderCombat() is only called after startCombat() has run.
+          _currentEnemyMaxHP = CombatEngine.getState().floorDef.hp;
+
+          document.getElementById('combat-room-indicator').textContent =
+            'Floor ' + state.floor + ' · Room ' + state.room + '/5';
+
+          document.getElementById('combat-enemy-sprite').textContent = state.emoji;
+
+          this.updateHP(state.enemyHP, state.playerHP);
+
+          document.getElementById('combat-feedback').textContent = '';
+
+          document.getElementById('combat-flavor').textContent =
+            getFlavorText(state.enemy);
+        },
+
+        // Clears and rebuilds the combat options list from a question object.
+        // questionObj: { question, answer, options, table, multiplicand }
+        renderCombatQuestion(questionObj) {
+          const list = document.getElementById('combat-options-list');
+
+          // innerHTML = '' is the only allowed innerHTML use in this module —
+          // clearing the list container (established Renderer pattern).
+          list.innerHTML = '';
+
+          // Clear feedback text for next question cycle.
+          document.getElementById('combat-feedback').textContent = '';
+
+          // Refresh flavor text for the current enemy.
+          const flavorEl = document.getElementById('combat-flavor');
+          if (flavorEl && _currentEnemy) {
+            flavorEl.textContent = getFlavorText(_currentEnemy);
+          }
+
+          // Build option items using createElement/appendChild — textContent only.
+          // Uses name="combat-answer" (not "answer") to avoid v1 radio group collision.
+          questionObj.options.forEach((val, i) => {
+            const li    = document.createElement('li');
+            li.className = 'option-item';
+
+            const input = document.createElement('input');
+            input.type  = 'radio';
+            input.name  = 'combat-answer';
+            input.id    = 'combat-opt-' + i;
+            input.value = String(val);
+
+            const label = document.createElement('label');
+            label.setAttribute('for', 'combat-opt-' + i);
+            label.textContent = String(val);
+
+            li.appendChild(input);
+            li.appendChild(label);
+            list.appendChild(li);
+          });
+        },
+
+        // Updates both HP bars using CSS width% transitions.
+        // Clamps percentages to [0, 100] to handle edge cases.
+        updateHP(enemyHP, playerHP) {
+          const enemyPct = Math.max(0, Math.min(100,
+            (enemyHP / _currentEnemyMaxHP) * 100));
+          const playerPct = Math.max(0, Math.min(100,
+            (playerHP / CONFIG.DUNGEON.PLAYER_HP) * 100));
+
+          document.getElementById('enemy-hp-fill').style.width  = enemyPct + '%';
+          document.getElementById('player-hp-fill').style.width = playerPct + '%';
+        },
+
+        // Creates a floating damage number span and appends it to targetEl.
+        // isHit: true = player hit enemy (green, .damage-number--hit)
+        //        false = player took damage (red, .damage-number--damage)
+        // Span is removed on animationend; 600ms fallback handles missed events.
+        showDamageNumber(targetEl, value, isHit) {
+          const span = document.createElement('span');
+          span.className = 'damage-number ' +
+            (isHit ? 'damage-number--hit' : 'damage-number--damage');
+          span.textContent = '-' + value;
+
+          targetEl.appendChild(span);
+
+          // Primary cleanup: CSS animation fires animationend on completion.
+          span.addEventListener('animationend', () => {
+            span.remove();
+          }, { once: true });
+
+          // Safety fallback: 600ms covers the 400ms animation + buffer.
+          // Pitfall 3 (RESEARCH.md): animationend may not fire on low-end devices.
+          setTimeout(() => {
+            if (span.parentNode) span.remove();
+          }, 600);
+        },
+
+        // Writes RPG feedback text to #combat-feedback.
+        // Text is cleared when renderCombatQuestion() runs next — no auto-clear timer.
+        showFeedback(text) {
+          document.getElementById('combat-feedback').textContent = text;
+        },
+
+        // Populates the floor-summary panel with cleared-floor stats.
+        // summary: { floor, enemiesDefeated, xpEarned, hpRemaining }
+        // Caller (CombatInputHandler / Phase 5) handles screen transition.
+        renderFloorComplete(summary) {
+          document.getElementById('floor-summary-headline').textContent =
+            'Floor ' + summary.floor + ' Cleared!';
+          document.getElementById('floor-summary-enemies').textContent =
+            'Enemies defeated: ' + summary.enemiesDefeated;
+          document.getElementById('floor-summary-xp').textContent =
+            'XP earned: ' + summary.xpEarned;
+          document.getElementById('floor-summary-hp').textContent =
+            'HP remaining: ' + summary.hpRemaining;
+        },
+
+        // Populates the loot panel with item display.
+        // item: { emoji, name }
+        renderLoot(item) {
+          document.getElementById('loot-emoji').textContent = item.emoji;
+          document.getElementById('loot-name').textContent  = item.name;
+        },
+
+        // No-op in Phase 4 — dead panel HTML from Plan 01 is static.
+        // Phase 5 may extend this method if dynamic content is needed.
+        renderDead() {}
+      };
+    })();
+    window.DungeonRenderer = DungeonRenderer;
 
     /* ==========================================================
        DOM CACHE + RENDERER + INPUT HANDLER + APP
