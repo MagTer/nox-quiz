@@ -1912,6 +1912,16 @@
       document.getElementById('dead-retry').onclick         = function() { DungeonRunner.retryFloor(); };
 
       /* ----------------------------------------------------------
+         SC-5 balance assertion — verifies 5 wrong answers never kill a full-HP player.
+         At 30% correct rate: 5 wrong answers × DAMAGE_WRONG must be less than PLAYER_HP.
+         With default config: 5 × 8 = 40 < 100 — player survives at 60 HP.
+      ---------------------------------------------------------- */
+      console.assert(
+        CONFIG.DUNGEON.DAMAGE_WRONG * CONFIG.DUNGEON.ROOMS_PER_FLOOR < CONFIG.DUNGEON.PLAYER_HP,
+        'SC-5 FAIL: 5 wrong answers would kill player at 100 HP with default config'
+      );
+
+      /* ----------------------------------------------------------
          App — wire nextQuestion() now that Renderer + QuestionSelector are in scope
       ---------------------------------------------------------- */
       App._nextQuestion = function() {
