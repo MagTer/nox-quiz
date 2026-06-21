@@ -704,6 +704,70 @@
     })();
     window.FloorConfig = FloorConfig;
 
+    /* MODULE 8: DungeonState — Session-scoped dungeon state (Phase 2, TECH2-03) */
+    const DungeonState = (() => {
+      // Session-scoped only — never written to localStorage (TECH2-03)
+      let floor    = 1;
+      let room     = 0;
+      let playerHP = CONFIG.DUNGEON.PLAYER_HP;
+      let enemyHP  = null;  // null = no active enemy
+      let loot     = { sword: false, shield: false, potions: 0 };
+
+      return {
+        // Resets all state for a new run or floor retry
+        init(floorNumber) {
+          floor    = floorNumber;
+          room     = 0;
+          playerHP = CONFIG.DUNGEON.PLAYER_HP;
+          enemyHP  = null;
+          loot     = { sword: false, shield: false, potions: 0 };
+        },
+
+        // Returns a plain-object snapshot — callers cannot mutate internal state
+        get() {
+          return {
+            floor,
+            room,
+            playerHP,
+            enemyHP,
+            loot: Object.assign({}, loot)
+          };
+        },
+
+        // Sets current enemy HP; null clears active enemy
+        setEnemyHP(hp) {
+          enemyHP = hp;
+        },
+
+        // Sets player HP; clamps to minimum 0 (never negative)
+        setPlayerHP(hp) {
+          playerHP = Math.max(0, hp);
+        },
+
+        // Advances to the next room
+        advanceRoom() {
+          room += 1;
+        },
+
+        // Applies loot per LOOT-02 (max 1 sword/shield per run, unlimited potions).
+        // Returns true if loot was applied, false if duplicate (ignored).
+        // Throws if itemName is not a recognised item.
+        applyLoot(itemName) {
+          if (itemName === 'sword' || itemName === 'shield') {
+            if (loot[itemName]) return false;  // duplicate ignored (LOOT-02)
+            loot[itemName] = true;
+            return true;
+          }
+          if (itemName === 'potion') {
+            loot.potions += 1;
+            return true;
+          }
+          throw new Error('[DungeonState] Unknown loot item: ' + itemName);
+        }
+      };
+    })();
+    window.DungeonState = DungeonState;
+
     /* ==========================================================
        DOM CACHE + RENDERER + INPUT HANDLER + APP
        These live inside DOMContentLoaded — they access DOM elements
