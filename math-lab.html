@@ -1658,6 +1658,13 @@
           const q = QuestionSelector.selectNext(PlayerState);
           CombatInputHandler.currentQuestion = q;
           DungeonRenderer.renderCombatQuestion(q);
+        },
+
+        // Call this after DungeonRenderer.renderCombat() to load the first question
+        // and unlock the handler. Phase 5 calls this from the room-start sequence.
+        beginCombat() {
+          CombatInputHandler.locked = false;
+          CombatInputHandler.nextQuestion();
         }
       };
 
