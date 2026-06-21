@@ -903,6 +903,12 @@
           }
         },
 
+        // Resets CombatEngine closure state — call alongside GameFSM.reset() on new run (WR-03)
+        reset() {
+          currentFloor = null;
+          floorDef     = null;
+        },
+
         // Returns a snapshot of current combat state (floorDef exposes tablePools for Phase 3 use — DIFF-02)
         getState() {
           if (!floorDef) {
