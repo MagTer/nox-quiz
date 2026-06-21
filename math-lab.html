@@ -488,8 +488,9 @@
     </section>
 
     <section data-panel="dungeon-map">
-      <h2>Dungeon Map</h2>
-      <p>(placeholder)</p>
+      <h2 id="dungeon-map-floor">Floor 1</h2>
+      <p id="dungeon-map-enemy"></p>
+      <button id="enter-combat-btn">Enter Combat</button>
     </section>
 
     <section data-panel="combat">
@@ -1234,6 +1235,174 @@
     window.App = App;
 
     /* ==========================================================
+       MODULE 10b: DungeonRunner — Orchestrates the full dungeon run loop (Phase 5)
+       Defined outside DOMContentLoaded so window.DungeonRunner is available immediately.
+       References DungeonRenderer and CombatInputHandler via window globals.
+    ========================================================== */
+    const DungeonRunner = (() => {
+      let _currentFloor       = 1;
+      let _floorEnemiesDefeated = 0;
+      let _floorXpEarned      = 0;
+
+      // Loot display map — internal constants only; no user-supplied strings reach applyLoot
+      const LOOT_DISPLAY = {
+        sword:  { emoji: '🗡️', name: 'Sword of Accuracy' },
+        shield: { emoji: '🛡️', name: 'Shield of Resilience' },
+        potion: { emoji: '🧪', name: 'Health Potion' }
+      };
+
+      return {
+        // Updates dungeon-map panel text with floor number + enemy preview
+        updateDungeonMap(floorNumber) {
+          const floorDef = FloorConfig.getFloor(floorNumber);
+          document.getElementById('dungeon-map-floor').textContent = 'Floor ' + floorNumber;
+          document.getElementById('dungeon-map-enemy').textContent = floorDef.emoji + ' ' + floorDef.enemy;
+        },
+
+        // Starts a brand-new dungeon run from floor 1
+        startRun() {
+          _currentFloor         = 1;
+          _floorEnemiesDefeated = 0;
+          _floorXpEarned        = 0;
+          DungeonState.init(1);
+          DungeonRunner.updateDungeonMap(1);
+          App.transition('dungeon-map');
+        },
+
+        // Advances to the next room on the current floor, sets enemy HP, renders, starts combat
+        enterCombat() {
+          DungeonState.advanceRoom();
+          const ds       = DungeonState.get();
+          const floorDef = FloorConfig.getFloor(_currentFloor);
+          const isBoss   = ds.room >= CONFIG.DUNGEON.ROOMS_PER_FLOOR;
+          const enemyHP  = isBoss
+            ? Math.round(floorDef.hp * CONFIG.DUNGEON.BOSS_HP_MULT)
+            : floorDef.hp;
+
+          // Preserve HP and loot before startCombat() resets them via DungeonState.init()
+          const savedHP   = DungeonState.get().playerHP;
+          const savedLoot = DungeonState.get().loot;
+
+          // Reset FSM to EXPLORE so CombatEngine.startCombat() can proceed
+          if (GameFSM.getState() !== 'EXPLORE') GameFSM.reset();
+
+          // startCombat() transitions FSM to COMBAT and calls DungeonState.init() (resets HP + loot)
+          CombatEngine.startCombat(_currentFloor);
+
+          // Restore HP and loot overwritten by init()
+          DungeonState.setPlayerHP(savedHP);
+          if (savedLoot.sword)  DungeonState.applyLoot('sword');
+          if (savedLoot.shield) DungeonState.applyLoot('shield');
+          // Potions are consumed on pickup — not re-applied on room transition
+
+          // Override enemy HP with correct value (boss or normal)
+          DungeonState.setEnemyHP(enemyHP);
+
+          DungeonRenderer.renderCombat({
+            floor:    _currentFloor,
+            room:     ds.room,
+            enemy:    floorDef.enemy,
+            emoji:    floorDef.emoji,
+            enemyHP:  enemyHP,
+            playerHP: savedHP
+          });
+
+          App.transition('combat');
+          // CombatInputHandler is defined inside DOMContentLoaded but exported on window
+          window.CombatInputHandler.beginCombat();
+        },
+
+        // Called after enemy is killed — decides loot drop, then routes to next room or floor-summary
+        afterKill() {
+          _floorEnemiesDefeated += 1;
+          const ds       = DungeonState.get();
+          const floorDef = FloorConfig.getFloor(_currentFloor);
+          const isBoss   = ds.room >= CONFIG.DUNGEON.ROOMS_PER_FLOOR;
+          const xpThisKill = isBoss
+            ? Math.round(floorDef.xpReward * CONFIG.DUNGEON.BOSS_HP_MULT)
+            : floorDef.xpReward;
+          _floorXpEarned += xpThisKill;
+
+          // Loot drop: boss always drops, regular enemies drop at LOOT_DROP_RATE probability
+          const shouldDrop = isBoss ? true : Math.random() < CONFIG.DUNGEON.LOOT_DROP_RATE;
+
+          if (shouldDrop) {
+            const items    = ['sword', 'shield', 'potion'];
+            const itemName = items[Math.floor(Math.random() * items.length)];
+            DungeonState.applyLoot(itemName);
+
+            // Potion: restore HP immediately on pickup
+            if (itemName === 'potion') {
+              const healedHP = Math.min(
+                CONFIG.DUNGEON.PLAYER_HP,
+                DungeonState.get().playerHP + CONFIG.DUNGEON.POTION_HEAL
+              );
+              DungeonState.setPlayerHP(healedHP);
+            }
+
+            DungeonRenderer.renderLoot(LOOT_DISPLAY[itemName]);
+            App.transition('loot');
+          } else {
+            // No loot — route directly to next room or floor-summary
+            DungeonRunner.afterLoot();
+          }
+        },
+
+        // Called when loot is dismissed — routes to next combat room or floor-summary
+        afterLoot() {
+          const ds = DungeonState.get();
+          if (ds.room >= CONFIG.DUNGEON.ROOMS_PER_FLOOR) {
+            // Floor cleared — show summary
+            DungeonRenderer.renderFloorComplete({
+              floor:            _currentFloor,
+              enemiesDefeated:  _floorEnemiesDefeated,
+              xpEarned:         _floorXpEarned,
+              hpRemaining:      ds.playerHP
+            });
+            // Override headline on the final floor
+            if (_currentFloor >= CONFIG.DUNGEON.MAX_FLOORS) {
+              document.getElementById('floor-summary-headline').textContent = 'Dungeon Cleared!';
+            }
+            App.transition('floor-summary');
+          } else {
+            // More rooms remain on this floor
+            DungeonRunner.enterCombat();
+          }
+        },
+
+        // Called from floor-summary Advance button — proceeds to next floor or back to quiz
+        advanceFloor() {
+          if (_currentFloor < CONFIG.DUNGEON.MAX_FLOORS) {
+            _currentFloor         += 1;
+            _floorEnemiesDefeated  = 0;
+            _floorXpEarned         = 0;
+            DungeonState.init(_currentFloor);
+            DungeonRunner.updateDungeonMap(_currentFloor);
+            App.transition('dungeon-map');
+          } else {
+            // Dungeon complete — return to quiz
+            CombatEngine.reset();
+            GameFSM.reset();
+            App.transition('quiz');
+          }
+        },
+
+        // Called from dead-retry button — resets current floor HP/loot, XP preserved (ADHD-03)
+        retryFloor() {
+          _floorEnemiesDefeated = 0;
+          _floorXpEarned        = 0;
+          // DungeonState.init resets HP/loot/room only — PlayerState XP untouched (ADHD-03)
+          DungeonState.init(_currentFloor);
+          GameFSM.reset();
+          CombatEngine.reset();
+          DungeonRunner.updateDungeonMap(_currentFloor);
+          App.transition('dungeon-map');
+        }
+      };
+    })();
+    window.DungeonRunner = DungeonRunner;
+
+    /* ==========================================================
        MODULE 11: DungeonRenderer
        Owns all DOM writes for dungeon screens. Defined outside
        DOMContentLoaded so window.DungeonRenderer is available as
@@ -1690,6 +1859,8 @@
           CombatInputHandler.nextQuestion();
         }
       };
+      // Export so DungeonRunner (defined outside DOMContentLoaded) can call beginCombat()
+      window.CombatInputHandler = CombatInputHandler;
 
       /* ----------------------------------------------------------
          App — wire nextQuestion() now that Renderer + QuestionSelector are in scope
