@@ -165,12 +165,12 @@ Plans:
 3. InputHandler rejects answer submissions when `App.mode !== 'dungeon'` — the existing v1 quiz flow does not fire during dungeon combat
 4. The app remains a single HTML file with all CSS and JS inline and no external resource requests — file opens directly from disk with no server
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — HTML data-panel structure + CSS visibility system: wrap quiz in section[data-panel="quiz"], add 5 dungeon placeholder sections, CSS [data-panel] default:none + main[data-screen="X"] show rules
+- [x] 03-01-PLAN.md — HTML data-panel structure + CSS visibility system: wrap quiz in section[data-panel="quiz"], add 5 dungeon placeholder sections, CSS [data-panel] default:none + main[data-screen="X"] show rules
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -198,7 +198,20 @@ Plans:
 4. Each enemy type (Goblin, Skeleton, Dragon) displays a distinct emoji sprite at 5–6rem; each enemy has at least 3 flavor text lines shown during combat that rotate so the same line does not appear twice in a row
 5. After all enemies on a floor are defeated, the floor-complete screen is shown with the correct floor number, enemy count, and XP earned — before the player advances to the next floor
 
-**Plans:** TBD (estimate: 3 plans)
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — HTML panel structure (combat layout, floor-summary/loot/dead slots) + CSS (HP bars, @keyframes floatUp, damage number classes)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02-PLAN.md — MODULE 11: DungeonRenderer IIFE module with all 8 public methods, FLAVOR arrays, lastFlavorIndex rotation guard
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-03-PLAN.md — CombatInputHandler wired inside DOMContentLoaded: answer loop, resolveAnswer, HP drain, damage numbers, screen transitions on kill/death
 
 **Research flag:** None — standard CSS @keyframes patterns. ADHD animation limits (all under 500ms, no flash/shake) must be enforced during implementation — treat as a hard constraint, not a review item.
 
@@ -258,8 +271,8 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 2. Combat Foundation | 3/3 | Complete    | 2026-06-21 |
-| 3. Screen Architecture | 0/2 | Not started | - |
-| 4. Dungeon Renderer | 0/3 | Not started | - |
+| 3. Screen Architecture | 1/2 | In Progress|  |
+| 4. Dungeon Renderer | 0/3 | Planned | - |
 | 5. Full Floor Loop + Balance | 0/4 | Not started | - |
 | 6. Polish + ADHD Safety Audit | 0/2 | Not started | - |
 
