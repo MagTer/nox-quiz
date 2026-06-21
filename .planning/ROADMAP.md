@@ -248,7 +248,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 2. Combat Foundation | 3/3 | Complete   | 2026-06-21 |
+| 2. Combat Foundation | 3/3 | Complete    | 2026-06-21 |
 | 3. Screen Architecture | 0/2 | Not started | - |
 | 4. Dungeon Renderer | 0/3 | Not started | - |
 | 5. Full Floor Loop + Balance | 0/4 | Not started | - |
