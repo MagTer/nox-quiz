@@ -235,12 +235,12 @@ Plans:
 4. After clearing a floor, the floor summary screen displays enemies defeated, XP earned this floor, and HP remaining — then the next floor loads
 5. At a 30% correct-answer rate, the player survives at least 5 wrong answers in a single combat encounter without dying — wrong-answer damage is capped and the cap value is a named CONFIG constant; at 70% correct rate the player finishes with HP above 40% at floor end
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — CONFIG.DUNGEON balance constants (8 new) + Floor 4 FloorConfig entry + CombatEngine loot-aware resolveAnswer
+- [x] 05-01-PLAN.md — CONFIG.DUNGEON balance constants (8 new) + Floor 4 FloorConfig entry + CombatEngine loot-aware resolveAnswer
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -282,7 +282,7 @@ Plans:
 | 2. Combat Foundation | 3/3 | Complete    | 2026-06-21 |
 | 3. Screen Architecture | 1/2 | In Progress|  |
 | 4. Dungeon Renderer | 0/3 | Planned | - |
-| 5. Full Floor Loop + Balance | 0/4 | Not started | - |
+| 5. Full Floor Loop + Balance | 1/2 | In Progress|  |
 | 6. Polish + ADHD Safety Audit | 0/2 | Not started | - |
 
 ---

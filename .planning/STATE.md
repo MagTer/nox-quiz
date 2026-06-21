@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dungeon Crawler Phases
-current_phase: 04
-current_phase_name: dungeon-renderer
+current_phase: 05
+current_phase_name: full-floor-loop-balance
 status: executing
-stopped_at: context exhaustion at 75% (2026-06-21)
-last_updated: "2026-06-21T21:23:24.021Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-06-21T22:21:48.488Z"
 last_activity: 2026-06-21
-last_activity_desc: Phase 04 execution started
+last_activity_desc: Phase 05 execution started
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 12
-  completed_plans: 9
-  percent: 75
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 14
+  completed_plans: 13
+  percent: 80
 ---
 
 # Project State: Math Lab
@@ -27,16 +27,16 @@ progress:
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
 
-**Current Focus:** Phase 04 — dungeon-renderer
+**Current Focus:** Phase 05 — full-floor-loop-balance
 
 **Tech Stack:** Single HTML file, vanilla ES2020+ JavaScript, CSS3, localStorage, no dependencies.
 
 ## Current Position
 
-Phase: 04 (dungeon-renderer) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 04
-Last activity: 2026-06-21 — Phase 04 execution started
+Phase: 05 (full-floor-loop-balance) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-06-21 — Phase 05 execution started
 
 ## Key Decisions
 
@@ -121,8 +121,8 @@ Last activity: 2026-06-21 — Phase 04 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-21T11:52:53.256Z
-**Stopped at:** context exhaustion at 75% (2026-06-21)
+**Last session:** 2026-06-21T22:21:48.481Z
+**Stopped at:** Completed 05-01-PLAN.md
 
 **Next steps:**
 
@@ -167,6 +167,9 @@ Last activity: 2026-06-21 — Phase 04 execution started
 - [Phase ?]: migrate() wrapped in outer+inner try-catch; QuotaExceededError in setItem caught returning null, no retry loop
 - [Phase ?]: v1 localStorage key preserved untouched after migration — never deleted, required for rollback ability
 - [Phase ?]: PersistenceStore.load() migration branch symmetric with normal path — bootstrap fromJSON handles both uniformly
+- [Phase ?]: loot snapshot per resolveAnswer call prevents double-reads; single DungeonState.get().loot snapshot ensures combat tick consistency
+- [Phase ?]: effectiveDamageCorrect and effectiveDamageWrong returned on all resolveAnswer paths so handleAnswer can display accurate loot-modified floating damage numbers
+- [Phase ?]: DungeonState.init() confirmed ADHD-03 compliant — resets floor/room/playerHP/enemyHP/loot only; PlayerState XP and level never touched on dungeon reset
 
 ## Performance Metrics
 
@@ -177,3 +180,4 @@ Last activity: 2026-06-21 — Phase 04 execution started
 | Phase 02 P01 | 135 | 3 tasks | 1 files |
 | Phase 02 P02 | 90 | 2 tasks | 1 files |
 | Phase 02 P03 | 180 | - tasks | - files |
+| Phase 05 P01 | 83s | 2 tasks | 1 files |

@@ -39,7 +39,7 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 
 ### Dungeon Structure
 
-- [ ] **DC-01**: Dungeon has 5 rooms per floor (entrance → 3 combat rooms → boss room), 3 floors + boss floor
+- [x] **DC-01**: Dungeon has 5 rooms per floor (entrance → 3 combat rooms → boss room), 3 floors + boss floor
 - [x] **DC-02**: Game phase FSM controls transitions: EXPLORE → COMBAT → LOOT → TRANSITION → DEAD
 - [ ] **DC-03**: Separate screens exist for: dungeon map, combat, loot drop, floor summary, death/retry
 
@@ -70,9 +70,9 @@ Requirements for the Dungeon Crawler milestone. Continues phase numbering from P
 
 ### Loot
 
-- [ ] **LOOT-01**: 3 loot item types: sword (attack boost), shield (damage reduction), health potion (HP restore)
-- [ ] **LOOT-02**: Player holds max 1 of each type; items auto-apply on pickup — no inventory choice required
-- [ ] **LOOT-03**: Loot resets on floor death/retry — the floor starts fresh each attempt
+- [x] **LOOT-01**: 3 loot item types: sword (attack boost), shield (damage reduction), health potion (HP restore)
+- [x] **LOOT-02**: Player holds max 1 of each type; items auto-apply on pickup — no inventory choice required
+- [x] **LOOT-03**: Loot resets on floor death/retry — the floor starts fresh each attempt
 
 ### ADHD Safety
 
