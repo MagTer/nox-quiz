@@ -2,11 +2,27 @@
 
 ## What This Is
 
-A standalone local web app (single HTML file) for a 12-year-old girl to practice multiplication tables through a dungeon crawler game. She fights Goblins, Skeletons, and Dragons by solving multiplication problems — correct answers attack, wrong answers let the enemy hit back. Dark grunge aesthetic, no pink, no timers, no pressure. Ships as a single `.html` file that opens directly in any browser.
+A real 2D platformer for a 12-year-old girl, played in the browser with the keyboard — run, jump across platforms, reach the goal — where multiplication is the *gate to progress*, modeled on the Mario-style math game she plays at school. The platforming is the intrinsically fun part; math (weighted toward the 6–9 tables) is what stands between her and the next stage. Dark grunge aesthetic, no pink, no timers, no pressure.
+
+> **Direction correction (v3.0):** v1.0–v2.0 built a multiple-choice quiz with a static picture (a dungeon "crawler" that was really scorekeeping with a goblin emoji above the question). That was a misread of the intent. The actual goal — established at v3.0 kickoff — is an *actual game she controls*: a 2D platformer with a moving avatar, real physics, and levels. v3.0 pivots to that. The tuned "math brain" (weighted question selection toward 6–9 tables) is carried forward; the quiz shell is replaced by a game shell.
 
 ## Core Value
 
 She opens it because she *wants* to, not because she has to.
+
+## Current Milestone: v3.0 The Platformer
+
+**Goal:** Turn Math Lab into an actual 2D platformer she controls with the keyboard — run, jump, reach the goal — where math is the gate to progress, like the Mario-style game from her school.
+
+**Target features:**
+- Kaplay-powered 2D platformer that opens in the browser (offline; may need a one-line local server for asset loading)
+- Keyboard control: run left/right, jump, land on platforms, reach a goal flag
+- One polished, complete level that *feels* like a real game
+- Pixel-art visuals from free CC0 asset packs (Kenney.nl / itch.io), styled dark/grunge
+- End-of-stage math gate: reach the end → answer questions (weighted toward 6–9 tables) → clear the level
+- The existing "math brain" (weighted question selection) ported into the new game shell
+
+**Explicitly later (not this milestone):** richer math mechanics (locked doors, collect-the-answer, defeat-the-enemy), XP/leveling/persistence migration, multiple worlds/levels, audio.
 
 ## Requirements
 
@@ -24,7 +40,11 @@ She opens it because she *wants* to, not because she has to.
 
 ### Active
 
-*(No active requirements pending — start of v3.0 scope definition)*
+*(v3.0 The Platformer — requirements being defined; see REQUIREMENTS.md)*
+- 2D platformer shell (Kaplay): keyboard run/jump, platform collision, goal flag
+- One complete, polished level
+- Pixel-art assets from free CC0 packs, dark/grunge styling
+- End-of-stage math gate using the ported question-selection brain
 
 ### Out of Scope
 
@@ -41,16 +61,19 @@ She opens it because she *wants* to, not because she has to.
 - **Tone**: Cool, a little edgy, rewarding without being cutesy
 - **Input**: Multiple choice (4 options per question) reduces friction when stuck
 - **Focus**: 6–9 times tables are the weak spot, but mixing in 1–5 keeps it fun
-- **Platform**: Single HTML file, runs in any browser on Windows laptop — fully portable
-- **Current state (v2.0)**: 1,976 LOC single HTML file. Dungeon crawler fully playable — 4 floors, 3 enemy types (👺💀🐉), loot system, floor-gated question pools, ADHD audit passed. Tech stack: vanilla ES2020+, CSS3, localStorage, zero dependencies.
-- **Known tech debt**: levelUpFlash animation is 800ms (ADHD-04 cap is 500ms); DC-01 room count spec mismatch (6 rooms implemented, 5 spec'd); SC-4 v1→v2 localStorage migration not browser-tested with real v1 save.
-- **User feedback**: Not yet collected post-v2.0 — first real play sessions pending.
+- **Platform**: Runs in any browser on a Windows laptop. v3.0 relaxes the single-file rule — multi-file project (HTML + JS modules + vendored Kaplay + assets folder). Still offline, no install; may need a one-line local server (`python3 -m http.server`) because browsers block module/asset loading over `file://`.
+- **Reference**: Her school has a Mario-style 2D platformer that gives math questions at the end of each stage. "I want something like this" is the north star — the v1/v2 quiz was a misread of that intent.
+- **Current state (v2.0, being replaced)**: 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji and scorekeeping. Playable but NOT the game she wants. v3.0 ports the math brain and rebuilds the shell as a real platformer.
+- **Math integration roadmap**: Start with end-of-stage gate (v3.0). Add locked doors/bridges, collect-the-answer, and defeat-the-enemy (reusing v2's 👺💀🐉) as staged additions in later milestones.
+- **Art**: Pixel-art sprites from free CC0 packs (Kenney.nl / itch.io), styled to the dark/grunge palette. Pack chosen early in the milestone.
+- **User feedback**: Not yet collected post-v2.0 — the platformer is the response to the core feedback that v1/v2 weren't an actual game.
 
 ## Constraints
 
-- **Tech stack**: Single HTML file with embedded CSS and JS — zero dependencies, no build step
-- **Deployment**: Local file open in browser — no server, no install required
-- **Design**: Grunge/dark aesthetic; explicitly no pink, no bubbly or childish elements
+- **Tech stack**: Vanilla JS + Kaplay (one vendored game library). No build step, no npm install required to run — vendor the library file directly.
+- **Deployment**: Opens in the browser, offline, no install. A one-line local static server is acceptable (and likely needed for asset/module loading); no backend, no hosting.
+- **Design**: Grunge/dark aesthetic; explicitly no pink, no bubbly or childish elements. Holds for pixel art too — dark, edgy sprites.
+- **No timers / no pressure**: Carries over from v1/v2 — ADHD-safe. Platforming hazards are fine; *countdown* pressure is not.
 
 ## Key Decisions
 
@@ -65,7 +88,13 @@ She opens it because she *wants* to, not because she has to.
 | Floor-gated table pools | Each floor limits to its multiplication tier | ✓ Good — meaningful difficulty progression |
 | Death = restart floor, XP intact | ADHD-safe; no punishment loop | ✓ Good — ADHD-02 passes |
 | Loot auto-applies on pickup | No inventory choice = less cognitive load | ✓ Good — LOOT-02 passes |
-| 4 floors (3 + boss) | Extended run without permadeath complexity | — Pending user feedback |
+| 4 floors (3 + boss) | Extended run without permadeath complexity | — Superseded by v3.0 pivot |
+| **v3.0: Pivot to real 2D platformer** | v1/v2 quiz misread the intent; she wants a Mario-style game she controls | New direction |
+| **v3.0: Kaplay over vanilla canvas** | Real physics/collision/sprites without hand-writing the bug-prone parts; effort goes to her game, not collision math | New direction |
+| **v3.0: Relax single-file rule** | Platformer + assets + vendored library don't fit one file cleanly; multi-file still opens in browser | New direction |
+| **v3.0: Port math brain, rebuild shell** | Keep tuned 6–9 weighted selection; replace quiz UI with game | New direction |
+| **v3.0: Math = end-of-stage gate first** | Matches her school game; most reliable to make *feel* good before richer mechanics | New direction |
+| **v3.0: Free CC0 pixel-art packs** | Real game look with zero cost/licensing risk; ships immediately | New direction |
 
 ## Evolution
 
@@ -85,4 +114,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-22 after v2.0 milestone — Dungeon Crawler Phases*
+*Last updated: 2026-06-22 — started v3.0 The Platformer (pivot to a real 2D platformer)*
