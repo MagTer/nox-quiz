@@ -95,45 +95,48 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Populated during roadmap creation. Each requirement maps to exactly one phase.
+Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (which ended at Phase 6).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | — | Pending |
-| SETUP-02 | — | Pending |
-| SETUP-03 | — | Pending |
-| SETUP-04 | — | Pending |
-| MOVE-01 | — | Pending |
-| MOVE-02 | — | Pending |
-| MOVE-03 | — | Pending |
-| MOVE-04 | — | Pending |
-| MOVE-05 | — | Pending |
-| LEVEL-01 | — | Pending |
-| LEVEL-02 | — | Pending |
-| LEVEL-03 | — | Pending |
-| LEVEL-04 | — | Pending |
-| LEVEL-05 | — | Pending |
-| LEVEL-06 | — | Pending |
-| LEVEL-07 | — | Pending |
-| LEVEL-08 | — | Pending |
-| GATE-01 | — | Pending |
-| GATE-02 | — | Pending |
-| GATE-03 | — | Pending |
-| GATE-04 | — | Pending |
-| GATE-05 | — | Pending |
-| GATE-06 | — | Pending |
-| JUICE-01 | — | Pending |
-| JUICE-02 | — | Pending |
-| JUICE-03 | — | Pending |
-| SAFE-01 | — | Pending |
-| SAFE-02 | — | Pending |
-| SAFE-03 | — | Pending |
+| SETUP-01 | Phase 7 | Pending |
+| SETUP-02 | Phase 7 | Pending |
+| SETUP-03 | Phase 7 | Pending |
+| SETUP-04 | Phase 7 | Pending |
+| MOVE-01 | Phase 8 | Pending |
+| MOVE-02 | Phase 8 | Pending |
+| MOVE-03 | Phase 8 | Pending |
+| MOVE-04 | Phase 8 | Pending |
+| MOVE-05 | Phase 8 | Pending |
+| LEVEL-01 | Phase 9 | Pending |
+| LEVEL-02 | Phase 9 | Pending |
+| LEVEL-03 | Phase 9 | Pending |
+| LEVEL-04 | Phase 9 | Pending |
+| LEVEL-05 | Phase 9 | Pending |
+| LEVEL-06 | Phase 8 | Pending |
+| LEVEL-07 | Phase 9 | Pending |
+| LEVEL-08 | Phase 9 | Pending |
+| GATE-01 | Phase 10 | Pending |
+| GATE-02 | Phase 10 | Pending |
+| GATE-03 | Phase 10 | Pending |
+| GATE-04 | Phase 10 | Pending |
+| GATE-05 | Phase 10 | Pending |
+| GATE-06 | Phase 10 | Pending |
+| JUICE-01 | Phase 11 | Pending |
+| JUICE-02 | Phase 11 | Pending |
+| JUICE-03 | Phase 11 | Pending |
+| SAFE-01 | Phase 11 | Pending |
+| SAFE-02 | Phase 11 | Pending |
+| SAFE-03 | Phase 11 | Pending |
 
 **Coverage:**
 - v1 requirements: 29 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 29 ⚠️ (resolved by roadmapper)
+- Mapped to phases: 29 ✓
+- Unmapped: 0
+- No requirement mapped to more than one phase.
+
+**Per-phase counts:** Phase 7 = 4 · Phase 8 = 6 · Phase 9 = 7 · Phase 10 = 6 · Phase 11 = 6 → 29 total.
 
 ---
 *Requirements defined: 2026-06-22*
-*Last updated: 2026-06-22 after v3.0 definition*
+*Last updated: 2026-06-22 — traceability populated by roadmapper (v3.0 Phases 7–11)*

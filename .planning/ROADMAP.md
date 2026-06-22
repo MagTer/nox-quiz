@@ -7,6 +7,7 @@
 
 - ✅ **v1.0 MVP** — Phase 1 (shipped 2026-06-20) — see [v1.0 archive not created; Phase 1 included in v2.0 archive]
 - ✅ **v2.0 Dungeon Crawler** — Phases 2–6 (shipped 2026-06-22) — [archive](milestones/v2.0-ROADMAP.md)
+- ⏳ **v3.0 The Platformer** — Phases 7–11 (active) — pivot to a real 2D platformer with an end-of-stage math gate
 
 ## Phases
 
@@ -32,6 +33,83 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 
 </details>
 
+### v3.0 The Platformer (Phases 7–11) — ACTIVE
+
+**Milestone goal:** Turn Math Lab into a real 2D platformer she controls with the keyboard — run, jump, reach the goal — where math is the gate to progress, like the Mario-style game from her school. Scope: ONE great, polished level + the end-of-stage math gate.
+
+**Granularity:** standard · **Phase numbering:** sequential, continuing from v2.0 (ended at Phase 6).
+
+- [ ] **Phase 7: Project Setup & Local Serving** - Vendored Kaplay boots in the browser over a one-line local server, with a friendly `file://` guard.
+- [ ] **Phase 8: Platformer Core (Movement / Physics / Camera)** - A responsive, Mario-feel avatar runs, jumps, lands, and respawns gently on a test strip.
+- [ ] **Phase 9: Level Build & CC0 Assets** - One polished, completable dark/grunge level with platforms, coins, a hazard, checkpoints, and a goal.
+- [ ] **Phase 10: Math-Gate Integration (Port the Brain)** - Reaching the goal opens an in-world, forgiving math gate driven by the ported 6–9-weighted brain.
+- [ ] **Phase 11: Polish, ADHD-Safety & UAT** - Juice, discoverable controls, contrast, no-timer/forgiving audit, and verification with the actual kid.
+
+## Phase Details
+
+### Phase 7: Project Setup & Local Serving
+**Goal**: The new multi-file game project boots Kaplay in the browser via a documented local server, and fails gracefully when opened the wrong way. This is the riskiest infra step — the `file://` CORS and version-churn pitfalls bite before any game code exists, so they are neutralized first.
+**Depends on**: Nothing (first phase of the milestone)
+**Requirements**: SETUP-01, SETUP-02, SETUP-03, SETUP-04
+**Success Criteria** (what must be TRUE):
+  1. Running the documented one-line command (e.g. `python3 -m http.server`) and opening the served URL shows a live Kaplay canvas (an empty `scene("game")` drawing "hello").
+  2. Opening the game directly over `file://` shows a friendly message explaining how to start it correctly — not a blank/black screen.
+  3. Kaplay 3001.0.19 loads from a locally vendored file with no CDN call and no `npm install` step, version commented at the top of the vendored file.
+  4. The repo has a clean multi-file layout (HTML + `src/` JS modules + `lib/` + `assets/` folder) that runs with no build step.
+**Plans**: TBD
+
+### Phase 8: Platformer Core (Movement / Physics / Camera)
+**Goal**: The intrinsically-fun spine works — an avatar she controls runs, jumps with weight, lands solidly, and the camera follows smoothly, all frame-rate independent. The gentle checkpoint-respawn policy is established here so later hazards inherit it.
+**Depends on**: Phase 7
+**Requirements**: MOVE-01, MOVE-02, MOVE-03, MOVE-04, MOVE-05, LEVEL-06
+**Success Criteria** (what must be TRUE):
+  1. The player runs left/right with both arrow keys and WASD, and jumps with Space or Up, on a test platform strip.
+  2. Jumping feels responsive — variable jump height, coyote time, and jump buffering are all present (not a fixed grounded jump).
+  3. The avatar lands solidly on platforms with no sticking on seams and no tunneling through the floor on a fast drop.
+  4. The camera follows the player smoothly (no jitter) and stays clamped within level bounds; movement feels identical on a non-60 Hz / throttled display.
+  5. Falling off the world respawns the player at the last checkpoint with progress preserved — no lives, no game-over.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 9: Level Build & CC0 Assets
+**Goal**: One complete, polished level she can traverse start-to-goal, built from a chosen dark/grunge CC0 pack, with collectible coins, a respawn-triggering hazard, and a goal that hands off to the math gate. Asset licenses are documented.
+**Depends on**: Phase 8
+**Requirements**: LEVEL-01, LEVEL-02, LEVEL-03, LEVEL-04, LEVEL-05, LEVEL-07, LEVEL-08
+**Success Criteria** (what must be TRUE):
+  1. The player can traverse one complete level from start to the goal flag, over platforms, gaps, and solid ground with reliable collision.
+  2. The level renders in pixel art from a free CC0 pack styled dark/grunge (no pink), with readable silhouettes against the background.
+  3. The player can collect coins placed throughout the level.
+  4. At least one hazard or enemy triggers a gentle checkpoint respawn — never a game-over.
+  5. Reaching the goal triggers the math-gate hook, and `CREDITS`/`LICENSES` records every asset's source and verified license (no vendor logos).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 10: Math-Gate Integration (Port the Brain)
+**Goal**: The milestone keystone — the ported, framework-agnostic math brain (6–9-weighted selection) is wired to the level through a single bridge so that reaching the goal opens an in-world, forgiving, no-timer math gate that clears the level on a correct answer. The math port has zero dependency on the game shell and can proceed in parallel with Phases 8–9; this phase is the join point.
+**Depends on**: Phase 9 (goal + clean pause); the math-brain port itself has no game-shell dependency and can proceed in parallel from Phase 7 onward
+**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06
+**Success Criteria** (what must be TRUE):
+  1. Reaching the goal pauses the level and shows the math question as an in-world gate (game font/palette, avatar visible behind it) — not a system quiz popup.
+  2. The question presents 4 multiple-choice answers from the ported weighted selector, biased toward the 6–9 tables.
+  3. A correct answer opens the gate / clears the level with a celebratory moment.
+  4. A wrong answer is forgiving — it re-asks with no penalty, no progress lost, and the run does not end.
+  5. The gate has no countdown or time pressure, and the math module imports nothing from Kaplay (clean firewall; `ui/mathGate.js` is the only bridge), surviving replays with no leaked state.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 11: Polish, ADHD-Safety & UAT
+**Goal**: The game reads and feels like a real game in front of the actual kid — satisfying juice, discoverable controls, readable contrast — and the no-timer / forgiving / low-stimulation mandate is audited and confirmed in UAT. Feel and framing are validated only with the user, so this phase is last.
+**Depends on**: Phase 10
+**Requirements**: JUICE-01, JUICE-02, JUICE-03, SAFE-01, SAFE-02, SAFE-03
+**Success Criteria** (what must be TRUE):
+  1. Jumping and landing have satisfying, subtle visual feedback (squash/stretch, dust), and collecting a coin gives a satisfying pop.
+  2. Clearing the level has a distinct, celebratory (non-strobing, brief) moment.
+  3. An on-screen control hint shows how to move and jump, discoverable on the target Windows laptop.
+  4. A no-timer/forgiving audit confirms there are no countdowns anywhere and wrong answers never punish.
+  5. Visuals meet readable contrast on the dark theme and effects are not over-stimulating, confirmed in UAT with the kid.
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -42,8 +120,20 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 4. Dungeon Renderer | v2.0 | 3/3 | ✅ Complete | 2026-06-21 |
 | 5. Full Floor Loop + Balance | v2.0 | 2/2 | ✅ Complete | 2026-06-21 |
 | 6. Polish + ADHD Safety Audit | v2.0 | 2/2 | ✅ Complete | 2026-06-22 |
+| 7. Project Setup & Local Serving | v3.0 | 0/0 | Not started | - |
+| 8. Platformer Core | v3.0 | 0/0 | Not started | - |
+| 9. Level Build & CC0 Assets | v3.0 | 0/0 | Not started | - |
+| 10. Math-Gate Integration | v3.0 | 0/0 | Not started | - |
+| 11. Polish, ADHD-Safety & UAT | v3.0 | 0/0 | Not started | - |
+
+## Coverage (v3.0)
+
+- v1 requirements: 29 total
+- Mapped to phases: 29 ✓
+- Unmapped: 0
+- No requirement mapped to more than one phase.
 
 ---
 
 *Archive: [v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)*
-*Next: `/gsd-new-milestone` to plan v3.0*
+*v3.0 roadmap created: 2026-06-22 — pivot to a real 2D platformer*

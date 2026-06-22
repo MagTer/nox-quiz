@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: The Platformer
-status: planning
+status: roadmapped
 last_updated: "2026-06-22T11:23:15.565Z"
 last_activity: 2026-06-22
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,162 +17,154 @@ progress:
 
 **Project:** Math Lab - Gamified Math Practice for Kids
 **Initialized:** 2026-06-20
-**Current Milestone:** 1 (MVP Release)
+**Current Milestone:** v3.0 The Platformer (Phases 7–11)
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Planning next milestone (v3.0)
+**Current Focus:** v3.0 — pivot to a real 2D platformer (Kaplay) with an end-of-stage math gate. Roadmap complete; ready to plan Phase 7.
 
-**Tech Stack:** Single HTML file, vanilla ES2020+ JavaScript, CSS3, localStorage, no dependencies.
-**Shipped State (v2.0):** 1,976 LOC, fully playable dungeon crawler, 27/27 requirements satisfied.
+**Tech Stack (v3.0):** Multi-file (no build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Runs offline over a one-line local static server (`python3 -m http.server`); `file://` is blocked for module/asset loading.
+**Shipped State (v2.0, being replaced):** 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji. The math brain (weighted 6–9 selection) is carried forward; the quiz shell is replaced by a game shell.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Milestone: v3.0 The Platformer
+Phase: 7 (Project Setup & Local Serving) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-22 — Milestone v3.0 started
+Status: Roadmap created; awaiting phase planning
+Last activity: 2026-06-22 — ROADMAP.md created for v3.0 (Phases 7–11), 29/29 v1 requirements mapped
 
-## Key Decisions
+## v3.0 Roadmap (Phases 7–11)
+
+| Phase | Goal | Requirements |
+|-------|------|--------------|
+| 7. Project Setup & Local Serving | Vendored Kaplay boots over a local server; friendly `file://` guard; clean multi-file layout | SETUP-01..04 |
+| 8. Platformer Core | Mario-feel run/jump/land, smooth clamped camera, dt-correct, gentle checkpoint respawn | MOVE-01..05, LEVEL-06 |
+| 9. Level Build & CC0 Assets | One polished dark/grunge level: platforms, coins, a hazard, goal; licenses documented | LEVEL-01..05, LEVEL-07, LEVEL-08 |
+| 10. Math-Gate Integration | Ported math brain wired via single bridge; in-world, forgiving, no-timer gate (keystone/join) | GATE-01..06 |
+| 11. Polish, ADHD-Safety & UAT | Juice, control hints, contrast, no-timer/forgiving audit, verify with the kid | JUICE-01..03, SAFE-01..03 |
+
+**Parallelization:** The math-brain port (Phase 10 prerequisite) has zero dependency on the game shell and can proceed alongside Phases 8–9; Phase 10's bridge is the join point.
+
+## Key Decisions (v3.0)
 
 | Decision | Rationale | Status |
 |----------|-----------|--------|
-| Single HTML file, no dependencies | Portable, runs offline, zero setup friction | Locked in |
-| Vanilla ES2020+ JavaScript | No framework overhead; proven game dev pattern | Locked in |
-| localStorage for persistence | Synchronous, reliable, 5–10 MB available; good enough for game state | Locked in |
+| Pivot to a real 2D platformer | v1/v2 quiz misread the intent; she wants a Mario-style game she controls | Locked in |
+| Kaplay 3001.0.19, vendored locally | Real physics/collision/sprites without hand-writing bug-prone parts; offline, no CDN | Locked in |
+| Relax single-file rule → multi-file, no build | Platformer + assets + vendored library don't fit one file; still opens in browser | Locked in |
+| Local static server is the launch path | `file://` blocks ES-module + sprite fetch; one-line server is first-class | Locked in |
+| Port math brain verbatim, rebuild shell | Keep tuned 6–9 weighted selection; replace quiz UI with game | Locked in |
+| Math = end-of-stage gate, paused overlay | Matches her school game; level stays visible behind question (no scene cut) | Locked in |
+| All four differentiators IN | In-world gate framing, coins, one hazard/enemy, juice/celebration | Locked in |
+| Wrong answer = forgiving re-ask, no penalty | ADHD-safe; no punishment loop | Locked in |
+| Respawn = checkpoint, progress preserved | ADHD-safe; no lives, no game-over | Locked in |
+| Persistence/XP deferred to a stub seam | Out of scope this milestone; ~3–5 lines to wire later | Locked in |
+| CC0 pixel-art packs (Kenney default) | Real game look, zero licensing risk; verify each pack's license page | Locked in |
+
+## Carried-Forward Decisions (v1/v2, still valid)
+
+| Decision | Rationale | Status |
+|----------|-----------|--------|
 | Multiple-choice answers (no typing) | Reduces friction for ADHD profile; faster flow | Locked in |
-| No countdown timer (hard constraint) | Time pressure triggers cortisol; contradicts ADHD context | Locked in |
-| Dark grunge aesthetic (#0a0a0a + bold fonts) | Visual preference stated; cool/edgy, not cute | Locked in |
-| 70% hard tables (6–9), 30% easy (1–5) weighting | Targets weakness while building confidence | Locked in |
-| WCAG 2.1 AA contrast minimum (4.5:1) on dark theme | Accessibility non-negotiable; prevents visual stress | Locked in |
+| No countdown timer (hard constraint) | Time pressure triggers stress; contradicts ADHD context | Locked in |
+| Dark grunge aesthetic, no pink | Cool/edgy, not cute; holds for pixel art too | Locked in |
+| 70% hard tables (6–9), 30% easy (1–5) weighting | Targets weakness while building confidence; do not modify the algorithm | Locked in |
+| WCAG AA contrast minimum on dark theme | Accessibility non-negotiable; prevents visual stress | Locked in |
+| Local-only / offline; no backend | Privacy, simplicity, no install | Locked in |
 
-## Architectural Insights (from research)
+## Critical Pitfalls to Prevent (from research)
 
-**Critical components:**
+1. **`file://` CORS asset failure** (Phase 7) — sprites silently never load when double-clicked. Mandate local server + `file:` protocol guard.
+2. **Kaplay/Kaboom version churn** (Phase 7) — pin 3001.0.19, comment source+version, code against that version's docs only.
+3. **Module-level state leaks across `go()`/retries** (Phase 8 discipline / Phase 10) — init run state inside scene callbacks; pass via `go(name,data)`; expose `reset()`.
+4. **Gate reads as a punishing quiz popup** (Phase 10 / Phase 11) — build a NEW in-world gate in the game's font/palette, avatar visible; reuse only the brain.
+5. **Frame-rate-dependent movement** (Phase 8) — use `body()`/`vel` or multiply manual movement by `dt()`; verify on non-60 Hz.
+6. **Floaty jump** (Phase 8 / Phase 11) — coyote time, jump buffering, variable height; tune with the kid.
+7. **Tile-seam stick / tunneling** (Phase 8 physics / Phase 9 colliders) — merge floor colliders, cap fall speed; build a stress strip early.
+8. **Progress loss on death** (Phase 8 / Phase 10) — checkpoint respawn; wrong answer penalty-free re-ask.
+9. **Over-stimulation / over-long level** (Phase 9 / Phase 11) — subtle effects, one short level, no timers.
+10. **CC0 license mistakes** (Phase 9) — verify each pack's license page; keep CREDITS; never ship vendor logos.
 
-- **Game Loop:** Fixed-timestep update/render cycle using requestAnimationFrame
-- **State Manager:** Closure-based PlayerState holding XP, level, accuracy per table, session count
-- **Question Selector:** Weighted random selection based on accuracy history (prevents memorization)
-- **Persistence Manager:** Wraps localStorage with error handling, versioning, migration
-- **Renderer:** DOM update abstraction; caches element references
+## Research Flags
 
-**Critical pitfalls to prevent:**
+- **Phase 8:** Coyote time / jump buffering / variable jump height are NOT built into Kaplay `body()` — spike the engine-specific wiring. Collision edge cases (seam/tunneling) are MEDIUM-confidence — plan a small stress-test.
+- **Phase 10:** The paused-overlay pause-ordering gotcha (`wait(0,...)` deferred unpause) and the exact minimal PlayerState port surface warrant a focused re-read of `math-lab.html` during planning.
+- **Phase 7 / Phase 9:** Standard, well-documented patterns (vendoring/server, asset loading + string tile-map) — likely skip research-phase.
 
-1. **Reward Fatigue (week 3 engagement cliff)** → Must add novelty/cosmetics early (Phase 2). Track engagement metrics during Phase 1 UAT.
-2. **Cognitive Overload from Visual Clutter** → Use near-black (#0A0A0A) + soft white (#E8E8E8), limit animations, test contrast.
-3. **Answer Position Bias** → Randomize answer order every question; log 50+ sessions to verify ≈25% per position.
-4. **Pressure-Induced Failure** → NO timers, period. Fast feedback instead.
-5. **localStorage Corruption** → Wrap all operations in try/catch for QuotaExceededError, version storage keys.
-6. **No Progress Visibility** → Session summary required; track mastery per problem.
-7. **Dark Theme Accessibility Trap** → Verify contrast ratios; provide light mode toggle option.
-8. **Feature Creep → Analysis Paralysis** → MVP ships single mode, no toggles, difficulty adapts automatically.
+## Gaps to Address (from research)
 
-## Accumulated Context
+- Game feel is iterative: exact gravity/jump-impulse/coyote/buffer values must be tuned with the kid in Phase 11 — research ranges are starting points only.
+- ADHD response is individual: no-timer/forgiving/low-stimulation principles must be confirmed via UAT (Phase 11), not assumed.
+- Kaplay collision robustness (MEDIUM): build a long-flat-run + fast-drop stress strip early (Phase 8/9).
+- Minimal port surface: confirm which PlayerState methods `selectNext` depends on by re-reading `math-lab.html` during Phase 10 planning (selector + CONFIG + accuracy/mastery half + keep `toJSON/fromJSON`).
+- Audio deferred but flagged: silence weakens the "real game" feel; revisit immediately after the loop validates.
 
-**Phase 1 Research Flags (from SUMMARY.md):**
+## Deferred (v2 & beyond)
 
-- ✓ Stack, features, architecture: HIGH confidence (all well-documented patterns)
-- ⚠️ Target user validation: Phase 1 UAT must verify 12-year-old actually engages with no-timer mechanics and dark aesthetic
-- ⚠️ Reward curve tuning: Exponential curve (BASE_XP=100, LEVEL_MULTIPLIER=1.2) is starting point; needs 1–2 weeks Phase 1 playtesting
-- ⚠️ Difficulty self-calibration threshold: When is a table "mastered"? Current proposal: 7/10 correct recent. Phase 1 data informs optimal.
-- ⚠️ Question pool size: How many distractors per problem prevent memorization? Current proposal: 8+ per table. Validate during Phase 1.
-
-**Deferred (v2 & beyond):**
-
-- Novelty rotation (3–4 mini-game formats)
-- Session checkpoints (break suggestions after 20 min)
-- Audio feedback and ambient music
-- Cosmetic progression (avatar colors, weapon styles)
-- Enhanced session summary with historical progress graphs
-- Streak mechanics (celebration-focused, no punishment)
-- Visual progress map (pixel-art world)
-- Customizable session goals
-- High-contrast mode toggle
-
-**Explicitly Out of Scope:**
-
-- Online/server component
-- Leaderboards, social features, multiplayer
-- Timed challenges or pressure mechanics (period)
-- Signup/login, user accounts, data collection
-- Ads, monetization, paywalls
-- Pink or "girly" visual design
-- Mobile-only UI (Windows laptop target)
-
-## Performance Metrics (Phase 1 validation)
-
-**UAT Success Indicators (to track during Phase 1):**
-
-- User plays 3+ sessions without prompting in first week
-- Accuracy per table shows variance (user is learning, not guessing randomly)
-- XP bar and level-up celebrations feel rewarding (feedback from user)
-- No localStorage errors during 50+ continuous questions
-- Answer randomization verified: correct answer position ≈25% per position across 50+ questions
-- Contrast ratios verified: all text ≥4.5:1 on dark background
-- Performance: no jank, stable 60 FPS, instant feedback <300ms after input
-- Engagement: user returns for second session within 2 days
+- Richer math mechanics: locked doors/bridges (DOOR-01), collect-the-answer (COLLECT-01), defeat-the-enemy (ENEMY-01)
+- Progression/persistence: XP/leveling carry-over (XP-01), localStorage save (SAVE-01) — stub seam left open this milestone
+- Content/atmosphere: multiple levels + level select (WORLD-01), audio (AUDIO-01), double jump (MOVE2-01)
 
 ## Session Continuity
 
 **Resume file:** None
 
-**Last session:** 2026-06-22T06:04:22.818Z
-**Stopped at:** context exhaustion at 75% (2026-06-22)
+**Last session:** 2026-06-22 — v3.0 roadmap created
 
 **Next steps:**
 
-1. User reviews and approves ROADMAP.md
-2. Execute `/gsd-plan-phase 1` to create detailed plan
-3. Execute plans and verify UAT criteria
-4. After Phase 1 validation, decide: Phase 2 (engagement features) or ship v1
+1. User reviews and approves ROADMAP.md (Phases 7–11)
+2. Execute `/gsd-plan-phase 7` to create the detailed plan for Project Setup & Local Serving
+3. (Optional, parallel) begin porting the math brain — it has no game-shell dependency
+4. Proceed Phase 8 → 9 → 10 (keystone) → 11 (UAT with the kid)
 
 **Context for next session:**
 
-- Roadmap locked to 1 MVP phase (all 14 v1 requirements)
-- Research confirms no blockers; all patterns proven
-- Phase 1 is large but cohesive: game loop + UI + persistence + accessibility + ADHD safeguards
-- No external dependencies; vanilla JS required
-- Plan should allocate ~2–3 weeks for Phase 1 build + 1 week Phase 1 UAT before deciding on Phase 2
+- v3.0 is a 5-phase, dependency-driven roadmap (Phases 7–11) continuing v2.0's numbering
+- 29/29 v1 requirements mapped, no orphans, no duplicates
+- Infra risk (`file://` serving + Kaplay version pinning) front-loaded into Phase 7
+- Phase 10 (math gate) is the keystone/join point; math port parallelizable
+- Feel/safety validated last and with the actual user (Phase 11)
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-22 (v3.0 roadmap created)
 
-## Decisions
+## Historical Decisions (v1/v2)
 
-- [Phase ?]: PersistenceStore stub deferred to Plan 02
-- [Phase ?]: QuestionSelector uses naive uniform random in Plan 01; weighted selection by accuracy deferred to Plan 03 as designed
-- [Phase ?]: Event delegation on optionsList rather than per-item listeners — cleaner, avoids re-attaching on each question render
-- [Phase ?]: PlayerState.fromJSON validates types before assignment — mitigates T-01-01 prototype pollution threat
-- [Phase ?]: test decision — test rationale
-- [Phase ?]: calculateWeights uses exponent 1.5 for hard tables and 0.8*0.3 for easy — ~76% hard baseline — Adaptive difficulty drives question selection toward weaker tables
-- [Phase ?]: Fisher-Yates uniform shuffle replaces sort(random) — unbiased answer positions across 4 slots — Prevents position bias that would allow memorization of answer location
-- [Phase ?]: debugAccuracy() inside DOMContentLoaded, exposed on window for DevTools UAT — UAT debugging without any UI changes to the game
-- [Phase ?]: SVG feTurbulence grain via CSS data URI
-- [Phase ?]: HUD uses rgba(10,10,10,0.92) + backdrop-filter blur(4px) — grain shows subtly through, reinforcing dark aesthetic
-- [Phase ?]: Question text color is var(--text) #e8e8e8 — accent #00ff88 is decorative only (level badge, XP fills, correct border)
-- [Phase ?]: WCAG 2.1 AA verified: #e8e8e8 on #0a0a0a ~18:1, #888888 on #0a0a0a ~5.4:1 — UX-03 satisfied
-- [Phase ?]: TRANSITIONS map uses plain arrays not Set — simpler sufficient for 5 states
-- [Phase ?]: FloorConfig returns shallow copies via Object.assign plus spread array — prevents caller mutation of internal FLOORS data (T-02-03 mitigated)
-- [Phase ?]: CONFIG.DUNGEON appended as separate statement after CONFIG literal close — all dungeon constants in one sub-object, v1 fields untouched
-- [Phase ?]: DungeonState.get() uses Object.assign for loot snapshot — caller mutation cannot affect session state
-- [Phase ?]: CombatEngine reads all damage/HP/XP from CONFIG.DUNGEON constants — no magic numbers, Phase 5 tuning ready
-- [Phase ?]: getState() exposes floorDef.tablePools for Phase 3 QuestionSelector — DIFF-02 bridge set up in CombatEngine
-- [Phase ?]: migrate() wrapped in outer+inner try-catch; QuotaExceededError in setItem caught returning null, no retry loop
-- [Phase ?]: v1 localStorage key preserved untouched after migration — never deleted, required for rollback ability
-- [Phase ?]: PersistenceStore.load() migration branch symmetric with normal path — bootstrap fromJSON handles both uniformly
-- [Phase ?]: loot snapshot per resolveAnswer call prevents double-reads; single DungeonState.get().loot snapshot ensures combat tick consistency
-- [Phase ?]: effectiveDamageCorrect and effectiveDamageWrong returned on all resolveAnswer paths so handleAnswer can display accurate loot-modified floating damage numbers
-- [Phase ?]: DungeonState.init() confirmed ADHD-03 compliant — resets floor/room/playerHP/enemyHP/loot only; PlayerState XP and level never touched on dungeon reset
-- [Phase ?]: DungeonRunner preserves HP+loot by saving before startCombat() and restoring after — patches DungeonState.init() side effect without CombatEngine refactor
-- [Phase ?]: window.CombatInputHandler exported inside DOMContentLoaded for cross-scope DungeonRunner access to beginCombat()
-- [Phase ?]: Enter Dungeon button placed inside data-panel='quiz' section for CSS data-screen visibility scoping
+- [Phase 1]: PersistenceStore stub deferred to Plan 02
+- [Phase 1]: QuestionSelector uses naive uniform random in Plan 01; weighted selection by accuracy deferred to Plan 03 as designed
+- [Phase 1]: Event delegation on optionsList rather than per-item listeners — cleaner, avoids re-attaching on each question render
+- [Phase 1]: PlayerState.fromJSON validates types before assignment — mitigates T-01-01 prototype pollution threat
+- [Phase 1]: calculateWeights uses exponent 1.5 for hard tables and 0.8*0.3 for easy — ~76% hard baseline
+- [Phase 1]: Fisher-Yates uniform shuffle replaces sort(random) — unbiased answer positions across 4 slots
+- [Phase 1]: debugAccuracy() inside DOMContentLoaded, exposed on window for DevTools UAT
+- [Phase 1]: SVG feTurbulence grain via CSS data URI
+- [Phase 1]: HUD uses rgba(10,10,10,0.92) + backdrop-filter blur(4px)
+- [Phase 1]: Question text color is var(--text) #e8e8e8 — accent #00ff88 is decorative only
+- [Phase 1]: WCAG 2.1 AA verified: #e8e8e8 on #0a0a0a ~18:1, #888888 on #0a0a0a ~5.4:1 — UX-03 satisfied
+- [Phase 2]: TRANSITIONS map uses plain arrays not Set — simpler sufficient for 5 states
+- [Phase 2]: FloorConfig returns shallow copies via Object.assign plus spread array — prevents caller mutation (T-02-03)
+- [Phase 2]: CONFIG.DUNGEON appended as separate statement after CONFIG literal close
+- [Phase 2]: DungeonState.get() uses Object.assign for loot snapshot — caller mutation cannot affect session state
+- [Phase 2]: CombatEngine reads all damage/HP/XP from CONFIG.DUNGEON constants — no magic numbers
+- [Phase 2]: getState() exposes floorDef.tablePools for Phase 3 QuestionSelector — DIFF-02 bridge
+- [Phase 2]: migrate() wrapped in outer+inner try-catch; QuotaExceededError in setItem caught returning null
+- [Phase 2]: v1 localStorage key preserved untouched after migration — required for rollback
+- [Phase 2]: PersistenceStore.load() migration branch symmetric with normal path
+- [Phase 2]: loot snapshot per resolveAnswer call prevents double-reads
+- [Phase 2]: effectiveDamageCorrect/effectiveDamageWrong returned on all resolveAnswer paths
+- [Phase 2]: DungeonState.init() confirmed ADHD-03 compliant — XP and level never touched on reset
+- [Phase 5]: DungeonRunner preserves HP+loot by saving before startCombat() and restoring after
+- [Phase 2]: window.CombatInputHandler exported inside DOMContentLoaded for DungeonRunner access
+- [Phase 3]: Enter Dungeon button placed inside data-panel='quiz' section for CSS data-screen visibility
 
-## Deferred Items
+## Deferred Items (from v2.0 close)
 
 Items acknowledged and deferred at milestone close on 2026-06-22:
 
