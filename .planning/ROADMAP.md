@@ -49,79 +49,102 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 ## Phase Details
 
 ### Phase 7: Project Setup & Deployment
+
 **Goal**: The new multi-file game project is packaged as static files served by a Docker (nginx) container, deploys via Dokploy, and is reachable at a web URL she can just visit — no install, no launcher, no local files. Kaplay 3001.0.19 is vendored locally and the project has a clean, no-JS-build multi-file layout. This is the riskiest infra step — packaging, hosting, and the Kaplay version-churn pitfalls bite before any game code exists, so they are neutralized first. (Hosting over HTTP also sidesteps the `file://` module/asset-loading block for her; a local dev server is documented for development only.)
 **Depends on**: Nothing (first phase of the milestone)
 **Requirements**: SETUP-01, SETUP-02, SETUP-03, SETUP-04
 **Success Criteria** (what must be TRUE):
+
   1. The game is packaged as static files served by a Docker container running nginx — no backend, no database, no server-side logic — and the container serves a live Kaplay canvas (an empty `scene("game")` drawing "hello").
   2. The container deploys via Dokploy and the game is reachable at a web URL that loads and runs in the browser with no install, no launcher, and no local files for the user.
   3. Kaplay 3001.0.19 loads from a locally vendored file with no CDN call and no `npm install` step, version commented at the top of the vendored file.
   4. The repo has a clean multi-file layout (HTML + `src/` JS modules + `lib/` + `assets/` folder) that runs with no JS build step, and a local dev server (e.g. `python3 -m http.server`) is documented for development use only.
+
 **Plans**: 2 plans
+**Wave 1**
+
 - [ ] 07-01-PLAN.md — Scaffold no-build layout: archive v2, vendor Kaplay 3001.0.19, game shell (index.html + main.js with file:// guard + smoke scene), README (SETUP-03, SETUP-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 07-02-PLAN.md — Containerize (nginx:alpine + .mjs MIME fix) with local curl verification, and Dokploy deploy docs (SETUP-01, SETUP-02)
 
 ### Phase 8: Platformer Core (Movement / Physics / Camera)
+
 **Goal**: The intrinsically-fun spine works — an avatar she controls runs, jumps with weight, lands solidly, and the camera follows smoothly, all frame-rate independent. The gentle checkpoint-respawn policy is established here so later hazards inherit it.
 **Depends on**: Phase 7
 **Requirements**: MOVE-01, MOVE-02, MOVE-03, MOVE-04, MOVE-05, LEVEL-06
 **Success Criteria** (what must be TRUE):
+
   1. The player runs left/right with both arrow keys and WASD, and jumps with Space or Up, on a test platform strip.
   2. Jumping feels responsive — variable jump height, coyote time, and jump buffering are all present (not a fixed grounded jump).
   3. The avatar lands solidly on platforms with no sticking on seams and no tunneling through the floor on a fast drop.
   4. The camera follows the player smoothly (no jitter) and stays clamped within level bounds; movement feels identical on a non-60 Hz / throttled display.
   5. Falling off the world respawns the player at the last checkpoint with progress preserved — no lives, no game-over.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 9: Level Build & CC0 Assets
+
 **Goal**: One complete, polished level she can traverse start-to-goal, built from a chosen dark/grunge CC0 pack, with collectible coins, a respawn-triggering hazard, and a goal that hands off to the math gate. Asset licenses are documented.
 **Depends on**: Phase 8
 **Requirements**: LEVEL-01, LEVEL-02, LEVEL-03, LEVEL-04, LEVEL-05, LEVEL-07, LEVEL-08
 **Success Criteria** (what must be TRUE):
+
   1. The player can traverse one complete level from start to the goal flag, over platforms, gaps, and solid ground with reliable collision.
   2. The level renders in pixel art from a free CC0 pack styled dark/grunge (no pink), with readable silhouettes against the background.
   3. The player can collect coins placed throughout the level.
   4. At least one hazard or enemy triggers a gentle checkpoint respawn — never a game-over.
   5. Reaching the goal triggers the math-gate hook, and `CREDITS`/`LICENSES` records every asset's source and verified license (no vendor logos).
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 10: Math-Gate Integration (Port the Brain)
+
 **Goal**: The milestone keystone — the ported, framework-agnostic math brain (6–9-weighted selection) is wired to the level through a single bridge so that reaching the goal opens an in-world, forgiving, no-timer math gate that clears the level on a correct answer. The math port has zero dependency on the game shell and can proceed in parallel with Phases 8–9; this phase is the join point.
 **Depends on**: Phase 9 (goal + clean pause); the math-brain port itself has no game-shell dependency and can proceed in parallel from Phase 7 onward
 **Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06
 **Success Criteria** (what must be TRUE):
+
   1. Reaching the goal pauses the level and shows the math question as an in-world gate (game font/palette, avatar visible behind it) — not a system quiz popup.
   2. The question presents 4 multiple-choice answers from the ported weighted selector, biased toward the 6–9 tables.
   3. A correct answer opens the gate / clears the level with a celebratory moment.
   4. A wrong answer is forgiving — it re-asks with no penalty, no progress lost, and the run does not end.
   5. The gate has no countdown or time pressure, and the math module imports nothing from Kaplay (clean firewall; `ui/mathGate.js` is the only bridge), surviving replays with no leaked state.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 11: Progression & Persistence
+
 **Goal**: Her play accumulates — correct answers at the math gate earn XP and level her up using the proven v1/v2 curve, and XP, level, and per-table practice history persist in the browser between visits, just like her school game. Returning to the URL resumes her progression and keeps question selection adapted to her weak spots. This depends on Phase 10 because the math gate's correct/wrong outcomes are what drive XP; persistence comes after the gate produces real results.
 **Depends on**: Phase 10 (the math gate's correct/wrong outcomes drive XP)
 **Requirements**: SAVE-01, SAVE-02, SAVE-03, SAVE-04
 **Success Criteria** (what must be TRUE):
+
   1. A correct answer at the math gate earns XP, and accumulated XP levels her up following the ported v1/v2 XP curve and level system.
   2. XP, level, and per-table practice history (accuracy/mastery) persist in the browser via versioned localStorage and survive closing the tab.
   3. Returning to the URL resumes her progression with XP/level intact, and the persisted accuracy history keeps question selection adapted to her weak spots.
   4. Current XP and level are visible in-game (XP bar / level indicator) and reaching a new level shows a distinct level-up moment.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 12: Polish, ADHD-Safety & UAT
+
 **Goal**: The game reads and feels like a real game in front of the actual kid — satisfying juice, discoverable controls, readable contrast — and the no-timer / forgiving / low-stimulation mandate is audited and confirmed in UAT. Feel and framing are validated only with the user, so this phase is last.
 **Depends on**: Phase 11
 **Requirements**: JUICE-01, JUICE-02, JUICE-03, SAFE-01, SAFE-02, SAFE-03
 **Success Criteria** (what must be TRUE):
+
   1. Jumping and landing have satisfying, subtle visual feedback (squash/stretch, dust), and collecting a coin gives a satisfying pop.
   2. Clearing the level has a distinct, celebratory (non-strobing, brief) moment.
   3. An on-screen control hint shows how to move and jump, discoverable on the target Windows laptop.
   4. A no-timer/forgiving audit confirms there are no countdowns anywhere and wrong answers never punish.
   5. Visuals meet readable contrast on the dark theme and effects are not over-stimulating, confirmed in UAT with the kid.
+
 **Plans**: TBD
 **UI hint**: yes
 

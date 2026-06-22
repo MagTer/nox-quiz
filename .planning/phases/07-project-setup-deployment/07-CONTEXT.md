@@ -16,13 +16,13 @@ Delivers: SETUP-01 (static files via Docker/nginx, no backend), SETUP-02 (Dokplo
 ## Implementation Decisions
 
 ### Project Structure & Layout
-- Top-level layout: `src/` (index.html + `js/` ES modules), `assets/` (sprites/audio), `vendor/` (kaplay), `docker/` (Dockerfile + nginx.conf), `docs/`.
-- nginx web root points at the served static set rooted on `src/` with `vendor/` and `assets/` referenced/copied under it — no `dist/`, no build step.
+- Top-level layout: `src/` (index.html + ES modules), `lib/` (vendored kaplay — reconciled from `vendor/` to `lib/` to match ROADMAP success criterion 4, the verification gate), `assets/` (sprites/audio), `docker/` (Dockerfile + nginx.conf), `docs/`.
+- nginx web root points at the served static set (`src/`, `lib/`, `assets/`) — no `dist/`, no build step.
 - JS module style: native ES modules (`<script type="module">`), no bundler.
 - The v2 `math-lab.html` is **moved to `archive/`** (out of repo root) — preserved untouched as the reference source for the Phase 10 math-brain port.
 
 ### Kaplay Vendoring & Dev Server
-- Vendor Kaplay 3001.0.19 as `kaplay.mjs` (ESM) into `vendor/kaplay/`, with a header comment recording source URL + exact version.
+- Vendor Kaplay 3001.0.19 as `kaplay.mjs` (ESM) into `lib/`, with a header comment recording source URL + exact version.
 - Dev server: `python3 -m http.server 8000` documented in README, run from the web root. Development only — she plays via the hosted URL.
 - Add a small `file://` protocol guard that shows a "run via local server / visit the URL" message if the page is opened as a local file (prevents silent sprite/module load failure).
 - Pin enforcement via version + source comments in the vendored file and README; no lockfile (no npm).
