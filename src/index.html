@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math Lab — loading</title>
+  <style>
+    html, body { margin: 0; background: #0a0a0a; }
+    canvas { display: block; margin: auto; }
+  </style>
+  <!--
+    file:// protocol guard — runs FIRST as a non-module inline script.
+    A top-level static import in main.js is hoisted and would run before any
+    in-module guard, so the guard must live here, before the module loads.
+    If the page is opened as a local file, replace the body with a readable
+    message and stop the module from loading (no silent blank canvas).
+  -->
+  <script>
+    if (location.protocol === "file:") {
+      document.documentElement.innerHTML =
+        '<head><meta charset="utf-8"><title>Math Lab — run via a web server</title></head>' +
+        '<body style="margin:0;background:#0a0a0a">' +
+        '<div style="color:#e8e8e8;background:#0a0a0a;font:16px/1.6 system-ui,sans-serif;' +
+        'padding:2rem;max-width:42rem;margin:auto">' +
+        '<h1 style="color:#00ff88;margin-top:0">Run via a web server</h1>' +
+        '<p>This page must be served over HTTP, not opened as a local file ' +
+        '(<code>file://</code> blocks ES modules and asset loading).</p>' +
+        '<p>For development, run <code style="color:#00ff88">python3 -m http.server 8000</code> ' +
+        'in the project folder, then open ' +
+        '<code style="color:#00ff88">http://localhost:8000/</code>.</p>' +
+        '<p>Or just visit the hosted URL.</p>' +
+        '</div></body>';
+      // Belt-and-suspenders: prevent further loading (the module won't run
+      // because we've replaced the document, but stop() is explicit).
+      if (window.stop) window.stop();
+    }
+  </script>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <!-- Relative src so src/ is the import base; resolves identically in dev and container. -->
+  <script type="module" src="main.js"></script>
+</body>
+</html>
