@@ -924,10 +924,12 @@
       // Hard tables: base weight (1 - acc)^1.5, boosted if struggling, reduced if mastered.
       // Easy tables: base weight (1 - acc)^0.8 * 0.3 so they average ~30% total selection.
       // Edge case: if total weight rounds to zero (all mastered), reset to equal weights.
-      const calculateWeights = (playerState) => {
+      const calculateWeights = (playerState, allowedTables) => {
         const weights = {};
+        const allowed = allowedTables ? new Set(allowedTables) : null;
 
         CONFIG.HARD_TABLES.forEach(table => {
+          if (allowed && !allowed.has(table)) return;
           const acc = playerState.getAccuracy(table);
           let w = Math.pow(1 - acc, 1.5);
           if (acc < CONFIG.STRUGGLE_THRESHOLD) w *= CONFIG.STRUGGLE_BOOST;
@@ -936,17 +938,18 @@
         });
 
         CONFIG.EASY_TABLES.forEach(table => {
+          if (allowed && !allowed.has(table)) return;
           const acc = playerState.getAccuracy(table);
           let w = Math.pow(1 - acc, 0.8) * 0.3;
           if (playerState.isMastered(table)) w *= 0.3;
           weights[table] = w;
         });
 
-        // Guard: if all weights are ~zero (all tables mastered), reset to equal
+        // Guard: if all weights are ~zero (all tables mastered or pool empty), reset to equal
         const total = Object.values(weights).reduce((a, b) => a + b, 0);
         if (total < 1e-9) {
-          const allTables = [...CONFIG.HARD_TABLES, ...CONFIG.EASY_TABLES];
-          allTables.forEach(t => { weights[t] = 1.0; });
+          const fallbackTables = allowed ? [...allowed] : [...CONFIG.HARD_TABLES, ...CONFIG.EASY_TABLES];
+          fallbackTables.forEach(t => { weights[t] = 1.0; });
         }
 
         return weights;
@@ -1006,9 +1009,10 @@
       };
 
       return {
-        // Full weighted selectNext — accepts PlayerState to read accuracy
-        selectNext(playerState) {
-          const weights     = calculateWeights(playerState);
+        // Full weighted selectNext — accepts PlayerState to read accuracy.
+        // allowedTables: optional array of table numbers to restrict selection (DIFF-01).
+        selectNext(playerState, allowedTables) {
+          const weights     = calculateWeights(playerState, allowedTables);
           const table       = weightedRandom(weights);
           const multiplicand = Math.floor(Math.random() * 10) + 1;
           const answer      = table * multiplicand;
@@ -1885,7 +1889,8 @@
         },
 
         nextQuestion() {
-          const q = QuestionSelector.selectNext(PlayerState);
+          const pool = CombatEngine.getState().floorDef.tablePools;
+          const q = QuestionSelector.selectNext(PlayerState, pool);
           CombatInputHandler.currentQuestion = q;
           DungeonRenderer.renderCombatQuestion(q);
         },
