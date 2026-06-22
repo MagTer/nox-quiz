@@ -2,19 +2,18 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dungeon Crawler Phases
-current_phase: 05
-current_phase_name: full-floor-loop-balance
-status: verifying
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-06-21T22:49:00.771Z"
-last_activity: 2026-06-21
-last_activity_desc: Phase 05 execution started
+current_phase: 06
+current_phase_name: polish-adhd-safety-audit
+status: complete
+last_updated: "2026-06-22T09:00:00.000Z"
+last_activity: 2026-06-22
+last_activity_desc: Milestone v2.0 closed
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 16
-  completed_plans: 15
-  percent: 83
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State: Math Lab
@@ -25,18 +24,19 @@ progress:
 
 ## Project Reference
 
-**Core Value:** She opens it because she *wants* to, not because she has to.
+See: .planning/PROJECT.md (updated 2026-06-22)
 
-**Current Focus:** Phase 05 — full-floor-loop-balance
+**Core Value:** She opens it because she *wants* to, not because she has to.
+**Current Focus:** Planning next milestone (v3.0)
 
 **Tech Stack:** Single HTML file, vanilla ES2020+ JavaScript, CSS3, localStorage, no dependencies.
+**Shipped State (v2.0):** 1,976 LOC, fully playable dungeon crawler, 27/27 requirements satisfied.
 
 ## Current Position
 
-Phase: 05 (full-floor-loop-balance) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-06-21 — Phase 05 execution started
+Milestone v2.0 closed — 2026-06-22
+All 6 phases complete (16/16 plans)
+Status: ✅ Shipped — planning v3.0 next
 
 ## Key Decisions
 
@@ -121,8 +121,8 @@ Last activity: 2026-06-21 — Phase 05 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-21T22:49:00.762Z
-**Stopped at:** Completed 05-02-PLAN.md
+**Last session:** 2026-06-22T06:04:22.818Z
+**Stopped at:** context exhaustion at 75% (2026-06-22)
 
 **Next steps:**
 
@@ -173,6 +173,20 @@ Last activity: 2026-06-21 — Phase 05 execution started
 - [Phase ?]: DungeonRunner preserves HP+loot by saving before startCombat() and restoring after — patches DungeonState.init() side effect without CombatEngine refactor
 - [Phase ?]: window.CombatInputHandler exported inside DOMContentLoaded for cross-scope DungeonRunner access to beginCombat()
 - [Phase ?]: Enter Dungeon button placed inside data-panel='quiz' section for CSS data-screen visibility scoping
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-06-22:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat | Phase 01: 01-UAT.md — 11 pending browser UAT scenarios (v1 baseline) | acknowledged |
+| verification | Phase 04: 04-VERIFICATION.md — floating damage animation + HP bar drain visual confirmation (human_needed) | acknowledged |
+
+Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
+- SC-4: v1 localStorage migration browser test (9-step manual test documented in Phase 6 VERIFICATION.md)
+- levelUpFlash animation is 800ms; recommend reducing to 400–500ms for strict ADHD-04 compliance
+- DC-01 room-count spec mismatch: implementation uses entrance + 4 combat + 1 boss (6 rooms), spec says entrance + 3 + boss (5)
 
 ## Performance Metrics
 
