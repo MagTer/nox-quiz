@@ -1843,6 +1843,7 @@
           const selected   = parseInt(selectedValue, 10);
           const q          = CombatInputHandler.currentQuestion;
           const isCorrect  = (selected === q.answer);
+          PlayerState.updateAccuracy(q.table, isCorrect);
           const result     = CombatEngine.resolveAnswer(isCorrect);
 
           DungeonRenderer.updateHP(result.enemyHP, result.playerHP);
