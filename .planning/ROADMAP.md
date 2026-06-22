@@ -60,10 +60,10 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   3. Kaplay 3001.0.19 loads from a locally vendored file with no CDN call and no `npm install` step, version commented at the top of the vendored file.
   4. The repo has a clean multi-file layout (HTML + `src/` JS modules + `lib/` + `assets/` folder) that runs with no JS build step, and a local dev server (e.g. `python3 -m http.server`) is documented for development use only.
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 **Wave 1**
 
-- [ ] 07-01-PLAN.md — Scaffold no-build layout: archive v2, vendor Kaplay 3001.0.19, game shell (index.html + main.js with file:// guard + smoke scene), README (SETUP-03, SETUP-04)
+- [x] 07-01-PLAN.md — Scaffold no-build layout: archive v2, vendor Kaplay 3001.0.19, game shell (index.html + main.js with file:// guard + smoke scene), README (SETUP-03, SETUP-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -158,7 +158,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 4. Dungeon Renderer | v2.0 | 3/3 | ✅ Complete | 2026-06-21 |
 | 5. Full Floor Loop + Balance | v2.0 | 2/2 | ✅ Complete | 2026-06-21 |
 | 6. Polish + ADHD Safety Audit | v2.0 | 2/2 | ✅ Complete | 2026-06-22 |
-| 7. Project Setup & Deployment | v3.0 | 0/2 | Not started | - |
+| 7. Project Setup & Deployment | v3.0 | 1/2 | In Progress|  |
 | 8. Platformer Core | v3.0 | 0/0 | Not started | - |
 | 9. Level Build & CC0 Assets | v3.0 | 0/0 | Not started | - |
 | 10. Math-Gate Integration | v3.0 | 0/0 | Not started | - |

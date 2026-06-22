@@ -2,14 +2,17 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: The Platformer
-status: roadmapped
-last_updated: "2026-06-22T11:23:15.565Z"
+current_phase: 7
+current_phase_name: Project Setup & Deployment
+status: executing
+last_updated: "2026-06-22T19:27:05.594Z"
 last_activity: 2026-06-22
+last_activity_desc: Phase 7 execution started
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -24,7 +27,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** v3.0 — pivot to a real 2D platformer (Kaplay), hosted at a web URL (Docker/nginx via Dokploy), with an end-of-stage math gate and persisted XP/leveling. Roadmap complete; ready to plan Phase 7.
+**Current Focus:** Phase 7 — Project Setup & Deployment
 
 **Tech Stack (v3.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Packaged as static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL she just visits (no install, no launcher). A local dev server (`python3 -m http.server`) is used during development only. Persistence via versioned localStorage.
 **Shipped State (v2.0, being replaced):** 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji. The math brain (weighted 6–9 selection) is carried forward; the quiz shell is replaced by a game shell.
@@ -32,10 +35,10 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 ## Current Position
 
 Milestone: v3.0 The Platformer
-Phase: 7 (Project Setup & Deployment) — not started
-Plan: —
-Status: Roadmap created; awaiting phase planning
-Last activity: 2026-06-22 — ROADMAP.md revised for v3.0 (Phases 7–12), 33/33 v1 requirements mapped
+Phase: 7 (Project Setup & Deployment) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-06-22 — Phase 7 execution started
 
 ## v3.0 Roadmap (Phases 7–12)
 
@@ -113,7 +116,7 @@ Last activity: 2026-06-22 — ROADMAP.md revised for v3.0 (Phases 7–12), 33/33
 
 **Resume file:** None
 
-**Last session:** 2026-06-22 — v3.0 roadmap revised (Phases 7–12)
+**Last session:** 2026-06-22T19:26:40.340Z
 
 **Next steps:**
 
@@ -190,3 +193,10 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 02 P03 | 180 | - tasks | - files |
 | Phase 05 P01 | 83s | 2 tasks | 1 files |
 | Phase 05 P02 | 10m | 3 tasks | 1 files |
+| Phase 07 P01 | ~2min | 3 tasks | 6 files |
+
+## Decisions
+
+- [Phase ?]: [Phase 7] Vendored folder is lib/ (not vendor/) — passes the phase verification gate
+- [Phase ?]: [Phase 7] file:// guard inline in index.html head, not main.js — top-level import is hoisted and runs before an in-module guard
+- [Phase ?]: [Phase 7] Kaplay 3001.0.19 sha256 fb4a4ef2... recorded in lib/kaplay.mjs header for integrity (T-07-SC)
