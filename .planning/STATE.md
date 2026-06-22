@@ -4,16 +4,17 @@ milestone: v3.0
 milestone_name: The Platformer
 current_phase: 7
 current_phase_name: Project Setup & Deployment
-status: executing
-last_updated: "2026-06-22T19:27:05.594Z"
+status: verifying
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-06-22T19:31:31.858Z"
 last_activity: 2026-06-22
 last_activity_desc: Phase 7 execution started
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 17
 ---
 
 # Project State: Math Lab
@@ -37,7 +38,7 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 Milestone: v3.0 The Platformer
 Phase: 7 (Project Setup & Deployment) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-22 — Phase 7 execution started
 
 ## v3.0 Roadmap (Phases 7–12)
@@ -114,9 +115,11 @@ Last activity: 2026-06-22 — Phase 7 execution started
 
 ## Session Continuity
 
+**Stopped at:** Completed 07-02-PLAN.md
+
 **Resume file:** None
 
-**Last session:** 2026-06-22T19:26:40.340Z
+**Last session:** 2026-06-22T19:31:31.846Z
 
 **Next steps:**
 
@@ -194,9 +197,13 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 05 P01 | 83s | 2 tasks | 1 files |
 | Phase 05 P02 | 10m | 3 tasks | 1 files |
 | Phase 07 P01 | ~2min | 3 tasks | 6 files |
+| Phase 07 P02 | ~2min | 3 tasks | 3 files |
 
 ## Decisions
 
 - [Phase ?]: [Phase 7] Vendored folder is lib/ (not vendor/) — passes the phase verification gate
 - [Phase ?]: [Phase 7] file:// guard inline in index.html head, not main.js — top-level import is hoisted and runs before an in-module guard
 - [Phase ?]: [Phase 7] Kaplay 3001.0.19 sha256 fb4a4ef2... recorded in lib/kaplay.mjs header for integrity (T-07-SC)
+- [Phase 7]: Custom Dockerfile over Dokploy Static preset — keeps the .mjs MIME fix under our control
+- [Phase 7]: nginx types{} re-declares js alongside mjs to avoid regressing .js to octet-stream (verified via curl on /main.js)
+- [Phase 7]: Live Dokploy deploy DEFERRED — config + docs/DEPLOY.md satisfy SETUP-02 now; live deploy is a user-triggered follow-up

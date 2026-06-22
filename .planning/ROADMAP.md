@@ -39,7 +39,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 
 **Granularity:** standard · **Phase numbering:** sequential, continuing from v2.0 (ended at Phase 6).
 
-- [ ] **Phase 7: Project Setup & Deployment** - Vendored Kaplay boots from static files served by a Docker/nginx container, deployable to Dokploy and reachable at a web URL.
+- [x] **Phase 7: Project Setup & Deployment** - Vendored Kaplay boots from static files served by a Docker/nginx container, deployable to Dokploy and reachable at a web URL. (completed 2026-06-22)
 - [ ] **Phase 8: Platformer Core (Movement / Physics / Camera)** - A responsive, Mario-feel avatar runs, jumps, lands, and respawns gently on a test strip.
 - [ ] **Phase 9: Level Build & CC0 Assets** - One polished, completable dark/grunge level with platforms, coins, a hazard, checkpoints, and a goal.
 - [ ] **Phase 10: Math-Gate Integration (Port the Brain)** - Reaching the goal opens an in-world, forgiving math gate driven by the ported 6–9-weighted brain.
@@ -60,14 +60,14 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   3. Kaplay 3001.0.19 loads from a locally vendored file with no CDN call and no `npm install` step, version commented at the top of the vendored file.
   4. The repo has a clean multi-file layout (HTML + `src/` JS modules + `lib/` + `assets/` folder) that runs with no JS build step, and a local dev server (e.g. `python3 -m http.server`) is documented for development use only.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 **Wave 1**
 
 - [x] 07-01-PLAN.md — Scaffold no-build layout: archive v2, vendor Kaplay 3001.0.19, game shell (index.html + main.js with file:// guard + smoke scene), README (SETUP-03, SETUP-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 07-02-PLAN.md — Containerize (nginx:alpine + .mjs MIME fix) with local curl verification, and Dokploy deploy docs (SETUP-01, SETUP-02)
+- [x] 07-02-PLAN.md — Containerize (nginx:alpine + .mjs MIME fix) with local curl verification, and Dokploy deploy docs (SETUP-01, SETUP-02)
 
 ### Phase 8: Platformer Core (Movement / Physics / Camera)
 
@@ -158,7 +158,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 4. Dungeon Renderer | v2.0 | 3/3 | ✅ Complete | 2026-06-21 |
 | 5. Full Floor Loop + Balance | v2.0 | 2/2 | ✅ Complete | 2026-06-21 |
 | 6. Polish + ADHD Safety Audit | v2.0 | 2/2 | ✅ Complete | 2026-06-22 |
-| 7. Project Setup & Deployment | v3.0 | 1/2 | In Progress|  |
+| 7. Project Setup & Deployment | v3.0 | 2/2 | Complete   | 2026-06-22 |
 | 8. Platformer Core | v3.0 | 0/0 | Not started | - |
 | 9. Level Build & CC0 Assets | v3.0 | 0/0 | Not started | - |
 | 10. Math-Gate Integration | v3.0 | 0/0 | Not started | - |

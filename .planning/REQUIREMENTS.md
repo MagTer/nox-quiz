@@ -10,8 +10,8 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 
 ### Project Setup & Deployment
 
-- [ ] **SETUP-01**: The game is packaged as static files served by a Docker container (nginx) — no backend, no database, no server-side logic
-- [ ] **SETUP-02**: The container deploys via Dokploy and the game is reachable at a web URL she can visit to play (no install, no launcher, no local files)
+- [x] **SETUP-01**: The game is packaged as static files served by a Docker container (nginx) — no backend, no database, no server-side logic
+- [x] **SETUP-02**: The container deploys via Dokploy and the game is reachable at a web URL she can visit to play (no install, no launcher, no local files)
 - [x] **SETUP-03**: Kaplay (pinned to 3001.0.19) is vendored locally — no CDN, no `npm install` needed to play
 - [x] **SETUP-04**: The project uses a clean multi-file layout (HTML + JS modules + assets folder) with no JS build step; a local dev server is documented for development
 
@@ -101,8 +101,8 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | Phase 7 | Pending |
-| SETUP-02 | Phase 7 | Pending |
+| SETUP-01 | Phase 7 | Complete |
+| SETUP-02 | Phase 7 | Complete |
 | SETUP-03 | Phase 7 | Complete |
 | SETUP-04 | Phase 7 | Complete |
 | MOVE-01 | Phase 8 | Pending |
