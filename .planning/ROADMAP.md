@@ -108,7 +108,7 @@ Plans:
 - [ ] **Phase 3: Screen Architecture** - All dungeon screen panels in HTML, data-screen CSS visibility system, App mode routing, InputHandler guard
 - [ ] **Phase 4: Dungeon Renderer** - DungeonRenderer, emoji enemy sprites, CSS HP bars, combat animations, floor-complete screen visuals
 - [x] **Phase 5: Full Floor Loop + Balance** - End-to-end playable run, loot system, boss floor, death/retry, XP integration, balance tuning (completed 2026-06-21)
-- [ ] **Phase 6: Polish + ADHD Safety Audit** - Flavor text, RPG copy pass, ADHD safety checklist, localStorage migration test with real v1 data
+- [x] **Phase 6: Polish + ADHD Safety Audit** - Flavor text finalized, ADHD safety audit passed 6/6 automated checks, SC-4 migration browser test pending (completed 2026-06-22)
 
 ---
 
@@ -292,7 +292,7 @@ Plans:
 | 3. Screen Architecture | 1/2 | In Progress|  |
 | 4. Dungeon Renderer | 0/3 | Planned | - |
 | 5. Full Floor Loop + Balance | 2/2 | Complete   | 2026-06-21 |
-| 6. Polish + ADHD Safety Audit | 1/2 | In Progress|  |
+| 6. Polish + ADHD Safety Audit | 2/2 | Complete | 2026-06-22 |
 
 ---
 
