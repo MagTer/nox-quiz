@@ -1,0 +1,1 @@
+{"content":"Kaplay scenes: scene(name, cb) defines, go(name, data) switches and passes one arg (object for multiple). go() destroys all objects not preserved with stay() component. Docs recommend putting code inside scenes so it can rerun on re-entry.","source":"web","provider":"webfetch","confidence":"HIGH","fetched_at":"2026-06-22T11:26:20.012Z","ttl":86400000,"kind":"docs"}

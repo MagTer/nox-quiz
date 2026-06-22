@@ -1,345 +1,395 @@
-# Pitfalls Research: Dungeon Crawler Integration into Existing Math Game
+# Pitfalls Research
 
-**Domain:** Adding dungeon crawler combat layer to existing single-HTML-file browser math game (ADHD-safe, 12-year-old target user)
-**Researched:** 2026-06-20
-**Confidence:** HIGH (game design patterns + ADHD research + single-file architecture constraints)
+**Domain:** First-time Kaplay (Kaboom successor) 2D platformer with an end-of-stage math gate, shipped to a 12-year-old (possible ADHD) as an offline multi-file browser app.
+**Researched:** 2026-06-22
+**Confidence:** HIGH (Kaplay version/CORS/scenes, game-feel, CC0 licensing); MEDIUM (Kaplay collision edge cases — collision module still maturing, less documented).
+
+> Scope note: these are pitfalls specific to *adding a Kaplay platformer to this project and putting it in front of a real kid*. Generic web-app advice is omitted. Phases referenced are the expected v3.0 shape: **P1 Project setup & local serving**, **P2 Platformer core (movement/physics/camera)**, **P3 Level build & CC0 assets**, **P4 Math-gate integration (port the math brain)**, **P5 Polish, ADHD-safety & UAT**.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Dungeon Feature Scope Creep Kills the Project Before Launch
+### Pitfall 1: Assets silently fail to load over `file://` (CORS)
 
 **What goes wrong:**
-The v1 quiz app is finished and working. v2 adds room navigation, HP combat, 3 enemy types, loot drops, floor progression, and a boss. That is already 5–6 independent subsystems. Each one feels small in isolation — "just add a map", "just add health potions" — but together they produce a scope that could take 3× longer than estimated. Over 70% of indie games exceeding their initial scope fail to meet deadlines. The common trajectory: start building rooms, decide they need animations, decide enemies need idle behavior, decide loot needs a UI inventory panel, ship nothing.
+The game opens by double-clicking the HTML file, the canvas shows but sprites/tilemap never appear, or `loadSprite()` hangs and the scene never starts. Console shows `CORS request not HTTP` / fetch failures.
 
 **Why it happens:**
-The transition from a quiz app to a "game" creates infinite expansion surface. Every dungeon crawler reference (Roblox, Minecraft dungeons) the developer has in mind adds features subconsciously. Dungeon crawlers are a well-established genre with many expected affordances, and the temptation is to build them all.
+Kaplay's `loadSprite`/`loadSound`/`loadSpriteAtlas` use `fetch` under the hood. The `file://` scheme is not http(s), so the browser blocks the request. This is invisible in a single-inlined-file app (v1/v2 had no external assets) and surfaces the moment v3.0 vendors Kaplay + an assets folder.
 
 **How to avoid:**
-- Hard-freeze scope at: room navigation (text/icon-based, not animated maps), HP combat (player HP bar + enemy HP bar, no elaboration), 3 enemy archetypes (stat differences only, not unique mechanics), loot as passive stat bonuses (sword = +damage, shield = -damage taken, potion = +HP), floor progression (table difficulty gates). That is the complete list.
-- Write a "won't build" list before coding starts: no inventory UI, no item descriptions panel, no animated room transitions, no multiple ability types, no story dialogue, no achievement system in v2.
-- Evaluate every proposed addition with: "Can she play without this?" If yes, defer.
-- Assign phases to features explicitly. If it isn't assigned to a phase, it does not get built.
+Require a local static server and bake it into how the project is launched. Ship a one-line launcher (`python -m http.server 8000`, or `npx serve`, or a tiny `.bat`/`.sh`) and document opening `http://localhost:8000`. Make "served, not double-clicked" a first-class instruction for the parent/kid. Consider a startup guard that detects `location.protocol === 'file:'` and shows a friendly "open via the start script" message instead of a blank screen.
 
 **Warning signs:**
-- Planning doc includes "it would be cool if..." sentences
-- Enemy types gain unique special attacks (rather than just different stat values)
-- Loot gains an inventory screen or comparison UI
-- A map/minimap gets designed
-- Session estimate grows past 2 weeks
+Blank/black canvas, sprites missing, `loadSprite` promises never resolve, console CORS/fetch errors, works for the developer (who runs a server) but not on the target Windows laptop (double-clicked).
 
-**Phase to address:**
-Requirements phase — scope freeze before any code is written. Document the won't-build list explicitly. Revisit at each phase transition.
+**Phase to address:** P1 (Project setup & local serving) — establish the serving story and the `file://` guard before any assets exist.
 
 ---
 
-### Pitfall 2: Wrong-Answer Damage Becomes a Punishment Loop for ADHD Users
+### Pitfall 2: Kaboom/Kaplay version churn breaks copy-pasted code
 
 **What goes wrong:**
-The combat design is "correct answer attacks enemy, wrong answer takes damage." This sounds fun, but for a 12-year-old with ADHD who is also math-anxious, a streak of wrong answers triggers: HP drains → enemy stronger → more pressure → working memory collapses → more wrong answers → death → frustration → app closed. ADHD brains are more sensitive to punishment signals than neurotypical brains. A single bad run can permanently associate the app with failure. Research confirms that punishment-based feedback worsens math anxiety and undermines motivation in ADHD children.
+Tutorials and AI-generated snippets mix Kaboom.js, Kaplay v3001, and v4000 APIs. Code that "should work" throws `undefined is not a function`, or deprecation warnings flood the console (`kaboom()`, `curAnim()`, `Event`).
 
 **Why it happens:**
-The combat mechanic naturally maps "wrong answer = bad outcome." Developers copy standard RPG logic without adjusting for a non-punishing educational context. The damage system feels balanced when playtested by an adult who can recover quickly; it is not balanced for a child mid-anxiety spiral.
+Kaplay is the maintained fork of abandoned Kaboom.js. `kaboom()` is a deprecated alias for `kaplay()`. v3001 is the Kaboom-compatible stable line (no breaking changes); v4000 adds breaking changes and new APIs. The web is full of mixed-vintage examples, and a first-time user can't tell which version a snippet targets.
 
 **How to avoid:**
-- Cap wrong-answer damage so it is never lethal in a single encounter. The enemy should be defeatable even with 3–4 wrong answers per fight.
-- Wrong answers show the correct answer immediately and let the player retry (possibly with a different choice set) rather than forcing move-on. The math teaching happens at the moment of error.
-- Death should cost nothing except restarting the current floor only (already planned). No XP loss, no loot loss. Death = mild inconvenience, not setback.
-- Add "grace HP" — the player starts with generous HP (e.g. 100) and damage from a wrong answer is small relative to that pool (e.g. 5–10). Enemy HP is tuned so 2–3 correct answers finish the fight regardless.
-- Enemy attacks on wrong answer should be visually dramatic but mechanically gentle. Flash and sound, small number.
+Pin one version when vendoring the library file and record it (e.g. `kaplay@3001.x` for maximum compatibility/stability, or commit to v4000 deliberately). Add a one-line comment at the top of the vendored file noting version + source URL. When borrowing code, check it against the docs for the pinned version, not a random blog. Prefer `kaplay()` over `kaboom()` and the non-deprecated names.
 
 **Warning signs:**
-- Playtesting shows the player dying in the first or second room more than 10% of attempts
-- The player loses HP faster than they gain it back from potions
-- Any single enemy can kill in fewer than 5 wrong answers
-- Wrong-answer rate on hard tables (×7, ×8, ×9) exceeds 30% in early testing — if so, those tables deal too much damage relative to her current mastery
+`is not a function` errors, deprecation warnings in console, snippets that reference `kaboom(` while you call `kaplay(`, behavior that contradicts the docs you're reading.
 
-**Phase to address:**
-Combat design phase — define exact HP values and damage numbers before coding. Test specifically with 30%+ wrong-answer rate scenarios (simulate the worst session). Revisit after first real user session.
+**Phase to address:** P1 (pin + vendor the version) and P2 (build against the pinned API).
 
 ---
 
-### Pitfall 3: Floor Repetition Makes the Dungeon Feel Like the Quiz with a Skin
+### Pitfall 3: Module-level state leaks across scenes and level retries
 
 **What goes wrong:**
-5 rooms per floor × 3 floors = 15 rooms. If each room is "fight one enemy, answer questions, move to next room," the novelty wears off by floor 2. The dungeon skin evaporates and it feels like the v1 quiz with extra steps. Research on dungeon crawlers explicitly identifies this as a documented failure: "progressing through floors doesn't introduce any new features — players basically repeat what they did on the first floor but with stronger opponents."
+On retry/replay (very common with a kid), score, current-question index, player HP, or "answered correctly" flags carry over from the previous attempt — questions get skipped, the gate is pre-cleared, or the level starts in a corrupted state. The math brain's selection state drifts.
 
 **Why it happens:**
-Minimizing scope (correctly) means each room is mechanically identical. But identical rooms create perceptual monotony quickly. The player's brain stops anticipating and starts grinding.
+`go(scene)` destroys all game objects but does **not** reset plain JavaScript variables declared at module scope. Code outside scenes only runs once. Objects given `stay()` survive scene switches and can persist unintentionally. A first-time Kaplay dev naturally reaches for a module-level `let score = 0`, which then accumulates across `go()` calls.
 
 **How to avoid:**
-- Introduce minimal mechanical variety without adding new systems: room types. Example: Combat room (standard fight), Treasure room (loot drop, no fight), Boss room (end of floor, harder enemy, bigger reward). These three types are enough to break monotony.
-- Vary enemy visuals and flavour text per floor even if stats only change incrementally. Goblin floor 1 is a scraggly goblin; floor 2 is a goblin champion. Same mechanic, different text.
-- The boss encounter should feel genuinely different: multi-hit fight (player must answer 3–4 questions to win, not just 1–2), dramatic visual treatment.
-- Do not add more mechanics to fix repetition — add narrative flavour (room descriptions, enemy taunts, item flavour text) which costs hours not days.
+Initialize all mutable run state *inside* the scene callback, not at module scope. Pass cross-scene data explicitly via `go(name, data)` (single value or object). Keep the ported math brain's per-session state in an object that the level scene constructs fresh on entry; expose a `reset()` and call it on scene start. Use `stay()` sparingly and only for genuinely global things (e.g. an audio/settings singleton, which v3.0 doesn't need yet). Wrap all game logic inside scene definitions.
 
 **Warning signs:**
-- Playtesters describe floors 2 and 3 as "same as floor 1 but harder"
-- Player skips reading room descriptions after floor 1
-- Time spent per room drops sharply on floor 2 (losing interest signal)
-- Player explicitly asks "is there anything different on this floor?"
+Second playthrough behaves differently from the first; gate already "solved"; question counter doesn't reset; HP/score from a prior run appears; behavior changes only after a `go()` round-trip.
 
-**Phase to address:**
-Room/floor design phase — define room type variety and flavour text before implementing rooms. Even 3 lines of per-enemy flavour text changes the feel dramatically.
+**Phase to address:** P4 (Math-gate integration — porting the brain is exactly where this bites) with the scene-state discipline set up in P2.
 
 ---
 
-### Pitfall 4: CSS/DOM Screen Management Becomes Spaghetti as Screens Multiply
+### Pitfall 4: The math gate feels like a punishing quiz popup, not part of the game
 
 **What goes wrong:**
-v1 had one screen: the quiz. v2 needs: title/start screen, dungeon map/room selection, combat screen, loot screen, death/floor-fail screen, level-up overlay, floor-complete screen. That is 7 distinct UI states in a single HTML file. The naive approach — toggle `display:none` / `display:block` on each section via class manipulation — works for 2 screens but becomes a combinatorial mess by screen 5. A bug in the CSS class toggling leaves the combat screen visible under the loot screen. The state the JavaScript thinks it is in diverges from what CSS shows. This kind of visual state corruption is extremely difficult to debug in a single file.
+She runs, jumps, has fun — then a stark multiple-choice dialog slams over the screen. It reads as "back to homework." Engagement drops at the exact moment the project's core value ("she opens it because she wants to") should pay off.
 
 **Why it happens:**
-Single-file architecture does not enforce component encapsulation. Every screen's CSS bleeds into every other screen. Developers add `display:none` to one section, forget the z-index on an overlay, and the ordering of `classList.add/remove` calls creates race conditions. The complexity scales faster than expected because each new screen interacts with all existing screens.
+The math brain is ported from the v1/v2 quiz, so the path of least resistance is to render the old quiz UI verbatim. The platformer and the quiz end up as two disconnected apps glued together.
 
 **How to avoid:**
-- Use a single JavaScript `currentScreen` variable as the ground truth. All DOM visibility is derived from this one variable. Never toggle screen visibility anywhere except the `renderScreen(state)` function.
-- Pattern: `document.querySelectorAll('.screen').forEach(s => s.hidden = true); document.getElementById(screenId).hidden = false;` — one toggle point, always consistent.
-- Name screens with explicit IDs matching the state machine: `screen-start`, `screen-combat`, `screen-loot`, `screen-floor-complete`, `screen-death`. Never use ad-hoc class names.
-- Keep each screen's CSS scoped: `.screen-combat .hp-bar` not `.hp-bar`. Prevents rules bleeding across screens.
-- Overlays (level-up, correct-answer flash) live in a separate layer above screens, never embedded in a screen's DOM.
+Diegetic framing: the gate is a locked door / guardian / goal flag *in the level*, styled in the same dark/grunge pixel art as the world. Keep the avatar on screen. Transition in (don't hard-cut), use the game's font/palette, and frame it as "the door asks a riddle" rather than "Quiz: Question 1 of N". Reuse the math *brain* (weighted 6–9 selection) but build a *new* gate presentation, not the v2 modal.
 
 **Warning signs:**
-- Two screens are partially visible at the same time
-- A transition to a new screen requires more than one `classList` call outside the central render function
-- Screen-specific CSS rules start with generic selectors (`.button`, `.title`) that affect other screens
-- A new screen breaks an existing screen's layout
+The gate uses different fonts/colors than the level; it's a full-screen white/system dialog; the avatar disappears; playtester (the kid) audibly groans or disengages when it appears.
 
-**Phase to address:**
-Combat/screen architecture phase — establish the screen state machine pattern before building individual screens. Retrofitting this after 5 screens are built is expensive.
+**Phase to address:** P4 (gate presentation) and P5 (UAT confirms it doesn't read as homework).
 
 ---
 
-### Pitfall 5: v1 localStorage Schema Breaks v2 Save State Without Migration
+### Pitfall 5: Frame-rate-dependent movement (not multiplying by `dt`)
 
 **What goes wrong:**
-v1 saves: `{ xp, level, accuracy }`. v2 adds: `{ currentFloor, playerHP, lootInventory, enemiesDefeated, floorProgress }`. If v2 reads v1 data naively, `currentFloor` is `undefined`, the game tries to render a floor that doesn't exist, and the app throws a JavaScript error. At best, the player sees a blank screen. At worst, XP and level from v1 are silently lost because the migration clobbers the old key. For a user who has been playing v1 for weeks, losing progress destroys trust immediately.
+The game feels right on the dev machine but the avatar moves twice as fast or jumps twice as high on a high-refresh (120/144 Hz) laptop, or crawls on a slow one. Jump arcs and run speed differ per device, making tuning meaningless.
 
 **Why it happens:**
-Developers test v2 on a clean browser profile where no v1 data exists. The migration problem only surfaces for real users who have existing saves. It is easy to forget that anyone who played v1 has data in localStorage that will conflict with v2's expected schema.
+First-time game-loop authors update position with a fixed per-frame delta (`pos.x += speed`) instead of scaling by elapsed time. Kaplay provides `dt()`; if you bypass body() velocity and move objects manually, you must use it.
 
 **How to avoid:**
-- On v2 app start, read the stored `schemaVersion` key. If it is `undefined` (v1) or `"1"`, run a migration function before any game logic executes.
-- Migration from v1 to v2: read `xp`, `level`, `accuracy` from v1 keys, write them into the v2 save object under the new schema, add default values for all new v2 fields (`currentFloor: 1`, `playerHP: 100`, `lootInventory: []`), then write the complete v2 object and set `schemaVersion: "2"`.
-- Never delete v1 keys until after v2 keys are confirmed written successfully.
-- Test explicitly: create a v1 save in DevTools, then reload with v2 code. Verify XP and level survived and v2 defaults are correct.
-- Validate on load: after reading localStorage, check all required fields exist and are the correct type. If any are missing or wrong type, apply defaults rather than crashing.
+Prefer Kaplay's `body()` + `vel` (px/sec, already time-based) and `setGravity()` for physics. For any manual movement, multiply by `dt()`. Test on at least one non-60 Hz refresh rate or use browser dev-tools throttling to confirm consistency before tuning feel.
 
 **Warning signs:**
-- v2 development done entirely on a fresh browser profile — v1 migration never tested
-- No `schemaVersion` field in the v1 save design
-- The save/load code reads fields with no fallback defaults (e.g. `state.currentFloor` with no `?? 1` guard)
-- Tests only cover "fresh install" scenario
+Jump height/run speed changes between monitors; tuning that felt good yesterday feels wrong on another machine; movement tied to a raw `+= constant` in the update loop.
 
-**Phase to address:**
-Save/state architecture phase — define the v2 schema and migration path before writing any save/load code. Include v1-to-v2 migration in the very first implementation of the save system.
+**Phase to address:** P2 (platformer core) — establish dt-correct movement before tuning.
 
 ---
 
-### Pitfall 6: Accidental ADHD-Unsafe Patterns Sneaking in via Combat Mechanics
+## Moderate Pitfalls
+
+### Pitfall 6: Floaty / unresponsive jump (missing coyote time, jump buffer, variable height)
 
 **What goes wrong:**
-Five ADHD-unsafe patterns can accidentally appear in the dungeon layer even when everyone agrees timers are banned:
-
-1. **Implicit time pressure from HP drain**: Seeing HP drop with each wrong answer creates urgency and cortisol spike. Even without a visible timer, a shrinking health bar is a countdown. The user rushes, makes more errors, takes more damage, spirals.
-2. **Death as hard punishment with XP/loot loss**: Any mechanic that strips progress earned inverts the reward loop. ADHD users experience this as "the game punishes me for struggling" and quit.
-3. **Comparison metrics accidentally added**: "Floor 2 best time: 3:22" or "Defeated in 7 questions (average: 4)" introduces performance comparison and social anxiety against a virtual past self.
-4. **Sensory overload from combat feedback**: Screen shake, flashing red damage overlays, loud sound effects, and simultaneous animations overwhelm working memory during a math question. The player is trying to think about 8×7 while the screen vibrates.
-5. **Loot/upgrade complexity requiring decision-making under stress**: "You found a sword (+2 attack) and a shield (+1 defense). Choose one." This choice requires comparison, risk assessment, and commitment — a cognitive load spike at a moment that should feel like reward, not work.
+Jumps feel mushy or "eat" inputs — she presses jump at the ledge edge or a hair before landing and nothing happens. The game feels unfair, which is corrosive for a no-pressure ADHD context.
 
 **Why it happens:**
-Each of these patterns is standard RPG design. Combat feedback is expected to be dramatic. Loot choices are expected to be interesting. Developers import genre conventions without filtering them through ADHD-safety requirements. The harm is not obvious until a real user session reveals the anxiety response.
+A naive jump = "only if exactly grounded, fixed impulse, can't modulate." Real platformers fudge physics: **coyote time** (jump allowed for a few frames after leaving a ledge), **jump buffering** (a jump pressed just before landing fires on touchdown), and **variable jump height** (releasing jump early cuts upward velocity). Mario-feel uses asymmetric gravity (lighter going up, heavier coming down), not a pure parabola.
 
 **How to avoid:**
-- HP bar: use colour progression (green → amber → red) but never show a timer. Wrong-answer damage is small and shown as a number, not an animated drain.
-- Death: restart floor only. Zero XP loss. Zero loot loss. Death screen says "Try again?" not "You failed" or "Floor 2 — your best run: 5 questions."
-- No time tracking displayed anywhere. No session comparison stats. Progress is absolute ("You defeated 12 enemies today") not relative ("3 fewer than yesterday").
-- Combat animations: brief (under 0.5s), non-flashing, no screen shake. Sound effects optional and off by default.
-- Loot drops: automatic application, no choice required. "You found a Rusty Sword! +2 Attack." It just applies. If multiple items are possible, pick automatically based on what is most needed (low HP → potion, otherwise sword/shield).
+Implement coyote time (~80–120 ms), jump buffering (~100–150 ms), and variable jump height. Use `isGrounded()` from `body()` to gate jumps but allow the coyote window. Tune gravity/jump impulse together; lower gravity = floaty, higher = snappy. Budget explicit tuning time — feel is iterative, not a one-shot constant.
 
 **Warning signs:**
-- Player reports feeling "rushed" or "panicked" during a combat encounter
-- Player takes noticeably longer to answer questions mid-combat than pre-combat
-- Loot screen has a "choose between two items" design
-- Any animation runs longer than 500ms and overlaps with the question display
-- A "best run" or "last run" stat appears anywhere in the UI
+"It didn't jump!" complaints; jumps feel slow to start; can't make a gap that looks makeable; only one jump height regardless of tap vs hold.
 
-**Phase to address:**
-Combat design + UI design phases — ADHD-safety checklist must be applied at both design and implementation review. Any new UI element requires an explicit check against these five patterns before merging.
+**Phase to address:** P2 (core feel), refined in P5 (UAT tuning with the actual kid).
 
 ---
 
-### Pitfall 7: Enemy Difficulty Tied to Table Difficulty Creates Frustrating Gates
+### Pitfall 7: Getting stuck on tile seams / tunneling through thin colliders
 
 **What goes wrong:**
-The planned design gates enemy types by multiplication table: Goblins = ×2×3×5, Skeletons = ×4×6×7, Dragon = ×7×8×9. This means a player who cannot answer ×8 questions reliably will die every time they face a Skeleton or Dragon — not because the combat is unfair, but because the math is hard and the combat damage adds punishment on top. The difficulty of the math and the difficulty of the combat are compounding rather than independent. The player cannot separate "I'm bad at ×8" from "I hate this game."
+The avatar snags on the boundary between two floor tiles while running, or at fast fall speeds passes straight through a thin platform/floor and falls out of the world.
 
 **Why it happens:**
-Difficulty progression in a dungeon naturally maps to "harder enemies later." Multiplying that with harder math seems elegant but doubles the frustration gradient. v1 already used EWMA accuracy tracking to adaptively serve the right tables — v2 risks throwing that away by forcing hard tables on floor 3 regardless of where the player actually is.
+Kaplay's collision module is still maturing (the docs note impulses/forces apply at center of mass, no torque, contact-point work pending). A floor built from many small per-tile colliders creates seams that catch a moving box; thin colliders + high velocity cause tunneling because collision is checked per frame, not swept.
 
 **How to avoid:**
-- Decouple math difficulty from floor difficulty. Floor number determines enemy HP and XP reward (visual/narrative progression). Question difficulty is still determined by EWMA accuracy from v1 (the existing adaptive system).
-- On floor 3, a Goblin-type enemy can still appear — it just has more HP. The player faces the Dragon boss having been prepared by questions at their actual mastery level, not force-fed ×9 tables they have never practiced.
-- Enemy type determines visual/aesthetic/flavour and HP/damage scaling. Table selection remains adaptive. This preserves v1's core value (confidence-building through appropriate challenge) inside the dungeon structure.
+Merge runs of adjacent floor tiles into a single wide collider instead of one collider per tile. Keep platform colliders reasonably thick. Cap fall speed (terminal velocity) so per-frame movement stays smaller than collider thickness. If sticking persists, resolve X then Y movement separately. Build a tiny "stress" test strip (a long flat run + a fast drop) early.
 
 **Warning signs:**
-- Floor 2 question set contains exclusively ×6 and ×7 regardless of accuracy history
-- Player has not answered ×7 questions correctly in any prior session but floor 2 presents them exclusively
-- Death rate on floor 2 exceeds death rate on floor 3 (wrong difficulty curve)
-- Player says "I can't get past floor 2" when they can answer ×4 and ×5 fine
+Avatar briefly halts mid-run over a flat floor; "fell through the floor" reports; getting wedged on corners when landing near a tile boundary.
 
-**Phase to address:**
-Combat design phase — explicitly document how the adaptive question system (EWMA from v1) integrates with floor progression. Test with a simulated player who has low accuracy on hard tables.
+**Phase to address:** P3 (level build / collider layout), with the physics behavior validated in P2.
 
 ---
 
-### Pitfall 8: Loot Economy Becomes Either Meaningless or Overpowering
+### Pitfall 8: Loss of progress on death — the ADHD anti-pattern
 
 **What goes wrong:**
-Two failure modes: (a) loot drops are so common that every room gives an upgrade and the game becomes trivially easy by floor 2 — sword maxed, shield maxed, potions full — so there is no tension; (b) loot drops are so rare that the player runs an entire floor with no upgrades and the HP damage from wrong answers accumulates with no recovery mechanism. Both kill engagement. Too easy = boring. Too scarce = punishing. Dungeon crawler design literature explicitly identifies this as the primary pacing challenge.
+Death (or a wrong math answer) sends her back to the start of the level or wipes the run, recreating exactly the punishment loop the project explicitly forbids.
 
 **Why it happens:**
-Without playtesting calibration, loot frequency defaults to "what feels right" which is usually too generous (developer wants the player to feel rewarded) or too stingy (developer wants the loot to feel special).
+Default platformer instinct is "die = restart level." v2.0 already established the safe rule (death = restart floor, XP intact, no shame); v3.0 must carry it forward but it's easy to forget when bolting on hazards.
 
 **How to avoid:**
-- Fix loot to structure: one guaranteed item per floor (in the treasure room), one potion available from a specific room type per floor. Boss drop is always a significant upgrade. Random loot in combat rooms is a bonus, not the primary source.
-- Potions are the safety valve. Ensure at least one potion is accessible per floor regardless of random drops. This caps the punishment floor of a bad run.
-- For v2 scope, item variety should be minimal: one sword tier, one shield, one potion. No comparison choices. Picking up a second sword could either upgrade the existing one (preferred) or be auto-converted to HP.
-- Design to targets: player should finish each floor with 60–80% HP on average with reasonable question accuracy. If internal playtesting shows average HP at floor end < 40%, add a potion drop. If > 90%, remove one.
+Use checkpoints / generous respawn near the failure point, never a full restart. Wrong answer must not end the run or drop progress — re-ask or let her try again with no penalty/score loss (PROJECT.md: forgiving flow, no shame). Decide the death/wrong-answer policy as an explicit requirement, not an implementation accident.
 
 **Warning signs:**
-- Player reaches floor 2 boss with full HP regardless of accuracy
-- Player dies on floor 1 with only potions and no sword drops
-- Loot screen appears more than 4 times in a single floor
-- Player never uses a potion because they never take meaningful damage
+Respawn at level start after a fall; wrong answer closes the gate and dumps her back into the level or resets; any "you lost N points" messaging.
 
-**Phase to address:**
-Combat/loot design phase — define drop rates and structure before coding. Build a spreadsheet model or do a manual "pen and paper" run through 10 floors at 30% wrong-answer rate and 70% wrong-answer rate to verify the economy holds at both extremes.
+**Phase to address:** P2 (respawn policy for platforming) and P4 (wrong-answer policy at the gate); ADHD-safety verified in P5.
+
+---
+
+### Pitfall 9: Over-stimulating effects / too-long level
+
+**What goes wrong:**
+Screen shake, particle bursts, flashing, fast chaos, or a sprawling level overwhelm an ADHD player or cause fatigue/abandonment before the gate.
+
+**Why it happens:**
+"Juice" tutorials encourage heavy effects; Kaplay makes shake/particles easy. Level scope creeps because building platforms is fun. Neither respects the low-stimulation, single-polished-level goal.
+
+**How to avoid:**
+Keep effects subtle and purposeful (small, brief; no strobe/flash). Hold to ONE short, completable level (the milestone goal), sized so a first clear is a few minutes, not a marathon. No countdown timers anywhere (hard constraint). Provide a calm, readable scene over a busy one.
+
+**Warning signs:**
+Rapid flashing or constant shake; level takes many minutes with no checkpoint; playtester loses focus or says it's "too much"; any timer UI.
+
+**Phase to address:** P3 (level scope) and P5 (effect intensity + ADHD-safety audit).
+
+---
+
+### Pitfall 10: Controls a kid can't discover
+
+**What goes wrong:**
+She doesn't know which keys move/jump, or the keys are awkward (e.g. only WASD when she expects arrows, or jump on an odd key). She stalls before the game even starts.
+
+**Why it happens:**
+Devs assume their own muscle memory. No on-screen prompt; controls undocumented in-game.
+
+**How to avoid:**
+Support both Arrow keys and WASD; jump on Space *and* Up. Show a short, persistent control hint at level start ("← → move, Space jump"), styled in-world. Confirm controls work on the target Windows laptop keyboard layout.
+
+**Warning signs:**
+"How do I move?"; she presses keys that do nothing; hint absent or hidden.
+
+**Phase to address:** P2 (input mapping) and P5 (discoverability in UAT).
+
+---
+
+## Minor Pitfalls
+
+### Pitfall 11: Contrast/readability on the dark grunge theme
+
+**What goes wrong:**
+Dark sprites on a dark background blend together; the avatar, hazards, goal, or gate text are hard to see. Math-gate answer options fail contrast and are hard to read.
+
+**Why it happens:**
+"Dark grunge, no pink" pushes toward low-contrast palettes. Pixel art on dark tiles can lose silhouette.
+
+**How to avoid:**
+Ensure the avatar and interactive elements have a high-contrast silhouette/outline against the background. Use the established neon accent (e.g. neon green/orange from the stack notes) for the goal, gate, and selected answer. Keep gate text at WCAG-AA contrast.
+
+**Warning signs:**
+"Where's my guy?"; can't tell platform from background; squinting at answer options.
+
+**Phase to address:** P3 (palette/sprite selection) and P5 (readability check).
+
+---
+
+### Pitfall 12: Camera jitter / avatar not centered nicely
+
+**What goes wrong:**
+The camera stutters or snaps as it follows the avatar, causing visual noise (extra problematic for an ADHD player).
+
+**Why it happens:**
+Hard-setting camera position to the avatar every frame without smoothing, or fighting between physics update and render order, produces jitter.
+
+**How to avoid:**
+Use Kaplay's camera (`setCamPos` / camera follow) with light smoothing (lerp) rather than a hard snap. Update the camera after physics resolves. Keep a small dead-zone so tiny movements don't shake the view.
+
+**Warning signs:**
+Visible shaking/stutter when running; camera "vibrates" when standing still.
+
+**Phase to address:** P2 (camera) and P5 (smoothness check).
+
+---
+
+### Pitfall 13: CC0 / asset-license verification mistakes
+
+**What goes wrong:**
+A sprite assumed to be CC0 actually isn't, or the Kenney logo gets shipped, creating a licensing problem in a project meant to have zero licensing risk.
+
+**Why it happens:**
+The itch.io "CC0" tag is community-applied and not always accurate per pack. Kenney assets are genuinely CC0 1.0 (free, commercial OK, attribution appreciated not required) — but the **Kenney logo is reserved** and not for use. Mixing one non-CC0 sprite into a CC0 set is easy.
+
+**How to avoid:**
+Verify each pack's own license page, not just the tag. Prefer Kenney packs (clearly CC0). Keep a `CREDITS`/`LICENSES` file recording each asset's source URL + license. Don't ship vendor logos. When in doubt, drop the asset.
+
+**Warning signs:**
+Asset license known only from a tag, not the pack page; a logo/wordmark in the sprite sheet; mixed-source assets with no record of origin.
+
+**Phase to address:** P3 (asset selection + CREDITS file).
+
+---
+
+### Pitfall 14: Sprite atlas / spritesheet misconfiguration
+
+**What goes wrong:**
+Animations show the wrong frames, sprites bleed into neighbors, or slicing looks buggy (a known Kaplay sprite-slicing issue exists).
+
+**Why it happens:**
+`loadSprite`/`loadSpriteAtlas` frame counts, `sliceX`/`sliceY`, or anim definitions don't match the actual sheet grid; padding/spacing in the source sheet isn't accounted for.
+
+**How to avoid:**
+Match `sliceX`/`sliceY` and frame indices exactly to the chosen pack's grid; verify the pack's documented tile size. Test each animation in isolation. Pick a pack with a clean, uniform grid to minimize slicing pain.
+
+**Warning signs:**
+Edges of adjacent frames bleed in; animation plays wrong/garbled frames; off-by-one frame indices.
+
+**Phase to address:** P3 (asset integration).
 
 ---
 
 ## Technical Debt Patterns
 
+Shortcuts that seem reasonable but create long-term problems.
+
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Inline all screen HTML in one flat `<body>` block | No screen abstraction needed | CSS bleeds between screens; toggling 7 screens requires tracking 7 visibility states manually | Never — use `hidden` attribute + central `renderScreen()` from day one |
-| Store dungeon state as flat top-level variables | Simple to read initially | v2 save schema is a pile of unrelated globals; migration becomes guess-work | Never — store all dungeon state in one `dungeonState` object |
-| Hardcode enemy stats as inline numbers | Fast to write | Rebalancing requires ctrl+F through all game logic | Only for initial prototyping; move to a `CONFIG` object before first real test |
-| No v1→v2 migration, just clear localStorage | No migration code to write | Users lose weeks of XP and level progress; trust destroyed | Never — always migrate v1 data |
-| Damage animations using `setTimeout` chains | Easier than CSS keyframes | Timers stack when player answers quickly; animations overlap; jank accumulates | Never — use CSS animations with `animationend` callbacks |
-| Loot as free choice between two items | More interesting decision | Adds cognitive load during what should be a reward moment; ADHD-unsafe | Never for this audience — auto-apply loot |
-| Add a "combo multiplier" for consecutive correct answers | Exciting escalating reward | Creates implicit pressure to not break the streak — ADHD-unsafe anxiety driver | Never — any streak mechanic creates implicit punishment for breaking it |
-| Enemy has a rage mode (attacks faster after low HP) | Dramatic climax | Introduces implicit time pressure; ADHD-unsafe | Never |
-
----
+| Reuse the v2 quiz modal verbatim as the gate | Fast to wire up | Reads as homework; undermines the whole pivot's value | Never — port the brain, build a new in-world gate |
+| Module-level globals for run state | Quick to write | Leaks across `go()`/retries; subtle correctness bugs | Never for mutable run state; OK for true constants |
+| One collider per floor tile | Mirrors the tilemap 1:1 | Seam catching, more collision checks | Only for the throwaway prototype strip; merge before P3 done |
+| Double-click `file://` for "quick test" | No server needed | Assets break; false "it's broken" panic | Never as the shipped launch path; only for non-asset HTML checks |
+| Hard-snap camera to avatar | Trivial | Jitter; visual stress for ADHD player | Acceptable only in earliest P2 spike |
+| Skip `dt()` ("works on my machine") | Less code | Device-dependent feel; tuning invalidated | Never |
 
 ## Integration Gotchas
 
+Connecting the ported math brain and CC0 assets into Kaplay.
+
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| v1 EWMA accuracy system + v2 combat | Ignore EWMA; assign questions by floor number | Feed floor enemy encounters through the same EWMA question selector; floor determines HP/reward scaling, not question difficulty |
-| v1 XP system + v2 dungeon progression | Create a second parallel XP track for dungeon | Unify: defeating enemies awards XP to the same v1 XP/level system; no parallel progression tracks |
-| v1 localStorage schema + v2 new fields | Add new fields to v1 key assuming backward compat | Read `schemaVersion`, run migration, write new unified save object under versioned key |
-| CSS for 7 screens in single file | Global selectors (`.title`, `.button`) applied to all screens | Scope all selectors under screen ID: `#screen-combat .button`; treat each screen as a CSS namespace |
-| CSS animations for damage feedback | Use `setTimeout` for animation timing | Use CSS `@keyframes` + `animationend` event; never `setTimeout` for visual state transitions |
-| Combat state + DOM state | Update DOM directly in combat logic | Combat logic writes to `gameState`; a single `render(gameState)` function owns all DOM updates |
-
----
+| Math brain → Kaplay scene | Keep selector state at module scope; it accumulates across retries | Construct fresh per scene entry; expose `reset()`; pass results via `go()` data |
+| Vendored Kaplay | Grab "latest" and mix v3001/v4000/Kaboom snippets | Pin a version, comment source+version, code against that version's docs |
+| Assets folder | Reference assets and open via `file://` | Serve over local HTTP; add a `file://` guard message |
+| CC0 packs | Trust the itch CC0 tag; ship vendor logo | Verify each pack's license page; keep CREDITS file; never ship logos |
+| Quiz UI → game gate | Render system/HTML dialog over the canvas | Render the gate in-world with game font/palette; keep avatar visible |
 
 ## Performance Traps
 
+This ships to one Windows laptop browser — scale is tiny, but a single asset mistake can still stall it.
+
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Rendering all 7 screens in DOM simultaneously (just hidden) | Layout cost scales with all screen DOM even when hidden; forced layout on every combat update | Use `hidden` attribute (browser skips layout for hidden elements) not just `display:none` via class | After screen count exceeds 4 |
-| Combat animation loop using `setInterval` | Animation jank, CPU spin when tab hidden, potential memory leak | Use `requestAnimationFrame` + CSS animations; RAF pauses when tab hidden | Immediately — setInterval always runs |
-| Saving full dungeon state on every question answer | localStorage writes on every keypress; storage thrashing after 30+ minute sessions | Save only on: room cleared, floor complete, app hidden (`visibilitychange`), not on every answer | After 200+ answers in a session |
-| DOM manipulation inside combat loop per-frame | Reflow triggered every animation frame; UI jank | Batch DOM updates; read layout properties before writing; update HP bar via CSS custom property change only | Immediately on low-end laptop |
-| Accumulating `addEventListener` calls without cleanup | Memory leak; stale handlers fire multiple times per event after screen transitions | Remove event listeners when leaving a screen, or use event delegation on a stable parent | After 3+ screen transitions |
+| Huge / unoptimized PNGs | Long black screen on load; stutter | Use modestly sized pixel-art sheets; trim unused frames | Even one multi-MB sheet on a slow laptop |
+| Loading assets inside the game loop | Hitches mid-play | Load all assets up front (Kaplay load phase) before the scene starts | First time an un-preloaded asset is needed |
+| Manual per-frame movement without dt | Speed varies by refresh rate | dt-scale or use body()/vel | Any non-60 Hz display |
+| Particle/effect spam | Frame drops, GC churn | Keep effects sparse and short-lived | Sustained emitters on a low-end iGPU |
 
----
+## Security Mistakes
+
+Local-only, offline, no backend, no PII beyond localStorage — classic web-security surface is minimal.
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Assuming an asset is freely usable from a tag | Licensing exposure | Verify each pack's license page; keep CREDITS |
+| Shipping a vendor logo/wordmark | Trademark misuse | Exclude logos; Kenney logo is explicitly reserved |
+| Loading the vendored library from a CDN | Breaks offline guarantee; supply-chain dependence | Vendor the pinned file locally |
 
 ## UX Pitfalls
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| HP bar shrinking too fast on wrong answers | Triggers urgency panic; ADHD cortisol response; math performance degrades | Small damage amounts; generous starting HP; HP loss animated slowly (not instant) |
-| Death screen with stats comparison ("Your best: 8 questions") | Comparison to past self creates shame; "I got worse" narrative | Death screen: simple "Try floor again?" — no stats, no comparison, no shame |
-| Room navigation requiring multiple clicks to advance | Friction breaks flow; ADHD brains need one clear next action | One button: "Enter Room" → combat starts immediately; no intermediate confirmation screen |
-| Loot choice requiring player to compare two items | Decision fatigue; cognitive load at reward moment | Auto-apply loot; announce what dropped; no choice required |
-| Floor complete screen with extensive stats breakdown | Information overload; player doesn't read it | Floor complete: brief celebration ("Floor 2 cleared! +150 XP"), single continue button, 2-second hold maximum |
-| Enemy having visible "charging attack" animation | Creates implicit time pressure ("I must answer before it attacks") | Enemy just waits indefinitely; no countdown, no charge animation, no urgency cues |
-| Progress reset on floor failure showing previous best | Creates comparison anxiety | Show only the current attempt; no historical comparison until after a successful run |
-
----
+| Gate as a stark quiz popup | "Back to homework"; disengagement | In-world door/guardian, game styling, avatar on screen |
+| Wrong answer ends run / loses progress | Shame loop; ADHD-hostile | Re-ask, no penalty, no score loss |
+| Full restart on death | Punishment loop | Checkpoint/generous respawn, progress kept |
+| Undiscoverable controls | Can't start playing | Arrows + WASD, Space+Up jump, on-screen hint |
+| Low-contrast dark theme | Can't see avatar/answers | High-contrast silhouettes + neon accents, AA text |
+| Over-juiced effects / long level | Overwhelm, fatigue | Subtle effects, one short level, no timers |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **v1→v2 migration:** Tested by loading v2 with v1 data in localStorage. XP and level survive. New dungeon fields initialise to correct defaults. No crash on undefined fields.
-- [ ] **Combat balance at 30% accuracy:** Simulated a session where 30% of answers are wrong. Player can still complete floor 1 without dying. Floor 2 is survivable with potion use. Not trivially easy.
-- [ ] **Screen state machine:** Verify only one screen is ever visible at a time. Inspect DOM after every screen transition. No residual `hidden=false` on inactive screens.
-- [ ] **ADHD safety audit:** No timers (visible or hidden). No streak mechanics. No comparison stats on death screen. Wrong-answer damage is small. Death = restart floor only. Loot auto-applies.
-- [ ] **Adaptive tables preserved:** Questions during combat still come from EWMA accuracy selector, not hardcoded to floor number. A player weak on ×9 does not face exclusively ×9 on floor 3.
-- [ ] **CSS scope isolation:** All screen-specific CSS scoped under `#screen-X`. No global selectors that affect multiple screens. DevTools inspection of combat screen shows no styles leaking from other screens.
-- [ ] **Event listener cleanup:** All event listeners added when entering a screen are removed when leaving. No duplicate handlers firing after screen transitions.
-- [ ] **Loot economy balance:** Ran 10 simulated floors at 30% wrong-answer rate and 70% wrong-answer rate. Player ends floors with 50–85% HP in both scenarios. Adjust drop rates until both pass.
-- [ ] **Floor repetition check:** Played all 3 floors consecutively. Rooms feel distinct (at minimum: combat rooms, one treasure room per floor, boss room). Enemy flavour text is different per floor even if mechanics are the same.
-- [ ] **Save versioning:** `schemaVersion` field exists in save object. Loading save with missing `schemaVersion` triggers migration path, not crash.
-
----
+- [ ] **Asset loading:** Works when *served*, not just for the developer — verify on the target Windows laptop via the start script, and confirm the `file://` guard message appears if double-clicked.
+- [ ] **Scene retries:** Play, fail/win, replay — confirm score, question index, and HP all reset (no module-state leak).
+- [ ] **Jump feel:** Coyote time + jump buffering + variable height all present, not just a fixed grounded jump.
+- [ ] **Frame independence:** Same speed/jump on a non-60 Hz display (or with dev-tools throttling).
+- [ ] **Death/wrong answer:** Neither loses progress; respawn is near, gate re-asks with no penalty.
+- [ ] **Math gate styling:** Same font/palette as the world; avatar visible; not a system dialog.
+- [ ] **Collision:** Long flat run doesn't snag on seams; fast fall doesn't tunnel through the floor.
+- [ ] **Controls:** Arrows AND WASD work; on-screen hint present.
+- [ ] **Contrast:** Avatar, goal, gate, and answer options readable on dark bg.
+- [ ] **Licensing:** CREDITS file lists every asset's source + verified license; no vendor logos shipped.
+- [ ] **No timers:** Nowhere in platforming or gate is there a countdown.
+- [ ] **Version:** Vendored Kaplay version pinned and noted; no mixed Kaboom/v3001/v4000 calls.
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| v1 data broken by v2 release without migration | HIGH | Ship hotfix that reads old key format and reconstructs valid v2 save; users must reload; XP may need manual restoration if already overwritten |
-| Combat punishes too hard (players dying repeatedly) | LOW | Reduce wrong-answer damage multiplier in CONFIG; increase starting HP; add one guaranteed potion to floor 1; deploys as single-file update |
-| Dungeon scope crept to unshippable size | HIGH | Cut features back to the fixed scope list; delete incomplete features; ship what works; document cut features in backlog |
-| Screen state corruption (two screens visible) | MEDIUM | Audit all `renderScreen` call sites; enforce single entry point pattern; test every screen transition |
-| ADHD-unsafe feature shipped (streak mechanic, timer) | MEDIUM | Remove feature entirely; do not "soften" it — any version of it re-introduces the unsafe pattern |
-| Loot economy broken (trivially easy or HP death spiral) | LOW | Adjust CONFIG drop rates and damage values; single-file rebalance deploys immediately |
-| Floor repetition complaint (boring by floor 2) | MEDIUM | Add per-room flavour text without touching mechanics; low code cost but requires content writing |
-
----
+| `file://` asset failure | LOW | Add launcher + serve over HTTP; add protocol guard message |
+| Version-mixed code errors | LOW–MEDIUM | Pin one version; reconcile snippets against that version's docs |
+| State leaking across scenes | MEDIUM | Move run state into scene callback; add `reset()`; pass via `go()` data |
+| Gate feels like homework | MEDIUM | Re-skin gate in-world; keep avatar; reuse only the brain |
+| Floaty/unresponsive jump | MEDIUM | Add coyote/buffer/variable height; iterate gravity+impulse with the kid |
+| Seam stick / tunneling | MEDIUM | Merge floor colliders; cap fall speed; thicken platforms |
+| Progress lost on death | LOW–MEDIUM | Add checkpoint/respawn; make wrong answer penalty-free re-ask |
+| dt-dependent movement | LOW | Switch to body()/vel or multiply manual movement by dt() |
+| Wrong CC0 assumption | LOW | Replace asset; verify license page; update CREDITS |
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Dungeon scope creep | Requirements / planning phase | Won't-build list exists and is signed off before any code is written |
-| Wrong-answer damage punishment loop | Combat design phase | Combat tested at 30% accuracy rate; player can complete floor without death spiral |
-| Floor repetition | Room/floor design phase | Room types (combat / treasure / boss) defined before rooms are coded; flavour text written per enemy per floor |
-| CSS/DOM screen spaghetti | Screen architecture phase (first thing built) | Single `renderScreen()` function; one screen visible in DOM at all times; verified by inspection |
-| v1→v2 save migration | Save/state architecture phase | v1 data loads without crash; XP and level preserved; new fields initialised correctly |
-| ADHD-unsafe patterns sneaking in | Combat + UI design phases | Explicit ADHD checklist applied at design review and at code review; no timers, no streaks, no comparison stats anywhere |
-| Enemy difficulty gating adaptive tables | Combat design phase | EWMA integration document written before combat coded; test with simulated weak-×9 player on floor 3 |
-| Loot economy imbalance | Loot/drop design phase | Economy modelled at two accuracy extremes before implementation; drop rates in CONFIG not hardcoded |
-
----
+| `file://` CORS asset failure | P1 | Launch via start script on target laptop; assets render; guard message on double-click |
+| Kaplay/Kaboom version churn | P1 (pin) / P2 (build) | Vendored file notes version; no deprecation warnings; no `is not a function` |
+| State leaks across scenes | P2 (discipline) / P4 (port) | Replay resets score/index/HP |
+| Math gate feels like a quiz | P4 / P5 | Gate uses game font/palette, avatar visible; kid doesn't disengage in UAT |
+| Frame-rate-dependent movement | P2 | Consistent feel on non-60 Hz / throttled display |
+| Floaty/unresponsive jump | P2 / P5 | Coyote+buffer+variable height present; kid can clear gaps |
+| Seam stick / tunneling | P2 (physics) / P3 (colliders) | Flat-run + fast-drop stress test passes |
+| Progress lost on death | P2 / P4 | Respawn near failure; wrong answer penalty-free |
+| Over-stimulation / long level | P3 (scope) / P5 (audit) | One short level; subtle effects; no timers |
+| Undiscoverable controls | P2 / P5 | Arrows+WASD work; hint shown |
+| Low contrast on dark theme | P3 / P5 | Avatar/goal/gate/answers readable (AA text) |
+| Camera jitter | P2 / P5 | Smooth follow, no stutter |
+| CC0 license mistakes | P3 | CREDITS file complete; license pages verified; no logos |
+| Sprite atlas misconfig | P3 | Each animation plays correct frames, no bleed |
 
 ## Sources
 
-- [Feature Creep: The Silent Killer of Indie Game Dreams — Wayline](https://www.wayline.io/blog/feature-creep-silent-killer-indie-games)
-- [How to Avoid Scope Creep in Game Development — Codecks](https://www.codecks.io/blog/2025/how-to-avoid-scope-creep-in-game-development/)
-- [Why Rewards and Punishments Don't Work for ADHD Kids — We Thrive Learning](https://www.wethrivelearning.com/post/why-rewards-and-punishments-don-t-work-for-adhd-kids-and-what-actually-motivates-them)
-- [Reward and Punishment Sensitivity in Children with ADHD — PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC3268965/)
-- [Building Games for ADHD? What You're Probably Doing Wrong — Medevel](https://medevel.com/building-games-for-adhd-heres-what-youre-probably-doing-wrong-and-how-to-fix-it/)
-- [Customizing Game Mechanics for ADHD — Medevel](https://medevel.com/customizing-game-mechanics-for-adhd-what-developers-need-to-know/)
-- [ADHD-Friendly App Design: What to Look For — Monster Math Blog](https://www.monstermath.app/blog/adhd-friendly-app-design-what-to-look-for-and-what-to-avoid)
-- [What Makes a Dungeon Crawl Good — Skeleton Code Machine](https://www.skeletoncodemachine.com/p/what-makes-a-dungeon-crawl-good)
-- [How to Make Dungeon Crawling Less of a Crawl — Grimly Enthusiastic](https://grimlyenthusiastic.wordpress.com/2010/07/30/guide-to-good-dungeons/)
-- [Dynamic Game Difficulty Balancing — Wikipedia](https://en.wikipedia.org/wiki/Dynamic_game_difficulty_balancing)
-- [How Much Loot Is Too Much? — Cheat Code Central](https://www.cheatcc.com/articles/how-much-loot-is-too-much/)
-- [Balancing Loot Distribution in TTRPGs — TTRPG Games](https://www.ttrpg-games.com/blog/balancing-loot-distribution-in-ttrpgs/)
-- [Build a State Management System with Vanilla JavaScript — CSS-Tricks](https://css-tricks.com/build-a-state-management-system-with-vanilla-javascript/)
-- [Managing Complex State in Vanilla JavaScript — Java Code Geeks](https://www.javacodegeeks.com/2024/11/managing-complex-state-in-vanilla-javascript-a-comprehensive-guide.html)
-- [Simple Frontend Data Migration — Jan Monschke](https://janmonschke.com/simple-frontend-data-migration/)
-- [Pro Tips Using localStorage — Medium](https://medium.com/@mohamedelayadi/pro-tips-using-localstorage-51931f40f0be)
-- [Cross-Document View Transitions Gotchas — CSS-Tricks](https://css-tricks.com/cross-document-view-transitions-part-1/)
-- [Optimize DOM Size for Better Web Performance — DebugBear](https://www.debugbear.com/blog/excessive-dom-size)
+- [The relation of KAPLAY with Kaboom — kaplay wiki](https://github.com/kaplayjs/kaplay/wiki/The-relation-of-kaplay-with-Kaboom) — HIGH
+- [Migrating to v3001 — KAPLAY guides](https://kaplayjs.com/docs/guides/migration-kaplay/) — HIGH
+- [Kaboom.js is now Kaplay — JSLegendDev](https://jslegenddev.substack.com/p/kaboomjs-is-now-kaplay) — MEDIUM
+- [KAPLAY loadSprite docs](https://kaplayjs.com/docs/api/ctx/loadSprite/) — HIGH (states a static server is needed for local files)
+- [CORS request not HTTP — MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS/Errors/CORSRequestNotHttp) — HIGH
+- [KAPLAY Physics guide](https://kaplayjs.com/docs/guides/physics/) — HIGH (body, setGravity, isStatic, platformEffector, collision events, center-of-mass caveat)
+- [KAPLAY Scenes guide](https://kaplayjs.com/docs/guides/scenes/) — HIGH (scene/go/data, stay(), "destroys all objects", code-outside-scenes caveat)
+- [bug: Buggy sprite look when slicing #671 — kaplay](https://github.com/kaplayjs/kaplay/issues/671) — MEDIUM (sprite slicing pitfall)
+- [Improve Your Game Feel With Coyote Time and Jump Buffering — GMTK/YouTube](https://www.youtube.com/watch?v=97_jvSPoRDo) — HIGH (game-feel consensus)
+- [Creating smooth jump mechanics — Vibelf](https://www.vibelf.com/questions/2/smooth-jump-mechanics/) — MEDIUM (gravity/jump tuning ranges)
+- [GameMaker Platformer Jumping Tips — Game Developer](https://www.gamedeveloper.com/design/gamemaker-platformer-jumping-tips) — MEDIUM
+- [Platformer collision (axis-separated resolution) — LÖVE forums](https://love2d.org/forums/viewtopic.php?t=92438) — MEDIUM
+- [Kenney Support / licensing (CC0, logo reserved)](https://kenney.nl/support) — HIGH
+- [Pixel Platformer by Kenney — itch.io](https://kenney-assets.itch.io/pixel-platformer) — HIGH
+- [Public Domain & Creative Commons — Sheridan Library guide](https://sheridancollege.libguides.com/c.php?g=710771&p=5064493) — MEDIUM
+- [ADHD-Friendly Web Design — BOIA](https://www.boia.org/blog/adhd-friendly-web-design-minimizing-distractions) — MEDIUM (low-stimulation/no-timer principles)
 
 ---
-
-*Pitfalls research for: Dungeon crawler layer added to existing single-HTML-file math game (ADHD-safe, 12-year-old)*
-*Researched: 2026-06-20*
-*Confidence: HIGH*
+*Pitfalls research for: first-time Kaplay 2D platformer + math gate for a child (offline, multi-file)*
+*Researched: 2026-06-22*

@@ -1,480 +1,446 @@
 # Architecture Research
 
-**Domain:** Dungeon crawler combat layer on top of existing single-file vanilla JS math app
-**Researched:** 2026-06-20
+**Domain:** Kaplay 2D platformer (browser game) embedding a ported vanilla-JS "math brain"
+**Researched:** 2026-06-22
 **Confidence:** HIGH
 
-> **Scope note:** This document supersedes the v1 ARCHITECTURE.md for the v2.0 Dungeon Crawler milestone. It focuses specifically on how to integrate new dungeon modules into the existing codebase without breaking v1 math engine behaviour, how to migrate the save schema from v1 to v2, how to render rooms and enemies in pure DOM+CSS, and what build order makes sense given module dependencies.
+> Scope: integration architecture for the NEW game shell (v3.0). Covers how a Kaplay platformer
+> should be structured so the existing weighted question-selection logic plugs in cleanly, where the
+> future XP/localStorage persistence seam lives, and a dependency-ordered build sequence.
+> **New vs ported is called out explicitly throughout.** The selection algorithm itself is NOT
+> redesigned — only its wiring.
 
 ---
 
-## System Overview
+## What Is Being Ported (the "math brain")
 
-The v2 architecture adds three new layers — dungeon state, combat engine, and dungeon renderer — that sit *around* the existing math engine, not inside it. The existing modules (CONFIG, XpCalculator, PlayerState, PersistenceStore, QuestionSelector, Renderer, InputHandler, App) are modified minimally. The new modules consume the existing ones; the existing ones do not know about the dungeon.
+Read directly from `math-lab.html` (HIGH confidence — source of truth):
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         HUD (extended)                               │
-│  Level | XP bar | HP bar | Floor/Room indicator                     │
-├─────────────────────────────────────────────────────────────────────┤
-│                        GAME SCREENS (one visible at a time)          │
-│  ┌─────────────────┐  ┌────────────────┐  ┌───────────────────┐    │
-│  │  DUNGEON VIEW   │  │  COMBAT VIEW   │  │  FLOOR COMPLETE   │    │
-│  │  Room map,      │  │  Enemy sprite, │  │  Loot summary,    │    │
-│  │  door choices   │  │  HP bars,      │  │  continue button  │    │
-│  │  (between fights│  │  question card │  │                   │    │
-│  └────────┬────────┘  └───────┬────────┘  └────────┬──────────┘    │
-│           │ (enter room)      │ (answer)             │ (cleared)    │
-├───────────┴───────────────────┴──────────────────────┴──────────────┤
-│                        ORCHESTRATOR: App                             │
-│  mode: 'dungeon' | 'combat' | 'loot' | 'floor-complete'            │
-│  Routes events and screen transitions                               │
-├─────────────────────────────────────────────────────────────────────┤
-│  NEW MODULES                          EXISTING (v1) MODULES         │
-│  ┌──────────────┐  ┌───────────┐      ┌────────────────────────┐   │
-│  │ DungeonState │  │FloorConfig│      │ PlayerState (extended) │   │
-│  │ floor, room, │  │enemy types│      │ xp, level, accuracy,   │   │
-│  │ enemyHp,     │  │tables per │      │ + hp, maxHp            │   │
-│  │ playerHp,    │  │floor,     │      └────────────────────────┘   │
-│  │ loot         │  │room count │      ┌────────────────────────┐   │
-│  └──────┬───────┘  └─────┬─────┘      │ QuestionSelector       │   │
-│         │                │            │ (unchanged; used by    │   │
-│  ┌──────┴───────┐         │            │ CombatEngine)          │   │
-│  │CombatEngine  │◄────────┘            └────────────────────────┘   │
-│  │Wraps Question│                      ┌────────────────────────┐   │
-│  │Selector;     │                      │ XpCalculator           │   │
-│  │damage calc;  │                      │ (unchanged)            │   │
-│  │hit/miss logic│                      └────────────────────────┘   │
-│  └──────┬───────┘                      ┌────────────────────────┐   │
-│         │                              │ PersistenceStore v2    │   │
-│  ┌──────┴──────────────┐               │ migrates v1 → v2 on    │   │
-│  │ DungeonRenderer     │               │ first load             │   │
-│  │ Room display,       │               └────────────────────────┘   │
-│  │ enemy sprite,       │                                            │
-│  │ HP bars, loot anims │                                            │
-│  └─────────────────────┘                                            │
-└─────────────────────────────────────────────────────────────────────┘
-```
+| Module | Public surface | Port verdict |
+|--------|----------------|--------------|
+| **QuestionSelector** (`selectNext(playerState, allowedTables)`) | Returns `{ table, multiplicand, answer, options[4], question }`. Internals: weighted table selection (6–9 boosted ~70%, struggle 1.5× boost, mastered ×0.3), Fisher-Yates shuffle, `generateDistractors` (±1/±2 same-table + one wrong-table). | **PORT verbatim.** This is the tuned asset. Do not touch the algorithm. |
+| **CONFIG** (subset) | `HARD_TABLES=[6,7,8,9]`, `EASY_TABLES=[1..5]`, `STRUGGLE_THRESHOLD`, `STRUGGLE_BOOST`, `MASTERY_WINDOW`, `MASTERY_THRESHOLD`, `ACCURACY_ALPHA` | **PORT** (only the keys QuestionSelector + PlayerState read). |
+| **PlayerState** (`getAccuracy`, `isMastered`, `updateAccuracy`, `addXp`, `toJSON`, `fromJSON`, `reset`) | QuestionSelector **depends on `getAccuracy()` + `isMastered()`**. The rest (XP, history persistence) is the future-persistence concern. | **PORT the accuracy half now** (selector needs it); **XP/history persistence is the deferred seam.** |
+| **PersistenceStore** (localStorage v2, versioned, migration from v1) | Save/load JSON, quota handling, v1→v2 migration. | **DO NOT port this milestone.** This is the seam left open (see Integration Points). |
+
+**Critical coupling fact:** `QuestionSelector.selectNext()` requires a `playerState`-shaped object exposing
+`getAccuracy(table)` and `isMastered(table)`. The minimum viable port is therefore *QuestionSelector +
+CONFIG + a PlayerState that can answer accuracy/mastery queries and record `updateAccuracy()`*. XP,
+leveling, and localStorage are not required for the selector to work — that is the natural cut line.
 
 ---
 
-## Component Responsibilities
+## Standard Architecture
 
-### Existing modules — what changes vs. what is untouched
+### System Overview
 
-| Module | v2 Change | Rationale |
-|--------|-----------|-----------|
-| **CONFIG** | Add dungeon constants block (HP values, damage amounts, loot drop rates, floor counts). Existing keys are untouched. | Single source of truth; all new magic numbers co-located with old ones. |
-| **XpCalculator** | No change. | XP is still awarded per correct answer, same formula. |
-| **PlayerState** | Add `hp` and `maxHp` fields. Keep all accuracy/history logic intact. Add `takeDamage(amount)`, `heal(amount)`, `resetHp()` methods. | HP is session-scoped (resets on floor restart); accuracy data is persistent. Both live in one state object because they share the save/load cycle. |
-| **PersistenceStore** | Bump VERSION to 2. Add `migrate(data, fromVersion)` function. v1→v2 migration adds `dungeon` sub-object with defaults (floor 1, room 1, no loot) without touching accuracy/history. Change SAVE_KEY to `mathlab_save_v2` to guarantee a clean migration path. | Existing v1 save at `mathlab_save_v1` is read once, migrated, written to v2 key. Old key is left (not deleted) so a rollback remains possible. |
-| **QuestionSelector** | No change. | CombatEngine calls `selectNext(playerState)` with the same interface; the floor config is resolved before calling selector, not inside it. |
-| **Renderer** | Rename to `MathRenderer` (or keep as `Renderer`). Its methods still manage the question card and HUD XP/level display. HP bar is owned by `DungeonRenderer`. | Keeps separation of concerns: `Renderer` owns math feedback UI; `DungeonRenderer` owns everything dungeon-visual. |
-| **InputHandler** | Add awareness of `App.mode`. When mode is `'dungeon'`, ignore answer events. When mode is `'combat'`, route as before. | InputHandler already has a `locked` flag; mode check is a one-line guard added to `handleAnswer`. |
-| **App** | Add `mode` field and `transition(newMode)` method. Bootstrap now also initialises `DungeonState`. | App becomes the screen router. Current `App.nextQuestion()` becomes `App.nextCombatRound()` internally; external API stays. |
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  index.html  (single entry; <script type="module" src=main.js>)   │
+│  + vendored kaplay.mjs (no CDN, loaded offline)                    │
+├──────────────────────────────────────────────────────────────────┤
+│                        GAME SHELL  (NEW)                           │
+│  ┌────────────┐   ┌─────────────────┐   ┌──────────────────────┐  │
+│  │  main.js   │   │  scenes/        │   │  entities/           │  │
+│  │ kaplay()   │──▶│  game.js        │──▶│  player.js           │  │
+│  │ init+load  │   │  (the level)    │   │  platform.js goal.js │  │
+│  │ assets     │   │                 │   │                      │  │
+│  └────────────┘   └────────┬────────┘   └──────────────────────┘  │
+│                            │ player touches goal                  │
+│                            ▼                                       │
+│                   ┌─────────────────────┐                          │
+│                   │  ui/mathGate.js     │  PAUSED OVERLAY          │
+│                   │  (renders question, │  (NEW glue)              │
+│                   │   reads result)     │                          │
+│                   └──────────┬──────────┘                          │
+├──────────────────────────────┼─────────────────────────────────────┤
+│                  MATH MODULE  │  (PORTED, framework-agnostic)      │
+│  ┌────────────────────────────▼───────────────────────────────┐   │
+│  │  math/questionSelector.js  ← selectNext(playerState, tables)│   │
+│  │  math/config.js                                             │   │
+│  │  math/playerState.js  ← getAccuracy/isMastered/updateAccuracy│  │
+│  └─────────────────────────────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│              PERSISTENCE  (DEFERRED — seam only)                   │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │  persistence/store.js   (empty/no-op this milestone)         │  │
+│  │  localStorage v2 save  ← hooks into playerState.toJSON()     │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
 
-### New modules — full responsibility definitions
+### Component Responsibilities
 
-| Module | Responsibility | Does NOT own |
-|--------|---------------|-------------|
-| **FloorConfig** | Static data: enemy name, sprite variant, HP values, which multiplication tables to use, loot drop table per floor. Returns config object for a given floor number. Pure data, no state. | Any game logic. It is a lookup table, not a controller. |
-| **DungeonState** | Runtime dungeon state: current floor number, current room index, current enemy HP, current enemy type, loot inventory (array of collected items), rooms-cleared count. Exposes `enterRoom()`, `dealDamageToEnemy(amount)`, `isEnemyDefeated()`, `collectLoot(item)`, `toJSON()`, `fromJSON()`. | Player HP (owned by PlayerState). Question logic. |
-| **CombatEngine** | Bridges math answers to combat outcomes. On correct answer: calculates damage using table difficulty + optional weapon modifier, calls `DungeonState.dealDamageToEnemy(damage)`. On wrong answer: calculates enemy damage, calls `PlayerState.takeDamage(damage)`. Calls `QuestionSelector.selectNext(playerState, tablePool)` where `tablePool` comes from `FloorConfig` for the current floor. Decides if combat round ends (enemy HP ≤ 0) or player HP ≤ 0. | DOM. QuestionSelector internals. Rendering. |
-| **DungeonRenderer** | All DOM manipulation for the dungeon view: room layout, enemy sprite (CSS-drawn), HP bars for both player and enemy, loot drop animations, floor-complete screen. Reads from `DungeonState`, `PlayerState` (for player HP), and `FloorConfig` (for enemy name/sprite variant). Owns a separate DOM cache (`DUNGEON_DOM`) populated at init. | Question rendering (that is `Renderer`'s territory). State mutations. |
+| Component | Responsibility | New / Ported | Implementation |
+|-----------|----------------|--------------|----------------|
+| `main.js` | `kaplay()` init, global asset load, register scenes, `go("game")` | **NEW** | Kaplay entry; no game logic. |
+| `scenes/game.js` | Build the level (parent container), spawn player/platforms/goal, run loop, detect goal collision → trigger math gate | **NEW** | One scene; parent-object pause pattern. |
+| `entities/player.js` | Player game object: `sprite + pos + area + body`, run/jump input | **NEW** | Kaplay ECS components. |
+| `entities/platform.js`, `goal.js` | Static colliders (`body({ isStatic: true })`), goal flag (`area`) | **NEW** | Kaplay ECS. |
+| `ui/mathGate.js` | Render the question + 4 options as a **paused overlay**, capture answer, return correct/incorrect, advance/resume | **NEW (glue)** | Calls `QuestionSelector.selectNext`; renders with Kaplay `text`/`rect` or DOM. |
+| `math/questionSelector.js` | Weighted question generation | **PORTED verbatim** | ES module export. |
+| `math/playerState.js` | Accuracy/mastery state + `updateAccuracy` | **PORTED (accuracy half)** | ES module export. |
+| `math/config.js` | Tables, thresholds | **PORTED** | ES module export. |
+| `levels/level1.js` | Level definition (layout, spawn, goal position) | **NEW** | Data file (see Data Flow). |
+| `persistence/store.js` | localStorage save/load (XP, history) | **DEFERRED** | Stubbed seam; no behavior this milestone. |
 
 ---
 
-## Recommended Module Insertion Order in the Single HTML File
-
-Because all modules are sequential `const` declarations in one `<script>` block, order equals dependency order.
+## Recommended Project Structure
 
 ```
-<script>
-  'use strict';
-
-  // --- EXISTING (minimal changes noted) ---
-  const CONFIG           // + dungeon constants block appended
-  const XpCalculator     // unchanged
-  const PlayerState      // + hp/maxHp fields and HP methods
-  const PersistenceStore // + VERSION=2, migrate(), new SAVE_KEY
-
-  // --- NEW: static data, no dependencies ---
-  const FloorConfig      // pure data; depends only on CONFIG
-
-  // --- EXISTING ---
-  const QuestionSelector // unchanged
-
-  // --- NEW: stateful dungeon objects ---
-  const DungeonState     // depends on FloorConfig
-
-  // --- NEW: combat bridge ---
-  const CombatEngine     // depends on QuestionSelector, DungeonState,
-                         //   PlayerState, XpCalculator, FloorConfig
-
-  document.addEventListener('DOMContentLoaded', () => {
-
-    // DOM caches
-    const DOM         = { /* existing math DOM refs */ }
-    const DUNGEON_DOM = { /* new dungeon DOM refs */ }
-
-    // --- EXISTING renderer ---
-    const Renderer       // unchanged; uses DOM cache
-
-    // --- NEW dungeon renderer ---
-    const DungeonRenderer // uses DUNGEON_DOM + reads DungeonState,
-                          //   PlayerState, FloorConfig
-
-    // --- EXISTING (one-line mode guard added) ---
-    const InputHandler
-
-    // --- EXISTING (mode field + transition() added) ---
-    const App
-
-    // Bootstrap
-    // ...
-  });
-</script>
+math-lab/
+├── index.html              # entry; loads vendored kaplay + main.js as module
+├── lib/
+│   └── kaplay.mjs          # VENDORED Kaplay (no CDN, offline-safe)
+├── src/
+│   ├── main.js             # NEW: kaplay() init, loadAssets(), scene registration, go("game")
+│   ├── assets.js           # NEW: all loadSprite/loadSpriteAtlas calls in one place
+│   ├── scenes/
+│   │   └── game.js         # NEW: the one playable level scene
+│   ├── entities/
+│   │   ├── player.js       # NEW: makePlayer() → component array
+│   │   ├── platform.js     # NEW: makePlatform()
+│   │   └── goal.js         # NEW: makeGoal()
+│   ├── ui/
+│   │   └── mathGate.js     # NEW (glue): paused overlay, runs a question, returns result
+│   ├── levels/
+│   │   └── level1.js       # NEW: level layout data (string-map or object list)
+│   ├── math/               # PORTED — framework-agnostic, zero Kaplay imports
+│   │   ├── config.js
+│   │   ├── playerState.js
+│   │   └── questionSelector.js
+│   └── persistence/
+│       └── store.js        # DEFERRED seam: no-op/stub this milestone
+└── assets/
+    ├── sprites/            # CC0 pixel-art PNGs (player, tiles, goal)
+    └── atlas.json          # optional sprite-atlas definition (see Asset Loading)
 ```
+
+### Structure Rationale
+
+- **`src/math/` imports NOTHING from Kaplay.** This is the decoupling firewall: the ported brain stays a
+  pure module that could be unit-tested in Node or reused in a future quiz mode. The game depends on math;
+  math never depends on the game.
+- **`ui/mathGate.js` is the ONLY bridge** between game and math. It is the single integration point — it
+  imports `questionSelector` + `playerState`, and the game scene imports only `mathGate`. Keeping the bridge
+  in one file means the coupling is auditable and the math module can change provider (overlay → scene)
+  without touching the algorithm.
+- **`assets.js` centralizes loads** so the offline/`file://` asset-path gotcha is fixed in one place.
+- **`persistence/` exists from day one as a stub** so wiring it later is "fill in the file," not "restructure
+  the project." (See seam below.)
+- **`levels/` separate from scene** so adding level 2..N is adding a data file + a `go("game", level2)`,
+  not editing scene code.
 
 ---
 
-## Save Schema: v1 → v2 Migration
+## Architectural Patterns
 
-### v1 schema (current)
+### Pattern 1: Paused-Overlay Math Gate (RECOMMENDED) vs Separate Scene
 
-```json
-{
-  "version": 1,
-  "xp": 0,
-  "level": 1,
-  "accuracy": { "1": 0.5, "2": 0.5, "3": 0.5, "4": 0.5, "5": 0.5,
-                "6": 0.4, "7": 0.4, "8": 0.4, "9": 0.4 },
-  "history":  {}
-}
-```
+**The central decision.** Two viable models for "playing the level" vs "answering a question":
 
-### v2 schema (target)
-
-```json
-{
-  "version": 2,
-  "xp": 0,
-  "level": 1,
-  "accuracy": { "1": 0.5, ... "9": 0.4 },
-  "history":  {},
-  "dungeon": {
-    "floor": 1,
-    "roomsCleared": 0,
-    "loot": []
-  }
-}
-```
-
-### Migration logic
+**(A) Paused overlay within one scene — RECOMMENDED.**
+Kaplay supports `obj.paused = true`, which stops `onUpdate()` and event listeners for that object **and all
+its children**, while still drawing them. The idiomatic pattern: gameplay entities are children of one parent
+container; the math overlay is attached to the scene root, so it stays live while the world freezes behind it.
 
 ```javascript
-// Inside PersistenceStore:
-const VERSION = 2;
-const KEY = 'mathlab_save_v2';
-const LEGACY_KEY = 'mathlab_save_v1';
+// scenes/game.js
+const world = add([]);                       // parent container (pausable)
+const player = world.add([ /* player comps */ ]);
+world.add([ /* platforms, goal */ ]);
 
-function migrate(data, fromVersion) {
-  if (fromVersion === 1) {
-    // Carry forward all math progress; add dungeon sub-object
-    data.dungeon = { floor: 1, roomsCleared: 0, loot: [] };
-    data.version = 2;
-  }
-  return data;
-}
+player.onCollide("goal", () => {
+  world.paused = true;                       // freeze the level, keep it drawn
+  runMathGate({                              // overlay attached to root → stays live
+    onResolved(correct) {
+      // resume; deferred to avoid event-ordering bug
+      wait(0, () => { world.paused = false; });
+      if (correct) advanceOrWinLevel();
+    },
+  });
+});
+```
 
-function load() {
-  // 1. Try v2 key first
-  let raw = localStorage.getItem(KEY);
-  if (!raw) {
-    // 2. Fall back to v1 key (migration path)
-    raw = localStorage.getItem(LEGACY_KEY);
-  }
-  if (!raw) return defaults();
+- **What:** The level stays visible (frozen) behind a question overlay. No teardown, no reload.
+- **When:** Default for this project.
+- **Trade-offs (ADHD-friendly feel — decisive):** The world stays on screen, so there is **no jarring
+  scene cut, no asset re-init, no context loss** — the question feels like part of the same moment. This
+  directly serves the "seamless, no-pressure" requirement. Downside: pause-event ordering needs the
+  `wait(0, ...)` deferred-unpause guard (a known, documented Kaplay gotcha).
 
-  const data = JSON.parse(raw);
-  if (data.version < VERSION) return migrate(data, data.version);
-  return data;
+**(B) Separate `question` scene via `go("question", data)`.**
+
+```javascript
+player.onCollide("goal", () => go("question", { table: ..., levelId: 1 }));
+// in scene("question", ...) → on correct: go("game", nextLevelData)
+```
+
+- **What:** Switch to a dedicated scene; switch back on resolve.
+- **When:** Choose only if the question UI becomes large/complex enough to warrant its own scene, or for a
+  full-screen "stage clear" sequence later.
+- **Trade-offs:** Cleaner separation, BUT `go()` **destroys all objects in the previous scene** — the level
+  visually disappears and must be rebuilt on return. That cut is exactly the discontinuity to avoid for a
+  12-year-old (possible ADHD) who should feel "I'm still in my level." Also re-running the level scene
+  re-spawns the player at start unless you thread position through.
+
+**Verdict:** Use **(A) paused overlay** for the end-of-stage gate this milestone. Keep `mathGate` decoupled
+enough that swapping to (B) later is a `mathGate` internal change, not a game-logic change.
+
+### Pattern 2: Math Module as a Pure ES-Module Firewall
+
+**What:** The ported brain is plain ES modules with no Kaplay imports. `mathGate` is the single adapter.
+**When:** Always — this is the decoupling contract.
+**Trade-offs:** One extra indirection file (`mathGate`) vs calling the selector from scene code directly.
+Worth it: keeps the tuned algorithm testable and reusable, and isolates the future overlay/scene swap.
+
+```javascript
+// ui/mathGate.js  — the ONLY file that imports both worlds
+import { QuestionSelector } from "../math/questionSelector.js";
+import { playerState } from "../math/playerState.js";
+
+export function runMathGate({ allowedTables, onResolved }) {
+  const q = QuestionSelector.selectNext(playerState, allowedTables);
+  // render q.question + q.options (Kaplay objects or DOM), on pick:
+  //   const correct = pick === q.answer;
+  //   playerState.updateAccuracy(q.table, correct);   // feeds the weighting loop
+  //   onResolved(correct);
 }
 ```
 
-**Key constraint:** Player HP (`hp`, `maxHp`) is NOT in the save schema. HP is session-scoped — the player always starts a floor at full HP. HP is held in `PlayerState` in memory only. The save schema only persists progress that should survive a browser close.
+### Pattern 3: Player-as-Component-Factory (Kaplay ECS)
 
-**DungeonState floor/room progress** is also NOT persisted in v2. Dungeon runs are session-scoped (the game design specifies "no permadeath: die = restart the floor"). There is no benefit to saving mid-floor state — on reload the player starts fresh at floor 1. The `dungeon` object in the save schema is reserved for future cross-session dungeon progress (e.g., "deepest floor reached") but is not functionally used in v2 gameplay.
+**What:** Entities are functions returning a component array passed to `add()`/`world.add()`.
+**When:** All entities.
+**Trade-offs:** Idiomatic Kaplay; keeps `body()`/`area()`/`pos()`/`sprite()` composition readable.
+
+```javascript
+// entities/player.js
+export function makePlayer(spawn) {
+  return [
+    sprite("player"), pos(spawn), area(), body(),
+    "player",
+    { speed: 200, jumpForce: 640 },
+  ];
+}
+// in scene: const player = world.add(makePlayer(level.spawn));
+//   onKeyDown("left"/"right") → player.move(...); onKeyPress("space") → if(player.isGrounded()) player.jump(player.jumpForce)
+```
+
+### Pattern 4: Centralized Asset Loading + Sprite Atlas for CC0 packs
+
+**What:** One `assets.js` with all `loadSprite()` / `loadSpriteAtlas()` calls, awaited at boot.
+**When:** Always.
+**Trade-offs:** Kaplay loads sprites async before the first scene; centralizing prevents the common
+`file://`-vs-server path bug and missing-frame errors.
+
+```javascript
+// assets.js
+export function loadAssets() {
+  // simple per-file
+  loadSprite("player", "assets/sprites/player.png");
+  // OR sprite atlas (one PNG + frame map) for a CC0 pack:
+  loadSpriteAtlas("assets/sprites/tiles.png", {
+    "grass":  { x: 0,  y: 0, width: 16, height: 16 },
+    "goal":   { x: 16, y: 0, width: 16, height: 16 },
+    "player": { x: 0, y: 16, width: 16, height: 32, sliceX: 4, anims: { run: { from: 0, to: 3, loop: true } } },
+  });
+}
+```
+For CC0 packs (Kenney/itch) that already ship a single spritesheet, **prefer `loadSpriteAtlas` with a
+hand-written or pack-provided frame map** over many `loadSprite` calls — fewer HTTP requests offline, and
+animations (`anims`) live with the atlas. Kenney packs typically include per-frame sizes; itch packs may
+need you to author the atlas JSON. Pin the chosen pack's tile size (commonly 16×16) into `config`.
 
 ---
 
 ## Data Flow
 
-### Combat round flow (the core loop replacement)
+### Level → Play → Gate → Advance
 
 ```
-User enters a room
-    ↓
-App.transition('combat')
-    ├─→ FloorConfig.get(DungeonState.floor) → enemy config
-    ├─→ DungeonState.enterRoom(enemyConfig) → reset enemy HP
-    ├─→ CombatEngine.startRound() → calls QuestionSelector.selectNext(
-    │       playerState, enemyConfig.tablePools
-    │   ) → question object
-    ├─→ Renderer.showQuestion(question)     (existing)
-    └─→ DungeonRenderer.renderCombat(
-            DungeonState, PlayerState, enemyConfig
-        )
-
-User selects answer
-    ↓
-InputHandler.handleAnswer(selectedValue)  (existing path, with mode guard)
-    ↓
-CombatEngine.resolveAnswer(isCorrect, question)
-    ├─→ [correct] → damage = CombatEngine.calcPlayerDamage(question.table,
-    │       DungeonState.loot)
-    │   DungeonState.dealDamageToEnemy(damage)
-    │   XpCalculator.calculateXp(question.table) → PlayerState.addXp(xp)
-    │   DungeonRenderer.animatePlayerAttack(damage)
-    │
-    ├─→ [wrong] → damage = FloorConfig.enemyDamage(DungeonState.floor)
-    │   PlayerState.takeDamage(damage)
-    │   DungeonRenderer.animateEnemyAttack(damage)
-    │
-    ├─→ PlayerState.updateAccuracy(table, isCorrect)  (existing)
-    ├─→ PersistenceStore.save(PlayerState, DungeonState)
-    ├─→ Renderer.updateHud(PlayerState)               (existing)
-    └─→ DungeonRenderer.updateHpBars(DungeonState, PlayerState)
-         ↓
-CombatEngine.checkOutcome()
-    ├─→ enemy HP ≤ 0 → App.transition('loot')
-    │   DungeonRenderer.showLootDrop(FloorConfig.rollLoot())
-    │
-    ├─→ player HP ≤ 0 → App.transition('defeat')
-    │   DungeonRenderer.showDefeatScreen()
-    │   → on confirm: DungeonState.resetFloor(); App.transition('dungeon')
-    │
-    └─→ neither → CombatEngine.startRound() (next question)
+boot:  main.js → kaplay() → loadAssets() → scene("game", build) → go("game", level1)
+        ↓
+play:  level1 data → build platforms/player/goal under `world` parent
+        ↓ (keyboard) move/jump, body() gravity + platform collision
+reach: player.onCollide("goal")
+        ↓
+gate:  world.paused = true → mathGate.runMathGate({allowedTables})
+        ↓                         ↓
+        │                    QuestionSelector.selectNext(playerState, allowedTables)
+        │                         ↓  → { table, multiplicand, answer, options[4], question }
+        │                    render overlay (4 choices, no timer)
+        ↓                         ↓ user picks
+resolve: correct? ── playerState.updateAccuracy(table, correct)  ← closes weighting loop
+        ↓
+        ├─ correct  → wait(0) → world.paused=false → level complete / next level
+        └─ wrong    → wait(0) → world.paused=false → re-ask (no punishment; ADHD-safe)
 ```
 
-### Screen transitions
+### Level Definition (ONE level, room for more)
 
-```
-App.mode:
-
-  'dungeon'  ←──────────────────────────────┐
-      ↓ (player clicks a room door)          │
-  'combat'                                   │
-      ↓ (enemy defeated)                     │
-  'loot'                                     │
-      ↓ (player clicks continue)             │
-  'dungeon'  (if rooms remain on floor)      │
-      ↓ (all rooms cleared on floor)         │
-  'floor-complete'                           │
-      ↓ (player clicks next floor)           │
-  'dungeon'  (floor counter incremented) ───►┘
-
-  'combat'
-      ↓ (player HP = 0)
-  'defeat'
-      ↓ (player clicks retry)
-  'dungeon'  (floor reset, room 1)
-```
-
----
-
-## Rendering Approach: Pure DOM + CSS (No Canvas)
-
-The single-file constraint and zero-dependency rule means no canvas libraries. Rooms and enemies are rendered entirely in HTML+CSS.
-
-### Enemy sprites — CSS character approach
-
-Enemies are CSS-drawn characters using layered `div` elements with `border-radius`, `box-shadow`, and CSS custom properties for colour variants. This is the same technique used for CSS art (e.g., pure CSS animals). Complexity is kept low — silhouette-level, not pixel-art detail.
-
-Each enemy type is defined by a CSS class on a root container `div`. The `DungeonRenderer` sets the class based on `FloorConfig.enemyType`:
-
-```html
-<div id="enemy-sprite" class="enemy goblin">
-  <!-- All parts are CSS pseudoelements or child divs -->
-  <div class="enemy-body"></div>
-  <div class="enemy-head"></div>
-</div>
-```
-
-```css
-.enemy.goblin { --enemy-color: #4a7c3f; --enemy-size: 80px; }
-.enemy.skeleton { --enemy-color: #c8c8c0; --enemy-size: 90px; }
-.enemy.dragon { --enemy-color: #8b1a1a; --enemy-size: 120px; }
-```
-
-Hit and defeat animations are CSS `@keyframes` triggered by adding/removing a class (`enemy-hit`, `enemy-defeated`). No JavaScript animation code is needed.
-
-### HP bars — CSS width transition
-
-HP bars are `div` elements where a fill `div`'s `width` is set to a percentage via JavaScript `style.width`. CSS `transition: width 0.3s ease` handles smooth animation automatically.
-
-```html
-<div class="hp-bar-track">
-  <div id="enemy-hp-fill" class="hp-bar-fill enemy-hp"></div>
-</div>
-<div class="hp-bar-track">
-  <div id="player-hp-fill" class="hp-bar-fill player-hp"></div>
-</div>
-```
+**Recommendation: a tiny per-level data object with a string tile-map.** Kaplay's `addLevel()` consumes a
+string array + a tile legend, which is the lowest-effort way to lay out one hand-designed level and trivially
+add more.
 
 ```javascript
-// DungeonRenderer:
-updateHpBars(dungeonState, playerState) {
-  const enemyPct = Math.max(0,
-    dungeonState.enemyHp / dungeonState.enemyMaxHp * 100
-  );
-  const playerPct = Math.max(0,
-    playerState.getHp() / playerState.getMaxHp() * 100
-  );
-  DUNGEON_DOM.enemyHpFill.style.width = enemyPct + '%';
-  DUNGEON_DOM.playerHpFill.style.width = playerPct + '%';
-}
+// levels/level1.js
+export const level1 = {
+  id: 1,
+  tileSize: 16,
+  allowedTables: [6, 7, 8, 9],          // feeds QuestionSelector for this stage
+  spawn: { x: 32, y: 200 },
+  layout: [
+    "                      ",
+    "                  $   ",   // $ = goal
+    "          ===         ",
+    "   @           ===    ",   // @ = player spawn (or use spawn{})
+    "======================",   // = = ground
+  ],
+  legend: {
+    "=": () => [sprite("grass"), area(), body({ isStatic: true }), "ground"],
+    "$": () => [sprite("goal"), area(), "goal"],
+  },
+};
 ```
 
-### Room layout — CSS grid + state classes
-
-The dungeon view shows the current floor's rooms as a row of room cards. Each card is a `<button>` (accessible, keyboard-navigable). Cleared rooms get a `cleared` class, the active combat room gets `active`, locked rooms get `locked` (disabled attribute).
-
-```html
-<div id="room-row" role="list">
-  <!-- Rendered by DungeonRenderer.renderRoomRow(DungeonState, FloorConfig) -->
-</div>
-```
-
-Loot inventory is a flex row of icon `div` elements at the bottom of the dungeon view. Icons use Unicode characters (e.g., ⚔ for sword upgrade, 🛡 for shield) styled in the grunge colour palette — no images needed.
-
-### Screen visibility — CSS class toggle (no display switching in JS)
-
-Each screen section exists in the DOM at all times. `App.transition(mode)` adds/removes a single `active` class. CSS handles `display`:
-
-```css
-.game-screen { display: none; }
-.game-screen.active { display: flex; }
-```
-
-This avoids the common pitfall of setting `display` in JS and then needing to undo it. `DOMContentLoaded` renders all screens; only the CSS class controls which one is visible.
+- **Why string-map over hard-coded `add()` calls:** Editing a level becomes editing ASCII art (designer-
+  friendly, fast to iterate one *polished* level), and adding level 2 is a new file + `go("game", level2)`.
+- **Why not a full Tiled/JSON tilemap this milestone:** Overkill for one level; adds a tool + export step
+  against the no-build-step constraint. Revisit only when level count grows.
+- **`allowedTables` travels with the level** → the same field the v2 brain already accepts (`allowedTables`
+  arg to `selectNext`). Zero new selector code.
 
 ---
 
-## Build Order
+## Integration Points
 
-The dungeon system can be built in two independently testable phases:
+### Internal Boundaries
 
-### Phase A — Combat works without rooms (combat-only stub)
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `scenes/game.js` ↔ `ui/mathGate.js` | direct call `runMathGate({allowedTables, onResolved})` + callback | Game never imports the selector directly — only the gate. |
+| `ui/mathGate.js` ↔ `math/*` | `QuestionSelector.selectNext(playerState, allowedTables)`, `playerState.updateAccuracy()` | The one place the two worlds meet. Result returned via callback. |
+| `math/questionSelector.js` ↔ `math/playerState.js` | reads `getAccuracy()`, `isMastered()` | **Pre-existing coupling — ported as-is.** Determines the minimal port. |
+| `levels/level1.js` → `scenes/game.js` | passed as `go("game", levelData)` arg | Level data is the only scene parameter. |
 
-Build in this order:
+### The Deferred Persistence Seam (leave open, do NOT build now)
 
-1. **CONFIG extension** — Add HP values, damage constants, loot config. No behaviour change.
-2. **PlayerState HP methods** — `takeDamage()`, `heal()`, `resetHp()`, `getHp()`, `getMaxHp()`. Can be verified in the console immediately.
-3. **FloorConfig** — Static data only. No DOM needed.
-4. **DungeonState** — State object with `enterRoom()`, `dealDamageToEnemy()`, `isEnemyDefeated()`. No DOM needed.
-5. **CombatEngine** — Wire `QuestionSelector` output to damage logic. At this point, the combat loop works: answer a question → enemy HP decreases → when zero, combat ends. Test entirely in DevTools console by calling `CombatEngine.resolveAnswer(true, fakeQuestion)`.
-6. **PersistenceStore v2 migration** — Update VERSION, add migrate(), test with existing v1 save to confirm math accuracy data is preserved.
+The v1/v2 app already proved the localStorage pattern (versioned key `mathlab_save_v2`, `toJSON`/`fromJSON`,
+quota handling, v1→v2 migration). To avoid a rewrite when persistence returns:
 
-At the end of Phase A, the game is still the v1 question loop visually, but underneath `CombatEngine` is resolving damage correctly. This is the "can combat work before rooms work" answer: yes. The room navigation view is a display concern; the combat engine is pure logic.
+1. **Keep `playerState.toJSON()` / `fromJSON()` in the ported module even though nothing calls them yet.**
+   They are cheap and define the save shape.
+2. **Create `persistence/store.js` now as a no-op stub** with the eventual signatures:
+   `save(playerState)` and `load() → savedData | null`. This milestone they do nothing (or `load()` returns
+   `null` → fresh state).
+3. **Route all state mutation through `playerState`** (already true: `updateAccuracy`, future `addXp`). When
+   persistence lands, the only new calls are `store.save(playerState)` after a resolved question and
+   `playerState.fromJSON(store.load())` at boot in `main.js`. No restructuring.
+4. **XP/leveling is part of the deferred chunk** — `addXp` exists in the ported PlayerState but stays unwired
+   to UI this milestone. The seam is "call `addXp` on correct, then `store.save`," both single lines.
 
-### Phase B — Dungeon visuals and screen routing
+**Net:** wiring persistence later = ~3 lines in `main.js` (load at boot) + ~2 lines in `mathGate` (save on
+resolve). The architecture must not require more than that.
 
-7. **HTML structure** — Add dungeon-view, combat-view (wraps existing question card), defeat-screen, floor-complete-screen sections to the HTML. Add `DUNGEON_DOM` cache.
-8. **DungeonRenderer** — Enemy sprites, HP bars, room row, loot icons, screen animations. Test visuals in isolation by calling `DungeonRenderer.renderCombat(fakeDungeonState, fakePlayerState, fakeEnemyConfig)`.
-9. **App mode routing** — Add `mode` field and `transition()` method. Wire `App.transition('combat')` call when a room button is clicked. Wire defeat and floor-complete transitions.
-10. **InputHandler mode guard** — Add `if (App.mode !== 'combat') return;` guard at the top of `handleAnswer`.
-11. **End-to-end flow integration** — Walk through a full floor: enter room → fight → defeat enemy → collect loot → next room → floor complete.
+### External / Offline
 
----
-
-## Integration Points: New vs. Modified vs. Untouched
-
-| Module | Status | Change Description |
-|--------|--------|-------------------|
-| CONFIG | Modified | Add `DUNGEON` constants block. No existing keys removed or renamed. |
-| XpCalculator | Untouched | No change. |
-| PlayerState | Modified | Add `hp`, `maxHp` private vars. Add `takeDamage`, `heal`, `resetHp`, `getHp`, `getMaxHp`. Add `hp`-related field to `toJSON` (for in-session state; NOT to save schema). |
-| PersistenceStore | Modified | VERSION 1→2. New SAVE_KEY. Add `migrate()` function. Legacy key read on first load. |
-| QuestionSelector | Untouched | `selectNext(playerState)` signature unchanged. CombatEngine passes a playerState reference as before. Floor-specific table weighting is handled by CombatEngine adjusting which tables appear in FloorConfig, not by changing QuestionSelector internals. |
-| Renderer | Untouched | Keeps all existing methods. DungeonRenderer is a separate object. |
-| InputHandler | Modified | One-line mode guard at top of `handleAnswer`. `setup()` unchanged. |
-| App | Modified | Add `mode` string field. Add `transition(newMode)` method. `nextQuestion` renamed `nextCombatRound` (internal only; no external callers beyond App itself). Bootstrap now calls `DungeonState.init()`. |
-| **FloorConfig** | New | Static floor data only. |
-| **DungeonState** | New | Session-scoped dungeon state. |
-| **CombatEngine** | New | Combat resolution logic. Bridges QuestionSelector to DungeonState/PlayerState. |
-| **DungeonRenderer** | New | All dungeon visual DOM operations. |
+| Concern | Pattern | Notes |
+|---------|---------|-------|
+| Vendored Kaplay | `lib/kaplay.mjs`, imported by `main.js` | No CDN; ships offline. |
+| `file://` module + asset loading | one-line `python3 -m http.server` | Browsers block ES-module + sprite loads over `file://`; document the server command (already accepted in PROJECT.md). |
+| Assets | `assets/` + centralized `assets.js` | CC0 PNGs only; no external fetch. |
 
 ---
 
-## Anti-Patterns to Avoid
+## Anti-Patterns
 
-### Anti-Pattern 1: Leaking dungeon logic into QuestionSelector
+### Anti-Pattern 1: Calling QuestionSelector from scene/loop code
 
-**What people do:** Add `floorNumber` or `enemyType` parameters to `QuestionSelector.selectNext()` to change table weighting per floor.
+**What people do:** Import `questionSelector` directly in `game.js` and scatter `updateAccuracy` calls in
+collision handlers.
+**Why it's wrong:** Re-couples the tuned brain to Kaplay specifics; makes the overlay→scene swap a
+multi-file change; loses the single auditable bridge.
+**Do this instead:** Route everything through `ui/mathGate.js`. Game code knows only `runMathGate`.
 
-**Why it's wrong:** QuestionSelector's accuracy-based weighting is the core learning mechanic. Floor-specific table filtering belongs in FloorConfig. Mixing them makes QuestionSelector stateful about the dungeon and breaks the v1 math loop.
+### Anti-Pattern 2: Modifying the ported selection algorithm to "fit" the game
 
-**Do this instead:** CombatEngine reads `FloorConfig.get(floor).tablePools` and validates that the question returned by QuestionSelector uses an allowed table. If not (edge case: all weak tables mastered), CombatEngine re-rolls or uses a fallback pool. QuestionSelector remains a pure accuracy-driven selector.
+**What people do:** Tweak weights/distractors while wiring it in.
+**Why it's wrong:** The 6–9 weighting + EWMA was tuned and audited across v1/v2 (DIFF-01/DIFF-02). Changing
+it during a port conflates two concerns and risks regressions.
+**Do this instead:** Port verbatim. Pass `allowedTables` per level for difficulty; leave the math alone.
 
-### Anti-Pattern 2: Merging DungeonState into PlayerState
+### Anti-Pattern 3: Using `go()` to a question scene for the end-of-stage gate
 
-**What people do:** Add `floor`, `enemyHp`, `roomsCleared` directly onto the PlayerState closure to avoid a second state object.
+**What people do:** `go("question")` and `go("game")` round-trip.
+**Why it's wrong:** `go()` destroys the level; the world vanishes and re-spawns — a discontinuity that
+undercuts the "still in my game" feel and re-inits the player position.
+**Do this instead:** Paused overlay (Pattern 1). Reserve scene switches for genuinely full-screen moments
+(title, "level complete" celebration) later.
 
-**Why it's wrong:** PlayerState is the persistent player identity (XP, level, accuracy). DungeonState is the ephemeral run. They have different lifecycles: PlayerState persists to localStorage on every answer; DungeonState resets on floor restart. Merging them means HP and enemy state pollute the save schema, the toJSON/fromJSON validation logic, and the v2 migration path.
+### Anti-Pattern 4: Building persistence/XP UI now "while we're here"
 
-**Do this instead:** Keep them separate. PersistenceStore.save() receives both objects and knows which fields to persist from each. A clear signature: `save(playerState, dungeonState)` where only `playerState.toJSON()` fields and `dungeon: { floor, roomsCleared, loot }` from DungeonState go into localStorage.
-
-### Anti-Pattern 3: Rendering dungeon state from InputHandler
-
-**What people do:** Add `DungeonRenderer.updateHpBars()` calls inside `InputHandler.handleAnswer()` because that is where the answer is processed.
-
-**Why it's wrong:** InputHandler already calls Renderer, PersistenceStore, and PlayerState from within handleAnswer — it is already the most entangled function in v1. Adding DungeonRenderer calls there makes it own four different concerns and is the most likely place for hard-to-trace bugs.
-
-**Do this instead:** `handleAnswer` calls `CombatEngine.resolveAnswer()`. CombatEngine is the single place that decides what changed (player HP, enemy HP, XP) and then calls both `Renderer.updateHud()` and `DungeonRenderer.updateHpBars()` at the end of its resolution. InputHandler's only job remains delegating the selected value.
-
-### Anti-Pattern 4: Multiple save keys for the same player
-
-**What people do:** Write dungeon state to a separate `mathlab_dungeon_v1` key and math state to `mathlab_save_v2`, reasoning that they are "independent data."
-
-**Why it's wrong:** Two save keys means two `try/catch` blocks, two quota checks, two migration paths, two consistency problems (they can become out of sync if one write succeeds and the other fails mid-session). localStorage writes are synchronous — keep them atomic in a single key.
-
-**Do this instead:** One key (`mathlab_save_v2`), one JSON object with two sub-schemas: the existing math fields at the root and a `dungeon` object for dungeon progress. One write, one read, one migration function.
-
-### Anti-Pattern 5: Canvas for enemy sprites
-
-**What people do:** Reach for `<canvas>` to draw enemies because it feels like the "game" approach.
-
-**Why it's wrong:** Canvas requires a drawing library or significant hand-rolled render code. It does not integrate with CSS animations (which are hardware-accelerated and free). It is harder to make accessible. It adds complexity that the single-file constraint cannot absorb without a major code size increase.
-
-**Do this instead:** CSS character art (layered divs with border-radius). Three enemy types can each be a distinct CSS class applying colour and shape variations. Hit animations are CSS `@keyframes`. The visual result is stylised and grunge-appropriate, not photorealistic — which matches the project aesthetic.
+**What people do:** Wire localStorage + level-up overlays in the same milestone.
+**Why it's wrong:** PROJECT.md explicitly defers it; it widens scope against "one polished level."
+**Do this instead:** Stub the seam (above) and stop. Make the *first* level feel like a real game.
 
 ---
 
-## Scalability Notes
+## Scaling Considerations
 
-This architecture is deliberately session-local. There is no meaningful scale dimension beyond "does it work well for one user on one device." The constraints that apply:
+(Single-user local game — "scale" means content/feature growth, not load.)
 
-| Concern | Bound | Mitigation |
-|---------|-------|------------|
-| localStorage size | ~5 MB | v2 save schema adds ~50 bytes (dungeon sub-object). Total save size remains under 5 KB. No issue. |
-| DOM node count | v2 adds ~30 nodes (room row, HP bars, enemy sprite) | Still tiny. DocumentFragment batch-insertion for room row render. |
-| Combat loop performance | ~1 ms per answer resolution | No loops, no rAF needed for combat logic. All synchronous, immediate. |
-| CSS animation concurrency | Hit flash + HP bar transition simultaneously | CSS composites independently. No JS animation needed. No conflict. |
+| Growth | Architecture adjustment |
+|--------|-------------------------|
+| 1 level → many levels | Add `levels/levelN.js` files; `go("game", levelN)`. No scene rewrite. String-map already supports it. |
+| Bigger/complex levels | Migrate from hand-string-map to Tiled JSON + a loader; only `levels/` + `assets.js` change. |
+| Richer math mechanics (locked doors, defeat-enemy) | New gate *triggers* (door collide, enemy hit) call the same `runMathGate`; selector untouched. The `mathGate` bridge is the extension point. |
+| Persistence + XP + level-up | Fill the stubbed seam (3–5 lines as described); reuse v2 save format. |
+| Audio | Add `loadSound` to `assets.js`; play in `mathGate`/scene events. |
+
+### First bottleneck
+**Coupling creep**, not performance. If math calls leak into scene/loop code, every future mechanic gets
+harder. The `mathGate` firewall is the thing to protect.
+
+---
+
+## Suggested Build Order (dependency-driven)
+
+1. **Project skeleton + vendored Kaplay boot.** `index.html`, `lib/kaplay.mjs`, `main.js` with `kaplay()` and
+   an empty `scene("game")` that draws "hello". Confirm it runs via `python3 -m http.server`.
+   *(Unblocks everything; verifies the offline/module/server path first — the riskiest infra step.)*
+2. **Asset loading + one sprite on screen.** Choose CC0 pack, drop PNGs in `assets/`, write `assets.js`
+   (`loadSprite`/`loadSpriteAtlas`), render the player sprite. *(Validates atlas + path handling early.)*
+3. **Platformer core.** Player `body()`+`area()`, gravity, run/jump input, static platforms, camera if needed.
+   Make movement *feel* good. *(The intrinsically-fun part; depends on assets.)*
+4. **Level definition + goal.** `levels/level1.js` string-map via `addLevel()`, place ground/platforms/goal,
+   detect `onCollide("goal")`. One polished, completable level. *(Depends on core movement.)*
+5. **Port the math brain.** Extract `config.js`, `playerState.js` (accuracy half + keep `toJSON/fromJSON`),
+   `questionSelector.js` into `src/math/` as pure ES modules. Smoke-test `selectNext` in isolation.
+   *(Independent of game; can run in parallel with 3–4.)*
+6. **Math-gate integration (the bridge).** `ui/mathGate.js`: on goal collision → `world.paused=true` →
+   render question overlay → capture pick → `updateAccuracy` → resume/advance with deferred unpause.
+   *(Depends on 4 + 5; this is the milestone's keystone.)*
+7. **Persistence seam stub.** Add `persistence/store.js` no-ops + confirm the load-at-boot / save-on-resolve
+   call sites are one-liners. *(Depends on 5; closes the milestone without building persistence.)*
+8. **Polish pass.** Dark/grunge styling on overlay + sprites, ADHD checks (no timer, forgiving wrong-answer
+   loop, clear feedback), tune jump feel. *(Last; depends on all.)*
+
+**Parallelization note:** Step 5 (port) has zero dependency on the game shell and can proceed alongside
+steps 3–4. Step 6 is the join point.
 
 ---
 
 ## Sources
 
-All findings from direct inspection of the v1 source file (`math-lab.html`) and established patterns from:
-
-- v1 ARCHITECTURE.md (this project's existing research, 2026-06-20) — closure module pattern, localStorage versioning, DOM cache pattern. Confidence: HIGH (direct codebase evidence).
-- Game Programming Patterns: State — separate ephemeral run state from persistent player identity. Confidence: HIGH.
-- MDN CSS Transitions — `transition: width` for HP bars; hardware-accelerated, no JS needed. Confidence: HIGH.
-- CSS-Tricks: Grainy Gradients + CSS character art patterns — confirms pure CSS is viable for stylised sprite work. Confidence: HIGH.
-- localStorage atomicity — single-key design from v1 PersistenceStore; extending rather than splitting is the safe migration path. Confidence: HIGH (direct code pattern).
+- [KAPLAY Guides — Scenes](https://kaplayjs.com/docs/guides/scenes/) — `scene()`/`go()` API, data passing, `stay()`, "code inside scenes" guidance. (HIGH — official docs)
+- [KAPLAY Guides — Pausing](https://v4000.kaplayjs.com/docs/guides/pausing/) — `obj.paused`, parent-object pause pattern, deferred-unpause `wait(0,...)` gotcha. (HIGH — official docs)
+- [KAPLAY Guides — Creating your first game / Reference](https://kaplayjs.com/docs/guides/creating_your_first_game/) — `body()`, `isGrounded()`, `jump(force)`, component/ECS model, `loadSprite`/`loadSpriteAtlas`, `addLevel`. (HIGH — official docs)
+- [The KAPLAY Game Library in 5 Minutes](https://jslegenddev.substack.com/p/the-kaplay-game-library-in-5-minutes) — ECS overview, scene basics. (MEDIUM — community)
+- `math-lab.html` (this repo, lines ~611–1030) — QuestionSelector / PlayerState / CONFIG / PersistenceStore source of truth for the port. (HIGH — direct source read)
+- `.planning/PROJECT.md` v3.0 — constraints, deferred-scope decisions, target user. (HIGH — project canon)
 
 ---
-
-*Architecture research for: Dungeon crawler integration layer on existing single-file math app*
-*Researched: 2026-06-20*
+*Architecture research for: Kaplay 2D platformer + ported math brain (v3.0 The Platformer)*
+*Researched: 2026-06-22*

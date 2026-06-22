@@ -1,502 +1,241 @@
 # Stack Research
 
-**Domain:** Dungeon crawler combat layer added to existing vanilla JS math practice app (single HTML file)
-**Researched:** 2026-06-20
-**Confidence:** HIGH
+**Domain:** No-build, offline, browser 2D platformer (Kaplay) for a 12-year-old; math gate at end of stage
+**Researched:** 2026-06-22
+**Confidence:** HIGH (versions verified directly against the npm registry + jsDelivr file listing + official kaplayjs.com docs)
 
-## Executive Summary
+> Scope note: The engine (Kaplay), art source (Kenney/itch.io CC0), no-build/offline
+> approach, and ported math brain are **already decided**. This file documents *how to
+> execute those decisions well* with concrete versions, the exact vendoring/loading
+> approach, a minimal file layout, and the asset-loading APIs. It does not re-litigate
+> engine choice or question-selection algorithms.
 
-The v1 stack (vanilla ES2020+, CSS3, localStorage, requestAnimationFrame) carries forward unchanged. The dungeon crawler adds three new technical concerns on top of it: (1) a finite-state machine to manage game phases (explore, combat, loot, floor-transition, death), (2) DOM-based room/combat rendering using `<section>` panels swapped via CSS class toggling rather than innerHTML replacement, and (3) visual character representation using Unicode emoji and CSS-shaped HP bars without any image files. No new dependencies are introduced. The patterns below are the specific additions needed for v2 — everything already in STACK.md for v1 continues to apply.
+## Recommended Stack
 
----
+### Core Technologies
 
-## New Stack Additions for v2
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| **Kaplay** | **3001.0.19** (npm `latest`) | 2D game engine: scenes, sprites, gravity/`body()` physics, AABB collision, keyboard input, game loop | Kaboom.js successor (npm package renamed `kaboom` → `kaplay`). Gives real platformer physics (gravity, jump, grounded checks, platform collision) without hand-writing the bug-prone parts. Ships a single self-contained JS file with **zero runtime dependencies** — drops straight into a no-build offline project. MIT licensed. |
+| **Vanilla JavaScript** | ES2020+ (ES modules) | Game wiring, level definition, and the ported "math brain" (weighted 6–9 question selection) | Already the project's language; the v1/v2 `QuestionSelector` ports in unchanged. ES modules let you split `main.js` / `math.js` / `level.js` cleanly without a bundler. |
+| **HTML5 + CSS3** | Living Standard | `index.html` host page + `<canvas>` Kaplay mounts into; dark/grunge page chrome around the canvas | Kaplay renders into a canvas; surrounding page styling (dark background, framing) is plain CSS, consistent with the existing aesthetic. |
+| **Python `http.server`** (or `npx serve`) | Python 3.x stdlib | One-line local static server for development/play | **Required** — browsers block ES-module loading and image `fetch` over `file://` (CORS / module security). `python3 -m http.server` is already sanctioned in PROJECT.md and ships with Python; no install. |
 
-### 1. Finite-State Machine (Game Phase Controller)
+### Supporting Libraries
 
-**Use:** Plain JavaScript object with a `state` string and a `transition(event)` method.
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| **None** | — | — | **Default.** Kaplay covers physics, sprites, input, audio, and the loop. Resist adding anything else. |
+| Kenney CC0 art packs | n/a (asset data, not code) | Pixel-art tiles/sprites for player, platforms, goal | Always — this is the art source. Treated as data files in `assets/`, not a dependency. See "Asset Pipeline" below. |
+| Tiled (map editor) | 1.10+ | *Optional* visual level editing exporting JSON | Only if hand-coding the single level's geometry becomes painful. For one level, an in-code array of platform rects is simpler and avoids a JSON loader. **Defer.** |
 
-**Why:** The dungeon crawler has discrete phases — exploring a room, in combat, receiving loot, transitioning floors, and the death screen. Without an explicit FSM, `if/else` chains multiply across every handler and the flow becomes untraceable. A simple FSM with named states and named events makes illegal transitions visible and keeps the App module clean.
+### Development Tools
 
-**Pattern:**
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| Text editor (VS Code) | Authoring | No build config needed. |
+| `python3 -m http.server 8000` | Serve the project for local play | Run from project root, open `http://localhost:8000/`. This is the canonical run command. |
+| Browser DevTools (F12) | Debug Kaplay scenes, inspect console/network, confirm assets load | Kaplay logs asset-load failures to the console — first place to look if a sprite is invisible. |
+| Git | Version control | Commit the vendored `kaplay.js` and `assets/` so the project stays self-contained and reproducible offline. |
 
-```javascript
-const STATES = {
-  EXPLORE:    'explore',
-  COMBAT:     'combat',
-  LOOT:       'loot',
-  TRANSITION: 'floor-transition',
-  DEAD:       'dead'
-};
+## Installation
 
-const GameFSM = (() => {
-  let current = STATES.EXPLORE;
+**No `npm install` is needed to run the game.** You vendor one file. Two equivalent ways to obtain it:
 
-  // Legal transitions: { fromState: { eventName: toState } }
-  const transitions = {
-    [STATES.EXPLORE]:    { ENTER_ROOM: STATES.COMBAT },
-    [STATES.COMBAT]:     { ENEMY_DEAD: STATES.LOOT, PLAYER_DEAD: STATES.DEAD },
-    [STATES.LOOT]:       { LOOT_TAKEN: STATES.EXPLORE, FLOOR_CLEAR: STATES.TRANSITION },
-    [STATES.TRANSITION]: { NEXT_FLOOR: STATES.EXPLORE },
-    [STATES.DEAD]:       { RESTART_FLOOR: STATES.EXPLORE }
-  };
+```bash
+# Option A — download the vendored engine file directly (no Node required)
+mkdir -p vendor
+curl -L -o vendor/kaplay.js \
+  https://cdn.jsdelivr.net/npm/kaplay@3001.0.19/dist/kaplay.js     # global build
+# (or, for the ESM approach:)
+curl -L -o vendor/kaplay.mjs \
+  https://cdn.jsdelivr.net/npm/kaplay@3001.0.19/dist/kaplay.mjs    # ES module build
 
-  return {
-    getState() { return current; },
-    send(event) {
-      const next = transitions[current]?.[event];
-      if (!next) {
-        console.warn(`[FSM] Illegal transition: ${current} + ${event}`);
-        return false;
-      }
-      current = next;
-      return true;
-    },
-    is(state) { return current === state; }
-  };
-})();
+# Option B — pull via npm once, then copy the dist file out and discard node_modules
+npm install kaplay@3001.0.19
+cp node_modules/kaplay/dist/kaplay.mjs vendor/kaplay.mjs
 ```
 
-**Why NOT a library:** XState and similar add 50–200 KB. A 20-line object does 100% of what this game needs. Keep it inline.
+> **Pin the version.** Commit the copied file. Do **not** point a `<script>` at a live CDN
+> URL for the shipped game — that breaks the offline requirement. CDN is only for the
+> initial download.
 
-**Integration with existing modules:** `InputHandler.handleAnswer` calls `GameFSM.send('ENEMY_DEAD')` or `GameFSM.send('PLAYER_DEAD')` after resolving combat. `App.nextQuestion` is replaced by a dispatcher that reads `GameFSM.getState()` and calls the right render path.
+### Loading approach — pick ONE
 
----
-
-### 2. DungeonState Module
-
-**Use:** New closure module alongside existing PlayerState, holding session-scoped run data (current floor, room index, enemy HP, player HP, loot inventory). Not persisted to localStorage — runs are session-scoped (die = restart floor, not persist).
-
-**Why a separate module:** PlayerState holds XP/level/accuracy which persists across sessions. DungeonState holds per-run combat data which resets on floor restart. Mixing them would require clearing dungeon fields on every save/load cycle and risks corrupting the accuracy EWMA between sessions.
-
-**Shape:**
-
-```javascript
-const DungeonState = (() => {
-  // Session-scoped — not saved to localStorage
-  let floor       = 1;   // 1–3 + boss
-  let roomIndex   = 0;   // 0–5 (5–6 rooms per floor)
-  let playerHp    = 20;
-  let playerMaxHp = 20;
-  let playerAtk   = 3;   // base attack; upgraded by sword loot
-  let playerDef   = 0;   // base defence; upgraded by shield loot
-  let potions     = 0;
-  let currentEnemy = null;  // { name, hp, maxHp, atk, table, emoji }
-
-  return {
-    getFloor()        { return floor; },
-    getRoomIndex()    { return roomIndex; },
-    getPlayerHp()     { return playerHp; },
-    getPlayerMaxHp()  { return playerMaxHp; },
-    getEnemy()        { return currentEnemy; },
-    getPotions()      { return potions; },
-
-    spawnEnemy(enemyDef) {
-      currentEnemy = { ...enemyDef };  // shallow copy of enemy template
-    },
-
-    dealDamageToEnemy(amount) {
-      currentEnemy.hp = Math.max(0, currentEnemy.hp - amount);
-      return currentEnemy.hp === 0;  // returns true if killed
-    },
-
-    dealDamageToPlayer(amount) {
-      playerHp = Math.max(0, playerHp - Math.max(0, amount - playerDef));
-      return playerHp === 0;  // returns true if dead
-    },
-
-    applyLoot(lootType) {
-      if (lootType === 'sword')   playerAtk  = Math.min(playerAtk + 2, 10);
-      if (lootType === 'shield')  playerDef  = Math.min(playerDef + 1, 4);
-      if (lootType === 'potion')  potions    = Math.min(potions + 1, 3);
-    },
-
-    usePotion() {
-      if (potions === 0) return false;
-      potions--;
-      playerHp = Math.min(playerMaxHp, playerHp + 8);
-      return true;
-    },
-
-    advanceRoom() {
-      roomIndex++;
-    },
-
-    advanceFloor() {
-      floor++;
-      roomIndex = 0;
-      // Partial heal on floor transition (rewarding, not full reset)
-      playerHp = Math.min(playerMaxHp, playerHp + 5);
-    },
-
-    restartFloor() {
-      roomIndex = 0;
-      playerHp  = playerMaxHp;
-      potions   = 0;
-      playerAtk = 3;
-      playerDef = 0;
-    },
-
-    getAttack() { return playerAtk; }
-  };
-})();
-```
-
----
-
-### 3. Enemy Definitions (Data, Not Code)
-
-**Use:** A plain `ENEMIES` config object — not a class hierarchy. Each enemy is a template object. `DungeonState.spawnEnemy()` shallow-copies the template into live state.
-
-**Why not classes:** ES6 classes add `new`, `this`, prototype chains, and inheritance complexity to a data structure that never needs methods. A plain object with spread is simpler to read, test, and modify.
-
-```javascript
-const ENEMIES = {
-  goblin: {
-    name:    'Goblin',
-    emoji:   '👺',
-    hp:      8,
-    maxHp:   8,
-    atk:     2,
-    tables:  [2, 3, 5],   // question pool for this enemy
-    xpDrop:  15,
-    lootTable: ['potion', null, null]  // 1-in-3 chance
-  },
-  skeleton: {
-    name:    'Skeleton',
-    emoji:   '💀',
-    hp:      14,
-    maxHp:   14,
-    atk:     4,
-    tables:  [4, 6, 7],
-    xpDrop:  25,
-    lootTable: ['sword', 'potion', null]
-  },
-  dragon: {
-    name:    'Dragon',
-    emoji:   '🐉',
-    hp:      30,
-    maxHp:   30,
-    atk:     7,
-    tables:  [7, 8, 9],
-    xpDrop:  80,
-    lootTable: ['sword', 'shield', 'potion']
-  }
-};
-```
-
-**Integration:** `QuestionSelector.selectNext` already accepts a table list. For combat questions, pass `currentEnemy.tables` directly instead of the full table pool from CONFIG.
-
----
-
-### 4. DOM Panel Architecture (Screen Switching)
-
-**Use:** Pre-rendered `<section>` panels in the HTML, toggled visible/hidden by a single CSS class on `<main>`. No innerHTML swapping for screen changes.
-
-**Why:** innerHTML replacement on every screen change re-creates DOM nodes, resets focus, and flashes content. CSS class toggling on a wrapper is instantaneous, preserves focus, and plays well with CSS transitions for panel slide-in/out.
-
-**HTML structure:**
+**Recommended: ES module import (vendored `.mjs`).** Cleaner multi-file structure, matches official "recommended for CDN" guidance, and you'll already need a local server (see below), so the module-loading constraint costs nothing extra.
 
 ```html
-<main id="game-board" data-screen="explore">
-  <section id="screen-explore">...</section>
-  <section id="screen-combat">...</section>
-  <section id="screen-loot">...</section>
-  <section id="screen-transition">...</section>
-  <section id="screen-dead">...</section>
-</main>
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+  <head><meta charset="utf-8" /><link rel="stylesheet" href="style.css" /></head>
+  <body>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
+```
+```js
+// main.js
+import kaplay from "./vendor/kaplay.mjs";
+const k = kaplay({ background: [10, 10, 10] }); // dark canvas
+// ... loadSprite(...) / scenes / etc.
 ```
 
-**CSS:**
+**Alternative: global `<script>` tag (vendored `kaplay.js`).** Simpler mental model (one global `kaplay()`), no `type="module"`. Use if you prefer a single `main.js` with no `import`:
 
-```css
-/* All screens hidden by default */
-#game-board > section { display: none; }
-
-/* Only the active screen shows — driven by data-screen attribute */
-#game-board[data-screen="explore"]    #screen-explore    { display: flex; }
-#game-board[data-screen="combat"]     #screen-combat     { display: flex; }
-#game-board[data-screen="loot"]       #screen-loot       { display: flex; }
-#game-board[data-screen="floor-transition"] #screen-transition { display: flex; }
-#game-board[data-screen="dead"]       #screen-dead       { display: flex; }
+```html
+<script src="./vendor/kaplay.js"></script>  <!-- exposes global kaplay() -->
+<script src="./main.js"></script>
 ```
 
-**JS (Renderer addition):**
+### file:// vs local server — stated explicitly
 
-```javascript
-showScreen(stateName) {
-  document.getElementById('game-board').dataset.screen = stateName;
-}
-```
+| Approach | Opens via `file://` (double-click)? | Why |
+|----------|-------------------------------------|-----|
+| ESM import (`.mjs`) | No | Browsers refuse `import` over `file://` (module CORS). **Server required.** |
+| Global `<script>` + image assets | Unreliable | The script tag loads, but Kaplay's image/`loadSprite` fetches and canvas texture reads are blocked or tainted under `file://` on most browsers. |
+| **Either, served over HTTP** | Yes | `python3 -m http.server 8000` then `http://localhost:8000/` makes both modules and asset fetches work. |
 
-**Why `data-screen` attribute over class toggling:** A single attribute swap on the parent is one DOM write that controls all children. Adding/removing classes on each child section requires one write per section and risks forgetting one.
+**Conclusion:** A one-line static server is required regardless of loading style. This is already
+accepted in PROJECT.md. The "double-click the HTML file" experience from v1/v2 does **not**
+survive the pivot — provide a tiny `run.bat` / documented command instead.
 
----
-
-### 5. HP Bar Rendering (CSS + DOM, No Canvas, No Images)
-
-**Use:** A `<div class="hp-bar"><div class="hp-fill"></div></div>` where the fill's `width` is set inline as a percentage. No canvas, no SVG, no images.
-
-**Why:** Canvas requires `getContext('2d')` and a repaint loop. SVG adds markup complexity. A CSS bar is three lines of JS and hardware-accelerated via CSS `transition: width`.
-
-```css
-.hp-bar {
-  width: 100%;
-  height: 12px;
-  background: #333;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 1px solid #444;
-}
-
-.hp-fill {
-  height: 100%;
-  background: var(--accent);   /* green at full health */
-  border-radius: 3px;
-  transition: width 0.3s ease, background-color 0.3s ease;
-}
-
-/* Color shifts as HP drops — pure CSS, no JS color logic */
-.hp-fill[data-health="low"]      { background: #ff6600; }   /* orange below 50% */
-.hp-fill[data-health="critical"] { background: var(--danger); }  /* red below 25% */
-```
-
-```javascript
-// In Renderer:
-updateHpBar(barEl, current, max) {
-  const pct = Math.max(0, (current / max) * 100);
-  barEl.querySelector('.hp-fill').style.width = pct + '%';
-  const fill = barEl.querySelector('.hp-fill');
-  fill.style.width = pct + '%';
-  fill.dataset.health = pct <= 25 ? 'critical' : pct <= 50 ? 'low' : 'ok';
-}
-```
-
----
-
-### 6. Combat Feedback Animations (CSS @keyframes Only)
-
-**Use:** CSS `@keyframes` classes added/removed by JS for hit flash, enemy shake, and damage numbers. No JavaScript animation library, no requestAnimationFrame animation loop for visual effects.
-
-**Why CSS over JS for visual feedback:** CSS animations are GPU-composited and run on the compositor thread — they don't block JS execution during the 1s feedback delay that already exists in `InputHandler`. Adding them via a class toggle is one line of JS.
-
-**Patterns:**
-
-```css
-/* Enemy takes damage — red flash */
-@keyframes enemyHit {
-  0%   { filter: brightness(1) sepia(0); transform: translateX(0); }
-  20%  { filter: brightness(3) sepia(1) hue-rotate(-30deg); transform: translateX(-6px); }
-  40%  { transform: translateX(6px); }
-  60%  { transform: translateX(-3px); }
-  100% { filter: brightness(1) sepia(0); transform: translateX(0); }
-}
-
-.enemy-sprite.hit {
-  animation: enemyHit 0.45s ease-out forwards;
-}
-
-/* Player takes damage — screen edge flash */
-@keyframes playerHurt {
-  0%   { box-shadow: inset 0 0 0 0 rgba(255, 51, 51, 0); }
-  30%  { box-shadow: inset 0 0 40px 20px rgba(255, 51, 51, 0.4); }
-  100% { box-shadow: inset 0 0 0 0 rgba(255, 51, 51, 0); }
-}
-
-#game-board.player-hurt {
-  animation: playerHurt 0.6s ease-out forwards;
-}
-
-/* Damage number float (no JS position calc needed) */
-@keyframes dmgFloat {
-  0%   { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-40px); }
-}
-
-.dmg-number {
-  position: absolute;
-  pointer-events: none;
-  font-weight: 900;
-  animation: dmgFloat 0.8s ease-out forwards;
-}
-```
-
-**JS integration (one-shot class add/remove):**
-
-```javascript
-// Trigger and auto-clean via animationend
-function triggerAnimation(el, className) {
-  el.classList.add(className);
-  el.addEventListener('animationend', () => el.classList.remove(className), { once: true });
-}
-```
-
-This pattern is already established in v1's `showLevelUpOverlay` — extend it, don't replace it.
-
----
-
-### 7. Character Representation (Emoji + CSS Shapes — No Images)
-
-**Use:** Unicode emoji for enemy sprites; CSS borders and `clip-path` for decorative dungeon UI elements (doorways, keys, chests). No PNG/JPG/SVG image files.
-
-**Why emoji:** Emoji render natively on all modern browsers including Chrome/Edge/Firefox on Windows. They scale with `font-size`. No network request, no file size, no CORS issue. At 2–4em they read clearly as character "sprites" in a DOM-based RPG without any visual ambiguity.
-
-**Concrete character assignments:**
-
-| Entity | Emoji/Unicode | CSS font-size |
-|--------|--------------|---------------|
-| Goblin | 👺 | 5rem |
-| Skeleton | 💀 | 5rem |
-| Dragon (boss) | 🐉 | 6rem |
-| Player (hero) | ⚔️ | 4rem |
-| Sword loot | 🗡️ | 2.5rem |
-| Shield loot | 🛡️ | 2.5rem |
-| Potion | 🧪 | 2.5rem |
-| Locked door | 🚪 | 3rem |
-| Stairs (next floor) | 🪜 | 3rem |
-| Boss room | 💥 | 3rem |
-
-**Rendering consideration:** Emoji rendering differs between Windows/macOS/Linux at very large sizes. At 5–6rem on a Windows laptop (the target device), all of the above render reliably in Chrome/Edge. Do not use skin-tone modifier emojis — they render differently across systems. Stick to non-human emojis (objects, monsters, symbols).
-
-**Alternative (CSS shapes only):** If emoji feel too playful for the grunge aesthetic, CSS `clip-path` polygons can create angular monster silhouettes. Example:
-
-```css
-.enemy-goblin-icon {
-  width: 60px; height: 80px;
-  background: #2d5a1e;
-  clip-path: polygon(50% 0%, 85% 15%, 100% 50%, 85% 85%, 50% 100%, 15% 85%, 0% 50%, 15% 15%);
-}
-```
-
-This is more work, harder to maintain, and less immediately readable. Emoji is the right call here.
-
----
-
-### 8. Save Schema Extension (localStorage v2)
-
-**Use:** Bump `PersistenceStore` schema version to `2`, add dungeon-specific persistent fields (best floor reached, total enemies defeated, run count) while keeping all v1 fields intact. Session-scoped combat state (DungeonState) is NOT persisted.
-
-**Why version bump:** v1 save data is already in the wild (the existing app). A version mismatch causes `PersistenceStore.load()` to return defaults — which wipes XP and accuracy. The migration path must preserve v1 data.
-
-**Migration pattern:**
-
-```javascript
-load() {
-  // ...existing parse + validate...
-  if (data.version === 1) {
-    // Migrate v1 → v2: add dungeon stats with defaults
-    return {
-      ...data,
-      version: 2,
-      bestFloor:       1,
-      totalEnemies:    0,
-      totalRuns:       0
-    };
-  }
-  if (data.version === 2) return data;
-  // Unknown version — use defaults
-  return defaults();
-}
-```
-
-**New fields (v2 only, not in DungeonState):**
-
-| Field | Type | Default | Purpose |
-|-------|------|---------|---------|
-| `bestFloor` | number | 1 | Persistent achievement; shown in HUD |
-| `totalEnemies` | number | 0 | Lifetime counter; motivational stat |
-| `totalRuns` | number | 0 | Counts floor restarts for analytics |
-
----
-
-## What NOT to Add
-
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| HTML5 Canvas | No canvas libraries exist offline; drawing API is verbose for DOM-based UI; no benefit over CSS for this scope | CSS HP bars + emoji sprites + CSS @keyframes |
-| Phaser.js / Kaboom.js | 1–2 MB; breaks single-file constraint; designed for sprite-sheet games, not DOM text-based | Plain JS FSM + DOM panels |
-| Web Animations API (WAAPI) | More verbose than CSS keyframes for this use case; `element.animate()` requires JS arrays of keyframe objects | CSS `@keyframes` + class toggling |
-| `<canvas>` for room maps | Canvas is stateful and requires repaint on every state change; DOM is easier to update declaratively | `<section>` panels swapped via `data-screen` |
-| sessionStorage for DungeonState | No benefit over a JS closure variable; sessionStorage adds serialization/deserialization overhead for state that resets per floor anyway | Module-scoped closure variables in DungeonState |
-| Object.assign prototype inheritance for enemies | Introduces `this` binding complexity and prototype chain bugs in strict mode | Plain object spread `{ ...enemyTemplate }` |
-| CSS Grid layout for dungeon map | Floor map visualization (5–6 rooms) doesn't need a 2D grid; a linear `<ol>` of room indicators suffices | Flexbox `<ol>` with room nodes |
-
----
-
-## Integration Points with v1 Modules
-
-| v1 Module | Change Required | Notes |
-|-----------|----------------|-------|
-| `CONFIG` | Add dungeon constants: `ROOMS_PER_FLOOR`, `FLOORS`, `PLAYER_MAX_HP`, `BASE_DAMAGE`, `FLOOR_HEAL` | Keep existing keys; add new ones below. |
-| `XpCalculator` | No change needed | Enemy XP drops are defined in `ENEMIES` config, passed to `PlayerState.addXp()` directly. |
-| `PlayerState` | No change needed | `addXp` and `updateAccuracy` called from combat resolution, same as before. |
-| `PersistenceStore` | Version bump to 2 + migration | See schema extension above. |
-| `QuestionSelector.selectNext()` | Add optional `tables` parameter | `selectNext(playerState, tables)` — if `tables` provided, use it instead of full CONFIG pool. Defaults to existing behavior if omitted. |
-| `Renderer` | Add: `showScreen()`, `updateHpBar()`, `showEnemy()`, `showLoot()`, `triggerAnimation()` | Extend the existing Renderer object; do not replace it. |
-| `InputHandler` | Add: FSM-aware dispatch in `handleAnswer` | After answer is evaluated, call `GameFSM.send()` with the appropriate event, then let App dispatcher handle routing. |
-| `App` | Replace `nextQuestion()` with `dispatch()` | `dispatch()` reads `GameFSM.getState()` and calls the appropriate `Renderer.*` + `DungeonState.*` methods. |
-
----
-
-## New Module Load Order
+### Minimal project layout
 
 ```
-CONFIG (extended)
-  → XpCalculator (unchanged)
-  → PlayerState (unchanged)
-  → PersistenceStore (v2 schema)
-  → ENEMIES (new — data only)
-  → DungeonState (new)
-  → GameFSM (new)
-  → QuestionSelector (extended)
-  → DOMContentLoaded {
-      DOM cache (extended)
-      → Renderer (extended)
-      → InputHandler (extended)
-      → App.dispatch() (replaces App.nextQuestion)
-    }
+math-lab/
+├─ index.html          # host page, mounts canvas, loads main.js
+├─ style.css           # dark/grunge page chrome around the canvas
+├─ main.js             # kaplay() init, scenes, game loop wiring
+├─ math.js             # PORTED v1/v2 QuestionSelector (6–9 weighting) — unchanged logic
+├─ level.js            # level geometry (platform rects, spawn, goal) + math-gate trigger
+├─ vendor/
+│  └─ kaplay.mjs       # pinned, vendored engine (3001.0.19) — committed to git
+└─ assets/
+   ├─ tiles.png        # Kenney packed spritesheet (e.g. 18×18 grid)
+   └─ player.png       # player spritesheet (walk/idle/jump frames)
 ```
 
-All modules remain in the single `<script>` block. New modules slot in before `DOMContentLoaded` alongside existing pre-DOM modules. No structural change to the file layout is required.
+## Asset Pipeline (Kenney / itch.io CC0)
 
----
+**Loading API (Kaplay):**
+
+```js
+// Grid spritesheet → named frames + animations
+loadSprite("player", "assets/player.png", {
+  sliceX: 9, sliceY: 3,                 // cut the sheet into a 9×3 frame grid
+  anims: {
+    idle: { from: 0, to: 3, loop: true, speed: 6 },
+    run:  { from: 9, to: 16, loop: true, speed: 12 },
+    jump: 17,
+  },
+});
+
+// Many named sub-sprites packed in one image (a "tilemap")
+loadSpriteAtlas("assets/tiles.png", {
+  "grass":   { x: 0,  y: 0,  width: 18, height: 18 },
+  "dirt":    { x: 18, y: 0,  width: 18, height: 18 },
+  "flag":    { x: 0,  y: 18, width: 18, height: 18, sliceX: 2, anims: { wave: { from: 0, to: 1, loop: true } } },
+});
+
+// then in a scene:
+add([ sprite("player"), pos(64, 0), area(), body() ]).play("idle");
+```
+
+- `loadSpriteAtlas(src, data)` takes an inline JS object **or** a URL to an external JSON
+  atlas — for one level, inline data avoids an extra fetch.
+- `sliceX`/`sliceY` divide a region into a frame grid (frame 0 = top-left, indexed across rows).
+- `anims` map names to a frame range `{from, to, loop, speed}` or a single frame index.
+
+**Kenney pack conventions (CC0):**
+- Packs ship **both** a combined PNG spritesheet (e.g. `tilemap_packed.png`) **and** individual
+  PNG tiles. For Kaplay, the packed sheet + `loadSpriteAtlas`/`sliceX` is most efficient.
+- "Pixel Platformer" uses **18×18** tiles; other packs use 16/32/64 — confirm the grid before
+  setting `sliceX`/`sliceY` (mismatched grid = sliced-wrong sprites).
+- **CC0 = public domain.** No attribution required, commercial use allowed, and you may
+  **recolor/darken** freely to hit the dark-grunge palette (no pink). A `CREDITS.md` thank-you
+  is courteous but not legally required.
+
+**Licensing checklist for any itch.io pack you add:**
+1. Confirm the license literally says **CC0** (or "public domain"). Many itch packs are
+   "free" but **not** CC0 (e.g. CC-BY needs attribution, or "no redistribution" forbids
+   committing the files). Reject anything ambiguous.
+2. Save the license text / pack URL in `assets/SOURCES.md` so provenance survives.
+3. Prefer **kenney.nl** (and its `kenney-assets.itch.io` mirror) as the default — uniformly
+   CC0, consistent grid sizes, large coherent sets.
+
+## Platformer Physics Conventions (Kaplay)
+
+| Need | Kaplay API |
+|------|-----------|
+| Gravity | `setGravity(1600)` (global, px/s²) |
+| Player body | `add([ sprite("player"), pos(), area(), body() ])` |
+| Static platform | `add([ rect(w,h) /*or sprite*/, pos(), area(), body({ isStatic: true }) ])` |
+| Jump (only when grounded) | `onKeyPress("space", () => { if (player.isGrounded()) player.jump(900); })` |
+| Run | `onKeyDown("left", () => player.move(-SPEED, 0))` / `"right"` |
+| Goal trigger | `player.onCollide("flag", () => startMathGate())` |
+
+The three components `pos() + area() + body()` are the minimum for a controllable character.
+Platforms are the same minus movement, plus `body({ isStatic: true })`.
 
 ## Alternatives Considered
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| Plain JS FSM object | Class-based state pattern | `class` syntax adds prototype overhead; `new` + `this` binding is unnecessary for a singleton; ES2020 closure is cleaner. |
-| `data-screen` attribute on `<main>` | Separate `show/hide` class on each `<section>` | One attribute write vs. N class writes; CSS attribute selectors are equally fast; attribute approach is less error-prone. |
-| Emoji character sprites | CSS `clip-path` shapes | Emoji are immediately readable, require zero maintenance, and render correctly on all Windows browsers at target sizes. |
-| CSS @keyframes + class toggle | Web Animations API | WAAPI is more verbose and offers no benefit here; class toggling reuses the exact pattern already in v1's level-up overlay. |
-| Separate DungeonState closure | Extend PlayerState | Mixing session-scoped combat state with persisted XP/accuracy data creates save-file contamination risk; separation is clean and testable. |
-| Enemy tables in ENEMIES config | Pass floor number to QuestionSelector | Decouples enemy difficulty from floor number; a dragon could appear on any floor in future; explicit table list per enemy is clearer intent. |
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| Kaplay 3001.0.19 (`latest`) | Kaplay `next` = 4000.0.0-alpha | Only for bleeding-edge features; alpha = API churn + bugs. **Avoid** for a shippable kid's game. |
+| Kaplay 3001.0.19 | Kaplay 3001.0.2 (`r3001` tag) | If you hit a regression in .19; otherwise take the latest patch. |
+| Kaplay (renamed) | Original `kaboom` package | Don't — `kaboom` is the unmaintained predecessor; Kaplay is the maintained fork/successor. |
+| Vendored `.mjs` + ESM | Vendored `kaplay.js` global script | Use the global build if you want zero `import` statements / a single script file. Functionally equivalent here. |
+| In-code level array | Tiled + JSON map | Use Tiled only once you have several levels; overkill for v3.0's single level. |
+| `python3 -m http.server` | `npx serve` / VS Code Live Server | Any static server works; use what's already installed. Live Server adds auto-reload during dev. |
 
----
+## What NOT to Use
 
-## Performance Targets (v2 additions)
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| Bundlers (Vite, webpack, esbuild, Parcel) | Adds a build step + Node toolchain; breaks the "no build, vendored file" constraint | Vendor `kaplay.js`/`kaplay.mjs` directly; serve statically |
+| `npx create-kaplay` scaffold | Generates a Vite project (build step, dev server on 5173) — contradicts no-build | Hand-roll the minimal layout above |
+| Live CDN `<script src="https://...">` in the shipped game | Breaks offline requirement; fails with no internet | Download once, commit the vendored file, reference it locally |
+| `dist/kaplay.min.js` URL | **Does not exist** in the package — jsDelivr "guesses" it and 404s. Real files are `kaplay.js`, `kaplay.mjs`, `kaplay.cjs` | Use `dist/kaplay.js` (global) or `dist/kaplay.mjs` (ESM) |
+| React/Vue/Svelte | Framework + VDOM is pure overhead for a canvas game loop | Kaplay owns the loop; plain JS around it |
+| Opening the game by double-clicking `index.html` (`file://`) | ESM imports and asset fetches are blocked by browser security | Always launch via the local HTTP server |
+| Non-CC0 "free" itch.io packs without checking | CC-BY/other licenses impose attribution or redistribution limits — risky for a committed-to-git project | Verify CC0 explicitly; default to kenney.nl |
+| Anime.js / external animation libs | Kaplay has sprite anims + tween built in | `loadSprite` `anims` + Kaplay `tween()` |
 
-| Metric | Target | Notes |
-|--------|--------|-------|
-| Single-file size | < 300 KB total | v1 was 848 lines (~28 KB); v2 adds ~250–350 lines; well under limit. |
-| Screen switch latency | < 16 ms (1 frame) | `dataset.screen` swap is a single attribute write; CSS handles show/hide. |
-| Combat animation frame rate | 60 FPS | All animations are CSS; compositor thread handles them independently of JS. |
-| Emoji render size | 5–6rem | Tested range on Windows Chrome/Edge; renders clearly without pixelation. |
-| DungeonState memory | < 1 KB | Flat object with ~10 numeric fields; no allocation pressure. |
+## Stack Patterns by Variant
 
----
+**If you want the cleanest multi-file structure:**
+- Use the vendored **`.mjs`** + `<script type="module">` + `import`.
+- Because it matches Kaplay's recommended path and you already need a server, so module
+  loading costs nothing.
+
+**If you want a single dumb `main.js` with no imports:**
+- Use the vendored **`kaplay.js`** global build + two plain `<script>` tags.
+- Because the global `kaplay()` function needs no module machinery.
+
+**If level geometry grows beyond one screen / one level (later milestone):**
+- Introduce Tiled + `loadSpriteAtlas(src, jsonUrl)` for external map data.
+- Because hand-maintaining large coordinate arrays in `level.js` stops scaling. **Not v3.0.**
+
+## Version Compatibility
+
+| Package A | Compatible With | Notes |
+|-----------|-----------------|-------|
+| `kaplay@3001.0.19` | Modern evergreen browsers (Chrome/Firefox/Safari/Edge 2022+) | Targets WebGL canvas + ES2020; the Windows-laptop target is fine. |
+| `kaplay@3001.x` global `dist/kaplay.js` | `<script>` tag, global `kaplay()` | Self-contained IIFE; no other scripts required. |
+| `kaplay@3001.x` `dist/kaplay.mjs` | `import` over **HTTP(S)** only | Will not load over `file://`. |
+| Kenney CC0 PNG sheets | `loadSprite`/`loadSpriteAtlas` | Match `sliceX`/`sliceY` to the pack's tile grid (Pixel Platformer = 18×18). |
+| `kaplay@3001` vs `kaplay@4000-alpha` | **Not** drop-in compatible | 4000 is a new major with API changes; stay on 3001. |
 
 ## Sources
 
-- MDN Web Docs — CSS `data-*` attributes and attribute selectors (HIGH — official spec)
-- MDN Web Docs — `element.dataset` API (HIGH — official spec)
-- MDN Web Docs — CSS `@keyframes` and `animationend` event (HIGH — official spec)
-- MDN Web Docs — CSS `clip-path` property (HIGH — official spec)
-- Unicode Consortium — Emoji list 15.1, platform rendering notes (HIGH — authoritative)
-- Existing v1 codebase (`math-lab.html`) — module boundary conventions, `animationend` + `{ once: true }` pattern already established (HIGH — first-party)
+- npm registry `registry.npmjs.org/kaplay` — verified `latest` = **3001.0.19**, dist-tags `r3001`=3001.0.2 / `next`=4000.0.0-alpha, MIT license, exports map (HIGH, directly queried 2026-06-22).
+- jsDelivr `data.jsdelivr.com/.../kaplay@3001.0.19` — verified actual dist files: `kaplay.js`, `kaplay.mjs`, `kaplay.cjs` (no `.min.js`); inspected `kaplay.js` header confirming `var kaplay=(()=>...)` global IIFE build (HIGH, directly queried).
+- [kaplayjs.com/docs/guides/install](https://kaplayjs.com/docs/guides/install/) — official install methods: global script tag, ESM CDN import, npm, "zero bundlers needs a local HTTP server" (HIGH).
+- [kaplayjs.com loadSpriteAtlas / body docs](https://kaplayjs.com/) — `loadSprite`/`loadSpriteAtlas` signatures, `sliceX`/`sliceY`/`anims`; `pos()+area()+body()`, `setGravity`, `jump()`, `isGrounded()`, `onGround` (HIGH).
+- [kenney.nl/assets/pixel-platformer](https://kenney.nl/assets/pixel-platformer) + [Platformer Pack Redux](https://kenney.nl/assets/platformer-pack-redux) — CC0 license, 18×18 tiles, packed sheet + individual tiles (HIGH).
+- [jsDelivr kaplay package page](https://www.jsdelivr.com/package/npm/kaplay) and [npm kaplay](https://www.npmjs.com/package/kaplay) — corroborating package/version (MEDIUM/web).
 
 ---
-
-*Stack research for: Math Lab v2 — Dungeon Crawler combat layer*
-*Researched: 2026-06-20*
-*Confidence: HIGH*
+*Stack research for: no-build offline browser 2D platformer (Kaplay) with CC0 pixel art*
+*Researched: 2026-06-22*
