@@ -6,7 +6,7 @@ status: roadmapped
 last_updated: "2026-06-22T11:23:15.565Z"
 last_activity: 2026-06-22
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,35 +17,36 @@ progress:
 
 **Project:** Math Lab - Gamified Math Practice for Kids
 **Initialized:** 2026-06-20
-**Current Milestone:** v3.0 The Platformer (Phases 7–11)
+**Current Milestone:** v3.0 The Platformer (Phases 7–12)
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** v3.0 — pivot to a real 2D platformer (Kaplay) with an end-of-stage math gate. Roadmap complete; ready to plan Phase 7.
+**Current Focus:** v3.0 — pivot to a real 2D platformer (Kaplay), hosted at a web URL (Docker/nginx via Dokploy), with an end-of-stage math gate and persisted XP/leveling. Roadmap complete; ready to plan Phase 7.
 
-**Tech Stack (v3.0):** Multi-file (no build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Runs offline over a one-line local static server (`python3 -m http.server`); `file://` is blocked for module/asset loading.
+**Tech Stack (v3.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Packaged as static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL she just visits (no install, no launcher). A local dev server (`python3 -m http.server`) is used during development only. Persistence via versioned localStorage.
 **Shipped State (v2.0, being replaced):** 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji. The math brain (weighted 6–9 selection) is carried forward; the quiz shell is replaced by a game shell.
 
 ## Current Position
 
 Milestone: v3.0 The Platformer
-Phase: 7 (Project Setup & Local Serving) — not started
+Phase: 7 (Project Setup & Deployment) — not started
 Plan: —
 Status: Roadmap created; awaiting phase planning
-Last activity: 2026-06-22 — ROADMAP.md created for v3.0 (Phases 7–11), 29/29 v1 requirements mapped
+Last activity: 2026-06-22 — ROADMAP.md revised for v3.0 (Phases 7–12), 33/33 v1 requirements mapped
 
-## v3.0 Roadmap (Phases 7–11)
+## v3.0 Roadmap (Phases 7–12)
 
 | Phase | Goal | Requirements |
 |-------|------|--------------|
-| 7. Project Setup & Local Serving | Vendored Kaplay boots over a local server; friendly `file://` guard; clean multi-file layout | SETUP-01..04 |
+| 7. Project Setup & Deployment | Static files served by Docker/nginx, deployed via Dokploy at a web URL; Kaplay vendored; clean no-build multi-file layout; local dev server documented | SETUP-01..04 |
 | 8. Platformer Core | Mario-feel run/jump/land, smooth clamped camera, dt-correct, gentle checkpoint respawn | MOVE-01..05, LEVEL-06 |
 | 9. Level Build & CC0 Assets | One polished dark/grunge level: platforms, coins, a hazard, goal; licenses documented | LEVEL-01..05, LEVEL-07, LEVEL-08 |
 | 10. Math-Gate Integration | Ported math brain wired via single bridge; in-world, forgiving, no-timer gate (keystone/join) | GATE-01..06 |
-| 11. Polish, ADHD-Safety & UAT | Juice, control hints, contrast, no-timer/forgiving audit, verify with the kid | JUICE-01..03, SAFE-01..03 |
+| 11. Progression & Persistence | Correct answers earn XP + level up (v1/v2 curve); XP/level/practice-history persist in localStorage and resume on revisit; XP/level visible + level-up moment | SAVE-01..04 |
+| 12. Polish, ADHD-Safety & UAT | Juice, control hints, contrast, no-timer/forgiving audit, verify with the kid | JUICE-01..03, SAFE-01..03 |
 
 **Parallelization:** The math-brain port (Phase 10 prerequisite) has zero dependency on the game shell and can proceed alongside Phases 8–9; Phase 10's bridge is the join point.
 
@@ -62,7 +63,7 @@ Last activity: 2026-06-22 — ROADMAP.md created for v3.0 (Phases 7–11), 29/29
 | All four differentiators IN | In-world gate framing, coins, one hazard/enemy, juice/celebration | Locked in |
 | Wrong answer = forgiving re-ask, no penalty | ADHD-safe; no punishment loop | Locked in |
 | Respawn = checkpoint, progress preserved | ADHD-safe; no lives, no game-over | Locked in |
-| Persistence/XP deferred to a stub seam | Out of scope this milestone; ~3–5 lines to wire later | Locked in |
+| Persistence/XP is Phase 11 (pulled into this milestone) | She wants progress to persist like her school game; XP/level/practice-history in versioned localStorage | Locked in |
 | CC0 pixel-art packs (Kenney default) | Real game look, zero licensing risk; verify each pack's license page | Locked in |
 
 ## Carried-Forward Decisions (v1/v2, still valid)
@@ -81,12 +82,12 @@ Last activity: 2026-06-22 — ROADMAP.md created for v3.0 (Phases 7–11), 29/29
 1. **`file://` CORS asset failure** (Phase 7) — sprites silently never load when double-clicked. Mandate local server + `file:` protocol guard.
 2. **Kaplay/Kaboom version churn** (Phase 7) — pin 3001.0.19, comment source+version, code against that version's docs only.
 3. **Module-level state leaks across `go()`/retries** (Phase 8 discipline / Phase 10) — init run state inside scene callbacks; pass via `go(name,data)`; expose `reset()`.
-4. **Gate reads as a punishing quiz popup** (Phase 10 / Phase 11) — build a NEW in-world gate in the game's font/palette, avatar visible; reuse only the brain.
+4. **Gate reads as a punishing quiz popup** (Phase 10 / Phase 12) — build a NEW in-world gate in the game's font/palette, avatar visible; reuse only the brain.
 5. **Frame-rate-dependent movement** (Phase 8) — use `body()`/`vel` or multiply manual movement by `dt()`; verify on non-60 Hz.
-6. **Floaty jump** (Phase 8 / Phase 11) — coyote time, jump buffering, variable height; tune with the kid.
+6. **Floaty jump** (Phase 8 / Phase 12) — coyote time, jump buffering, variable height; tune with the kid.
 7. **Tile-seam stick / tunneling** (Phase 8 physics / Phase 9 colliders) — merge floor colliders, cap fall speed; build a stress strip early.
 8. **Progress loss on death** (Phase 8 / Phase 10) — checkpoint respawn; wrong answer penalty-free re-ask.
-9. **Over-stimulation / over-long level** (Phase 9 / Phase 11) — subtle effects, one short level, no timers.
+9. **Over-stimulation / over-long level** (Phase 9 / Phase 12) — subtle effects, one short level, no timers.
 10. **CC0 license mistakes** (Phase 9) — verify each pack's license page; keep CREDITS; never ship vendor logos.
 
 ## Research Flags
@@ -97,8 +98,8 @@ Last activity: 2026-06-22 — ROADMAP.md created for v3.0 (Phases 7–11), 29/29
 
 ## Gaps to Address (from research)
 
-- Game feel is iterative: exact gravity/jump-impulse/coyote/buffer values must be tuned with the kid in Phase 11 — research ranges are starting points only.
-- ADHD response is individual: no-timer/forgiving/low-stimulation principles must be confirmed via UAT (Phase 11), not assumed.
+- Game feel is iterative: exact gravity/jump-impulse/coyote/buffer values must be tuned with the kid in Phase 12 — research ranges are starting points only.
+- ADHD response is individual: no-timer/forgiving/low-stimulation principles must be confirmed via UAT (Phase 12), not assumed.
 - Kaplay collision robustness (MEDIUM): build a long-flat-run + fast-drop stress strip early (Phase 8/9).
 - Minimal port surface: confirm which PlayerState methods `selectNext` depends on by re-reading `math-lab.html` during Phase 10 planning (selector + CONFIG + accuracy/mastery half + keep `toJSON/fromJSON`).
 - Audio deferred but flagged: silence weakens the "real game" feel; revisit immediately after the loop validates.
@@ -106,34 +107,33 @@ Last activity: 2026-06-22 — ROADMAP.md created for v3.0 (Phases 7–11), 29/29
 ## Deferred (v2 & beyond)
 
 - Richer math mechanics: locked doors/bridges (DOOR-01), collect-the-answer (COLLECT-01), defeat-the-enemy (ENEMY-01)
-- Progression/persistence: XP/leveling carry-over (XP-01), localStorage save (SAVE-01) — stub seam left open this milestone
 - Content/atmosphere: multiple levels + level select (WORLD-01), audio (AUDIO-01), double jump (MOVE2-01)
 
 ## Session Continuity
 
 **Resume file:** None
 
-**Last session:** 2026-06-22 — v3.0 roadmap created
+**Last session:** 2026-06-22 — v3.0 roadmap revised (Phases 7–12)
 
 **Next steps:**
 
-1. User reviews and approves ROADMAP.md (Phases 7–11)
-2. Execute `/gsd-plan-phase 7` to create the detailed plan for Project Setup & Local Serving
+1. User reviews and approves ROADMAP.md (Phases 7–12)
+2. Execute `/gsd-plan-phase 7` to create the detailed plan for Project Setup & Deployment
 3. (Optional, parallel) begin porting the math brain — it has no game-shell dependency
-4. Proceed Phase 8 → 9 → 10 (keystone) → 11 (UAT with the kid)
+4. Proceed Phase 8 → 9 → 10 (keystone) → 11 (progression/persistence) → 12 (UAT with the kid)
 
 **Context for next session:**
 
-- v3.0 is a 5-phase, dependency-driven roadmap (Phases 7–11) continuing v2.0's numbering
-- 29/29 v1 requirements mapped, no orphans, no duplicates
-- Infra risk (`file://` serving + Kaplay version pinning) front-loaded into Phase 7
+- v3.0 is a 6-phase, dependency-driven roadmap (Phases 7–12) continuing v2.0's numbering
+- 33/33 v1 requirements mapped, no orphans, no duplicates
+- Infra risk (Docker/nginx static hosting via Dokploy + Kaplay version pinning) front-loaded into Phase 7
 - Phase 10 (math gate) is the keystone/join point; math port parallelizable
-- Feel/safety validated last and with the actual user (Phase 11)
+- Phase 11 adds XP/leveling/persistence (depends on Phase 10's gate outcomes); feel/safety validated last and with the actual user (Phase 12)
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-06-22 (v3.0 roadmap created)
+**Last updated:** 2026-06-22 (v3.0 roadmap revised — Phases 7–12)
 
 ## Historical Decisions (v1/v2)
 

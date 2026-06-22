@@ -8,12 +8,12 @@
 
 Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 
-### Project Setup & Serving
+### Project Setup & Deployment
 
-- [ ] **SETUP-01**: The game runs in a browser via a documented one-line local static server (e.g. `python3 -m http.server`)
-- [ ] **SETUP-02**: Opening the game incorrectly (over `file://`) shows a friendly message explaining how to start it
+- [ ] **SETUP-01**: The game is packaged as static files served by a Docker container (nginx) — no backend, no database, no server-side logic
+- [ ] **SETUP-02**: The container deploys via Dokploy and the game is reachable at a web URL she can visit to play (no install, no launcher, no local files)
 - [ ] **SETUP-03**: Kaplay (pinned to 3001.0.19) is vendored locally — no CDN, no `npm install` needed to play
-- [ ] **SETUP-04**: The project uses a clean multi-file layout (HTML + JS modules + assets folder) with no build step
+- [ ] **SETUP-04**: The project uses a clean multi-file layout (HTML + JS modules + assets folder) with no JS build step; a local dev server is documented for development
 
 ### Movement & Feel
 
@@ -55,6 +55,13 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 - [ ] **SAFE-02**: Controls are discoverable — an on-screen hint shows how to move and jump
 - [ ] **SAFE-03**: Visuals meet readable contrast on the dark theme and effects are not over-stimulating
 
+### Progression & Persistence
+
+- [ ] **SAVE-01**: The player earns XP for correct answers and levels up (port the v1/v2 XP curve and level system into the platformer)
+- [ ] **SAVE-02**: XP, level, and per-table practice history (accuracy/mastery) persist in the browser (localStorage, versioned) between visits
+- [ ] **SAVE-03**: Returning to the URL resumes her progression with XP/level intact; the persisted accuracy history keeps question selection adapted to her weak spots
+- [ ] **SAVE-04**: Current XP and level are visible in-game (XP bar / level indicator) with a level-up moment
+
 ## v2 Requirements
 
 Acknowledged but deferred to later milestones. Tracked, not in this roadmap.
@@ -64,11 +71,6 @@ Acknowledged but deferred to later milestones. Tracked, not in this roadmap.
 - **DOOR-01**: Mid-level locked doors/bridges that open only on a correct answer (answer choices as platforms/doors)
 - **COLLECT-01**: Collect-the-answer — jump to grab the floating number that answers the shown question
 - **ENEMY-01**: Defeat-the-enemy — reuse the 👺💀🐉 enemies as path blockers cleared by a correct answer
-
-### Progression & Persistence
-
-- **XP-01**: XP and leveling carry over from gameplay (port v1/v2 PlayerState/XP)
-- **SAVE-01**: Progress persists between sessions via localStorage (port v2 PersistenceStore, versioned)
 
 ### Content & Atmosphere
 
@@ -87,7 +89,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Score/grade/accuracy shaming | Shame-spiral risk; solo, judgment-free practice only |
 | Instant-death pits without respawn | Punishing; gentle checkpoint respawn instead |
 | Fail-out (ejected) on a wrong answer | Frustration; wrong answers re-ask with no penalty |
-| Online / server component, accounts, leaderboards | Local-only, offline, no social comparison |
+| Backend / server-side logic, accounts, databases, leaderboards | Static hosting only — a container serves files; no app server, no data collection, nothing leaves her browser |
 | Pink or "girly" visual design | Explicitly excluded per project canon |
 | Bundler / build step (Webpack, Vite, etc.) | No-build philosophy retained; vendor Kaplay directly |
 | Pixel-perfect precision platforming | Too punishing for the target user; forgiving feel instead |
@@ -108,12 +110,12 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | MOVE-03 | Phase 8 | Pending |
 | MOVE-04 | Phase 8 | Pending |
 | MOVE-05 | Phase 8 | Pending |
+| LEVEL-06 | Phase 8 | Pending |
 | LEVEL-01 | Phase 9 | Pending |
 | LEVEL-02 | Phase 9 | Pending |
 | LEVEL-03 | Phase 9 | Pending |
 | LEVEL-04 | Phase 9 | Pending |
 | LEVEL-05 | Phase 9 | Pending |
-| LEVEL-06 | Phase 8 | Pending |
 | LEVEL-07 | Phase 9 | Pending |
 | LEVEL-08 | Phase 9 | Pending |
 | GATE-01 | Phase 10 | Pending |
@@ -122,21 +124,25 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | GATE-04 | Phase 10 | Pending |
 | GATE-05 | Phase 10 | Pending |
 | GATE-06 | Phase 10 | Pending |
-| JUICE-01 | Phase 11 | Pending |
-| JUICE-02 | Phase 11 | Pending |
-| JUICE-03 | Phase 11 | Pending |
-| SAFE-01 | Phase 11 | Pending |
-| SAFE-02 | Phase 11 | Pending |
-| SAFE-03 | Phase 11 | Pending |
+| SAVE-01 | Phase 11 | Pending |
+| SAVE-02 | Phase 11 | Pending |
+| SAVE-03 | Phase 11 | Pending |
+| SAVE-04 | Phase 11 | Pending |
+| JUICE-01 | Phase 12 | Pending |
+| JUICE-02 | Phase 12 | Pending |
+| JUICE-03 | Phase 12 | Pending |
+| SAFE-01 | Phase 12 | Pending |
+| SAFE-02 | Phase 12 | Pending |
+| SAFE-03 | Phase 12 | Pending |
 
 **Coverage:**
-- v1 requirements: 29 total
-- Mapped to phases: 29 ✓
+- v1 requirements: 33 total
+- Mapped to phases: 33 ✓
 - Unmapped: 0
 - No requirement mapped to more than one phase.
 
-**Per-phase counts:** Phase 7 = 4 · Phase 8 = 6 · Phase 9 = 7 · Phase 10 = 6 · Phase 11 = 6 → 29 total.
+**Per-phase counts:** Phase 7 = 4 · Phase 8 = 6 · Phase 9 = 7 · Phase 10 = 6 · Phase 11 = 4 · Phase 12 = 6 → 33 total.
 
 ---
 *Requirements defined: 2026-06-22*
-*Last updated: 2026-06-22 — traceability populated by roadmapper (v3.0 Phases 7–11)*
+*Last updated: 2026-06-22 — traceability repopulated by roadmapper (v3.0 Phases 7–12; SETUP→Deployment, new SAVE phase 11, Polish/UAT → phase 12)*
