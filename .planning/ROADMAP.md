@@ -57,7 +57,9 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   2. The container deploys via Dokploy and the game is reachable at a web URL that loads and runs in the browser with no install, no launcher, and no local files for the user.
   3. Kaplay 3001.0.19 loads from a locally vendored file with no CDN call and no `npm install` step, version commented at the top of the vendored file.
   4. The repo has a clean multi-file layout (HTML + `src/` JS modules + `lib/` + `assets/` folder) that runs with no JS build step, and a local dev server (e.g. `python3 -m http.server`) is documented for development use only.
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 07-01-PLAN.md — Scaffold no-build layout: archive v2, vendor Kaplay 3001.0.19, game shell (index.html + main.js with file:// guard + smoke scene), README (SETUP-03, SETUP-04)
+- [ ] 07-02-PLAN.md — Containerize (nginx:alpine + .mjs MIME fix) with local curl verification, and Dokploy deploy docs (SETUP-01, SETUP-02)
 
 ### Phase 8: Platformer Core (Movement / Physics / Camera)
 **Goal**: The intrinsically-fun spine works — an avatar she controls runs, jumps with weight, lands solidly, and the camera follows smoothly, all frame-rate independent. The gentle checkpoint-respawn policy is established here so later hazards inherit it.
@@ -133,7 +135,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 4. Dungeon Renderer | v2.0 | 3/3 | ✅ Complete | 2026-06-21 |
 | 5. Full Floor Loop + Balance | v2.0 | 2/2 | ✅ Complete | 2026-06-21 |
 | 6. Polish + ADHD Safety Audit | v2.0 | 2/2 | ✅ Complete | 2026-06-22 |
-| 7. Project Setup & Deployment | v3.0 | 0/0 | Not started | - |
+| 7. Project Setup & Deployment | v3.0 | 0/2 | Not started | - |
 | 8. Platformer Core | v3.0 | 0/0 | Not started | - |
 | 9. Level Build & CC0 Assets | v3.0 | 0/0 | Not started | - |
 | 10. Math-Gate Integration | v3.0 | 0/0 | Not started | - |
