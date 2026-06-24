@@ -40,7 +40,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 **Granularity:** standard · **Phase numbering:** sequential, continuing from v2.0 (ended at Phase 6).
 
 - [x] **Phase 7: Project Setup & Deployment** - Vendored Kaplay boots from static files served by a Docker/nginx container, deployable to Dokploy and reachable at a web URL. (completed 2026-06-22)
-- [ ] **Phase 8: Platformer Core (Movement / Physics / Camera)** - A responsive, Mario-feel avatar runs, jumps, lands, and respawns gently on a test strip.
+- [x] **Phase 8: Platformer Core (Movement / Physics / Camera)** - A responsive, Mario-feel avatar runs, jumps, lands, and respawns gently on a test strip. (completed 2026-06-24)
 - [ ] **Phase 9: Level Build & CC0 Assets** - One polished, completable dark/grunge level with platforms, coins, a hazard, checkpoints, and a goal.
 - [ ] **Phase 10: Math-Gate Integration (Port the Brain)** - Reaching the goal opens an in-world, forgiving math gate driven by the ported 6–9-weighted brain.
 - [ ] **Phase 11: Progression & Persistence** - Correct answers earn XP and level her up; XP, level, and practice history persist in the browser and resume on revisit.
@@ -82,7 +82,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. The camera follows the player smoothly (no jitter) and stays clamped within level bounds; movement feels identical on a non-60 Hz / throttled display.
   5. Falling off the world respawns the player at the last checkpoint with progress preserved — no lives, no game-over.
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 **UI hint**: yes
 
 **Wave 1**
@@ -95,7 +95,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 08-03-PLAN.md — MOVE-05 frame-rate-independence audit + blocking human verification on a throttled / non-60Hz display (MOVE-05)
+- [x] 08-03-PLAN.md — MOVE-05 frame-rate-independence audit + blocking human verification on a throttled / non-60Hz display (MOVE-05)
 
 ### Phase 9: Level Build & CC0 Assets
 
@@ -171,7 +171,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 5. Full Floor Loop + Balance | v2.0 | 2/2 | ✅ Complete | 2026-06-21 |
 | 6. Polish + ADHD Safety Audit | v2.0 | 2/2 | ✅ Complete | 2026-06-22 |
 | 7. Project Setup & Deployment | v3.0 | 2/2 | Complete   | 2026-06-22 |
-| 8. Platformer Core | v3.0 | 2/3 | In Progress|  |
+| 8. Platformer Core | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 9. Level Build & CC0 Assets | v3.0 | 0/0 | Not started | - |
 | 10. Math-Gate Integration | v3.0 | 0/0 | Not started | - |
 | 11. Progression & Persistence | v3.0 | 0/0 | Not started | - |

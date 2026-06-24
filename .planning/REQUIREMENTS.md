@@ -21,7 +21,7 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 - [x] **MOVE-02**: Player jumps with gravity and lands solidly on platforms
 - [x] **MOVE-03**: Jumping feels responsive — variable jump height, coyote time, and jump buffering
 - [x] **MOVE-04**: The camera follows the player and stays clamped within the level bounds
-- [ ] **MOVE-05**: Movement is frame-rate independent (consistent feel on any display refresh rate)
+- [x] **MOVE-05**: Movement is frame-rate independent (consistent feel on any display refresh rate)
 
 ### Level & Assets
 
@@ -109,7 +109,7 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | MOVE-02 | Phase 8 | Complete |
 | MOVE-03 | Phase 8 | Complete |
 | MOVE-04 | Phase 8 | Complete |
-| MOVE-05 | Phase 8 | Pending |
+| MOVE-05 | Phase 8 | Complete |
 | LEVEL-06 | Phase 8 | Complete |
 | LEVEL-01 | Phase 9 | Pending |
 | LEVEL-02 | Phase 9 | Pending |
