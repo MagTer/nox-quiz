@@ -15,6 +15,7 @@
 
 import { CONFIG } from "../config.js";
 import { makePlayer } from "../player.js";
+import { followCamera } from "../camera.js";
 
 export function gameScene(data) {
   // Engine gravity for this scene (px/s^2). Set once on scene entry.
@@ -43,5 +44,11 @@ export function gameScene(data) {
   // --- Player ---
   // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).
   // The Plan 01 basic grounded jump was removed so there is exactly ONE jump path.
-  const player = makePlayer(startX, startY); // eslint-disable-line no-unused-vars
+  const player = makePlayer(startX, startY);
+
+  // --- Per-frame scene update ---
+  // Frame-rate-independent camera follow, clamped to level bounds (MOVE-04).
+  onUpdate(() => {
+    followCamera(player);
+  });
 }
