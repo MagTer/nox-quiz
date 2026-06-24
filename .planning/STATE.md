@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: The Platformer
-current_phase: 7
-current_phase_name: Project Setup & Deployment
-status: verifying
+current_phase: 08
+current_phase_name: platformer-core-movement-physics-camera
+status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-22T19:31:31.858Z"
-last_activity: 2026-06-22
-last_activity_desc: Phase 7 execution started
+last_updated: "2026-06-24T07:06:11.930Z"
+last_activity: 2026-06-24
+last_activity_desc: Phase 08 execution started
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
   percent: 17
 ---
 
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 7 — Project Setup & Deployment
+**Current Focus:** Phase 08 — platformer-core-movement-physics-camera
 
 **Tech Stack (v3.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Packaged as static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL she just visits (no install, no launcher). A local dev server (`python3 -m http.server`) is used during development only. Persistence via versioned localStorage.
 **Shipped State (v2.0, being replaced):** 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji. The math brain (weighted 6–9 selection) is carried forward; the quiz shell is replaced by a game shell.
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 ## Current Position
 
 Milestone: v3.0 The Platformer
-Phase: 7 (Project Setup & Deployment) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-06-22 — Phase 7 execution started
+Phase: 08 (platformer-core-movement-physics-camera) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-24 — Phase 08 execution started
 
 ## v3.0 Roadmap (Phases 7–12)
 
@@ -119,7 +119,7 @@ Last activity: 2026-06-22 — Phase 7 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-22T19:31:31.846Z
+**Last session:** 2026-06-24T07:06:04.603Z
 
 **Next steps:**
 
@@ -198,6 +198,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 05 P02 | 10m | 3 tasks | 1 files |
 | Phase 07 P01 | ~2min | 3 tasks | 6 files |
 | Phase 07 P02 | ~2min | 3 tasks | 3 files |
+| Phase 08 P01 | ~2min | 3 tasks | 4 files |
 
 ## Decisions
 
