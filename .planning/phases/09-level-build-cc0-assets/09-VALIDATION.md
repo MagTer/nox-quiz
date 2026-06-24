@@ -1,8 +1,8 @@
 ---
 phase: 9
 slug: level-build-cc0-assets
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-24
 ---
@@ -38,9 +38,9 @@ created: 2026-06-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 9-01-01 | 01 | 1 | LEVEL-08 | — | N/A | manual | license proof present in `assets/LICENSES/` | ❌ W0 | ⬜ pending |
-| 9-02-01 | 02 | 1 | LEVEL-01, LEVEL-02 | — | N/A | manual | level renders + traversable in browser | ❌ W0 | ⬜ pending |
-| 9-03-01 | 03 | 2 | LEVEL-03, LEVEL-04, LEVEL-05 | — | N/A | manual | coins collect, hazard respawns, goal fires hook | ❌ W0 | ⬜ pending |
+| 9-01-01 | 01 | 1 | LEVEL-08 | T-09-01 | license provenance | manual | license proof present in `assets/LICENSES/` | ❌ W0 | ⬜ pending |
+| 9-02-01 | 02 | 2 | LEVEL-01, LEVEL-02, LEVEL-03 | — | N/A | manual | level renders + traversable in browser, reliable collision | ❌ W0 | ⬜ pending |
+| 9-03-01 | 03 | 3 | LEVEL-04, LEVEL-05, LEVEL-07 | — | N/A | manual | coins collect, hazard respawns, goal fires hook | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -71,11 +71,11 @@ created: 2026-06-24
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-06-24 — task→requirement map corrected (9-03-01 = LEVEL-04/05/07; LEVEL-03 belongs to 9-02-01), waves aligned to the 3-wave plan structure.
