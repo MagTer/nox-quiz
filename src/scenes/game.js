@@ -41,11 +41,7 @@ export function gameScene(data) {
   add([rect(160, 24), pos(1060, 200), area(), body({ isStatic: true }), "ground"]);
 
   // --- Player ---
-  const player = makePlayer(startX, startY);
-
-  // Basic grounded jump so landing is observable THIS plan. The coyote/buffer/
-  // variable-height layer replaces this isGrounded() gate in Plan 02.
-  onKeyPress(["space", "up", "w"], () => {
-    if (player.isGrounded()) player.jump(CONFIG.JUMP_FORCE);
-  });
+  // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).
+  // The Plan 01 basic grounded jump was removed so there is exactly ONE jump path.
+  const player = makePlayer(startX, startY); // eslint-disable-line no-unused-vars
 }
