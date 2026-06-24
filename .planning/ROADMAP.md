@@ -110,8 +110,20 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. At least one hazard or enemy triggers a gentle checkpoint respawn — never a game-over.
   5. Reaching the goal triggers the math-gate hook, and `CREDITS`/`LICENSES` records every asset's source and verified license (no vendor logos).
 
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+
+**Wave 1**
+
+- [ ] 09-01-PLAN.md — Source + vendor verified-CC0 dark/grunge assets, license proofs + CREDITS.md (LEVEL-08)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 09-02-PLAN.md — Load CC0 sprites, author level data + merged-floor builder, widen bounds, sprite-swap player; one traversable dark/grunge level with reliable collision (LEVEL-01, LEVEL-02, LEVEL-03)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 09-03-PLAN.md — Wire coin/spike/goal collisions: coin count, gentle spike respawn, single-point onReachGoal stub (LEVEL-04, LEVEL-05, LEVEL-07)
 
 ### Phase 10: Math-Gate Integration (Port the Brain)
 
@@ -172,7 +184,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 6. Polish + ADHD Safety Audit | v2.0 | 2/2 | ✅ Complete | 2026-06-22 |
 | 7. Project Setup & Deployment | v3.0 | 2/2 | Complete   | 2026-06-22 |
 | 8. Platformer Core | v3.0 | 3/3 | Complete   | 2026-06-24 |
-| 9. Level Build & CC0 Assets | v3.0 | 0/0 | Not started | - |
+| 9. Level Build & CC0 Assets | v3.0 | 0/3 | Planned | - |
 | 10. Math-Gate Integration | v3.0 | 0/0 | Not started | - |
 | 11. Progression & Persistence | v3.0 | 0/0 | Not started | - |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 0/0 | Not started | - |
