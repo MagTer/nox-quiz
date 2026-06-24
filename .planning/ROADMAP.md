@@ -82,7 +82,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. The camera follows the player smoothly (no jitter) and stays clamped within level bounds; movement feels identical on a non-60 Hz / throttled display.
   5. Falling off the world respawns the player at the last checkpoint with progress preserved — no lives, no game-over.
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 **UI hint**: yes
 
 **Wave 1**
@@ -91,7 +91,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 08-02-PLAN.md — Game-feel + presentation: variable jump height / coyote / buffer, frame-rate-independent clamped camera, gentle checkpoint respawn (MOVE-03, MOVE-04, LEVEL-06)
+- [x] 08-02-PLAN.md — Game-feel + presentation: variable jump height / coyote / buffer, frame-rate-independent clamped camera, gentle checkpoint respawn (MOVE-03, MOVE-04, LEVEL-06)
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -171,7 +171,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 5. Full Floor Loop + Balance | v2.0 | 2/2 | ✅ Complete | 2026-06-21 |
 | 6. Polish + ADHD Safety Audit | v2.0 | 2/2 | ✅ Complete | 2026-06-22 |
 | 7. Project Setup & Deployment | v3.0 | 2/2 | Complete   | 2026-06-22 |
-| 8. Platformer Core | v3.0 | 1/3 | In Progress|  |
+| 8. Platformer Core | v3.0 | 2/3 | In Progress|  |
 | 9. Level Build & CC0 Assets | v3.0 | 0/0 | Not started | - |
 | 10. Math-Gate Integration | v3.0 | 0/0 | Not started | - |
 | 11. Progression & Persistence | v3.0 | 0/0 | Not started | - |

@@ -6,14 +6,14 @@ current_phase: 08
 current_phase_name: platformer-core-movement-physics-camera
 status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-24T07:06:11.930Z"
+last_updated: "2026-06-24T07:12:27.394Z"
 last_activity: 2026-06-24
 last_activity_desc: Phase 08 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 17
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 
 Milestone: v3.0 The Platformer
 Phase: 08 (platformer-core-movement-physics-camera) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-24 — Phase 08 execution started
 
@@ -119,7 +119,7 @@ Last activity: 2026-06-24 — Phase 08 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-24T07:06:04.603Z
+**Last session:** 2026-06-24T07:11:51.321Z
 
 **Next steps:**
 
@@ -199,6 +199,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 07 P01 | ~2min | 3 tasks | 6 files |
 | Phase 07 P02 | ~2min | 3 tasks | 3 files |
 | Phase 08 P01 | ~2min | 3 tasks | 4 files |
+| Phase 08 P02 | ~4min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -208,3 +209,5 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 - [Phase 7]: Custom Dockerfile over Dokploy Static preset — keeps the .mjs MIME fix under our control
 - [Phase 7]: nginx types{} re-declares js alongside mjs to avoid regressing .js to octet-stream (verified via curl on /main.js)
 - [Phase 7]: Live Dokploy deploy DEFERRED — config + docs/DEPLOY.md satisfy SETUP-02 now; live deploy is a user-triggered follow-up
+- [Phase 08]: Plan 02: single jump path — removed the Plan 01 basic grounded jump; the coyote/buffer/variable-height path in makePlayer is the only jump trigger
+- [Phase 08]: Plan 02: respawn is reposition-in-place (never go()); reset() is the named anti-leak contract, respawn() delegates to it; added opacity(1) to the player so the flash renders

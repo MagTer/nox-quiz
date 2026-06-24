@@ -19,8 +19,8 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 
 - [x] **MOVE-01**: Player can run left and right using the keyboard (arrow keys and WASD)
 - [x] **MOVE-02**: Player jumps with gravity and lands solidly on platforms
-- [ ] **MOVE-03**: Jumping feels responsive — variable jump height, coyote time, and jump buffering
-- [ ] **MOVE-04**: The camera follows the player and stays clamped within the level bounds
+- [x] **MOVE-03**: Jumping feels responsive — variable jump height, coyote time, and jump buffering
+- [x] **MOVE-04**: The camera follows the player and stays clamped within the level bounds
 - [ ] **MOVE-05**: Movement is frame-rate independent (consistent feel on any display refresh rate)
 
 ### Level & Assets
@@ -30,7 +30,7 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 - [ ] **LEVEL-03**: Level has platforms, gaps, and solid ground with reliable collision (no sticking or falling through)
 - [ ] **LEVEL-04**: Player can collect coins placed throughout the level
 - [ ] **LEVEL-05**: Level has at least one hazard or enemy that triggers a respawn (never a game-over)
-- [ ] **LEVEL-06**: Player respawns at the last checkpoint with progress preserved — no lives, no game-over screen
+- [x] **LEVEL-06**: Player respawns at the last checkpoint with progress preserved — no lives, no game-over screen
 - [ ] **LEVEL-07**: Reaching the goal triggers the math gate
 - [ ] **LEVEL-08**: CC0 asset sources and licenses are documented in the repository
 
@@ -107,10 +107,10 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | SETUP-04 | Phase 7 | Complete |
 | MOVE-01 | Phase 8 | Complete |
 | MOVE-02 | Phase 8 | Complete |
-| MOVE-03 | Phase 8 | Pending |
-| MOVE-04 | Phase 8 | Pending |
+| MOVE-03 | Phase 8 | Complete |
+| MOVE-04 | Phase 8 | Complete |
 | MOVE-05 | Phase 8 | Pending |
-| LEVEL-06 | Phase 8 | Pending |
+| LEVEL-06 | Phase 8 | Complete |
 | LEVEL-01 | Phase 9 | Pending |
 | LEVEL-02 | Phase 9 | Pending |
 | LEVEL-03 | Phase 9 | Pending |
