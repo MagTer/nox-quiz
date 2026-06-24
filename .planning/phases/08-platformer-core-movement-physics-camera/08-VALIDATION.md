@@ -38,8 +38,9 @@ created: 2026-06-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 8-01-01 | 01 | 1 | MOVE-01..04, LEVEL-06 | — | N/A (local static game) | manual | browser test strip | ❌ W0 | ⬜ pending |
-| 8-01-02 | 01 | 1 | MOVE-05 | — | N/A | manual | throttled-display playthrough | ❌ W0 | ⬜ pending |
+| 8-01-* | 01 | 1 | MOVE-01, MOVE-02 | — | N/A (local static game) | manual + `node --check` | browser stress strip (run/jump/solid-land + seam-stick/tunneling check) | ❌ W0 | ⬜ pending |
+| 8-02-* | 02 | 2 | MOVE-03, MOVE-04, LEVEL-06 | — | N/A | manual + `node --check` | browser (variable jump/coyote/buffer, clamped camera, checkpoint respawn) | ❌ W0 | ⬜ pending |
+| 8-03-* | 03 | 3 | MOVE-05 | — | N/A | manual (blocking human gate) | throttled / non-60Hz playthrough | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

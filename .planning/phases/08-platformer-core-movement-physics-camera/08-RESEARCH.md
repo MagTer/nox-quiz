@@ -458,17 +458,19 @@ onKeyRelease(["space","up","w"], () => {});  // once on release → variable hei
 
 **These six assumptions need confirmation during planning/UAT.** A3/A4 are the highest-value to retire early via the stress strip (which CONTEXT already mandates).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact `body()` default `jumpForce` / `maxVelocity` constants (`ds`/`fs` in source)**
    - What we know: both have engine defaults; we override both via CONFIG anyway.
    - What's unclear: the literal default numbers (minified symbol names).
    - Recommendation: Don't rely on defaults — set `jumpForce`/`maxVelocity` explicitly from CONFIG so feel is deterministic and tunable. Decode the literals only if a baseline is needed (grep `ds=`/`fs=` in source).
+   - **RESOLVED:** Defaults are irrelevant to the plan — `JUMP_FORCE` and `MAX_FALL_SPEED` are set explicitly from `src/config.js` (08-01 Task 1), so engine defaults are never relied upon. No literal-decode needed.
 
 2. **Does merging colliders fully kill seam-stick at 240 px/s run + 1400 gravity?**
    - What we know: merge + maxVelocity are the levers; collision is discrete.
    - What's unclear: whether any residual snag remains at the chosen tune.
    - Recommendation: First task on the stress strip is a long flat run + the tall fast-drop; verify in-browser before building anything on top. (Plan should include this as an explicit verification step.)
+   - **RESOLVED:** Verified empirically on the stress strip — 08-01 Task 3 builds the merged-floor + tall fast-drop ledge and runs the seam-stick/tunneling manual check before any feel/camera layer is built on top. Documented fallback if a snag remains: thicker colliders / lower `MAX_FALL_SPEED`.
 
 ## Environment Availability
 
