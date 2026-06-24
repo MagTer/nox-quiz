@@ -6,7 +6,8 @@
 // it is layered on the engine primitives isGrounded() / jump() / vel + dt() timers.
 //
 // Engine globals (add, onUpdate, onKeyPress, onKeyRelease, isKeyDown, rect, pos,
-// area, body, color, dt) are exposed by Kaplay `global: true` — only CONFIG imports.
+// area, body, color, opacity, dt) are exposed by Kaplay `global: true` — only
+// CONFIG imports.
 //
 // dt discipline: body() integrates vel with dt() in its own move(), so we set
 // vel.x directly and do NOT multiply by dt() (that would double-scale — RESEARCH
@@ -26,6 +27,7 @@ export function makePlayer(startX, startY) {
     area(),
     body({ maxVelocity: CONFIG.MAX_FALL_SPEED }), // gravity + collision + anti-tunnel terminal cap
     color(0, 255, 136), // #00ff88 placeholder (real sprite = Phase 9)
+    opacity(1), // enables the respawn flash (scene tweens player.opacity)
     "player",
   ]);
 
