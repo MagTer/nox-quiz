@@ -476,17 +476,19 @@ player.onCollide("goal",  () => { if (!goalReached){ goalReached = true; onReach
 
 **Highest-value to retire early:** A1/A2 — pick + download + license-verify the actual CC0 pack(s) at the start of the phase (a `checkpoint:human-verify` task), since all visual work depends on it and LEVEL-08 hinges on it.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exactly which CC0 pack ships?**
    - What we know: 0x72 DungeonTileset II (CC0, dark, spikes, character) is the lead; Kenney 1-Bit Pack and VEXED Retro Lines are CC0 fallbacks; OpenGameArt has CC0 coins.
    - What's unclear: which reads best at 16×16 against `#0a0a0a` and matches "real little platformer" without pink — a visual judgment.
    - Recommendation: Plan a first task that downloads + license-verifies the chosen pack(s) into `assets/` + `assets/LICENSES/` (a `checkpoint:human-verify` is appropriate given LEVEL-08), before authoring the level.
+   - RESOLVED: This is Claude's Discretion per CONTEXT (pack pick). Plan 09-01 adopts the 0x72 lead + CC0 fallbacks behind a `checkpoint:human-verify` license gate before any visual work.
 
 2. **`addLevel` symbol map vs. direct `add` list for the level body?**
    - What we know: both are valid; `addLevel` is concise for grids but adds spatial-map machinery and per-tile colliders (seam risk); direct `add` lets you merge floor colliders.
    - What's unclear: which the planner prefers for authoring ergonomics.
    - Recommendation: Merged collider for floor runs (preserve Phase-8 behavior) + data list for sparse coins/spikes/goal; `addLevel` optional for the visual tile grid. Either way, re-run the flat-run collision check.
+   - RESOLVED: This is Claude's Discretion per CONTEXT (level-data shape). Plan 09-02 adopts the merged floor collider (anti seam-stick) + hand-authored data list for sparse coins/spikes/goal.
 
 ## Environment Availability
 
