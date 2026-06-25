@@ -116,6 +116,11 @@ export function gameScene(data) {
 
     // Phase 9 STUB (no math gate here): stop the player and show a placeholder.
     // Rendered as a Kaplay canvas text() (NOT a DOM string sink) — no XSS path (T-09-07).
+    // Zero velocity BEFORE pausing (consistent with reset()'s `player.vel = vec2(0)`):
+    // running into the goal leaves vel.x = +RUN_SPEED, and `paused` freezes body()
+    // integration without clearing it. If Phase 10's math gate ever unpauses the
+    // player on resume, a stale non-zero velocity would cause an immediate lurch.
+    player.vel = vec2(0); // clean stop — no residual momentum for Phase 10 to inherit
     player.paused = true; // halts the player's onUpdate (movement) — gentle freeze
     add([
       text("GOAL!"),
