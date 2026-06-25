@@ -110,12 +110,12 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. At least one hazard or enemy triggers a gentle checkpoint respawn — never a game-over.
   5. Reaching the goal triggers the math-gate hook, and `CREDITS`/`LICENSES` records every asset's source and verified license (no vendor logos).
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 **UI hint**: yes
 
 **Wave 1**
 
-- [ ] 09-01-PLAN.md — Source + vendor verified-CC0 dark/grunge assets, license proofs + CREDITS.md (LEVEL-08)
+- [x] 09-01-PLAN.md — Source + vendor verified-CC0 dark/grunge assets, license proofs + CREDITS.md (LEVEL-08)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -184,7 +184,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 6. Polish + ADHD Safety Audit | v2.0 | 2/2 | ✅ Complete | 2026-06-22 |
 | 7. Project Setup & Deployment | v3.0 | 2/2 | Complete   | 2026-06-22 |
 | 8. Platformer Core | v3.0 | 3/3 | Complete   | 2026-06-24 |
-| 9. Level Build & CC0 Assets | v3.0 | 0/3 | Planned | - |
+| 9. Level Build & CC0 Assets | v3.0 | 1/3 | In Progress|  |
 | 10. Math-Gate Integration | v3.0 | 0/0 | Not started | - |
 | 11. Progression & Persistence | v3.0 | 0/0 | Not started | - |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 0/0 | Not started | - |

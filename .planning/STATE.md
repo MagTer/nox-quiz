@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: The Platformer
-current_phase: 08
-current_phase_name: platformer-core-movement-physics-camera
+current_phase: 09
+current_phase_name: Level Build & CC0 Assets
 status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-24T21:35:09.559Z"
+last_updated: "2026-06-25T04:23:25.403Z"
 last_activity: 2026-06-24
-last_activity_desc: Phase 08 execution started
+last_activity_desc: Phase 09 execution started
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 6
   percent: 33
 ---
 
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 08 — platformer-core-movement-physics-camera
+**Current Focus:** Phase 09 — Level Build & CC0 Assets
 
 **Tech Stack (v3.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Packaged as static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL she just visits (no install, no launcher). A local dev server (`python3 -m http.server`) is used during development only. Persistence via versioned localStorage.
 **Shipped State (v2.0, being replaced):** 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji. The math brain (weighted 6–9 selection) is carried forward; the quiz shell is replaced by a game shell.
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 ## Current Position
 
 Milestone: v3.0 The Platformer
-Phase: 08 (platformer-core-movement-physics-camera) — EXECUTING
-Plan: 3 of 3
+Phase: 09 (Level Build & CC0 Assets) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-24 — Phase 08 execution started
+Last activity: 2026-06-24 — Phase 09 execution started
 
 ## v3.0 Roadmap (Phases 7–12)
 
@@ -119,7 +119,7 @@ Last activity: 2026-06-24 — Phase 08 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-24T07:15:04.789Z
+**Last session:** 2026-06-25T04:23:10.803Z
 
 **Next steps:**
 
@@ -201,6 +201,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 08 P01 | ~2min | 3 tasks | 4 files |
 | Phase 08 P02 | ~4min | 3 tasks | 3 files |
 | Phase 08 P03 | ~1min | 1 tasks | 0 files |
+| Phase 09 P01 | 25min | 2 tasks | 11 files |
 
 ## Decisions
 
@@ -214,3 +215,4 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 - [Phase 08]: Plan 02: respawn is reposition-in-place (never go()); reset() is the named anti-leak contract, respawn() delegates to it; added opacity(1) to the player so the flash renders
 - [Phase ?]: [Phase 08]: Plan 03: MOVE-05 dt-correctness audit clean — no double-scale on vel.x, no hand-rolled gravity, timers/camera use dt(), no raw-constant lerp; zero code changes
 - [Phase ?]: [Phase 08]: Plan 03: MOVE-05 human-verify (throttled vs 60Hz) deferred to end-of-phase per human_verify_mode: end-of-phase
+- [Phase ?]: Phase 9 assets sourced from OpenGameArt CC0 (6 Color Dungeon by HorusKDI + Rotating Coin by PuddinThur); rejected spinning-coin-0 (CC-BY-SA)

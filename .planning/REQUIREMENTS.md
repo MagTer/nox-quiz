@@ -32,7 +32,7 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 - [ ] **LEVEL-05**: Level has at least one hazard or enemy that triggers a respawn (never a game-over)
 - [x] **LEVEL-06**: Player respawns at the last checkpoint with progress preserved — no lives, no game-over screen
 - [ ] **LEVEL-07**: Reaching the goal triggers the math gate
-- [ ] **LEVEL-08**: CC0 asset sources and licenses are documented in the repository
+- [x] **LEVEL-08**: CC0 asset sources and licenses are documented in the repository
 
 ### Math Gate
 
@@ -117,7 +117,7 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | LEVEL-04 | Phase 9 | Pending |
 | LEVEL-05 | Phase 9 | Pending |
 | LEVEL-07 | Phase 9 | Pending |
-| LEVEL-08 | Phase 9 | Pending |
+| LEVEL-08 | Phase 9 | Complete |
 | GATE-01 | Phase 10 | Pending |
 | GATE-02 | Phase 10 | Pending |
 | GATE-03 | Phase 10 | Pending |
