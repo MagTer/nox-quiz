@@ -1,0 +1,25 @@
+Asset:        assets/tiles/ground.png  (solid dungeon brick / platform tile)
+Source pack:  "6 Color Dungeon 16x16"
+Author:       HorusKDI
+Source URL:   https://opengameart.org/content/6-color-dungeon-16x16
+Source file:  https://opengameart.org/sites/default/files/16x16%20dungeon%20tiles.png
+Tile:         column 2, row 2 of the 16x16 tile grid (solid textured brick)
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the asset's own OpenGameArt page:
+    "License(s): CC0"
+    (OpenGameArt's License(s) metadata field is the creator's authoritative
+     license declaration for the submission.)
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+    "The person who associated a work with this deed has dedicated the work
+     to the public domain by waiving all of his or her rights to the work
+     worldwide under copyright law... You can copy, modify, distribute and
+     perform the work, even for commercial purposes, all without asking
+     permission."
+
+Verification: License page opened and the License(s): CC0 line confirmed this
+session (2026-06-25). NOT merely "free" and NOT CC-BY. Attribution under CC0 is
+optional; author listed in CREDITS.md as good practice.
+
+Vendor logo / brand art: none. Pure pixel-art game tile; no logo shipped.
