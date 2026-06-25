@@ -32,6 +32,11 @@ export function gameScene(data) {
   const startY = data?.startY ?? 64;
   let lastCheckpoint = vec2(startX, startY);
 
+  // Coin tally for THIS run — closure-local (anti-leak: never a module-level
+  // `let`, which would persist across go()/respawn). Count only; NO XP (Phase 11)
+  // and NO juice/sfx (Phase 12) here — those phases attach later.
+  let coinsCollected = 0;
+
   // --- Authored level body ---
   // buildLevel emits the merged-floor + platform colliders, the visual ground
   // tiles, and the tagged coin/spike/goal area() entities. It runs BEFORE the
@@ -76,6 +81,27 @@ export function gameScene(data) {
 
   // respawn() is the fall-off-world caller; it delegates to the reset() contract.
   const respawn = reset;
+
+  // --- Interactable collisions (Plan 03) ---
+  // The "coin"/"spike"/"goal" tagged area() entities ALREADY EXIST — buildLevel(LEVEL)
+  // (Plan 02, above) created them, including the tightened spike area({shape,offset})
+  // hitbox. This plan ONLY attaches handlers via the repo's one collision idiom
+  // (player.onCollide("<tag>", ...) — same as the checkpoint promotion above). It does
+  // NOT create entities and does NOT touch the spike collider shape.
+
+  // Coins (LEVEL-04): collecting one removes that coin and bumps the closure tally.
+  // Count only — no XP (Phase 11), no juice/sfx (Phase 12).
+  player.onCollide("coin", (c) => {
+    coinsCollected += 1;
+    destroy(c);
+  });
+
+  // Spikes (LEVEL-05): route into the EXISTING Phase 8 respawn() seam
+  // (reposition-in-place, zero momentum, quick flash). A generous checkpoint sits
+  // just before each spike (seeded from LEVEL.checkpoints above) so a respawn never
+  // costs meaningful progress. This is the gentle checkpoint policy — no failure
+  // construct of any kind is introduced (CONTEXT-locked, ADHD-safe).
+  player.onCollide("spike", () => respawn());
 
   // --- Per-frame scene update ---
   onUpdate(() => {
