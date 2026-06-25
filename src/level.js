@@ -64,6 +64,13 @@ export const LEVEL = {
   ],
 
   // 10 coins arced over the jumps and along the runs (count exercised in Plan 03).
+  //
+  // NOTE — intentional off-grid placement: coins render at 32x32 (default `topleft`
+  // anchor) while everything else is 16px and grid-aligned. The {x, y} below are the
+  // coin's TOP-LEFT corner, so its visual CENTER sits 16px right/down of {x, y}. This
+  // is deliberate hand-tuning (the 32px area() matches the sprite, so collection is
+  // unaffected) — these are authored visual positions, NOT grid coordinates. When
+  // editing, read {x, y} as the top-left, and add ~16px to picture the center.
   coins: [
     { x: 200, y: 264 },
     { x: 392, y: 184 },
