@@ -22,6 +22,20 @@
 
 import { CONFIG } from "./config.js";
 
+// Fail-loud guard for the one fragile global. `Rect` is a CLASS global (not a
+// factory like `rect`), used below for the tightened spike hitbox shape. Unlike
+// the factory globals, a Kaplay bump that renames/removes it — or a future
+// kaplay({ global: false }) toggle — would turn `new Rect(...)` into a SILENT
+// mid-build ReferenceError that half-builds the scene. With no test framework /
+// build-time symbol check (CLAUDE.md), assert once at module load so the failure
+// is obvious and points at the cause instead of surfacing deep in buildLevel.
+// Pinned engine: Kaplay 3001 (lib/kaplay.mjs) — re-check `Rect` on any upgrade.
+if (typeof Rect === "undefined") {
+  throw new Error(
+    "level.js: Kaplay global `Rect` is missing — check kaplay({ global }) / engine version",
+  );
+}
+
 const T = CONFIG.TILE_SIZE; // 16px — floor visual-tile grid step
 const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run
 
