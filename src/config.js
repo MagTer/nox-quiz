@@ -23,10 +23,22 @@ export const CONFIG = {
   CAM_RATE: 10, // 1/s — half-life rate for 1 - exp(-CAM_RATE*dt()) smoothing (8..12)
   CAM_Y_FACTOR: 0.5, // unitless — gentle vertical follow relative to primary X follow
 
-  // --- Level bounds (test strip) + respawn (FALL_MARGIN consumed in Plan 02) ---
+  // --- Level bounds (authored ~3.5-screen level) + respawn (FALL_MARGIN) ---
   LEVEL_LEFT: 0, // px — left world edge (camera clamp)
-  LEVEL_RIGHT: 1600, // px — right world edge (matches the 1600-wide merged floor)
+  LEVEL_RIGHT: 2240, // px — right world edge (matches the authored level pixel width, ~3.5 screens of 640px)
   LEVEL_TOP: 0, // px — top world edge (camera clamp)
-  LEVEL_BOTTOM: 360, // px — bottom world edge (camera clamp)
+  LEVEL_BOTTOM: 360, // px — bottom world edge (one 360px screen tall; level is linear/horizontal)
   FALL_MARGIN: 120, // px — respawn when player.pos.y > LEVEL_BOTTOM + FALL_MARGIN
+
+  // --- Level / content (Phase 9) ---
+  TILE_SIZE: 16, // px — CC0 pack native tile size (sprite slice + floor-tile grid math)
+  FLOOR_Y: 320, // px — top edge of the floor runs (player stands at this Y)
+  FLOOR_THICKNESS: 40, // px — merged-floor collider depth; thick to resist tunneling on tall drops (Pitfall 3)
+  COIN_FRAMES: 8, // count — coin.png is a 256x32 sheet of 8 evenly-gridded 32px frames (sliceX)
+  COIN_SPIN_SPEED: 12, // fps — coin spin anim frame rate
+  COIN_SIZE: 32, // px — rendered coin sprite frame size (placement/centering reference)
+  SPIKE_SIZE: 16, // px — spike sprite footprint (full tile); the hitbox is tightened below
+  SPIKE_HITBOX_W: 12, // px — tightened spike collider width (narrower than the 16px tile — fair points-only hit)
+  SPIKE_HITBOX_H: 8, // px — tightened spike collider height (only the upper visible spikes, not the empty base)
+  GOAL_SIZE: 16, // px — goal sprite footprint
 };
