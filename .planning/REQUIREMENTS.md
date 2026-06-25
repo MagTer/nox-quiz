@@ -28,10 +28,10 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 - [x] **LEVEL-01**: One complete, polished level the player can traverse from start to the goal
 - [x] **LEVEL-02**: Level art uses pixel-art sprites from a free CC0 pack, styled dark/grunge (no pink)
 - [x] **LEVEL-03**: Level has platforms, gaps, and solid ground with reliable collision (no sticking or falling through)
-- [ ] **LEVEL-04**: Player can collect coins placed throughout the level
-- [ ] **LEVEL-05**: Level has at least one hazard or enemy that triggers a respawn (never a game-over)
+- [x] **LEVEL-04**: Player can collect coins placed throughout the level
+- [x] **LEVEL-05**: Level has at least one hazard or enemy that triggers a respawn (never a game-over)
 - [x] **LEVEL-06**: Player respawns at the last checkpoint with progress preserved — no lives, no game-over screen
-- [ ] **LEVEL-07**: Reaching the goal triggers the math gate
+- [x] **LEVEL-07**: Reaching the goal triggers the math gate
 - [x] **LEVEL-08**: CC0 asset sources and licenses are documented in the repository
 
 ### Math Gate
@@ -114,9 +114,9 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | LEVEL-01 | Phase 9 | Complete |
 | LEVEL-02 | Phase 9 | Complete |
 | LEVEL-03 | Phase 9 | Complete |
-| LEVEL-04 | Phase 9 | Pending |
-| LEVEL-05 | Phase 9 | Pending |
-| LEVEL-07 | Phase 9 | Pending |
+| LEVEL-04 | Phase 9 | Complete |
+| LEVEL-05 | Phase 9 | Complete |
+| LEVEL-07 | Phase 9 | Complete |
 | LEVEL-08 | Phase 9 | Complete |
 | GATE-01 | Phase 10 | Pending |
 | GATE-02 | Phase 10 | Pending |
