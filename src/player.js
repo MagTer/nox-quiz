@@ -1,13 +1,14 @@
 // src/player.js — the player entity factory + the hand-wired game-feel layer.
 //
-// Builds the #00ff88 placeholder rect (real sprite arrives Phase 9), wires the
-// horizontal run, and — the heart of this phase — hand-wires the Mario-feel jump:
-// variable height, coyote time, and jump buffering. None of that is in body();
-// it is layered on the engine primitives isGrounded() / jump() / vel + dt() timers.
+// Builds the CC0 sprite("player") entity (Phase 9 swapped the placeholder rect),
+// wires the horizontal run, and — the heart of the game-feel phase — hand-wires
+// the Mario-feel jump: variable height, coyote time, and jump buffering. None of
+// that is in body(); it is layered on the engine primitives isGrounded() /
+// jump() / vel + dt() timers.
 //
-// Engine globals (add, onUpdate, onKeyPress, onKeyRelease, isKeyDown, rect, pos,
-// area, body, color, opacity, dt) are exposed by Kaplay `global: true` — only
-// CONFIG imports.
+// Engine globals (add, onUpdate, onKeyPress, onKeyRelease, isKeyDown, sprite, pos,
+// area, body, opacity, dt) are exposed by Kaplay `global: true` — only CONFIG
+// imports.
 //
 // dt discipline: body() integrates vel with dt() in its own move(), so we set
 // vel.x directly and do NOT multiply by dt() (that would double-scale — RESEARCH
@@ -22,11 +23,10 @@ const JUMP_KEYS = ["space", "up", "w"];
 
 export function makePlayer(startX, startY) {
   const player = add([
-    rect(24, 32),
+    sprite("player"), // CC0 16x32 player sprite (replaces the Phase 8 placeholder rect)
     pos(startX, startY),
-    area(),
+    area(), // collider matches the 16x32 sprite footprint (no transparent padding to tune)
     body({ maxVelocity: CONFIG.MAX_FALL_SPEED }), // gravity + collision + anti-tunnel terminal cap
-    color(0, 255, 136), // #00ff88 placeholder (real sprite = Phase 9)
     opacity(1), // enables the respawn flash (scene tweens player.opacity)
     "player",
   ]);

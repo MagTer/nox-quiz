@@ -1,13 +1,15 @@
-// src/scenes/game.js — the platformer test-strip scene callback.
+// src/scenes/game.js — the platformer scene callback.
 //
 // This scene OWNS all run state in its closure (CONTEXT-locked anti-leak, RESEARCH
 // Pitfall 5 — no module-level `let` for run state). It is seeded via the go() data payload.
 //
-// It is deliberately a STRESS HARNESS (RESEARCH Open Question #2): one MERGED wide
-// static floor (fewer seams — anti seam-stick, RESEARCH Pattern 5 / Pitfall 2), a
-// tall fast-drop ledge (exercises tunneling — Pitfall 3), and gap platforms (exercises
-// gaps + landing edges). Building this first lets the MEDIUM-confidence collision risks
-// be verified before the game-feel + camera layers (Plan 02) are stacked on top.
+// Phase 9 replaced the Phase 8 stress-test strip with one hand-authored level:
+// the geometry now comes from buildLevel(LEVEL) (level.js), and the player renders
+// as a CC0 sprite. The Phase 8 spine is preserved verbatim — merged-floor colliders
+// (anti seam-stick, Pitfall 2), the body({ maxVelocity }) anti-tunnel cap, the
+// reposition-in-place reset()/respawn() (never game-over), the checkpoint
+// last-touched promotion, and the clamped camera follow. Coin/spike/goal onCollide
+// wiring is Plan 03 — buildLevel only CREATES those tagged entities here.
 //
 // scenes/ is one directory below src/, so sibling-module imports use `../`.
 // Engine globals (add, onUpdate, setGravity, vec2, rect, pos, area, body, opacity,
@@ -17,6 +19,7 @@
 import { CONFIG } from "../config.js";
 import { makePlayer } from "../player.js";
 import { followCamera } from "../camera.js";
+import { LEVEL, buildLevel } from "../level.js";
 
 export function gameScene(data) {
   // Engine gravity for this scene (px/s^2). Set once on scene entry.
@@ -29,18 +32,11 @@ export function gameScene(data) {
   const startY = data?.startY ?? 64;
   let lastCheckpoint = vec2(startX, startY);
 
-  // --- Stress strip ---
-
-  // ONE merged wide static floor (not many tile colliders) — fewer seams to stick on.
-  add([rect(1600, 32), pos(0, 320), area(), body({ isStatic: true }), "ground"]);
-
-  // Tall fast-drop ledge: climb/jump onto it, then run off at full speed to exercise
-  // tunneling against the floor below.
-  add([rect(120, 160), pos(420, 160), area(), body({ isStatic: true }), "ground"]);
-
-  // Gap platforms: two raised platforms separated by empty space (gaps + landing edges).
-  add([rect(160, 24), pos(760, 240), area(), body({ isStatic: true }), "ground"]);
-  add([rect(160, 24), pos(1060, 200), area(), body({ isStatic: true }), "ground"]);
+  // --- Authored level body ---
+  // buildLevel emits the merged-floor + platform colliders, the visual ground
+  // tiles, and the tagged coin/spike/goal area() entities. It runs BEFORE the
+  // player so the player spawns onto solid ground.
+  buildLevel(LEVEL);
 
   // --- Player ---
   // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).
@@ -54,10 +50,11 @@ export function gameScene(data) {
     return add([rect(8, 48), pos(x, y), area(), opacity(0.001), "checkpoint"]);
   }
 
-  // Place markers across the strip: one near the start, one partway along by the
-  // gap platforms (before the deeper drops).
-  addCheckpoint(96, 272);
-  addCheckpoint(820, 192);
+  // Place markers from the authored level data: one near the start and one just
+  // before each spike (a respawn never costs meaningful progress — ADHD-safe).
+  for (const cp of LEVEL.checkpoints) {
+    addCheckpoint(cp.x, cp.y);
+  }
 
   // Touching a checkpoint promotes it to the respawn point.
   player.onCollide("checkpoint", (c) => {
