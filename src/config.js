@@ -36,7 +36,8 @@ export const CONFIG = {
   FLOOR_THICKNESS: 40, // px — merged-floor collider depth; thick to resist tunneling on tall drops (Pitfall 3)
   COIN_FRAMES: 8, // count — coin.png is a 256x32 sheet of 8 evenly-gridded 32px frames (sliceX)
   COIN_SPIN_SPEED: 12, // fps — coin spin anim frame rate
-  COIN_SIZE: 32, // px — rendered coin sprite frame size (placement/centering reference)
+  // (No COIN_SIZE: coin placement is intentionally data-driven via raw {x, y} in
+  // level.js — the 32px frame size is never read in logic, so no constant is kept.)
   SPIKE_SIZE: 16, // px — spike sprite footprint (full tile); the hitbox is tightened below
   SPIKE_HITBOX_W: 12, // px — tightened spike collider width (narrower than the 16px tile — fair points-only hit)
   SPIKE_HITBOX_H: 8, // px — tightened spike collider height (only the upper visible spikes, not the empty base)
