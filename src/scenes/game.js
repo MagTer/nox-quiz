@@ -37,6 +37,10 @@ export function gameScene(data) {
   // and NO juice/sfx (Phase 12) here — those phases attach later.
   let coinsCollected = 0;
 
+  // Goal fire-once guard — closure-local (same anti-leak contract). onCollide fires
+  // every overlap frame; this latches so onReachGoal() runs EXACTLY once.
+  let goalReached = false;
+
   // --- Authored level body ---
   // buildLevel emits the merged-floor + platform colliders, the visual ground
   // tiles, and the tagged coin/spike/goal area() entities. It runs BEFORE the
@@ -102,6 +106,26 @@ export function gameScene(data) {
   // costs meaningful progress. This is the gentle checkpoint policy — no failure
   // construct of any kind is introduced (CONTEXT-locked, ADHD-safe).
   player.onCollide("spike", () => respawn());
+
+  // Goal (LEVEL-07): the SINGLE-POINT handoff seam. This is the one clean call site
+  // Phase 10's math gate attaches to — it replaces the STUB BODY below, nowhere else.
+  // There is exactly ONE onReachGoal function and ONE goal-collision wiring (Pitfall 5).
+  function onReachGoal() {
+    if (goalReached) return; // fire-once: ignore every subsequent overlap frame
+    goalReached = true;
+
+    // Phase 9 STUB (no math gate here): stop the player and show a placeholder.
+    // Rendered as a Kaplay canvas text() (NOT a DOM string sink) — no XSS path (T-09-07).
+    player.paused = true; // halts the player's onUpdate (movement) — gentle freeze
+    add([
+      text("GOAL!"),
+      pos(center()),
+      anchor("center"),
+      fixed(), // screen-space HUD, immune to camera follow
+      "goal-banner",
+    ]);
+  }
+  player.onCollide("goal", onReachGoal);
 
   // --- Per-frame scene update ---
   onUpdate(() => {
