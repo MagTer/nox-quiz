@@ -6,14 +6,14 @@ current_phase: 09
 current_phase_name: Level Build & CC0 Assets
 status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-25T04:23:25.403Z"
+last_updated: "2026-06-25T04:34:56.496Z"
 last_activity: 2026-06-24
 last_activity_desc: Phase 09 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 33
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 
 Milestone: v3.0 The Platformer
 Phase: 09 (Level Build & CC0 Assets) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-24 — Phase 09 execution started
 
@@ -119,7 +119,7 @@ Last activity: 2026-06-24 — Phase 09 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-25T04:23:10.803Z
+**Last session:** 2026-06-25T04:34:22.666Z
 
 **Next steps:**
 
@@ -202,6 +202,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 08 P02 | ~4min | 3 tasks | 3 files |
 | Phase 08 P03 | ~1min | 1 tasks | 0 files |
 | Phase 09 P01 | 25min | 2 tasks | 11 files |
+| Phase 09 P02 | 4min | 3 tasks | 5 files |
 
 ## Decisions
 
@@ -216,3 +217,6 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 - [Phase ?]: [Phase 08]: Plan 03: MOVE-05 dt-correctness audit clean — no double-scale on vel.x, no hand-rolled gravity, timers/camera use dt(), no raw-constant lerp; zero code changes
 - [Phase ?]: [Phase 08]: Plan 03: MOVE-05 human-verify (throttled vs 60Hz) deferred to end-of-phase per human_verify_mode: end-of-phase
 - [Phase ?]: Phase 9 assets sourced from OpenGameArt CC0 (6 Color Dungeon by HorusKDI + Rotating Coin by PuddinThur); rejected spinning-coin-0 (CC-BY-SA)
+- [Phase ?]: 09-02: Authored a JS data-list level (LEVEL) + buildLevel() with merged-floor colliders instead of addLevel symbol maps, preserving the Phase 8 anti-seam-stick property
+- [Phase ?]: 09-02: Spike hitbox tightened to 12x8 offset onto the visible points (Pitfall 4), set definitively in level.js not deferred to Plan 03
+- [Phase ?]: 09-02: buildLevel OWNS creation of the tagged coin/spike/goal area() entities; Plan 03 only attaches onCollide handlers
