@@ -95,8 +95,16 @@ export const LEVEL = {
   goal: { x: 2160, y: FLOOR_Y - CONFIG.GOAL_SIZE },
 
   // Respawn checkpoints — one near the start and one just BEFORE each spike.
+  //
+  // The `FLOOR_Y - 48` y is INTENTIONAL and couples to player height: the player is
+  // 16x32 (topleft anchor), so respawning at y=272 puts its feet at 304 while the
+  // floor top is FLOOR_Y=320 — a deliberate ~16px gap that reads as a gentle "drop
+  // in" onto the floor after every respawn (harmless; the fall-threshold is far
+  // below at LEVEL_BOTTOM+FALL_MARGIN). The literal is FLOOR_Y minus (player height
+  // 32 + a 16px drop). If the player sprite height or FLOOR_Y ever changes, retune
+  // this offset to preserve the "feet land on the floor" relationship.
   checkpoints: [
-    { x: 96, y: FLOOR_Y - 48 }, // start-area checkpoint
+    { x: 96, y: FLOOR_Y - 48 }, // start-area checkpoint (32px player height + 16px drop)
     { x: 800, y: FLOOR_Y - 48 }, // before the first spike (x=880)
     { x: 1440, y: FLOOR_Y - 48 }, // before the second spike (x=1520)
     { x: 1920, y: FLOOR_Y - 48 }, // before the third spike (x=2000)
