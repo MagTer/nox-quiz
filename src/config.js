@@ -42,4 +42,24 @@ export const CONFIG = {
   SPIKE_HITBOX_W: 12, // px — tightened spike collider width (narrower than the 16px tile — fair points-only hit)
   SPIKE_HITBOX_H: 8, // px — tightened spike collider height (only the upper visible spikes, not the empty base)
   GOAL_SIZE: 16, // px — goal sprite footprint
+
+  // --- Math brain (ported verbatim from archive/math-lab.html 604-619 — DO NOT re-tune) ---
+  // The 6–9 weighting + EWMA constants are already validated; the selection math is
+  // locked and out of scope to change. Read by src/math/brain.js (CONFIG.BRAIN.*) only.
+  BRAIN: {
+    ACCURACY_ALPHA: 0.15, // EWMA weight for a new answer
+    MASTERY_THRESHOLD: 0.8, // 80% over last MASTERY_WINDOW → reduce drilling
+    STRUGGLE_THRESHOLD: 0.6, // below this → STRUGGLE_BOOST weight
+    STRUGGLE_BOOST: 1.5, // weight multiplier for a struggling table
+    MASTERY_WINDOW: 10, // sliding window size for the mastery check
+    HARD_TABLES: [6, 7, 8, 9], // drilled tables (biased selection)
+    EASY_TABLES: [1, 2, 3, 4, 5], // confidence tables (lower selection share)
+  },
+
+  // --- Math gate UI (dark-grunge panel; Plan 02 consumes; Phase 12 retunes visuals) ---
+  GATE: {
+    DIM_OPACITY: 0.6, // full-screen dim layer opacity behind the panel
+    PANEL_W: 420, // px — gate panel width
+    PANEL_H: 220, // px — gate panel height
+  },
 };
