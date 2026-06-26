@@ -175,21 +175,41 @@ export function openMathGate({ brain, onClear } = {}) {
       return;
     }
 
-    // CORRECT (GATE-03): flash the chosen box neon-green, show LEVEL CLEAR, then close
-    // cleanly and fire onClear exactly once.
+    // CORRECT (GATE-03): tear down the interactive gate, then render a PERSISTENT
+    // cleared-state celebration (neon-green panel + "LEVEL CLEAR") and fire onClear once.
+    //
+    // GATE-05 forbids any deferred scheduler in this file, so we cannot postpone teardown
+    // to give a same-frame add()+destroy() celebration a beat to render (WR-01). Instead the
+    // celebration is the TERMINAL cleared state: there is no next level this phase, so the
+    // banner simply stays on screen. It is tagged "gate-cleared" — a DIFFERENT tag from
+    // "math-gate" — so close()'s destroyAll("math-gate") wipes the interactive overlay
+    // (dim layer, panel, question, answer boxes, key controllers) but LEAVES the
+    // celebration standing. No scheduler involved.
     cleared = true;
-    if (box) box.color = rgb(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]);
+
+    close(); // cancel key controllers + destroyAll("math-gate") interactive objects
+
+    // Persistent neon-green clear panel behind the banner (re-asserts the dim backdrop
+    // so the cleared level reads as "done", not blank). Tagged "gate-cleared" (survives).
+    add([
+      rect(width(), height()),
+      pos(0, 0),
+      color(0, 0, 0),
+      opacity(CONFIG.GATE.DIM_OPACITY),
+      fixed(),
+      z(9990),
+      "gate-cleared",
+    ]);
     add([
       text("LEVEL CLEAR", { size: 30 }),
       anchor("center"),
-      pos(center().x, center().y + 90),
+      pos(center().x, center().y),
       color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]),
       fixed(),
       z(9994),
-      "math-gate",
+      "gate-cleared",
     ]);
 
-    close();
     onClear?.();
   }
 
