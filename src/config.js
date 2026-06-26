@@ -62,4 +62,40 @@ export const CONFIG = {
     PANEL_W: 420, // px — gate panel width
     PANEL_H: 220, // px — gate panel height
   },
+
+  // --- Progression / XP (ported VERBATIM from archive/math-lab.html 604-619 — DO NOT re-tune) ---
+  // The XP-per-table amounts and the level-threshold curve are the validated v1/v2 values.
+  // Read by src/progress.js (Phase 11 Wave 1) only. HARD_TABLES/EASY_TABLES are intentionally
+  // duplicated with CONFIG.BRAIN — different consumers (XP amount vs. selection weight); the
+  // firewall keeps progress.js and brain.js independent. No HP/combat/dungeon fields (out of scope).
+  PROGRESS: {
+    XP_EASY: 10, // XP for a correct answer on tables 1–5
+    XP_HARD: 20, // XP for a correct answer on tables 6–9
+    BASE_XP: 200, // XP required for Level 1 → Level 2
+    LEVEL_MULT: 1.3, // per-level threshold multiplier (threshold = round(BASE_XP * MULT^(L-1)))
+    HARD_TABLES: [6, 7, 8, 9], // hard tables (award XP_HARD)
+    EASY_TABLES: [1, 2, 3, 4, 5], // easy tables (award XP_EASY)
+  },
+
+  // --- Save / persistence (NEW namespaced key — independent of the archive's mathlab_save_*) ---
+  // Phase 11 creates a fresh, independent platformer save. NO migration from the school game
+  // (CONTEXT line 35-36). The old mathlab_save_v1/v2 keys are NEVER read or written.
+  SAVE: {
+    KEY: "mathlab_platformer_v1", // localStorage key for the platformer progression
+    VERSION: 1, // bump for future save-format migrations
+  },
+
+  // --- HUD layout (level badge + XP bar + level-up flash; Wave 3 consumes; Phase 12 retunes) ---
+  // FLASH_MS is 450 (NOT the archive's 800) — the ADHD-safe flash window per the STATE.md
+  // v2.0 tech-debt note. Subtle, no scale-bomb. Phase 12 owns final juice tuning.
+  HUD: {
+    X: 16, // px — top-left anchor X
+    Y: 16, // px — top-left anchor Y
+    BADGE_SIZE: 18, // px — level badge text size
+    BAR_W: 160, // px — XP bar width
+    BAR_H: 10, // px — XP bar height
+    BAR_DY: 24, // px — XP bar vertical offset below the badge
+    FLASH_SIZE: 36, // px — level-up flash text size
+    FLASH_MS: 450, // ms — level-up flash duration (ADHD-safe window; NOT archive's 800)
+  },
 };
