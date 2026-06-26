@@ -166,10 +166,19 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. Current XP and level are visible in-game (XP bar / level indicator) and reaching a new level shows a distinct level-up moment.
 
 **Plans**: 4 plans
+**Wave 1**
+
 - [ ] 11-00-PLAN.md — Wave 0: author scripts/check-progress.sh + scripts/smoke-progress.mjs + add CONFIG.PROGRESS/SAVE/HUD
 - [ ] 11-01-PLAN.md — Wave 1: pure src/progress.js (XP/level math + guarded localStorage seam)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 11-02-PLAN.md — Wave 2: brain seedAccuracy+snapshot, onClear({table}), scene load/award/persist wiring
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 11-03-PLAN.md — Wave 3: src/ui/hud.js fixed HUD + level-up moment + browser UAT
+
 **UI hint**: yes
 
 ### Phase 12: Polish, ADHD-Safety & UAT
