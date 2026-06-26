@@ -165,10 +165,10 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   3. Returning to the URL resumes her progression with XP/level intact, and the persisted accuracy history keeps question selection adapted to her weak spots.
   4. Current XP and level are visible in-game (XP bar / level indicator) and reaching a new level shows a distinct level-up moment.
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 **Wave 1**
 
-- [ ] 11-00-PLAN.md — Wave 0: author scripts/check-progress.sh + scripts/smoke-progress.mjs + add CONFIG.PROGRESS/SAVE/HUD
+- [x] 11-00-PLAN.md — Wave 0: author scripts/check-progress.sh + scripts/smoke-progress.mjs + add CONFIG.PROGRESS/SAVE/HUD
 - [ ] 11-01-PLAN.md — Wave 1: pure src/progress.js (XP/level math + guarded localStorage seam)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -211,7 +211,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 8. Platformer Core | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 9. Level Build & CC0 Assets | v3.0 | 3/3 | Complete   | 2026-06-25 |
 | 10. Math-Gate Integration | v3.0 | 3/3 | Complete   | 2026-06-26 |
-| 11. Progression & Persistence | v3.0 | 0/0 | Not started | - |
+| 11. Progression & Persistence | v3.0 | 1/4 | In Progress|  |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 0/0 | Not started | - |
 
 ## Coverage (v3.0)

@@ -57,10 +57,10 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 
 ### Progression & Persistence
 
-- [ ] **SAVE-01**: The player earns XP for correct answers and levels up (port the v1/v2 XP curve and level system into the platformer)
-- [ ] **SAVE-02**: XP, level, and per-table practice history (accuracy/mastery) persist in the browser (localStorage, versioned) between visits
-- [ ] **SAVE-03**: Returning to the URL resumes her progression with XP/level intact; the persisted accuracy history keeps question selection adapted to her weak spots
-- [ ] **SAVE-04**: Current XP and level are visible in-game (XP bar / level indicator) with a level-up moment
+- [x] **SAVE-01**: The player earns XP for correct answers and levels up (port the v1/v2 XP curve and level system into the platformer)
+- [x] **SAVE-02**: XP, level, and per-table practice history (accuracy/mastery) persist in the browser (localStorage, versioned) between visits
+- [x] **SAVE-03**: Returning to the URL resumes her progression with XP/level intact; the persisted accuracy history keeps question selection adapted to her weak spots
+- [x] **SAVE-04**: Current XP and level are visible in-game (XP bar / level indicator) with a level-up moment
 
 ## v2 Requirements
 
@@ -124,10 +124,10 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | GATE-04 | Phase 10 | Complete |
 | GATE-05 | Phase 10 | Complete |
 | GATE-06 | Phase 10 | Complete |
-| SAVE-01 | Phase 11 | Pending |
-| SAVE-02 | Phase 11 | Pending |
-| SAVE-03 | Phase 11 | Pending |
-| SAVE-04 | Phase 11 | Pending |
+| SAVE-01 | Phase 11 | Complete |
+| SAVE-02 | Phase 11 | Complete |
+| SAVE-03 | Phase 11 | Complete |
+| SAVE-04 | Phase 11 | Complete |
 | JUICE-01 | Phase 12 | Pending |
 | JUICE-02 | Phase 12 | Pending |
 | JUICE-03 | Phase 12 | Pending |
