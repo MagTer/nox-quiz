@@ -6,14 +6,14 @@ current_phase: 11
 current_phase_name: Progression & Persistence
 status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-26T14:15:05.926Z"
+last_updated: "2026-06-26T14:21:46.331Z"
 last_activity: 2026-06-26
 last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
   percent: 67
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 
 Milestone: v3.0 The Platformer
 Phase: 11 (Progression & Persistence) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-26 — Phase 11 execution started
 
@@ -119,7 +119,7 @@ Last activity: 2026-06-26 — Phase 11 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-26T14:14:41.579Z
+**Last session:** 2026-06-26T14:21:17.348Z
 
 **Next steps:**
 
@@ -209,6 +209,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 10 P03 | 2min | 2 tasks | 2 files |
 | Phase 11 P00 | ~3min | 3 tasks | 3 files |
 | Phase 11 P01 | ~2 min | 2 tasks | 1 files |
+| Phase 11 P02 | 3min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -236,3 +237,6 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 - [Phase ?]: Phase 10: onClear sets a closure levelCleared flag as a clean Phase-11 XP hook; the gate owns the LEVEL CLEAR banner; no XP/persistence implemented (GATE-03)
 - [Phase ?]: 11-01: createProgress() is a PURE factory — never reads localStorage at construction; the seam (loadSave/writeSave/storageAvailable) is defined-not-called at import so progress.js stays node-importable.
 - [Phase ?]: 11-01: serialize() persists ONLY {version,xp,level,accuracy,history} — no run/session state; NO migration from the school game's mathlab_save_* key.
+- [Phase ?]: seedHistory is LOCKED (not optional) so isMastered() drill-reduction resumes across visits (SAVE-03)
+- [Phase ?]: Brain seed validation is explicit per-key range-checked (never spread of untrusted blob — T-01-01)
+- [Phase ?]: Persist on correct-clear event AND onHide (visibilitychange); never on a timer (SAFE-01)
