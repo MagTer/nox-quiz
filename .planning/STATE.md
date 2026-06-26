@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: The Platformer
-current_phase: 09
-current_phase_name: Level Build & CC0 Assets
+current_phase: 10
+current_phase_name: Math-Gate Integration (Port the Brain
 status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-26T07:10:07.566Z"
-last_activity: 2026-06-24
-last_activity_desc: Phase 09 execution started
+last_updated: "2026-06-26T07:14:22.466Z"
+last_activity: 2026-06-26
+last_activity_desc: Phase 10 execution started
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 11
+  completed_plans: 9
   percent: 50
 ---
 
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 09 — Level Build & CC0 Assets
+**Current Focus:** Phase 10 — Math-Gate Integration (Port the Brain)
 
 **Tech Stack (v3.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Packaged as static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL she just visits (no install, no launcher). A local dev server (`python3 -m http.server`) is used during development only. Persistence via versioned localStorage.
 **Shipped State (v2.0, being replaced):** 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji. The math brain (weighted 6–9 selection) is carried forward; the quiz shell is replaced by a game shell.
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 ## Current Position
 
 Milestone: v3.0 The Platformer
-Phase: 09 (Level Build & CC0 Assets) — EXECUTING
-Plan: 3 of 3
+Phase: 10 (Math-Gate Integration (Port the Brain)) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-24 — Phase 09 execution started
+Last activity: 2026-06-26 — Phase 10 execution started
 
 ## v3.0 Roadmap (Phases 7–12)
 
@@ -119,7 +119,7 @@ Last activity: 2026-06-24 — Phase 09 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-25T04:39:46.911Z
+**Last session:** 2026-06-26T07:14:00.745Z
 
 **Next steps:**
 
@@ -204,6 +204,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 09 P01 | 25min | 2 tasks | 11 files |
 | Phase 09 P02 | 4min | 3 tasks | 5 files |
 | Phase 09 P03 | 3min | 2 tasks | 1 files |
+| Phase 10 P01 | 12m | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -223,3 +224,5 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 - [Phase ?]: 09-02: buildLevel OWNS creation of the tagged coin/spike/goal area() entities; Plan 03 only attaches onCollide handlers
 - [Phase 09]: 09-03: Single-point goal seam — one onReachGoal() + one onCollide goal handler, fire-once guarded; Phase 10 replaces only the stub body
 - [Phase 09]: 09-03: coinsCollected + goalReached declared in the gameScene closure (anti-leak); goal placeholder via Kaplay text() not a DOM sink (no XSS)
+- [Phase ?]: Math brain return shape locked to { a, b, answer, choices } (a=table, b=multiplicand); gate builds its own display string.
+- [Phase ?]: Math brain exposed as createBrain() factory (fresh closure per game) — anti-leak vs archive's module-level singleton.

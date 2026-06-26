@@ -138,12 +138,12 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. A wrong answer is forgiving — it re-asks with no penalty, no progress lost, and the run does not end.
   5. The gate has no countdown or time pressure, and the math module imports nothing from Kaplay (clean firewall; `ui/mathGate.js` is the only bridge), surviving replays with no leaked state.
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 **UI hint**: yes
 
 **Wave 1**
 
-- [ ] 10-01-PLAN.md — Port the pure 6–9-weighted math brain into src/math/brain.js (createBrain factory) + add CONFIG.BRAIN/GATE namespaces; zero-Kaplay firewall, headless smoke (GATE-02, GATE-06)
+- [x] 10-01-PLAN.md — Port the pure 6–9-weighted math brain into src/math/brain.js (createBrain factory) + add CONFIG.BRAIN/GATE namespaces; zero-Kaplay firewall, headless smoke (GATE-02, GATE-06)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -197,7 +197,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 7. Project Setup & Deployment | v3.0 | 2/2 | Complete   | 2026-06-22 |
 | 8. Platformer Core | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 9. Level Build & CC0 Assets | v3.0 | 3/3 | Complete   | 2026-06-25 |
-| 10. Math-Gate Integration | v3.0 | 0/3 | Planned | - |
+| 10. Math-Gate Integration | v3.0 | 1/3 | In Progress|  |
 | 11. Progression & Persistence | v3.0 | 0/0 | Not started | - |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 0/0 | Not started | - |
 

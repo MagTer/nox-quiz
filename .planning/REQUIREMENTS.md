@@ -37,11 +37,11 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 ### Math Gate
 
 - [ ] **GATE-01**: At the goal, a math question appears as an in-world gate (not a system quiz popup), with the level paused and visible behind it
-- [ ] **GATE-02**: The question presents 4 multiple-choice answers using the ported weighted selection (biased toward the 6–9 tables)
+- [x] **GATE-02**: The question presents 4 multiple-choice answers using the ported weighted selection (biased toward the 6–9 tables)
 - [ ] **GATE-03**: A correct answer opens the gate / clears the level with a celebratory moment
 - [ ] **GATE-04**: A wrong answer is forgiving — re-ask with no penalty and no progress lost
 - [ ] **GATE-05**: The gate has no countdown timer or any time pressure
-- [ ] **GATE-06**: The ported math brain is a standalone module with no dependency on the game engine (clean firewall)
+- [x] **GATE-06**: The ported math brain is a standalone module with no dependency on the game engine (clean firewall)
 
 ### Polish & Juice
 
@@ -119,11 +119,11 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | LEVEL-07 | Phase 9 | Complete |
 | LEVEL-08 | Phase 9 | Complete |
 | GATE-01 | Phase 10 | Pending |
-| GATE-02 | Phase 10 | Pending |
+| GATE-02 | Phase 10 | Complete |
 | GATE-03 | Phase 10 | Pending |
 | GATE-04 | Phase 10 | Pending |
 | GATE-05 | Phase 10 | Pending |
-| GATE-06 | Phase 10 | Pending |
+| GATE-06 | Phase 10 | Complete |
 | SAVE-01 | Phase 11 | Pending |
 | SAVE-02 | Phase 11 | Pending |
 | SAVE-03 | Phase 11 | Pending |
