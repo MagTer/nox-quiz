@@ -62,7 +62,14 @@ export function makePlayer(startX, startY) {
   });
 
   // Press registers a buffered jump (fires on the next grounded/coyote frame).
+  // onKeyPress is a GLOBAL controller — player.paused does NOT pause it (the engine
+  // only gates the object's own onUpdate). Without this guard, pressing jump while the
+  // run is frozen (e.g. the math gate is open) still mutates `buffer`; that buffered
+  // jump is latent today (only consumed inside the paused onUpdate) but would lurch the
+  // player on any future unpause path that does not first zero `buffer`. Skipping the
+  // write while paused keeps the freeze airtight without affecting normal jump feel.
   onKeyPress(JUMP_KEYS, () => {
+    if (player.paused) return; // do not queue jumps while the run is frozen
     buffer = CONFIG.BUFFER_MS / 1000;
   });
 
