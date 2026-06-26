@@ -149,6 +149,10 @@ export function openMathGate({ brain, onClear } = {}) {
 
   // Keyboard path: number keys 1-4 select the matching box. These are GLOBAL controllers
   // that outlive their objects, so each is captured and cancelled on close (anti-leak).
+  // WR-03: keys 1-4 are RESERVED for the gate while it is open — future phases must not
+  // rebind them globally (level-select / debug hotkeys) or the bindings would collide
+  // while the gate is up. The cleared/bounds guards in choose() are the safety net if
+  // they ever do; cancellation on close() frees the keys the moment the gate tears down.
   const keyCtrls = ["1", "2", "3", "4"].map((k, i) => onKeyPress(k, () => choose(i)));
 
   /**
