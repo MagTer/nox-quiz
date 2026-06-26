@@ -49,9 +49,11 @@ const ACCENT_RED = [0xff, 0x44, 0x33]; // wrong nudge
  * @param {{ nextQuestion: Function, reportResult: Function }} args.brain
  *   The math brain instance supplied by the scene (one-way: gate consumes it). If no
  *   brain is supplied, a fresh fallback brain is constructed so the gate is self-standing.
- * @param {() => void} args.onClear
- *   Level-clear hook invoked EXACTLY once on a correct answer. The scene decides what
- *   "clear" means; this gate only fires the hook and closes cleanly.
+ * @param {(payload: { table: number }) => void} args.onClear
+ *   Level-clear hook invoked EXACTLY once on a correct answer. Receives `{ table }` — the
+ *   table the player just cleared (q.a) — so the scene can award XP for it (the gate awards
+ *   NO XP itself; forgiving — XP flows ONLY through this correct-branch seam). The scene
+ *   decides what "clear" means; this gate only fires the hook and closes cleanly.
  */
 export function openMathGate({ brain, onClear } = {}) {
   // Self-standing fallback so the gate never throws if the scene forgets to pass a brain.
@@ -214,7 +216,7 @@ export function openMathGate({ brain, onClear } = {}) {
       "gate-cleared",
     ]);
 
-    onClear?.();
+    onClear?.({ table: q.a }); // carry the cleared table (q.a) so the scene awards its XP
   }
 
   /**
