@@ -20,6 +20,8 @@ import { CONFIG } from "../config.js";
 import { makePlayer } from "../player.js";
 import { followCamera } from "../camera.js";
 import { LEVEL, buildLevel } from "../level.js";
+import { createBrain } from "../math/brain.js";
+import { openMathGate } from "../ui/mathGate.js";
 
 export function gameScene(data) {
   // Engine gravity for this scene (px/s^2). Set once on scene entry.
@@ -40,6 +42,18 @@ export function gameScene(data) {
   // Goal fire-once guard — closure-local (same anti-leak contract). onCollide fires
   // every overlap frame; this latches so onReachGoal() runs EXACTLY once.
   let goalReached = false;
+
+  // Level-clear flag — closure-local (same anti-leak contract). Set by the gate's
+  // onClear hook on a correct answer (GATE-03). A simple scene-side "cleared" marker;
+  // Phase 11 reads/extends this hook for XP, Phase 12 polishes the celebration.
+  let levelCleared = false;
+
+  // The math brain for THIS run — constructed ONCE per scene via the createBrain()
+  // factory, held closure-local (same anti-leak discipline as coinsCollected: never a
+  // module-level `let`). A fresh brain per go("game") gives each replay a clean
+  // accuracy/history so adaptation cannot bleed across runs (RESEARCH Pitfall 2,
+  // T-10-06). The single scene-to-gate bridge (openMathGate) consumes it below.
+  const brain = createBrain();
 
   // --- Authored level body ---
   // buildLevel emits the merged-floor + platform colliders, the visual ground
@@ -114,21 +128,28 @@ export function gameScene(data) {
     if (goalReached) return; // fire-once: ignore every subsequent overlap frame
     goalReached = true;
 
-    // Phase 9 STUB (no math gate here): stop the player and show a placeholder.
-    // Rendered as a Kaplay canvas text() (NOT a DOM string sink) — no XSS path (T-09-07).
-    // Zero velocity BEFORE pausing (consistent with reset()'s `player.vel = vec2(0)`):
-    // running into the goal leaves vel.x = +RUN_SPEED, and `paused` freezes body()
-    // integration without clearing it. If Phase 10's math gate ever unpauses the
-    // player on resume, a stale non-zero velocity would cause an immediate lurch.
-    player.vel = vec2(0); // clean stop — no residual momentum for Phase 10 to inherit
+    // Freeze the level while the gate is open. Zero velocity BEFORE pausing
+    // (consistent with reset()'s `player.vel = vec2(0)`): running into the goal leaves
+    // vel.x = +RUN_SPEED, and `paused` freezes body() integration without clearing it —
+    // a stale non-zero velocity would cause an immediate lurch if the player is ever
+    // unpaused on resume.
+    player.vel = vec2(0); // clean stop — no residual momentum to inherit
     player.paused = true; // halts the player's onUpdate (movement) — gentle freeze
-    add([
-      text("GOAL!"),
-      pos(center()),
-      anchor("center"),
-      fixed(), // screen-space HUD, immune to camera follow
-      "goal-banner",
-    ]);
+
+    // SINGLE scene-to-gate bridge (GATE-03): hand the closure-local brain to the gate.
+    // The gate renders the in-world question over the dimmed/paused level and calls
+    // onClear() exactly once on a correct answer (its own fire-once latch, Plan 02).
+    openMathGate({
+      brain,
+      onClear() {
+        // GATE-03: correct -> the level is cleared. The gate already shows its own
+        // "LEVEL CLEAR" banner (Plan 02); the scene's side of "cleared" is simply that
+        // the player stays frozen. This is the clean, single hook Phase 11 attaches XP
+        // to and Phase 12 polishes the celebration on — NO XP / leveling / persistence
+        // is implemented here. Single level: no go() to a next level.
+        levelCleared = true;
+      },
+    });
   }
   player.onCollide("goal", onReachGoal);
 
