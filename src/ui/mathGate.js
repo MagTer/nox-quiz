@@ -8,8 +8,10 @@
 //
 // ENGINE-GLOBAL DISCIPLINE (mirror src/scenes/game.js 14-17): Kaplay primitives
 // (add, text, rect, color, opacity, outline, anchor, pos, fixed, z, area, onKeyPress,
-// center, width, height, rgb, destroy, shake) come from Kaplay `global: true`. They are
-// used as bare globals exactly like game.js does — they are NOT imported.
+// center, width, height, rgb, destroyAll, shake) come from Kaplay `global: true`. They are
+// used as bare globals exactly like game.js does — they are NOT imported. Teardown uses
+// destroyAll(tag) (the tag-aware bulk remover); plain destroy() only accepts a GameObj
+// and would throw a TypeError if handed the "math-gate" string tag.
 //
 // src/ui/ is one directory below src/, so sibling-module imports use `../`.
 //
@@ -198,6 +200,6 @@ export function openMathGate({ brain, onClear } = {}) {
    */
   function close() {
     keyCtrls.forEach((c) => c.cancel());
-    destroy("math-gate");
+    destroyAll("math-gate"); // tag-based bulk removal; destroy() only accepts a GameObj
   }
 }
