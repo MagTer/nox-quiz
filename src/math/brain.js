@@ -18,26 +18,46 @@
 // a new game (RESEARCH Pitfall 2 / CONTEXT "state must not leak across replays").
 // There is intentionally no module-level mutable `let accuracy`/`let history`.
 //
-// DROPPED (Phase 11 / never — firewall keeps these out): the experience/leveling
-// math, the save/load persistence layer, the HP/encounter/consumable subsystem, and
-// the game state machine. None of those concerns appear in this module, and the
-// firewall greps confirm their identifier tokens are absent here.
+// PERSISTENCE (Phase 11): browser storage is STILL OUT of the brain — it reads NO save API
+// and imports NO engine. The loader (src/progress.js + the scene) owns the save: on entry
+// it injects validated saved values via createBrain({ seedAccuracy, seedHistory }), and on
+// each clear/tab-hide it serializes the brain's state via snapshot(). snapshot() is the
+// single ONE-WAY export the loader persists; the brain never reaches back into the store.
+//
+// DROPPED (firewall keeps these out): the experience/leveling math, the browser-storage
+// persistence layer itself, the HP/encounter/consumable subsystem, and the game state
+// machine. None of those concerns appear in this module, and the firewall greps confirm
+// their identifier tokens are absent here.
 
 import { CONFIG } from "../config.js"; // leaf constants only — CONFIG.BRAIN namespace
 
 /**
  * Construct a fresh, independent math brain for one game session.
  *
+ * The brain is PURE: it reads NO storage. Saved per-table accuracy/history are INJECTED by
+ * the loader via the optional seed object so a returning session resumes both the weak-spot
+ * weighting (seedAccuracy → SAVE-03) AND the mastery drill-reduction (seedHistory → isMastered
+ * resumes). With no args (or `{}`) the brain starts fresh — the gate's fallback caller relies
+ * on this. Seeds are validated with the archive's fromJSON rules; garbage is silently ignored.
+ *
+ * @param {object} [seed]
+ * @param {Object<number, number>} [seed.seedAccuracy]
+ *   Per-table EWMA accuracy to resume; only keys 1..9 with numeric values in 0..1 are applied.
+ * @param {Object<number, boolean[]>} [seed.seedHistory]
+ *   Per-table answer history (booleans) to resume; non-arrays/non-booleans are filtered and
+ *   each window is clamped to the last MASTERY_WINDOW entries.
  * @returns {{
  *   nextQuestion: () => { a: number, b: number, answer: number, choices: number[] },
- *   reportResult: (table: number, isCorrect: boolean) => void
+ *   reportResult: (table: number, isCorrect: boolean) => void,
+ *   snapshot: () => { accuracy: Object<number, number>, history: Object<number, boolean[]> }
  * }}
  *   nextQuestion() yields a 6–9-biased question: `a`=table (1..9), `b`=multiplicand
  *   (1..10), `answer`=a*b, and `choices` is a 4-element shuffled array containing the
  *   answer plus 3 distinct plausible distractors. reportResult() updates this brain's
- *   in-memory EWMA accuracy weighting (in-memory only this phase; persistence is Phase 11).
+ *   in-memory EWMA accuracy weighting. snapshot() returns shallow copies of accuracy/history
+ *   for the loader to persist (one-way export — the brain never reads storage).
  */
-export function createBrain() {
+export function createBrain({ seedAccuracy, seedHistory } = {}) {
   // Per-game closure state — fresh per createBrain() call (anti-leak contract).
   // EWMA per table; hard tables start lower → higher initial selection weight (archive 667-668).
   const accuracy = {
@@ -53,6 +73,30 @@ export function createBrain() {
   };
   // Sliding window: last N answers per table for the mastery check (archive 670).
   const history = {}; // { table: [true, false, ...] }
+
+  // --- Seed injection (Phase 11): the loader injects validated saved state so a returning
+  // session resumes weak-spot weighting (accuracy) AND mastery drill-reduction (history).
+  // The brain reads NO storage — these are plain objects already loaded by src/progress.js.
+  // Validation mirrors the archive's fromJSON (math-lab.html 726-743): explicit per-key,
+  // range-checked copy — NEVER Object.assign/spread of the untrusted blob (T-01-01).
+  if (seedAccuracy && typeof seedAccuracy === "object") {
+    for (const [key, value] of Object.entries(seedAccuracy)) {
+      const t = parseInt(key, 10);
+      if (t >= 1 && t <= 9 && typeof value === "number" && value >= 0 && value <= 1) {
+        accuracy[t] = value;
+      }
+    }
+  }
+  if (seedHistory && typeof seedHistory === "object") {
+    for (const [key, value] of Object.entries(seedHistory)) {
+      const t = parseInt(key, 10);
+      if (t >= 1 && t <= 9 && Array.isArray(value)) {
+        history[t] = value
+          .filter((x) => typeof x === "boolean")
+          .slice(-CONFIG.BRAIN.MASTERY_WINDOW);
+      }
+    }
+  }
 
   // Fisher-Yates uniform shuffle — not sort(random) which is biased (archive 915-921).
   // In-place, returns shuffled array.
@@ -201,6 +245,21 @@ export function createBrain() {
       if (history[table].length > CONFIG.BRAIN.MASTERY_WINDOW) {
         history[table].shift();
       }
+    },
+
+    // One-way persistence export (Phase 11): return shallow copies of this brain's
+    // accuracy/history so the loader (src/progress.js serialize) can write them to the
+    // save. Copies, not the live references — mutating the returned object must NOT touch
+    // the brain's internal state (firewall stays one-way; the brain reads NO storage).
+    snapshot() {
+      const historyCopy = {};
+      for (const [table, h] of Object.entries(history)) {
+        historyCopy[table] = h.slice();
+      }
+      return {
+        accuracy: { ...accuracy },
+        history: historyCopy,
+      };
     },
   };
 }
