@@ -165,7 +165,11 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   3. Returning to the URL resumes her progression with XP/level intact, and the persisted accuracy history keeps question selection adapted to her weak spots.
   4. Current XP and level are visible in-game (XP bar / level indicator) and reaching a new level shows a distinct level-up moment.
 
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 11-00-PLAN.md — Wave 0: author scripts/check-progress.sh + scripts/smoke-progress.mjs + add CONFIG.PROGRESS/SAVE/HUD
+- [ ] 11-01-PLAN.md — Wave 1: pure src/progress.js (XP/level math + guarded localStorage seam)
+- [ ] 11-02-PLAN.md — Wave 2: brain seedAccuracy+snapshot, onClear({table}), scene load/award/persist wiring
+- [ ] 11-03-PLAN.md — Wave 3: src/ui/hud.js fixed HUD + level-up moment + browser UAT
 **UI hint**: yes
 
 ### Phase 12: Polish, ADHD-Safety & UAT
