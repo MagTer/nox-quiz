@@ -42,7 +42,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 - [x] **Phase 7: Project Setup & Deployment** - Vendored Kaplay boots from static files served by a Docker/nginx container, deployable to Dokploy and reachable at a web URL. (completed 2026-06-22)
 - [x] **Phase 8: Platformer Core (Movement / Physics / Camera)** - A responsive, Mario-feel avatar runs, jumps, lands, and respawns gently on a test strip. (completed 2026-06-24)
 - [x] **Phase 9: Level Build & CC0 Assets** - One polished, completable dark/grunge level with platforms, coins, a hazard, checkpoints, and a goal. (completed 2026-06-25)
-- [ ] **Phase 10: Math-Gate Integration (Port the Brain)** - Reaching the goal opens an in-world, forgiving math gate driven by the ported 6–9-weighted brain.
+- [x] **Phase 10: Math-Gate Integration (Port the Brain)** - Reaching the goal opens an in-world, forgiving math gate driven by the ported 6–9-weighted brain. (completed 2026-06-26)
 - [ ] **Phase 11: Progression & Persistence** - Correct answers earn XP and level her up; XP, level, and practice history persist in the browser and resume on revisit.
 - [ ] **Phase 12: Polish, ADHD-Safety & UAT** - Juice, discoverable controls, contrast, no-timer/forgiving audit, and verification with the actual kid.
 
@@ -138,7 +138,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. A wrong answer is forgiving — it re-asks with no penalty, no progress lost, and the run does not end.
   5. The gate has no countdown or time pressure, and the math module imports nothing from Kaplay (clean firewall; `ui/mathGate.js` is the only bridge), surviving replays with no leaked state.
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 **UI hint**: yes
 
 **Wave 1**
@@ -151,7 +151,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 10-03-PLAN.md — Wire onReachGoal() in src/scenes/game.js to openMathGate (fresh per-scene brain, reuse player-freeze, onClear clears the level) + wiring check script (GATE-03)
+- [x] 10-03-PLAN.md — Wire onReachGoal() in src/scenes/game.js to openMathGate (fresh per-scene brain, reuse player-freeze, onClear clears the level) + wiring check script (GATE-03)
 
 ### Phase 11: Progression & Persistence
 
@@ -197,7 +197,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 7. Project Setup & Deployment | v3.0 | 2/2 | Complete   | 2026-06-22 |
 | 8. Platformer Core | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 9. Level Build & CC0 Assets | v3.0 | 3/3 | Complete   | 2026-06-25 |
-| 10. Math-Gate Integration | v3.0 | 2/3 | In Progress|  |
+| 10. Math-Gate Integration | v3.0 | 3/3 | Complete   | 2026-06-26 |
 | 11. Progression & Persistence | v3.0 | 0/0 | Not started | - |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 0/0 | Not started | - |
 
