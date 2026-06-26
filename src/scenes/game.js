@@ -22,6 +22,8 @@ import { followCamera } from "../camera.js";
 import { LEVEL, buildLevel } from "../level.js";
 import { createBrain } from "../math/brain.js";
 import { openMathGate } from "../ui/mathGate.js";
+import { createProgress, loadSave, writeSave } from "../progress.js";
+import { mountHud } from "../ui/hud.js";
 
 export function gameScene(data) {
   // Engine gravity for this scene (px/s^2). Set once on scene entry.
@@ -48,12 +50,25 @@ export function gameScene(data) {
   // Phase 11 reads/extends this hook for XP, Phase 12 polishes the celebration.
   let levelCleared = false;
 
-  // The math brain for THIS run — constructed ONCE per scene via the createBrain()
-  // factory, held closure-local (same anti-leak discipline as coinsCollected: never a
-  // module-level `let`). A fresh brain per go("game") gives each replay a clean
-  // accuracy/history so adaptation cannot bleed across runs (RESEARCH Pitfall 2,
-  // T-10-06). The single scene-to-gate bridge (openMathGate) consumes it below.
-  const brain = createBrain();
+  // --- Progression load + seed (Phase 11, SAVE-01/02/03) ---
+  // Load the validated save ONCE on scene entry (guarded — defaults under node/blocked
+  // storage; never throws). Construct the progression tracker and the brain from it, ALL
+  // closure-local (same anti-leak discipline as coinsCollected: never module-level). The
+  // brain is seeded from BOTH saved accuracy AND history so a returning session resumes
+  // weak-spot weighting AND mastery drill-reduction (SAVE-03). Run/session state (coins,
+  // goalReached, position) is NEVER part of the save — only xp/level/accuracy/history.
+  const saved = loadSave();
+  const progress = createProgress(saved);
+  const brain = createBrain({
+    seedAccuracy: saved.accuracy,
+    seedHistory: saved.history,
+  });
+
+  // The HUD reads the loaded XP/level and renders a camera-immune screen-space overlay
+  // (SAVE-04). One-way: the HUD reads progress, never writes back. Mounted closure-local
+  // so it tears down with the scene on replay. refresh() shows loaded progress immediately.
+  const hud = mountHud(progress);
+  hud.refresh();
 
   // --- Authored level body ---
   // buildLevel emits the merged-floor + platform colliders, the visual ground
@@ -141,13 +156,24 @@ export function gameScene(data) {
     // onClear() exactly once on a correct answer (its own fire-once latch, Plan 02).
     openMathGate({
       brain,
-      onClear() {
+      onClear({ table }) {
         // GATE-03: correct -> the level is cleared. The gate already shows its own
         // "LEVEL CLEAR" banner (Plan 02); the scene's side of "cleared" is simply that
-        // the player stays frozen. This is the clean, single hook Phase 11 attaches XP
-        // to and Phase 12 polishes the celebration on — NO XP / leveling / persistence
-        // is implemented here. Single level: no go() to a next level.
+        // the player stays frozen. Single level: no go() to a next level.
         levelCleared = true;
+
+        // Award XP for the cleared table (SAVE-01); addXp returns true on a level-up.
+        // The gate carried `table` (q.a) — the gate itself awards NO XP (forgiving).
+        const leveledUp = progress.addXp(table);
+
+        // One-way HUD update, then flash on a level-up (SAVE-04).
+        hud.refresh();
+        if (leveledUp) hud.flashLevelUp();
+
+        // Persist on each clear (SAVE-02): xp/level + the brain's accuracy/history
+        // snapshot. Run/session state (coins, goalReached, position) is NEVER serialized.
+        // writeSave is guarded (no-op under blocked storage; never throws into the loop).
+        writeSave(progress.serialize(brain.snapshot()));
       },
     });
   }
@@ -163,4 +189,13 @@ export function gameScene(data) {
       respawn();
     }
   });
+
+  // --- Persist on tab-hide (SAVE-02) ---
+  // KAPLAY's onHide() wraps the document visibilitychange event (verified global, same
+  // scene-scoped bare-global pattern as onUpdate above). This captures accuracy drift from
+  // wrong attempts before the tab closes — the gate clears persist on the correct branch,
+  // but a session can hide mid-question after wrong picks have moved the EWMA. writeSave is
+  // guarded (try-catch inside). NO timer-based autosave (SAFE-01): save only on the
+  // clear event and on hide. Run/session state is never serialized here either.
+  onHide(() => writeSave(progress.serialize(brain.snapshot())));
 }
