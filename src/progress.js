@@ -130,3 +130,128 @@ export function createProgress(saved) {
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Guarded localStorage seam (Task 2)
+//
+// localStorage lives ONLY here — never at module top level and never inside
+// createProgress (that is what keeps createProgress pure / node-importable).
+// All three functions are DEFINED, not called, at import time, so importing
+// this module under node (no localStorage) touches no storage API.
+//
+// NO migration: this layer reads/writes ONLY CONFIG.SAVE.KEY (mathlab_platformer_v1).
+// The school game's mathlab_save_v1/v2 keys are NEVER touched (CONTEXT lines 35-36).
+// ---------------------------------------------------------------------------
+
+// The fresh-save shape — what createProgress and createBrain seed from when there is
+// no (or a rejected) save. Returned by loadSave() on every failure mode below.
+function defaults() {
+  return { xp: 0, level: 1, accuracy: {}, history: {} };
+}
+
+// Explicit-field validation of an untrusted parsed blob (archive fromJSON 718-743).
+// SECURITY: copies ONLY named, range-checked keys — NEVER Object.assign(target, data)
+// or {...data} (prototype-pollution mitigation T-01-01). JSON coerces numeric object
+// keys to strings, so accuracy/history keys are parseInt'd back. accuracy clamped to
+// table 1..9 + value 0..1; history filtered to booleans and clamped to the mastery window.
+function validate(data) {
+  const out = defaults();
+  if (!data || typeof data !== "object") return out;
+
+  out.xp =
+    typeof data.xp === "number" && isFinite(data.xp) && data.xp >= 0
+      ? data.xp
+      : 0;
+  out.level =
+    typeof data.level === "number" && data.level >= 1
+      ? Math.floor(data.level)
+      : 1;
+
+  if (data.accuracy && typeof data.accuracy === "object") {
+    Object.entries(data.accuracy).forEach(([k, v]) => {
+      const table = parseInt(k, 10);
+      if (table >= 1 && table <= 9 && typeof v === "number" && v >= 0 && v <= 1) {
+        out.accuracy[table] = v;
+      }
+    });
+  }
+
+  if (data.history && typeof data.history === "object") {
+    Object.entries(data.history).forEach(([k, v]) => {
+      const table = parseInt(k, 10);
+      if (table >= 1 && table <= 9 && Array.isArray(v)) {
+        out.history[table] = v
+          .filter((x) => typeof x === "boolean")
+          .slice(-CONFIG.BRAIN.MASTERY_WINDOW);
+      }
+    });
+  }
+
+  return out;
+}
+
+// Storage probe — node has no localStorage, and accessing it can THROW in sandboxed
+// iframes / disabled-cookie modes, so the access itself is wrapped in try-catch
+// (RESEARCH Pattern 2, failure mode 1). Returns a boolean; never throws.
+function storageAvailable() {
+  try {
+    return typeof localStorage !== "undefined" && localStorage !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Load and validate the platformer save. Forgiving by mandate: every failure mode
+ * (no storage, missing key, corrupt JSON, version mismatch, throwing getItem) returns
+ * defaults() and NEVER throws into the caller. NO migration — a version mismatch is a
+ * fresh start, the old blob is ignored.
+ *
+ * @returns {{ xp: number, level: number, accuracy: object, history: object }}
+ */
+export function loadSave() {
+  if (!storageAvailable()) return defaults();
+  try {
+    const raw = localStorage.getItem(CONFIG.SAVE.KEY);
+    if (raw === null) return defaults();
+
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      console.warn("[MathLab] Save data corrupt — using defaults");
+      return defaults();
+    }
+
+    if (!data || data.version !== CONFIG.SAVE.VERSION) {
+      console.warn("[MathLab] Save version mismatch — using defaults");
+      return defaults(); // NO migration from the school game's save
+    }
+
+    return validate(data);
+  } catch (e) {
+    console.warn("[MathLab] Load failed:", e);
+    return defaults();
+  }
+}
+
+/**
+ * Persist a serialized blob (from createProgress().serialize()). Forgiving: a missing/
+ * blocked storage is a silent no-op, and a full quota or any other setItem failure is
+ * caught + warned, NEVER rethrown — the game loop must not crash on a failed save
+ * (archive 888-901, RESEARCH Pattern 2 failure mode 3).
+ *
+ * @param {object} blob - the { version, xp, level, accuracy, history } save object.
+ */
+export function writeSave(blob) {
+  if (!storageAvailable()) return;
+  try {
+    localStorage.setItem(CONFIG.SAVE.KEY, JSON.stringify(blob));
+  } catch (e) {
+    if (e?.name === "QuotaExceededError") {
+      console.warn("[MathLab] localStorage full — progress may not save");
+    } else {
+      console.warn("[MathLab] Save failed:", e);
+    }
+  }
+}
