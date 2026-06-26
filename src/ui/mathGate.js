@@ -60,7 +60,7 @@ export function openMathGate({ brain, onClear } = {}) {
   // Pull the question ONCE and keep this SAME object for the whole gate session: a
   // forgiving re-ask reuses it, so a wrong pick re-presents the identical question (GATE-04).
   const q = brain.nextQuestion();
-  const display = q.a + " " + "×" + " " + q.b; // U+00D7 multiplication glyph; fall back to 'x' if tofu.
+  const display = `${q.a} × ${q.b}`; // U+00D7 multiplication glyph; fall back to 'x' if tofu.
 
   // Fire-once latch for onClear (a correct pick must clear EXACTLY once — Pitfall 5).
   let cleared = false;
