@@ -45,11 +45,6 @@ export function gameScene(data) {
   // every overlap frame; this latches so onReachGoal() runs EXACTLY once.
   let goalReached = false;
 
-  // Level-clear flag — closure-local (same anti-leak contract). Set by the gate's
-  // onClear hook on a correct answer (GATE-03). A simple scene-side "cleared" marker;
-  // Phase 11 reads/extends this hook for XP, Phase 12 polishes the celebration.
-  let levelCleared = false;
-
   // --- Progression load + seed (Phase 11, SAVE-01/02/03) ---
   // Load the validated save ONCE on scene entry (guarded — defaults under node/blocked
   // storage; never throws). Construct the progression tracker and the brain from it, ALL
@@ -160,7 +155,6 @@ export function gameScene(data) {
         // GATE-03: correct -> the level is cleared. The gate already shows its own
         // "LEVEL CLEAR" banner (Plan 02); the scene's side of "cleared" is simply that
         // the player stays frozen. Single level: no go() to a next level.
-        levelCleared = true;
 
         // Award XP for the cleared table (SAVE-01); addXp returns true on a level-up.
         // The gate carried `table` (q.a) — the gate itself awards NO XP (forgiving).
