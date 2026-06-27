@@ -22,19 +22,14 @@
 
 import { CONFIG } from "./config.js";
 
-// Fail-loud guard for the one fragile global. `Rect` is a CLASS global (not a
-// factory like `rect`), used below for the tightened spike hitbox shape. Unlike
-// the factory globals, a Kaplay bump that renames/removes it — or a future
-// kaplay({ global: false }) toggle — would turn `new Rect(...)` into a SILENT
-// mid-build ReferenceError that half-builds the scene. With no test framework /
-// build-time symbol check (CLAUDE.md), assert once at module load so the failure
-// is obvious and points at the cause instead of surfacing deep in buildLevel.
-// Pinned engine: Kaplay 3001 (lib/kaplay.mjs) — re-check `Rect` on any upgrade.
-if (typeof Rect === "undefined") {
-  throw new Error(
-    "level.js: Kaplay global `Rect` is missing — check kaplay({ global }) / engine version",
-  );
-}
+// NOTE: the fail-loud guard for the fragile `Rect` CLASS global lives INSIDE
+// buildLevel() (NOT at module top level). Kaplay installs its globals only when
+// kaplay({ global: true }) runs in main.js, but this module is imported — and its
+// top-level body evaluated — BEFORE that call (ES `import`s are hoisted). A
+// top-level `typeof Rect` check would therefore ALWAYS throw at import time,
+// before the engine exists, blanking the game on every load. The guard runs at
+// buildLevel() time (scene construction, after kaplay init) where `Rect` is both
+// defined and actually used. Pinned engine: Kaplay 3001 — re-check on any upgrade.
 
 const T = CONFIG.TILE_SIZE; // 16px — floor visual-tile grid step
 const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run
@@ -117,6 +112,16 @@ export const LEVEL = {
 // tiles, and (2) the tagged coin/spike/goal area() entities. It does NOT wire any
 // onCollide handlers and does NOT count coins — Plan 03 does that.
 export function buildLevel(level) {
+  // Fail-loud guard for the one fragile global, checked at USE time (after kaplay
+  // init), NOT at import time. `Rect` is a CLASS global (not a factory like `rect`),
+  // used below for the tightened spike hitbox; a Kaplay bump / global:false toggle
+  // would otherwise turn `new Rect(...)` into a silent mid-build ReferenceError.
+  if (typeof Rect === "undefined") {
+    throw new Error(
+      "level.js: Kaplay global `Rect` is missing — check kaplay({ global }) / engine version",
+    );
+  }
+
   // --- Solid floor runs: ONE merged collider per run + separate visual tiles ---
   for (const run of level.floors) {
     // Merged wide static collider for the WHOLE run (fewer seams to stick on —
