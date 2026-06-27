@@ -43,7 +43,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 - [x] **Phase 8: Platformer Core (Movement / Physics / Camera)** - A responsive, Mario-feel avatar runs, jumps, lands, and respawns gently on a test strip. (completed 2026-06-24)
 - [x] **Phase 9: Level Build & CC0 Assets** - One polished, completable dark/grunge level with platforms, coins, a hazard, checkpoints, and a goal. (completed 2026-06-25)
 - [x] **Phase 10: Math-Gate Integration (Port the Brain)** - Reaching the goal opens an in-world, forgiving math gate driven by the ported 6–9-weighted brain. (completed 2026-06-26)
-- [ ] **Phase 11: Progression & Persistence** - Correct answers earn XP and level her up; XP, level, and practice history persist in the browser and resume on revisit.
+- [x] **Phase 11: Progression & Persistence** - Correct answers earn XP and level her up; XP, level, and practice history persist in the browser and resume on revisit. (completed 2026-06-27)
 - [ ] **Phase 12: Polish, ADHD-Safety & UAT** - Juice, discoverable controls, contrast, no-timer/forgiving audit, and verification with the actual kid.
 
 ## Phase Details
@@ -165,7 +165,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   3. Returning to the URL resumes her progression with XP/level intact, and the persisted accuracy history keeps question selection adapted to her weak spots.
   4. Current XP and level are visible in-game (XP bar / level indicator) and reaching a new level shows a distinct level-up moment.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 **Wave 1**
 
 - [x] 11-00-PLAN.md — Wave 0: author scripts/check-progress.sh + scripts/smoke-progress.mjs + add CONFIG.PROGRESS/SAVE/HUD
@@ -177,7 +177,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 11-03-PLAN.md — Wave 3: src/ui/hud.js fixed HUD + level-up moment + browser UAT
+- [x] 11-03-PLAN.md — Wave 3: src/ui/hud.js fixed HUD + level-up moment + browser UAT
 
 **UI hint**: yes
 
@@ -211,7 +211,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 8. Platformer Core | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 9. Level Build & CC0 Assets | v3.0 | 3/3 | Complete   | 2026-06-25 |
 | 10. Math-Gate Integration | v3.0 | 3/3 | Complete   | 2026-06-26 |
-| 11. Progression & Persistence | v3.0 | 3/4 | In Progress|  |
+| 11. Progression & Persistence | v3.0 | 4/4 | Complete   | 2026-06-27 |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 0/0 | Not started | - |
 
 ## Coverage (v3.0)
