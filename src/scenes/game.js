@@ -191,11 +191,19 @@ export function gameScene(data) {
   });
 
   // --- Persist on tab-hide (SAVE-02) ---
-  // KAPLAY's onHide() wraps the document visibilitychange event (verified global, same
-  // scene-scoped bare-global pattern as onUpdate above). This captures accuracy drift from
+  // onHide() wraps the document visibilitychange event. This captures accuracy drift from
   // wrong attempts before the tab closes — the gate clears persist on the correct branch,
   // but a session can hide mid-question after wrong picks have moved the EWMA. writeSave is
   // guarded (try-catch inside). NO timer-based autosave (SAFE-01): save only on the
   // clear event and on hide. Run/session state is never serialized here either.
-  onHide(() => writeSave(progress.serialize(brain.snapshot())));
+  //
+  // ANTI-LEAK (WR-02): onHide registers on the APP-GLOBAL event bus, not the scene's
+  // local handler set, so it is NOT torn down by the scene's tag-destroy cleanup and the
+  // returned canceller must be cancelled explicitly — same discipline mathGate.js uses for
+  // its global key controllers. Without this, any future scene re-entry (level select,
+  // "play again", restart) would stack another permanent listener, each closing over a
+  // dead scene's progress/brain, so a later listener could overwrite the live save with a
+  // stale snapshot on tab-hide. Cancel it on scene leave so it can never outlive the scene.
+  const hideCtrl = onHide(() => writeSave(progress.serialize(brain.snapshot())));
+  onSceneLeave(() => hideCtrl.cancel());
 }
