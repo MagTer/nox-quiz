@@ -59,8 +59,17 @@ export function createProgress(saved) {
     saved && typeof saved.xp === "number" && isFinite(saved.xp) && saved.xp >= 0
       ? saved.xp
       : 0;
+  // `level` gets the SAME finite+sane guard as `xp` above: a corrupt save like
+  // {"version":1,"level":1e400} parses level to Infinity, and Infinity >= 1 +
+  // Math.floor(Infinity) === Infinity would slip through a bare >= 1 check and
+  // permanently brick progression (the addXp while-loop's xp >= threshold(Infinity)
+  // is never true). Number.isFinite rejects Infinity/NaN; >= 1 keeps it sane; the
+  // floor preserves the archive's "level a number, floored" tolerance.
   let level =
-    saved && typeof saved.level === "number" && saved.level >= 1
+    saved &&
+    typeof saved.level === "number" &&
+    Number.isFinite(saved.level) &&
+    saved.level >= 1
       ? Math.floor(saved.level)
       : 1;
 
@@ -162,8 +171,11 @@ function validate(data) {
     typeof data.xp === "number" && isFinite(data.xp) && data.xp >= 0
       ? data.xp
       : 0;
+  // Same finite+sane guard as createProgress: reject Infinity/NaN (a corrupt
+  // {"level":1e400} parses to Infinity, which would otherwise pass >= 1 and brick
+  // progression). Number.isFinite closes the freeze; >= 1 + floor keep it sane.
   out.level =
-    typeof data.level === "number" && data.level >= 1
+    typeof data.level === "number" && Number.isFinite(data.level) && data.level >= 1
       ? Math.floor(data.level)
       : 1;
 
