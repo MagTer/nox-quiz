@@ -45,9 +45,9 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 
 ### Polish & Juice
 
-- [ ] **JUICE-01**: Jumping and landing have satisfying visual feedback (e.g. squash/stretch, dust)
-- [ ] **JUICE-02**: Collecting a coin gives a satisfying pop/feedback
-- [ ] **JUICE-03**: Clearing the level has a distinct celebratory moment
+- [x] **JUICE-01**: Jumping and landing have satisfying visual feedback (e.g. squash/stretch, dust)
+- [x] **JUICE-02**: Collecting a coin gives a satisfying pop/feedback
+- [x] **JUICE-03**: Clearing the level has a distinct celebratory moment
 
 ### ADHD Safety & Accessibility
 
@@ -128,9 +128,9 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | SAVE-02 | Phase 11 | Complete |
 | SAVE-03 | Phase 11 | Complete |
 | SAVE-04 | Phase 11 | Complete |
-| JUICE-01 | Phase 12 | Pending |
-| JUICE-02 | Phase 12 | Pending |
-| JUICE-03 | Phase 12 | Pending |
+| JUICE-01 | Phase 12 | Complete |
+| JUICE-02 | Phase 12 | Complete |
+| JUICE-03 | Phase 12 | Complete |
 | SAFE-01 | Phase 12 | Complete |
 | SAFE-02 | Phase 12 | Pending |
 | SAFE-03 | Phase 12 | Pending |

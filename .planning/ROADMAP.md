@@ -194,7 +194,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. A no-timer/forgiving audit confirms there are no countdowns anywhere and wrong answers never punish.
   5. Visuals meet readable contrast on the dark theme and effects are not over-stimulating, confirmed in UAT with the kid.
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 **Wave 0**
 
@@ -202,7 +202,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 
 **Wave 1** *(blocked on Wave 0)*
 
-- [ ] 12-01-PLAN.md — src/fx.js (squash/dust/pop/clearBurst) + player jump/land squash+dust + scene coin pop + clear burst (JUICE-01, JUICE-02, JUICE-03)
+- [x] 12-01-PLAN.md — src/fx.js (squash/dust/pop/clearBurst) + player jump/land squash+dust + scene coin pop + clear burst (JUICE-01, JUICE-02, JUICE-03)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -225,7 +225,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 9. Level Build & CC0 Assets | v3.0 | 3/3 | Complete   | 2026-06-25 |
 | 10. Math-Gate Integration | v3.0 | 3/3 | Complete   | 2026-06-26 |
 | 11. Progression & Persistence | v3.0 | 4/4 | Complete   | 2026-06-27 |
-| 12. Polish, ADHD-Safety & UAT | v3.0 | 1/3 | In Progress|  |
+| 12. Polish, ADHD-Safety & UAT | v3.0 | 2/3 | In Progress|  |
 
 ## Coverage (v3.0)
 
