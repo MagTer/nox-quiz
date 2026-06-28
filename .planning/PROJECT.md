@@ -16,15 +16,21 @@ Math Lab is now a real 2D platformer she controls with the keyboard, served at a
 
 **Validated this milestone:** the *mechanic* works and she enjoys it. **What it isn't yet:** it's a working vertical slice — one level, placeholder CC0 art, a single math gate experienced once (~30s of content). Those are the next milestone's targets.
 
-## Next Milestone Goals (v4.0 — Content & Challenge, not yet scoped)
+## Current Milestone: v4.0 Content & Challenge
 
-The leap from "working slice" to "actual game" is content + variety:
-- **Multiple levels** with a sense of journey/progression (level select or world map)
-- **Mid-game math gates** — not just one at the goal; math woven through the level
-- **A difficulty curve** as she advances
-- Likely paired with a **presentation/art pass** (animated player, real tileset, background) — possibly its own milestone first
+**Goal:** Grow the working single-level slice into a real, replayable game — multiple polished levels with a sense of progression, math woven *throughout* each level via varied gates, a difficulty curve, and a real art pass so it looks like an actual game.
 
-Run `/gsd-new-milestone` to scope it. (Deferred earlier and still out for now: audio/SFX, richer math mechanics like locked doors / collect-the-answer / defeat-the-enemy.)
+**Target features:**
+- 3–5 hand-built levels + a level-select / world-map screen with a sense of advancing
+- A difficulty curve across levels (harder platforming + harder tables deeper in)
+- Mid-game math mechanics — all four flavors: locked doors/keys, collect-the-answer pickups, multiple checkpoint gates, and defeat-enemy-with-answer (reusing v2's 👺💀🐉 idea)
+- Art / presentation pass: animated player (idle/run/jump), real tileset, background/parallax, likely a title screen
+- Persistence extended: per-level completion/unlock state saved alongside XP/level/practice-history
+- Carried-forward constraints: vendored Kaplay, no build step, served over HTTP, dark grunge / no pink, ADHD-safe (no timers, forgiving, non-strobing), the 6–9 weighted brain unchanged
+
+**Key context:** Builds on v3.0's shipped slice — reuse the movement/camera/respawn spine, the `mathGate.js` bridge, and the brain/progress firewalls rather than rebuilding. The a727c13 import-time rule, self-cleaning-effect pattern, and asset/path conventions carry forward. Large milestone; expected to phase into art, level system + select, the four math mechanics, difficulty/persistence, and polish/UAT.
+
+**Still deferred (not this milestone):** audio/SFX + music (AUDIO-01).
 
 ## Requirements
 
@@ -48,11 +54,12 @@ Run `/gsd-new-milestone` to scope it. (Deferred earlier and still out for now: a
 
 ### Active
 
-*(v4.0 Content & Challenge — not yet scoped; run `/gsd-new-milestone`)*
-- Multiple levels with a sense of progression (level select / world map)
-- Mid-game math gates — math woven through a level, not only at the goal
-- A difficulty curve as she advances
-- Presentation/art pass: animated player, real tileset, background (possibly a separate milestone)
+*(v4.0 Content & Challenge — see REQUIREMENTS.md for REQ-IDs)*
+- 3–5 hand-built levels + a level-select / world-map screen with progression
+- A difficulty curve across levels (platforming + table difficulty)
+- Mid-game math mechanics: locked doors/keys, collect-the-answer, multiple checkpoint gates, defeat-enemy-with-answer
+- Art/presentation pass: animated player, real tileset, background/parallax, title screen
+- Per-level completion/unlock state persisted alongside XP/level/practice-history
 
 ### Out of Scope
 
@@ -127,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-28 — after v3.0 The Platformer milestone (shipped, kid-validated); next: v4.0 Content & Challenge*
+*Last updated: 2026-06-28 — v4.0 Content & Challenge milestone opened (content + mid-game math mechanics + art pass)*
