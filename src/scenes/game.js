@@ -24,6 +24,7 @@ import { createBrain } from "../math/brain.js";
 import { openMathGate } from "../ui/mathGate.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
 import { mountHud } from "../ui/hud.js";
+import * as fx from "../fx.js"; // engine-side juice (coin pop + clear burst) — JUICE-02/03
 
 export function gameScene(data) {
   // Engine gravity for this scene (px/s^2). Set once on scene entry.
@@ -121,6 +122,7 @@ export function gameScene(data) {
   // Count only — no XP (Phase 11), no juice/sfx (Phase 12).
   player.onCollide("coin", (c) => {
     coinsCollected += 1;
+    fx.pop(c.pos.clone()); // JUICE-02: neon-green pop at the coin's spot (clone: pos is live, c is about to be destroyed); count unaffected, no "+1" text
     destroy(c);
   });
 
@@ -164,6 +166,11 @@ export function gameScene(data) {
         hud.refresh();
         if (leveledUp) hud.flashLevelUp();
 
+        // JUICE-03: a brief, NON-STROBING celebratory burst LAYERED on the existing clear
+        // moment (the gate's "LEVEL CLEAR" banner + the level-up flash above). It enhances,
+        // never replaces — the gate banner (mathGate.js) and flashLevelUp() are untouched.
+        fx.clearBurst();
+
         // Persist on each clear (SAVE-02): xp/level + the brain's accuracy/history
         // snapshot. Run/session state (coins, goalReached, position) is NEVER serialized.
         // writeSave is guarded (no-op under blocked storage; never throws into the loop).
@@ -200,4 +207,10 @@ export function gameScene(data) {
   // stale snapshot on tab-hide. Cancel it on scene leave so it can never outlive the scene.
   const hideCtrl = onHide(() => writeSave(progress.serialize(brain.snapshot())));
   onSceneLeave(() => hideCtrl.cancel());
+
+  // ANTI-LEAK (JUICE belt-and-braces): every fx.js transient is already tagged "fx" and
+  // self-destroys on tween().onEnd(destroy), and tagged scene objects are torn down on
+  // replay. This sweeps any effect still mid-tween at the moment the scene leaves so none
+  // can ever survive a go()/respawn. No timer — a one-shot teardown on the scene-leave event.
+  onSceneLeave(() => destroyAll("fx"));
 }
