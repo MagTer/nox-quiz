@@ -10,20 +10,21 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 
 She opens it because she *wants* to, not because she has to.
 
-## Current Milestone: v3.0 The Platformer
+## Current State (shipped v3.0 — The Platformer, 2026-06-28)
 
-**Goal:** Turn Math Lab into an actual 2D platformer she controls with the keyboard — run, jump, reach the goal — where math is the gate to progress, like the Mario-style game from her school.
+Math Lab is now a real 2D platformer she controls with the keyboard, served at a web URL. The full loop is live and kid-validated: run/jump through one polished dark-grunge level → reach the goal → an in-world, forgiving, no-timer math gate (weighted 6–9) → a correct answer clears the level → XP/leveling on the v1/v2 curve → XP/level/practice-history persist in the browser and resume on revisit. ADHD-safe juice, discoverable controls, readable contrast. Built on vendored Kaplay with no build step; static files in an nginx container (Dokploy-deployable). Kid sign-off: "the game seems to be working… all good."
 
-**Target features:**
-- Kaplay-powered 2D platformer played at a **web URL** — hosted as static files in a Docker container (nginx) deployed via Dokploy. She just visits the URL; no install, no launcher.
-- Keyboard control: run left/right, jump, land on platforms, reach a goal flag
-- One polished, complete level that *feels* like a real game
-- Pixel-art visuals from free CC0 asset packs (Kenney.nl / itch.io), styled dark/grunge
-- End-of-stage math gate: reach the end → answer questions (weighted toward 6–9 tables) → clear the level
-- The existing "math brain" (weighted question selection) ported into the new game shell
-- **XP, leveling, and practice history persist in the browser (localStorage)** between visits — like her school game
+**Validated this milestone:** the *mechanic* works and she enjoys it. **What it isn't yet:** it's a working vertical slice — one level, placeholder CC0 art, a single math gate experienced once (~30s of content). Those are the next milestone's targets.
 
-**Explicitly later (not this milestone):** richer math mechanics (locked doors, collect-the-answer, defeat-the-enemy), multiple worlds/levels, audio.
+## Next Milestone Goals (v4.0 — Content & Challenge, not yet scoped)
+
+The leap from "working slice" to "actual game" is content + variety:
+- **Multiple levels** with a sense of journey/progression (level select or world map)
+- **Mid-game math gates** — not just one at the goal; math woven through the level
+- **A difficulty curve** as she advances
+- Likely paired with a **presentation/art pass** (animated player, real tileset, background) — possibly its own milestone first
+
+Run `/gsd-new-milestone` to scope it. (Deferred earlier and still out for now: audio/SFX, richer math mechanics like locked doors / collect-the-answer / defeat-the-enemy.)
 
 ## Requirements
 
@@ -38,16 +39,20 @@ She opens it because she *wants* to, not because she has to.
 - ✓ Runs as a standalone local HTML file on Windows (no server, no install) — v1.0, v2.0
 - ✓ Dungeon crawler combat layer: enemies, HP bars, loot, floor progression — v2.0
 - ✓ Floor-gated question pools (DIFF-01) + EWMA adaptive weighting in combat (DIFF-02) — v2.0
+- ✓ 2D platformer shell (Kaplay): keyboard run/jump, platform collision, goal flag — v3.0
+- ✓ One complete, polished dark/grunge level from CC0 assets (licensed) — v3.0
+- ✓ In-world, forgiving, no-timer end-of-stage math gate using the ported 6–9-weighted brain — v3.0
+- ✓ Served at a web URL via Docker (nginx static) + Dokploy — v3.0 (live deploy confirmation deferred)
+- ✓ XP/leveling/practice-history persisted in the browser (localStorage), resumes on revisit — v3.0
+- ✓ ADHD-safe juice, discoverable controls, readable contrast (audited + kid-UAT) — v3.0
 
 ### Active
 
-*(v3.0 The Platformer — see REQUIREMENTS.md)*
-- 2D platformer shell (Kaplay): keyboard run/jump, platform collision, goal flag
-- One complete, polished level
-- Pixel-art assets from free CC0 packs, dark/grunge styling
-- End-of-stage math gate using the ported question-selection brain
-- Served at a web URL via Docker (nginx static) + Dokploy
-- XP/leveling/practice-history persisted in the browser (localStorage)
+*(v4.0 Content & Challenge — not yet scoped; run `/gsd-new-milestone`)*
+- Multiple levels with a sense of progression (level select / world map)
+- Mid-game math gates — math woven through a level, not only at the goal
+- A difficulty curve as she advances
+- Presentation/art pass: animated player, real tileset, background (possibly a separate milestone)
 
 ### Out of Scope
 
@@ -66,7 +71,7 @@ She opens it because she *wants* to, not because she has to.
 - **Focus**: 6–9 times tables are the weak spot, but mixing in 1–5 keeps it fun
 - **Platform**: Played in any browser by visiting a **web URL**. v3.0 relaxes the single-file rule — multi-file project (HTML + JS modules + vendored Kaplay + assets folder) served as static files from a Docker container (nginx) deployed via Dokploy. Hosting the files over HTTP also sidesteps the `file://` module/asset-loading block — no local server needed for her. A local dev server (`python3 -m http.server`) is used only during development.
 - **Reference**: Her school has a Mario-style 2D platformer that gives math questions at the end of each stage. "I want something like this" is the north star — the v1/v2 quiz was a misread of that intent.
-- **Current state (v2.0, being replaced)**: 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji and scorekeeping. Playable but NOT the game she wants. v3.0 ports the math brain and rebuilds the shell as a real platformer.
+- **Current state (v3.0 shipped)**: a real 2D Kaplay platformer (~1,944 LOC across `src/`, excl. vendored Kaplay), no build step, served over HTTP — one level → forgiving 6–9 math gate → persisted XP/leveling. Kid-validated end-to-end. The v1/v2 quiz is archived. Next: more levels + mid-game challenges (v4.0).
 - **Math integration roadmap**: Start with end-of-stage gate (v3.0). Add locked doors/bridges, collect-the-answer, and defeat-the-enemy (reusing v2's 👺💀🐉) as staged additions in later milestones.
 - **Art**: Pixel-art sprites from free CC0 packs (Kenney.nl / itch.io), styled to the dark/grunge palette. Pack chosen early in the milestone.
 - **User feedback**: Not yet collected post-v2.0 — the platformer is the response to the core feedback that v1/v2 weren't an actual game.
@@ -93,15 +98,16 @@ She opens it because she *wants* to, not because she has to.
 | Death = restart floor, XP intact | ADHD-safe; no punishment loop | ✓ Good — ADHD-02 passes |
 | Loot auto-applies on pickup | No inventory choice = less cognitive load | ✓ Good — LOOT-02 passes |
 | 4 floors (3 + boss) | Extended run without permadeath complexity | — Superseded by v3.0 pivot |
-| **v3.0: Pivot to real 2D platformer** | v1/v2 quiz misread the intent; she wants a Mario-style game she controls | New direction |
-| **v3.0: Kaplay over vanilla canvas** | Real physics/collision/sprites without hand-writing the bug-prone parts; effort goes to her game, not collision math | New direction |
-| **v3.0: Relax single-file rule** | Platformer + assets + vendored library don't fit one file cleanly; multi-file still opens in browser | New direction |
-| **v3.0: Port math brain, rebuild shell** | Keep tuned 6–9 weighted selection; replace quiz UI with game | New direction |
-| **v3.0: Math = end-of-stage gate first** | Matches her school game; most reliable to make *feel* good before richer mechanics | New direction |
-| **v3.0: Free CC0 pixel-art packs** | Real game look with zero cost/licensing risk; ships immediately | New direction |
-| **v3.0: Host via Docker + Dokploy at a URL** | Simplest for her — just visit a URL; also sidesteps the `file://` asset-loading block entirely | New direction |
-| **v3.0: Static hosting, not a backend** | nginx serves files; no DB/accounts/server logic — privacy intact, complexity low | New direction |
-| **v3.0: Persist XP/level/practice in localStorage** | Matches her school game ("stores progress in browser cache"); client-side, no backend | New direction |
+| **v3.0: Pivot to real 2D platformer** | v1/v2 quiz misread the intent; she wants a Mario-style game she controls | ✓ Good — kid-validated "all good" |
+| **v3.0: Kaplay over vanilla canvas** | Real physics/collision/sprites without hand-writing the bug-prone parts; effort goes to her game, not collision math | ✓ Good — vendored, no-build, shipped |
+| **v3.0: Relax single-file rule** | Platformer + assets + vendored library don't fit one file cleanly; multi-file still opens in browser | ✓ Good — clean src/lib/assets layout |
+| **v3.0: Port math brain, rebuild shell** | Keep tuned 6–9 weighted selection; replace quiz UI with game | ✓ Good — firewall intact, reused verbatim |
+| **v3.0: Math = end-of-stage gate first** | Matches her school game; most reliable to make *feel* good before richer mechanics | ✓ Good — but only one gate = thin content (→ v4.0) |
+| **v3.0: Free CC0 pixel-art packs** | Real game look with zero cost/licensing risk; ships immediately | ⚠️ Revisit — reads as early-MVP art; needs an art pass |
+| **v3.0: Host via Docker + Dokploy at a URL** | Simplest for her — just visit a URL; also sidesteps the `file://` asset-loading block entirely | — Pending — container curl-proven; live deploy not yet confirmed |
+| **v3.0: Static hosting, not a backend** | nginx serves files; no DB/accounts/server logic — privacy intact, complexity low | ✓ Good |
+| **v3.0: Persist XP/level/practice in localStorage** | Matches her school game ("stores progress in browser cache"); client-side, no backend | ✓ Good — round-trip + weak-spot resume verified |
+| **v3.0: Display-only +50% window scale (post-close)** | Native 640×360 canvas looked tiny on a real monitor; scale display, keep internal res | ✓ Good — zero gameplay change (quick task 260628-c6e) |
 
 ## Evolution
 
@@ -121,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-22 — v3.0 The Platformer; deployment set to Docker/Dokploy URL hosting + localStorage XP/leveling*
+*Last updated: 2026-06-28 — after v3.0 The Platformer milestone (shipped, kid-validated); next: v4.0 Content & Challenge*

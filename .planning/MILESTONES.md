@@ -1,5 +1,38 @@
 # Milestones: Math Lab
 
+## v3.0 — The Platformer
+
+**Status:** ✅ SHIPPED 2026-06-28
+**Phases:** 7–12 (6 phases, 18 plans, 29 tasks)
+**Timeline:** 2026-06-22 → 2026-06-28 (7 days)
+
+**Delivered:**
+Pivoted Math Lab from a quiz/dungeon into a real 2D platformer she controls with the keyboard — run, jump, reach the goal, where math is the gate to progress. Built on vendored Kaplay (no build step), served over HTTP, with persisted XP/leveling. Kid-validated end-to-end: "the game seems to be working… all good."
+
+**Key Accomplishments:**
+
+1. No-build multi-file architecture (HTML + ES modules + `src/lib/assets`) with Kaplay 3001.0.19 vendored locally (sha256-pinned, no CDN/npm) and an inline `file://` guard; packaged into a single-stage nginx:alpine container with the critical `.mjs → application/javascript` MIME fix (curl-proven locally) + a Dokploy deploy checklist.
+2. Mario-feel platformer core: dt-correct run/jump with variable jump height, coyote time, and jump buffering; smooth camera follow clamped to level bounds; gentle checkpoint respawn (no lives, no game-over).
+3. One polished ~3.5-screen dark-grunge level from verified-CC0 sprites (HorusKDI "6 Color Dungeon" + PuddinThur "Rotating Coin", licenses + CREDITS documented), with merged-floor colliders (anti-seam-stick/tunneling), collectible coins, a forgiving spike hazard, and a goal.
+4. The keystone math gate: an in-world, forgiving, no-timer Kaplay overlay driven by the ported 6–9-weighted brain through a single one-way bridge (`ui/mathGate.js`) — engine firewall intact (brain imports nothing from Kaplay); correct clears the level once, wrong re-asks penalty-free.
+5. Real progression round-trip: correct answers earn XP and level up on the ported v1/v2 curve; XP/level/per-table practice history persist in versioned localStorage and resume on revisit (weak-spot adaptation survives reload); fixed camera-immune HUD + ADHD-safe level-up flash.
+6. Polish + ADHD-safety: self-cleaning juice (squash/stretch, dust, coin pop, non-strobing level-clear burst — no timers, no pink), persistent controls hint, readable contrast; comment-stripped `check-safety.sh` audit (no-timer/forgiving) passing; kid-UAT 7/7.
+
+**Stats:**
+- ~1,944 LOC across `src/` (excl. vendored Kaplay), HTML, and nginx config — multi-file, no build step
+- Requirements: 33/33 v3.0 requirements satisfied (32 verified + kid-UAT)
+
+**Known Deferred Items at Close:** 3 (see STATE.md Deferred Items)
+- Phase 08 MOVE-05: throttled/non-60Hz empirical check not run (code verified dt-correct)
+- Phase 08 VERIFICATION human_needed: 13/13 must-haves verified; only the MOVE-05 feel-check outstanding
+- Phase 07 SETUP-02: live Dokploy deploy not yet confirmed (container curl-proven locally)
+
+**Post-close quick task:** display-only +50% window scale (960×540, crisp pixel upscale) — quick task 260628-c6e.
+
+**Archive:** `.planning/milestones/v3.0-ROADMAP.md`, `.planning/milestones/v3.0-REQUIREMENTS.md`, `.planning/milestones/v3.0-MILESTONE-AUDIT.md`
+
+---
+
 ## v2.0 — Dungeon Crawler Phases
 
 **Status:** ✅ SHIPPED 2026-06-22
@@ -23,11 +56,13 @@ Transformed a flat multiplication quiz into a fully playable dungeon crawler —
 8. PersistenceStore v2 migration: auto-migrates v1 `mathlab_save` → `mathlab_save_v2`, v1 key preserved for rollback
 
 **Stats:**
+
 - Single HTML file: 1,976 LOC (JavaScript-heavy, all inline)
 - 52 files changed (planning + HTML), 10,009 insertions, 1,531 deletions
 - Requirements: 27/27 v2.0 requirements satisfied
 
 **Known Deferred Items at Close:** 2 (see STATE.md Deferred Items)
+
 - Phase 01 UAT: 11 browser test scenarios not run
 - Phase 04 VERIFICATION: animation visual confirmation human_needed
 

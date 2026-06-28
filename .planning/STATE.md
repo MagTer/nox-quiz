@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: The Platformer
-current_phase: 12
-current_phase_name: Polish, ADHD-Safety & UAT
-status: verifying
+current_phase: 0
+status: Awaiting next milestone
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-28T06:12:39.557Z"
+last_updated: "2026-06-28T17:41:29.354Z"
 last_activity: 2026-06-28
-last_activity_desc: Phase 12 execution started
+last_activity_desc: Milestone v3.0 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
   total_plans: 18
   completed_plans: 18
   percent: 100
+current_phase_name: Polish, ADHD-Safety & UAT
 ---
 
 # Project State: Math Lab
@@ -35,17 +35,28 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 
 ## Current Position
 
-Milestone: v3.0 The Platformer
-Phase: 12 (Polish, ADHD-Safety & UAT) — COMPLETE (kid-UAT passed 2026-06-28)
-Plan: 3 of 3
-Status: Milestone v3.0 — all phases complete; ready for milestone close
-Last activity: 2026-06-28 — Phase 12 kid-UAT passed; quick window-scale fix applied
+Phase: Milestone v3.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-28 — Milestone v3.0 completed and archived
 
 ## Quick Tasks Completed
 
 | Date | Slug | Summary |
 |------|------|---------|
 | 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540, crisp pixel upscale); internal 640×360 resolution unchanged so no gameplay numbers moved |
+
+## Deferred Items
+
+Items acknowledged and deferred at v3.0 milestone close on 2026-06-28:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat | Phase 08 — MOVE-05 throttled/non-60Hz empirical check | pending (code verified dt-correct; 1 UAT scenario not run) |
+| verification | Phase 08 — 08-VERIFICATION human_needed | 13/13 must-haves verified; only the MOVE-05 feel-check outstanding |
+| deploy | Phase 07 — SETUP-02 live Dokploy deploy confirmation | container curl-proven locally; live-URL playthrough not yet confirmed |
+
+These are low-risk and independently actionable. See `.planning/v3.0-MILESTONE-AUDIT.md` (deferred_manual_verifications) for evidence and the one-time action for each.
 
 ## v3.0 Roadmap (Phases 7–12)
 
@@ -253,3 +264,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 - [Phase ?]: HUD one-way contract: src/ui/hud.js reads getLevel()/getXp()/nextThreshold() and never mutates the tracker.
 - [Phase ?]: SAFE-01 audit (check-safety.sh) strips // comments before every negative grep so the whole-src no-timer/forgiving scan matches code, not the existing no-scheduler-discipline prose comments.
 - [Phase ?]: Forgiving audit uses punishment-specific tokens only (no broad xp-decrement) to avoid false-positive on progress.js legitimate level-up surplus carry-over.
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
