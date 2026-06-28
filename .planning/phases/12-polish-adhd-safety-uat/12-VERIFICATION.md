@@ -1,8 +1,8 @@
 ---
 phase: 12-polish-adhd-safety-uat
 verified: 2026-06-28T00:00:00Z
-status: human_needed
-score: 8/12 must-haves verified (4 present, behavior-unverified — kid-UAT)
+status: passed
+score: 12/12 must-haves verified (8 automated, 4 confirmed in kid-UAT 2026-06-28)
 behavior_unverified: 4
 overrides_applied: 0
 behavior_unverified_items:
