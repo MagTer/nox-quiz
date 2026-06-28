@@ -56,15 +56,27 @@ export function squash(obj, dir = "land") {
   const sy = dir === "jump" ? F.STRETCH_Y : F.SQUASH_Y;
   const ms = dir === "jump" ? F.STRETCH_MS : F.SQUASH_MS;
 
+  // SINGLE-FLIGHT (WR-02): cancel any in-flight squash/stretch tween before starting a
+  // new one. Without this, a jump→land within the settle window runs two scale tweens
+  // concurrently — they compute from different poses and the last writer each frame wins,
+  // so the on-screen scale jitters (a flicker that undercuts the SAFE-03 non-strobe goal).
+  // The handle lives ON the obj (no module-level state — anti-leak). The replacement tween
+  // always ends at (1,1), so an interrupted settle still resolves to neutral.
+  if (obj._fxScaleTween) obj._fxScaleTween.cancel();
+
   // Snap to the pose, then ease each axis back to neutral 1 over ms.
   obj.scaleTo(sx, sy);
-  tween(
+  obj._fxScaleTween = tween(
     0,
     1,
     ms / 1000,
     (v) => obj.scaleTo(sx + (1 - sx) * v, sy + (1 - sy) * v),
     easings.easeOutQuad,
   );
+  // Clear the handle once it settles so a later call never cancels a finished tween.
+  obj._fxScaleTween.onEnd(() => {
+    obj._fxScaleTween = null;
+  });
 }
 
 /**
