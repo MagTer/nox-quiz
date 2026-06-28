@@ -18,8 +18,24 @@ const k = kaplay({
   width: 640,
   height: 360,
   background: "#0a0a0a",            // project dark-grunge background
+  crisp: true,                      // pixel-perfect upscale (image-rendering: pixelated) — keeps art sharp when the canvas is scaled up
   canvas: document.querySelector("#game"),
 });
+
+// --- Display scaling (+50%) — DISPLAY ONLY, not internal resolution ---
+// The internal render buffer stays 640x360 (above), so every collider, jump,
+// camera, and level number in CONFIG remains valid. We only enlarge the
+// *displayed* canvas via CSS. Kaplay writes canvas.style.cssText at init with
+// inline `width: 640px; height: 360px` (both width+height were passed), which
+// beats any stylesheet rule — so we override it HERE, after init. 640x360 * 1.5
+// = 960x540. `crisp: true` keeps the upscale sharp; index.html's
+// `canvas { display:block; margin:auto }` still centers it (cssText leaves those
+// properties untouched).
+{
+  const canvas = document.querySelector("#game");
+  canvas.style.width = "960px";
+  canvas.style.height = "540px";
+}
 
 // --- CC0 sprite loads (Phase 9) ---
 // Register every image asset by name BEFORE go("game") so the scene never draws

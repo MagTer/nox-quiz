@@ -36,10 +36,16 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 ## Current Position
 
 Milestone: v3.0 The Platformer
-Phase: 12 (Polish, ADHD-Safety & UAT) — EXECUTING
+Phase: 12 (Polish, ADHD-Safety & UAT) — COMPLETE (kid-UAT passed 2026-06-28)
 Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-28 — Phase 12 execution started
+Status: Milestone v3.0 — all phases complete; ready for milestone close
+Last activity: 2026-06-28 — Phase 12 kid-UAT passed; quick window-scale fix applied
+
+## Quick Tasks Completed
+
+| Date | Slug | Summary |
+|------|------|---------|
+| 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540, crisp pixel upscale); internal 640×360 resolution unchanged so no gameplay numbers moved |
 
 ## v3.0 Roadmap (Phases 7–12)
 
