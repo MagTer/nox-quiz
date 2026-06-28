@@ -34,6 +34,7 @@ import { CONFIG } from "../config.js"; // HUD layout constants — the only non-
 // Reused verbatim from src/ui/mathGate.js 39-42 so the HUD reads as the same world.
 const TRACK_GREY = [0x33, 0x33, 0x33]; // XP bar track (empty portion)
 const ACCENT_GREEN = [0x00, 0xff, 0x88]; // badge + XP fill + level-up flash
+const HINT_FG = [0xe8, 0xe8, 0xe8]; // controls hint text (#e8e8e8 — ~18:1 on #0a0a0a, readable)
 
 /**
  * Mount the fixed progression HUD for one scene/session.
@@ -79,6 +80,26 @@ export function mountHud(progress) {
     color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]),
     fixed(),
     z(9001),
+    "hud",
+  ]);
+
+  // Persistent controls hint (SAFE-02 — USER OVERRIDE: ALWAYS visible, NOT a fading start
+  // hint). A small, always-on fixed() canvas text() reminder pinned BOTTOM-LEFT (CONFIG.HINT
+  // — X:16/Y:330), deliberately clear of the top-left badge/bar so it never overlaps the
+  // level/XP UI. #e8e8e8 reads ~18:1 on the #0a0a0a stage (calm, not over-stimulating —
+  // SAFE-03). Tagged "hud" so it tears down with the rest of the HUD on scene replay
+  // (anti-leak; mounted inside this factory, no module-level singleton). It is a static
+  // literal — no innerHTML/document.* (no-DOM-sink canon), no injection path. There is NO
+  // tween/scheduler on it: it is persistent, never timed away (no-timer mandate intact).
+  // TOFU FALLBACK (RESEARCH A2 / Pitfall 6): if the "← → ·" glyphs render as tofu boxes in
+  // the kid UAT, swap the copy to "LEFT/RIGHT move · SPACE jump" — the "SPACE jump" substring
+  // MUST stay (the SAFE-02 audit positive greps for it).
+  add([
+    text("← → move · SPACE jump", { size: CONFIG.HINT.SIZE }),
+    pos(CONFIG.HINT.X, CONFIG.HINT.Y),
+    color(HINT_FG[0], HINT_FG[1], HINT_FG[2]),
+    fixed(),
+    z(9000),
     "hud",
   ]);
 
