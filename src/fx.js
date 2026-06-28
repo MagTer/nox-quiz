@@ -133,7 +133,7 @@ export function pop(at) {
   const F = CONFIG.FX;
 
   const marker = add([
-    rect(F.DUST_SIZE * 3, F.DUST_SIZE * 3),
+    rect(F.POP_SIZE, F.POP_SIZE), // dedicated pop footprint — decoupled from DUST_SIZE (IN-02)
     pos(at.x, at.y),
     color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]), // neon-green
     opacity(1),

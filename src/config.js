@@ -116,6 +116,7 @@ export const CONFIG = {
     DUST_SPREAD: 8, // px — horizontal spread between dust particles
     DUST_RISE: 16, // px — how far dust rises before fading out
     DUST_MS: 300, // ms — dust rise + fade duration
+    POP_SIZE: 9, // px — coin pop marker base footprint (independent of DUST_SIZE; IN-02)
     POP_SCALE: 1.5, // unitless — coin/collect pop peak scale
     POP_MS: 220, // ms — coin/collect pop duration (brief)
     BURST_MS: 400, // ms — level-clear burst duration (<= HUD.FLASH_MS feel; non-strobing)
