@@ -51,7 +51,7 @@ Requirements for this milestone (v3.0). Each maps to a roadmap phase.
 
 ### ADHD Safety & Accessibility
 
-- [ ] **SAFE-01**: No timers or countdowns appear anywhere in the game (audited)
+- [x] **SAFE-01**: No timers or countdowns appear anywhere in the game (audited)
 - [ ] **SAFE-02**: Controls are discoverable — an on-screen hint shows how to move and jump
 - [ ] **SAFE-03**: Visuals meet readable contrast on the dark theme and effects are not over-stimulating
 
@@ -131,7 +131,7 @@ Each v1 requirement maps to exactly one phase. v3.0 phases continue from v2.0 (w
 | JUICE-01 | Phase 12 | Pending |
 | JUICE-02 | Phase 12 | Pending |
 | JUICE-03 | Phase 12 | Pending |
-| SAFE-01 | Phase 12 | Pending |
+| SAFE-01 | Phase 12 | Complete |
 | SAFE-02 | Phase 12 | Pending |
 | SAFE-03 | Phase 12 | Pending |
 

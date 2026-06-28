@@ -194,11 +194,11 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. A no-timer/forgiving audit confirms there are no countdowns anywhere and wrong answers never punish.
   5. Visuals meet readable contrast on the dark theme and effects are not over-stimulating, confirmed in UAT with the kid.
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 **Wave 0**
 
-- [ ] 12-00-PLAN.md — Author scripts/check-safety.sh (comment-stripped no-timer/forgiving audit) + add CONFIG.FX/CONFIG.HINT namespaces (SAFE-01)
+- [x] 12-00-PLAN.md — Author scripts/check-safety.sh (comment-stripped no-timer/forgiving audit) + add CONFIG.FX/CONFIG.HINT namespaces (SAFE-01)
 
 **Wave 1** *(blocked on Wave 0)*
 
@@ -225,7 +225,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 9. Level Build & CC0 Assets | v3.0 | 3/3 | Complete   | 2026-06-25 |
 | 10. Math-Gate Integration | v3.0 | 3/3 | Complete   | 2026-06-26 |
 | 11. Progression & Persistence | v3.0 | 4/4 | Complete   | 2026-06-27 |
-| 12. Polish, ADHD-Safety & UAT | v3.0 | 0/3 | Planned | - |
+| 12. Polish, ADHD-Safety & UAT | v3.0 | 1/3 | In Progress|  |
 
 ## Coverage (v3.0)
 

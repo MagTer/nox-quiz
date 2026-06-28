@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: The Platformer
-current_phase: 11
-current_phase_name: Progression & Persistence
+current_phase: 12
+current_phase_name: Polish, ADHD-Safety & UAT
 status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-28T05:58:54.642Z"
-last_activity: 2026-06-26
-last_activity_desc: Phase 11 execution started
+last_updated: "2026-06-28T06:03:20.377Z"
+last_activity: 2026-06-28
+last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 18
+  completed_plans: 16
   percent: 83
 ---
 
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 11 — Progression & Persistence
+**Current Focus:** Phase 12 — Polish, ADHD-Safety & UAT
 
 **Tech Stack (v3.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Packaged as static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL she just visits (no install, no launcher). A local dev server (`python3 -m http.server`) is used during development only. Persistence via versioned localStorage.
 **Shipped State (v2.0, being replaced):** 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji. The math brain (weighted 6–9 selection) is carried forward; the quiz shell is replaced by a game shell.
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 ## Current Position
 
 Milestone: v3.0 The Platformer
-Phase: 11 (Progression & Persistence) — EXECUTING
-Plan: 4 of 4
+Phase: 12 (Polish, ADHD-Safety & UAT) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-26 — Phase 11 execution started
+Last activity: 2026-06-28 — Phase 12 execution started
 
 ## v3.0 Roadmap (Phases 7–12)
 
@@ -119,7 +119,7 @@ Last activity: 2026-06-26 — Phase 11 execution started
 
 **Resume file:** None
 
-**Last session:** 2026-06-27T19:41:21.390Z
+**Last session:** 2026-06-28T06:02:49.898Z
 
 **Next steps:**
 
@@ -211,6 +211,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 11 P01 | ~2 min | 2 tasks | 1 files |
 | Phase 11 P02 | 3min | 3 tasks | 3 files |
 | Phase 11 P03 | 20min | 1 tasks | 1 files |
+| Phase 12 P00 | 2 min | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -242,3 +243,5 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 - [Phase ?]: Brain seed validation is explicit per-key range-checked (never spread of untrusted blob — T-01-01)
 - [Phase ?]: Persist on correct-clear event AND onHide (visibilitychange); never on a timer (SAFE-01)
 - [Phase ?]: HUD one-way contract: src/ui/hud.js reads getLevel()/getXp()/nextThreshold() and never mutates the tracker.
+- [Phase ?]: SAFE-01 audit (check-safety.sh) strips // comments before every negative grep so the whole-src no-timer/forgiving scan matches code, not the existing no-scheduler-discipline prose comments.
+- [Phase ?]: Forgiving audit uses punishment-specific tokens only (no broad xp-decrement) to avoid false-positive on progress.js legitimate level-up surplus carry-over.
