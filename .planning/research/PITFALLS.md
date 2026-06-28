@@ -1,395 +1,318 @@
 # Pitfalls Research
 
-**Domain:** First-time Kaplay (Kaboom successor) 2D platformer with an end-of-stage math gate, shipped to a 12-year-old (possible ADHD) as an offline multi-file browser app.
-**Researched:** 2026-06-22
-**Confidence:** HIGH (Kaplay version/CORS/scenes, game-feel, CC0 licensing); MEDIUM (Kaplay collision edge cases — collision module still maturing, less documented).
+**Domain:** No-build vendored-Kaplay 3001 browser platformer (Math Lab v4.0 "Content & Challenge") — adding animated sprites, multiple levels + level-select/title scenes, four mid-game math mechanics, per-level unlock persistence, and parallax to an EXISTING, kid-validated single-level slice
+**Researched:** 2026-06-28
+**Confidence:** HIGH — grounded in this repo's own burned-in lessons (a727c13 blank-screen, self-cleaning effect, asset-path, firewall), the v3.0 RETROSPECTIVE, the verified Kaplay 3001.0.19 vendored API surface (`play`/`stop`/`flipX`/`getCurAnim`/`onAnimEnd`/`animSpeed` confirmed in `lib/kaplay.mjs`), and the existing anti-leak code in `src/scenes/game.js` / `src/fx.js`
 
-> Scope note: these are pitfalls specific to *adding a Kaplay platformer to this project and putting it in front of a real kid*. Generic web-app advice is omitted. Phases referenced are the expected v3.0 shape: **P1 Project setup & local serving**, **P2 Platformer core (movement/physics/camera)**, **P3 Level build & CC0 assets**, **P4 Math-gate integration (port the math brain)**, **P5 Polish, ADHD-safety & UAT**.
+> **Framing.** This is a SUBSEQUENT milestone. The risk is NOT "can we build a platformer" — that shipped. The risk is **integration**: new modules re-introducing the exact traps the v3.0 spine already solved (top-level globals, cross-scene state leak, timer-based juice), the four math mechanics quietly drifting away from forgiving/no-timer, and a save-schema change bricking the one returning player who matters. Every pitfall below is mapped to a v4.0 phase so the roadmap bakes in the mitigation.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Assets silently fail to load over `file://` (CORS)
+### Pitfall 1: The a727c13 top-level-global trap resurfacing in new modules
 
 **What goes wrong:**
-The game opens by double-clicking the HTML file, the canvas shows but sprites/tilemap never appear, or `loadSprite()` hangs and the scene never starts. Console shows `CORS request not HTTP` / fetch failures.
+A new module (parallax helper, enemy factory, level-registry, animation helper) references a Kaplay global — `vec2`, `rect`, `add`, `setGravity`, `loadSprite`, or even a defensive `typeof Rect`/`typeof add` guard — at **module top level**, or runs a top-level `loadSprite(...)` / `add(...)` call. ES `import` is hoisted and executes before `kaplay({global:true})` installs the globals, so the reference is `undefined` at import time. Result: a thrown ReferenceError (or a silently-`undefined` guard branch) during boot that **blanks the whole game** before any scene runs — and, exactly as in a727c13, automated `node --check` + structural greps still "pass" because they never boot a browser.
 
 **Why it happens:**
-Kaplay's `loadSprite`/`loadSound`/`loadSpriteAtlas` use `fetch` under the hood. The `file://` scheme is not http(s), so the browser blocks the request. This is invisible in a single-inlined-file app (v1/v2 had no external assets) and surfaces the moment v3.0 vendors Kaplay + an assets folder.
+New-module authors copy a "module constant" idiom (`const GRAVITY_VEC = vec2(0, 900)` at top level) or add a "fail-loud" guard at module scope, not realizing import order. This milestone adds the MOST new modules of any so far (registry, title scene, level-select scene, 4 mechanic modules, enemy factory, parallax) — maximum surface for the trap to recur.
 
 **How to avoid:**
-Require a local static server and bake it into how the project is launched. Ship a one-line launcher (`python -m http.server 8000`, or `npx serve`, or a tiny `.bat`/`.sh`) and document opening `http://localhost:8000`. Make "served, not double-clicked" a first-class instruction for the parent/kid. Consider a startup guard that detects `location.protocol === 'file:'` and shows a friendly "open via the start script" message instead of a blank screen.
+- Hard rule (already a project constraint): **no Kaplay global usage and no `typeof <global>` guard at module top level.** Globals only inside scene-time function bodies (scene callbacks, factory functions invoked at scene time, `onUpdate` callbacks).
+- New modules export **factory functions** (`makeEnemy(...)`, `buildParallax(...)`, `registerLevels()`), never top-level engine objects. The registry must hold **plain data** (level descriptors as POJOs), not pre-built `add()`ed entities or `vec2()` literals — compute `vec2` lazily inside the builder.
+- All `loadSprite`/sheet asset registration stays in `main.js` AFTER `kaplay()`, before `go(...)` — same as the existing player/coin loads.
+- Extend the negative-grep gate: add a `check-import-safety.sh` that greps every `src/**/*.js` (comment-stripped) for top-level (column-0, outside any function) use of Kaplay global identifiers and fails the build.
+- **Mandatory human browser-boot check after EVERY new scene/module lands** — "passed on automation" ≠ "boots in a browser" is the single most expensive lesson from v3.0.
 
 **Warning signs:**
-Blank/black canvas, sprites missing, `loadSprite` promises never resolve, console CORS/fetch errors, works for the developer (who runs a server) but not on the target Windows laptop (double-clicked).
+Blank canvas / stuck Kaplay loading screen on boot; a console ReferenceError naming a Kaplay global; a guard that "should never fire" silently taking its fallback branch; CI green but nobody has opened a browser since the last new module.
 
-**Phase to address:** P1 (Project setup & local serving) — establish the serving story and the `file://` guard before any assets exist.
+**Phase to address:**
+Foundational — the **scene-system / level-registry phase** (first structural phase) establishes the factory + plain-data convention and the `check-import-safety.sh` grep; every later phase inherits it. Re-verify with a browser boot at the end of each phase.
 
 ---
 
-### Pitfall 2: Kaboom/Kaplay version churn breaks copy-pasted code
+### Pitfall 2: Run/animation/handler state leaking across `go()` and scene restarts
 
 **What goes wrong:**
-Tutorials and AI-generated snippets mix Kaboom.js, Kaplay v3001, and v4000 APIs. Code that "should work" throws `undefined is not a function`, or deprecation warnings flood the console (`kaboom()`, `curAnim()`, `Event`).
+With multiple scenes (title → level-select → level N → gate → next), state that should reset per-entry survives across `go()`/respawn:
+- **Module-level `let`** for run state (coins, enemy list, "key collected", current-level index) persists across scene switches — a returning level shows last run's coin count, a re-entered level remembers a door was already unlocked.
+- **Global input handlers** (`onKeyPress`, `onKeyDown`) registered at module scope or never cancelled stack up: enter level 2 then return to level 1 and the jump key fires twice, or a level-select arrow key still moves a destroyed player.
+- **Colliders / `onCollide` / `onUpdate`** registered on the old scene fire against destroyed objects after a scene change.
+- **In-flight tweens** (the new walk/run flip tween, an enemy hit-flash, a parallax scroll tween) keep calling `scaleTo()`/`opacity` on a destroyed object after `go()`.
+- **Animation state** (`play("run")`) left running on a reused sprite shows the wrong clip on re-entry.
 
 **Why it happens:**
-Kaplay is the maintained fork of abandoned Kaboom.js. `kaboom()` is a deprecated alias for `kaplay()`. v3001 is the Kaboom-compatible stable line (no breaking changes); v4000 adds breaking changes and new APIs. The web is full of mixed-vintage examples, and a first-time user can't tell which version a snippet targets.
+Kaplay scene objects are auto-destroyed on `go()`, which lulls authors into thinking *everything* resets — but module-level variables, globally-registered `onKey*` controllers, and tweens whose handles live in module scope are NOT scene-bound. This milestone multiplies scene transitions from "one scene, restart in place" to "many scenes, frequent switching," so a leak that was invisible in v3.0 (only ever one scene) becomes visible.
 
 **How to avoid:**
-Pin one version when vendoring the library file and record it (e.g. `kaplay@3001.x` for maximum compatibility/stability, or commit to v4000 deliberately). Add a one-line comment at the top of the vendored file noting version + source URL. When borrowing code, check it against the docs for the pinned version, not a random blog. Prefer `kaplay()` over `kaboom()` and the non-deprecated names.
+- **All run/session state lives in the scene-callback closure**, seeded via the `go()` data payload with default guards — exactly the pattern already in `src/scenes/game.js` (`let lastCheckpoint`, `let coinsCollected`, `let goalReached` are closure-local with the explicit "never a module-level `let`" comment). Replicate verbatim for the new mechanics' state (`keysHeld`, `enemiesRemaining`, `checkpointsPassed`).
+- **Every globally-registered handler returns a controller; cancel it on `onSceneLeave`.** The repo already does this: `onSceneLeave(() => hideCtrl.cancel())` and `mathGate.js` cancels its key controllers. Apply to every new `onKeyPress`/`onKeyDown` in title/level-select scenes.
+- **Tag + `destroyAll` sweep on scene leave** for effect/enemy objects, AND cancel non-tagged tweens whose handle lives on the object — the repo's `onSceneLeave(() => { destroyAll("fx"); if (player.exists() && player._fxScaleTween) player._fxScaleTween.cancel(); })` is the template. New animation/flip tweens must store their handle on the object and be cancelled the same way (single-flight via `obj._tween?.cancel()`).
+- Prefer **scene-scoped `onKeyPress` inside the scene callback** over module-level registration so they die with the scene.
+- Extend the negative-grep suite: a `check-leak.sh` that fails on module-level `let`/`var` holding run state and on any `onKey*`/`onCollide` whose controller is never cancelled.
 
 **Warning signs:**
-`is not a function` errors, deprecation warnings in console, snippets that reference `kaboom(` while you call `kaplay(`, behavior that contradicts the docs you're reading.
+Coin/key/checkpoint count starts non-zero on a fresh level entry; input fires N times after visiting N levels; "object does not exist" / NaN errors after a scene switch; a level you already solved is pre-solved on replay; a sprite shows the run animation while standing still right after `go()`.
 
-**Phase to address:** P1 (pin + vendor the version) and P2 (build against the pinned API).
+**Phase to address:**
+**Scene-system phase** sets the closure-state + controller-cancel + leave-sweep contract for ALL scenes; the **four-mechanics phase** and **enemy/animation phases** must each re-apply it to their new state and tweens. Verify by entering→leaving→re-entering each scene twice and confirming a clean reset.
 
 ---
 
-### Pitfall 3: Module-level state leaks across scenes and level retries
+### Pitfall 3: Sprite-sheet slicing / anim-def mistakes (and using the wrong loader)
 
 **What goes wrong:**
-On retry/replay (very common with a kid), score, current-question index, player HP, or "answered correctly" flags carry over from the previous attempt — questions get skipped, the gate is pre-cleared, or the level starts in a corrupted state. The math brain's selection state drifts.
+The animated player (idle/run/jump) and animated enemies render wrong: frames bleed (off-by-one `sliceX`/`sliceY` so a frame shows half the next), the anim plays the wrong range, the sheet is sliced row-major when it's laid out column-major, or nothing animates because `play("run")` was never called / the anim name doesn't match the def. A classic here: reaching for **`loadSpriteSheet`, which does NOT exist in Kaplay 3001** — the correct call is `loadSprite(name, path, { sliceX, sliceY, anims: { run: { from, to, loop, speed } } })` (the repo already does this correctly for the coin: `sliceX: CONFIG.COIN_FRAMES, anims: { spin: {...} }`). Multi-row sheets also need `sliceY`, which the single-row coin didn't exercise — so the multi-row player/enemy sheets are NEW, untested territory.
 
 **Why it happens:**
-`go(scene)` destroys all game objects but does **not** reset plain JavaScript variables declared at module scope. Code outside scenes only runs once. Objects given `stay()` survive scene switches and can persist unintentionally. A first-time Kaplay dev naturally reaches for a module-level `let score = 0`, which then accumulates across `go()` calls.
+Sheet packing conventions vary across CC0 packs (Kenney vs itch); authors guess frame counts instead of reading the image dimensions; the coin's single-row success creates false confidence about multi-row sheets; old Kaboom/tutorial muscle memory reaches for `loadSpriteSheet`.
 
 **How to avoid:**
-Initialize all mutable run state *inside* the scene callback, not at module scope. Pass cross-scene data explicitly via `go(name, data)` (single value or object). Keep the ported math brain's per-session state in an object that the level scene constructs fresh on entry; expose a `reset()` and call it on scene start. Use `stay()` sparingly and only for genuinely global things (e.g. an audio/settings singleton, which v3.0 doesn't need yet). Wrap all game logic inside scene definitions.
+- Always derive `sliceX`/`sliceY` from the **actual pixel dimensions** of the chosen sheet (image width ÷ frame width), and put frame counts in `CONFIG` as named constants (no magic numbers — repo convention).
+- For multi-row sheets, set BOTH `sliceX` and `sliceY` and define each anim's `from`/`to` as flat frame indices (row-major: index = row*sliceX + col).
+- Use `loadSprite` only; add `loadSpriteSheet` to the negative-grep banned-token list so it can never sneak in.
+- Keep all anim loads in `main.js` after `kaplay()` (Pitfall 1).
+- Sanity-render each new sprite at integer scale with `crisp: true` (already on) so a 1-px slice error is visible.
 
 **Warning signs:**
-Second playthrough behaves differently from the first; gate already "solved"; question counter doesn't reset; HP/score from a prior run appears; behavior changes only after a `go()` round-trip.
+A sliver of the adjacent frame visible on a sprite edge; animation "stutters" or shows a static frame; console "anim not found"; a `loadSpriteSheet is not a function` error.
 
-**Phase to address:** P4 (Math-gate integration — porting the brain is exactly where this bites) with the scene-state discipline set up in P2.
+**Phase to address:**
+**Art / animation phase** (player idle/run/jump first, then enemies). Verify by eyeballing each clip in a browser at the chosen display scale.
 
 ---
 
-### Pitfall 4: The math gate feels like a punishing quiz popup, not part of the game
+### Pitfall 4: Animation frame-timing and direction-flipping not frame-rate-independent / state-thrashed
 
 **What goes wrong:**
-She runs, jumps, has fun — then a stark multiple-choice dialog slams over the screen. It reads as "back to homework." Engagement drops at the exact moment the project's core value ("she opens it because she wants to") should pay off.
+- Walk/run animation **speed tied to frame rate** instead of a fixed `speed` (fps) on the anim def → animation runs faster/slower on different monitors (the same dt-correctness lesson v3.0 already applied to movement; the audit plan `08-03 MOVE-05 frame-rate independence` shows this team cares about it — but animation speed is a NEW axis).
+- **`play()` called every frame** (e.g. inside `onUpdate` whenever moving) restarts the clip each frame so it freezes on frame 0. Must only call `play("run")` on a **state transition** (was-idle→now-moving), guarded by checking `getCurAnim()`.
+- **`flipX` thrash**: flipping by raw velocity sign every frame flickers the sprite at velocity≈0; and flipping by input rather than by facing can fight the animation.
+- Jump anim never resolves because there's no grounded check / `onAnimEnd` to return to idle/run.
 
 **Why it happens:**
-The math brain is ported from the v1/v2 quiz, so the path of least resistance is to render the old quiz UI verbatim. The platformer and the quiz end up as two disconnected apps glued together.
+Authors drive animation imperatively from `onUpdate` without an explicit animation state machine; they assume `play()` is idempotent (it isn't — it restarts); they flip on instantaneous velocity instead of a debounced facing direction.
 
 **How to avoid:**
-Diegetic framing: the gate is a locked door / guardian / goal flag *in the level*, styled in the same dark/grunge pixel art as the world. Keep the avatar on screen. Transition in (don't hard-cut), use the game's font/palette, and frame it as "the door asks a riddle" rather than "Quiz: Question 1 of N". Reuse the math *brain* (weighted 6–9 selection) but build a *new* gate presentation, not the v2 modal.
+- Use the anim def's `speed` (fps) for timing — **never** advance frames manually with dt math. This makes animation frame-rate-independent the same way the movement spine is.
+- Drive animation from an explicit **player animation state** (idle / run / jump / fall), and only call `play(name)` when the target state differs from `getCurAnim()` (confirmed available in 3001). One `play()` per transition, not per frame.
+- Flip on **facing direction with a deadzone** (only update facing when |vx| exceeds a small threshold), set `flipX` once on direction change.
+- Return jump→idle/run on the grounded transition (`isGrounded()` / land event), not on a timer (no-timer mandate).
 
 **Warning signs:**
-The gate uses different fonts/colors than the level; it's a full-screen white/system dialog; the avatar disappears; playtester (the kid) audibly groans or disengages when it appears.
+Animation visibly faster/slower on a different machine; sprite stuck on frame 0 while moving; flicker/jitter when standing near-still; sprite frozen mid-jump after landing.
 
-**Phase to address:** P4 (gate presentation) and P5 (UAT confirms it doesn't read as homework).
+**Phase to address:**
+**Animation phase** — fold an "animation is frame-rate-independent (uses anim `speed`, not dt)" check into the same MOVE-05-style audit the team already runs for movement. Verify on two refresh rates if possible, else throttle in DevTools.
 
 ---
 
-### Pitfall 5: Frame-rate-dependent movement (not multiplying by `dt`)
+### Pitfall 5: Any of the four math mechanics drifting into PUNISH / TIME / SHAME
 
 **What goes wrong:**
-The game feels right on the dev machine but the avatar moves twice as fast or jumps twice as high on a high-refresh (120/144 Hz) laptop, or crawls on a slow one. Jump arcs and run speed differ per device, making tuning meaningless.
+This is the milestone's highest-value-at-risk pitfall. Each of the four mechanics has a "natural" implementation that violates the ADHD-safe / forgiving / no-timer contract that v3.0 fought to establish:
+- **Locked doors/keys:** wrong answer "consumes" the key / locks you out / sends you back → punishment. Or a "you have 30s to answer" overlay → timer.
+- **Collect-the-answer pickups:** grabbing the WRONG answer-pickup damages/kills/resets → shame + punishment; or pickups despawn on a timer → timer.
+- **Multiple checkpoint gates:** a missed gate question **blocks progress permanently** or forces a restart → punishment; gates that re-ask under time pressure → timer.
+- **Defeat-enemy-with-answer (👺💀🐉):** wrong answer = the player takes damage / dies / loses XP → the exact death-punishment loop v2.0's "death = restart floor, XP intact" and v3.0's "respawn = checkpoint, never game-over" explicitly outlawed. Also a combat "answer fast" pressure = timer.
 
 **Why it happens:**
-First-time game-loop authors update position with a fixed per-frame delta (`pos.x += speed`) instead of scaling by elapsed time. Kaplay provides `dt()`; if you bypass body() velocity and move objects manually, you must use it.
+Game-design instinct equates "challenge" with "consequence for failure," and combat instinct equates enemies with HP/damage/death. The four mechanics are described in game terms (doors, enemies, combat) that *imply* fail-states. Without an explicit forgiving spec per mechanic, the default implementation punishes.
 
 **How to avoid:**
-Prefer Kaplay's `body()` + `vel` (px/sec, already time-based) and `setGravity()` for physics. For any manual movement, multiply by `dt()`. Test on at least one non-60 Hz refresh rate or use browser dev-tools throttling to confirm consistency before tuning feel.
+- Define a **single shared "answer interaction" contract** all four mechanics route through (reuse the `mathGate.js` bridge pattern): wrong answer → **gentle re-ask / re-roll, never** damage, lockout, XP loss, despawn, restart, or game-over. Right answer → progress + reward. There is no losing branch, only a not-yet-winning branch.
+- **Enemies are obstacles/puzzles, not HP bars under time pressure.** Wrong answer to an enemy = the enemy stays / you try again (or simply can't pass yet), never the player taking damage. Keep v2's 👺💀🐉 *flavor* but not its damage model.
+- **Keys/doors are non-consumable on wrong answers** — a wrong answer just doesn't open it yet; the key/question remains available.
+- **Zero countdown UI anywhere** — extend `check-safety.sh`'s no-timer grep (no `setTimeout`/`setInterval`/`wait`/`loop`/`lifespan` and no visible countdown) to cover every new mechanic module.
+- Write a **per-mechanic forgiveness assertion** (like v2's SC-N invariants): "no code path on a wrong answer reduces XP, HP, position-progress, or triggers go()/restart." Grep-enforce + human-UAT.
 
 **Warning signs:**
-Jump height/run speed changes between monitors; tuning that felt good yesterday feels wrong on another machine; movement tied to a raw `+= constant` in the update loop.
+Any HP/damage/lives variable touching a mechanic; any `go()`/respawn/restart triggered by a wrong answer; any countdown text or timed despawn; UAT where the kid says "that's not fair" or stops wanting to play; XP ever decreasing.
 
-**Phase to address:** P2 (platformer core) — establish dt-correct movement before tuning.
+**Phase to address:**
+**Four-mechanics phase** — make the shared forgiving contract a precondition of the phase, not a polish afterthought. Re-run the ADHD-safety audit (the 6/6-passing `check-safety.sh` model) against EACH mechanic before sign-off, plus kid-UAT specifically probing "what happens when you get one wrong."
 
 ---
 
-## Moderate Pitfalls
-
-### Pitfall 6: Floaty / unresponsive jump (missing coyote time, jump buffer, variable height)
+### Pitfall 6: Gate/overlay z-index and pause-state bugs across the new mechanics
 
 **What goes wrong:**
-Jumps feel mushy or "eat" inputs — she presses jump at the ledge edge or a hair before landing and nothing happens. The game feels unfair, which is corrosive for a no-pressure ADHD context.
+With math interactions now happening **mid-level** (doors, pickups, checkpoint gates, enemies) instead of only at the end goal, the answer overlay can:
+- Render **behind** the level / parallax / HUD (wrong `z`), so the question is partly hidden or unclickable.
+- **Not pause the world** — the player keeps running/falling, an enemy keeps moving, or a spike kills the player *while the question modal is open*. (v3.0's gate fired at a standstill goal, so world-pause was never stress-tested.)
+- **Leak input** — keyboard drives both the answer UI and the player simultaneously (move while choosing), or the overlay's key controller isn't cancelled on close and lingers into the next gate (ties to Pitfall 2).
+- Move with the camera (world-space) instead of being camera-immune screen-space — the HUD already solved this (`SAVE-04` screen-space overlay); the new gate overlays must reuse that, not re-solve it wrongly.
 
 **Why it happens:**
-A naive jump = "only if exactly grounded, fixed impulse, can't modulate." Real platformers fudge physics: **coyote time** (jump allowed for a few frames after leaving a ledge), **jump buffering** (a jump pressed just before landing fires on touchdown), and **variable jump height** (releasing jump early cuts upward velocity). Mario-feel uses asymmetric gravity (lighter going up, heavier coming down), not a pure parabola.
+Mid-level gates are a new interaction context. Pausing in Kaplay requires explicitly gating `onUpdate`/physics or using a pause flag the player/enemy update respects; it's easy to open a modal without freezing the sim.
 
 **How to avoid:**
-Implement coyote time (~80–120 ms), jump buffering (~100–150 ms), and variable jump height. Use `isGrounded()` from `body()` to gate jumps but allow the coyote window. Tune gravity/jump impulse together; lower gravity = floaty, higher = snappy. Budget explicit tuning time — feel is iterative, not a one-shot constant.
+- Reuse `mathGate.js` and the HUD's **screen-space, high-z overlay** approach for all four mechanics; one overlay component, four triggers.
+- On gate open, set a **scene pause flag** that the player-update and enemy-update closures check (`if (paused) return;`) so the world freezes; clear it on close. Verify the player can't take spike/enemy damage or fall while a question is up.
+- The overlay **owns input while open** — register its key controller on open, cancel on close (mathGate already does this), and have the player-input handler respect the pause flag so movement keys don't double-drive.
+- Give overlay layers explicit `z` above world and parallax; verify nothing in the new richer art draws over it.
 
 **Warning signs:**
-"It didn't jump!" complaints; jumps feel slow to start; can't make a gap that looks makeable; only one jump height regardless of tap vs hold.
+Question partly hidden behind tiles/parallax; player dies or drifts while answering; pressing arrows moves the player while picking an answer; a second gate inherits the first's still-live key handler; overlay scrolls with the camera.
 
-**Phase to address:** P2 (core feel), refined in P5 (UAT tuning with the actual kid).
+**Phase to address:**
+**Four-mechanics phase** (overlay/pause contract), with the screen-space convention established when the **HUD/scene system** is touched. Verify by opening each mechanic's gate next to a hazard/enemy and confirming a frozen, input-isolated, on-top modal.
 
 ---
 
-### Pitfall 7: Getting stuck on tile seams / tunneling through thin colliders
+### Pitfall 7: Persistence migration bricking the returning player (unlock-schema change)
 
 **What goes wrong:**
-The avatar snags on the boundary between two floor tiles while running, or at fast fall speeds passes straight through a thin platform/floor and falls out of the world.
+v3.0 already persists `{ xp, level, accuracy, history }` (loaded once via `loadSave()` with guarded defaults). v4.0 adds **per-level completion/unlock state** to the same save. Mistakes:
+- Bumping the save shape **without a migration**, so the kid's existing v3.0 save (with real XP/level/weak-spot history) is either rejected or silently overwritten with defaults — **she loses her progress on first v4.0 launch.** This is the one returning user who matters; v2.0's retro already flagged "migration test must be human-executed with a real prior-version save fixture."
+- A **corrupt / partial / old-version** save throwing during parse and crashing boot (instead of falling back to safe defaults).
+- Unlock state stored such that a future shape change **re-locks already-cleared levels** (frustration) or **unlocks everything** (loses the progression sense the milestone is for).
+- No `version` field / no forward guard, so the next milestone repeats the pain.
 
 **Why it happens:**
-Kaplay's collision module is still maturing (the docs note impulses/forces apply at center of mass, no torque, contact-point work pending). A floor built from many small per-tile colliders creates seams that catch a moving box; thin colliders + high velocity cause tunneling because collision is checked per frame, not swept.
+Schema changes feel trivial ("just add a `levels` key"); the dev's own browser has a fresh/dev save so they never hit the real-prior-save path; JSON.parse on a malformed blob throws and isn't caught.
 
 **How to avoid:**
-Merge runs of adjacent floor tiles into a single wide collider instead of one collider per tile. Keep platform colliders reasonably thick. Cap fall speed (terminal velocity) so per-frame movement stays smaller than collider thickness. If sticking persists, resolve X then Y movement separately. Build a tiny "stress" test strip (a long flat run + a fast drop) early.
+- Keep the **versioned save** (v2.0 established "migration-ready versioning"; v3.0 has "versioned localStorage"). Bump the version and write an explicit **migration that ADDS `levelProgress` while preserving `xp/level/accuracy/history`** untouched.
+- `loadSave()` must **never throw**: wrap parse in try/catch, validate shape, and on any failure (missing keys, wrong version, corrupt JSON, blocked storage / node / incognito) return **safe defaults that preserve as much as parseable** (at minimum never zero out XP if XP is present and valid).
+- New per-level unlock state should **default to "level 1 unlocked, rest locked, none completed"** when absent, and an unreadable `levelProgress` must NOT wipe XP.
+- Treat unlock state as **monotonic where sensible**: an already-completed level stays completed across migrations (don't re-lock).
+- **Human-executed migration test with a real v3.0 save fixture** (capture the kid's actual localStorage, or a representative one) — code-level verification can't cover this, per the v2.0 lesson. Test: load v3.0 save → launch v4.0 → confirm XP/level/weak-spot intact AND level-1 unlocked.
 
 **Warning signs:**
-Avatar briefly halts mid-run over a flat floor; "fell through the floor" reports; getting wedged on corners when landing near a tile boundary.
+XP/level resets to 0 on first launch after the schema change; boot crash with a JSON/parse error; an old save makes the app blank; cleared levels show locked again; dev "tested it" but only on a freshly-cleared browser.
 
-**Phase to address:** P3 (level build / collider layout), with the physics behavior validated in P2.
+**Phase to address:**
+**Persistence / progression phase** (the one introducing level-unlock state). Gate sign-off on the human migration test against a real prior save. Add a `check-progress.sh`-style grep ensuring `loadSave` is try/caught and never zeroes XP on the error path.
 
 ---
 
-### Pitfall 8: Loss of progress on death — the ADHD anti-pattern
+### Pitfall 8: ADHD over-stimulation creep from richer art, parallax, enemies, and difficulty spikes
 
 **What goes wrong:**
-Death (or a wrong math answer) sends her back to the start of the level or wipes the run, recreating exactly the punishment loop the project explicitly forbids.
+The art pass + parallax + enemies + a difficulty curve each risk violating the ADHD-safe mandate that v3.0 audited to 6/6:
+- **Parallax / background motion** that's too fast, high-contrast, or strobing becomes a constant peripheral distractor (the opposite of "minimize distraction"); auto-scrolling backgrounds can induce motion discomfort.
+- **Enemies + new juice** stacking flashes/shakes → strobe risk; v2.0's retro already warned `levelUpFlash 800ms is borderline` and set a **≤500ms (safer 400ms) cap** on post-event animation — new enemy-hit/clear flashes must obey it.
+- **Difficulty curve as a spike**, not a ramp: a level that suddenly jumps platforming AND table difficulty together creates a frustration wall → she stops opening it (kills the core value: "she opens it because she *wants* to").
+- **Too many simultaneous animated elements** (animated player + enemies + coins + parallax + fx) raising cognitive load and frame cost on her Windows laptop, causing jank that itself reads as stress.
+- Color drift toward bright/pink/cutesy under "real art pass" — explicitly excluded.
 
 **Why it happens:**
-Default platformer instinct is "die = restart level." v2.0 already established the safe rule (death = restart floor, XP intact, no shame); v3.0 must carry it forward but it's easy to forget when bolting on hazards.
+"Make it look like a real game" pulls toward AAA juice/motion; difficulty design defaults to step-functions; parallax tutorials favor lively motion. None default to the calm, forgiving, dark-grunge, no-strobe target.
 
 **How to avoid:**
-Use checkpoints / generous respawn near the failure point, never a full restart. Wrong answer must not end the run or drop progress — re-ask or let her try again with no penalty/score loss (PROJECT.md: forgiving flow, no shame). Decide the death/wrong-answer policy as an explicit requirement, not an implementation accident.
+- **Parallax: slow, low-contrast, non-strobing**, tied to camera position (not an autonomous timer/auto-scroll → also satisfies no-timer). Keep layers few and muted within the dark-grunge palette.
+- **Keep the ≤400–500ms animation cap** (v2.0 lesson) on every new flash/shake/hit effect; no rapid repeated flashes; reuse v3.0's "non-strobing clear-burst" precedent. Extend `check-safety.sh` to scan new fx durations.
+- **Difficulty as a gentle ramp, decoupled axes:** raise platforming and table-difficulty *gradually and not simultaneously*; keep the 6–9-weighted brain unchanged and let *table pool*, not time pressure, carry difficulty. No level should be a hard wall — and every gate stays forgiving (Pitfall 5) so a hard table never blocks, only re-asks.
+- **Budget on-screen animated elements**; profile frame rate on a representative low-end target; `requestAnimationFrame`/Kaplay already pauses on tab blur.
+- Re-run the **6-item ADHD-safety audit** against the finished art/parallax/enemy set; kid-UAT for "is anything too busy / too hard / annoying."
 
 **Warning signs:**
-Respawn at level start after a fall; wrong answer closes the gate and dumps her back into the level or resets; any "you lost N points" messaging.
+Eye-catching background motion you notice over the gameplay; any flash >500ms or repeated rapid flashing; the kid bouncing off a specific level; visible jank/frame drops; any bright/pink/cute element creeping in; she stops wanting to open it.
 
-**Phase to address:** P2 (respawn policy for platforming) and P4 (wrong-answer policy at the gate); ADHD-safety verified in P5.
-
----
-
-### Pitfall 9: Over-stimulating effects / too-long level
-
-**What goes wrong:**
-Screen shake, particle bursts, flashing, fast chaos, or a sprawling level overwhelm an ADHD player or cause fatigue/abandonment before the gate.
-
-**Why it happens:**
-"Juice" tutorials encourage heavy effects; Kaplay makes shake/particles easy. Level scope creeps because building platforms is fun. Neither respects the low-stimulation, single-polished-level goal.
-
-**How to avoid:**
-Keep effects subtle and purposeful (small, brief; no strobe/flash). Hold to ONE short, completable level (the milestone goal), sized so a first clear is a few minutes, not a marathon. No countdown timers anywhere (hard constraint). Provide a calm, readable scene over a busy one.
-
-**Warning signs:**
-Rapid flashing or constant shake; level takes many minutes with no checkpoint; playtester loses focus or says it's "too much"; any timer UI.
-
-**Phase to address:** P3 (level scope) and P5 (effect intensity + ADHD-safety audit).
-
----
-
-### Pitfall 10: Controls a kid can't discover
-
-**What goes wrong:**
-She doesn't know which keys move/jump, or the keys are awkward (e.g. only WASD when she expects arrows, or jump on an odd key). She stalls before the game even starts.
-
-**Why it happens:**
-Devs assume their own muscle memory. No on-screen prompt; controls undocumented in-game.
-
-**How to avoid:**
-Support both Arrow keys and WASD; jump on Space *and* Up. Show a short, persistent control hint at level start ("← → move, Space jump"), styled in-world. Confirm controls work on the target Windows laptop keyboard layout.
-
-**Warning signs:**
-"How do I move?"; she presses keys that do nothing; hint absent or hidden.
-
-**Phase to address:** P2 (input mapping) and P5 (discoverability in UAT).
-
----
-
-## Minor Pitfalls
-
-### Pitfall 11: Contrast/readability on the dark grunge theme
-
-**What goes wrong:**
-Dark sprites on a dark background blend together; the avatar, hazards, goal, or gate text are hard to see. Math-gate answer options fail contrast and are hard to read.
-
-**Why it happens:**
-"Dark grunge, no pink" pushes toward low-contrast palettes. Pixel art on dark tiles can lose silhouette.
-
-**How to avoid:**
-Ensure the avatar and interactive elements have a high-contrast silhouette/outline against the background. Use the established neon accent (e.g. neon green/orange from the stack notes) for the goal, gate, and selected answer. Keep gate text at WCAG-AA contrast.
-
-**Warning signs:**
-"Where's my guy?"; can't tell platform from background; squinting at answer options.
-
-**Phase to address:** P3 (palette/sprite selection) and P5 (readability check).
-
----
-
-### Pitfall 12: Camera jitter / avatar not centered nicely
-
-**What goes wrong:**
-The camera stutters or snaps as it follows the avatar, causing visual noise (extra problematic for an ADHD player).
-
-**Why it happens:**
-Hard-setting camera position to the avatar every frame without smoothing, or fighting between physics update and render order, produces jitter.
-
-**How to avoid:**
-Use Kaplay's camera (`setCamPos` / camera follow) with light smoothing (lerp) rather than a hard snap. Update the camera after physics resolves. Keep a small dead-zone so tiny movements don't shake the view.
-
-**Warning signs:**
-Visible shaking/stutter when running; camera "vibrates" when standing still.
-
-**Phase to address:** P2 (camera) and P5 (smoothness check).
-
----
-
-### Pitfall 13: CC0 / asset-license verification mistakes
-
-**What goes wrong:**
-A sprite assumed to be CC0 actually isn't, or the Kenney logo gets shipped, creating a licensing problem in a project meant to have zero licensing risk.
-
-**Why it happens:**
-The itch.io "CC0" tag is community-applied and not always accurate per pack. Kenney assets are genuinely CC0 1.0 (free, commercial OK, attribution appreciated not required) — but the **Kenney logo is reserved** and not for use. Mixing one non-CC0 sprite into a CC0 set is easy.
-
-**How to avoid:**
-Verify each pack's own license page, not just the tag. Prefer Kenney packs (clearly CC0). Keep a `CREDITS`/`LICENSES` file recording each asset's source URL + license. Don't ship vendor logos. When in doubt, drop the asset.
-
-**Warning signs:**
-Asset license known only from a tag, not the pack page; a logo/wordmark in the sprite sheet; mixed-source assets with no record of origin.
-
-**Phase to address:** P3 (asset selection + CREDITS file).
-
----
-
-### Pitfall 14: Sprite atlas / spritesheet misconfiguration
-
-**What goes wrong:**
-Animations show the wrong frames, sprites bleed into neighbors, or slicing looks buggy (a known Kaplay sprite-slicing issue exists).
-
-**Why it happens:**
-`loadSprite`/`loadSpriteAtlas` frame counts, `sliceX`/`sliceY`, or anim definitions don't match the actual sheet grid; padding/spacing in the source sheet isn't accounted for.
-
-**How to avoid:**
-Match `sliceX`/`sliceY` and frame indices exactly to the chosen pack's grid; verify the pack's documented tile size. Test each animation in isolation. Pick a pack with a clean, uniform grid to minimize slicing pain.
-
-**Warning signs:**
-Edges of adjacent frames bleed in; animation plays wrong/garbled frames; off-by-one frame indices.
-
-**Phase to address:** P3 (asset integration).
+**Phase to address:**
+**Art/parallax phase** (motion + palette + flash-cap) and the **difficulty-curve phase** (ramp not spike). Final **polish/UAT phase** re-runs the full ADHD-safety audit + kid sign-off across the assembled milestone — the same consolidated end-to-end kid-UAT that validated v3.0.
 
 ---
 
 ## Technical Debt Patterns
 
-Shortcuts that seem reasonable but create long-term problems.
-
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Reuse the v2 quiz modal verbatim as the gate | Fast to wire up | Reads as homework; undermines the whole pivot's value | Never — port the brain, build a new in-world gate |
-| Module-level globals for run state | Quick to write | Leaks across `go()`/retries; subtle correctness bugs | Never for mutable run state; OK for true constants |
-| One collider per floor tile | Mirrors the tilemap 1:1 | Seam catching, more collision checks | Only for the throwaway prototype strip; merge before P3 done |
-| Double-click `file://` for "quick test" | No server needed | Assets break; false "it's broken" panic | Never as the shipped launch path; only for non-asset HTML checks |
-| Hard-snap camera to avatar | Trivial | Jitter; visual stress for ADHD player | Acceptable only in earliest P2 spike |
-| Skip `dt()` ("works on my machine") | Less code | Device-dependent feel; tuning invalidated | Never |
+| Module-level `let` for current-level / unlock state | "Simpler" than threading through `go()` data | Leaks across scenes (Pitfall 2); the exact bug the closure-state pattern exists to prevent | **Never** — closure + `go()` payload is the established contract |
+| Hardcoding each level inline instead of a data registry | Ship one more level fast | 3–5 levels become copy-paste forks; level-select can't enumerate them; difficulty tuning hunts magic numbers | Only for a throwaway spike; the registry must land before level #2 |
+| Per-mechanic ad-hoc answer overlay (4 copies) | Each mechanic ships independently | 4 z-index/pause/input-leak bugs to fix instead of 1; inconsistent forgiveness | Never — route all four through one shared gate/overlay |
+| Adding `levelProgress` to the save without a version bump + migration | One less function to write | Bricks the returning player's real save (Pitfall 7) | Never — versioned migration is already the project standard |
+| Driving animation frames manually with dt in `onUpdate` | Feels controllable | Frame-rate-dependent, `play()`-thrash, breaks the MOVE-05-style independence the team values | Never — use anim `speed` + state-transition `play()` |
+| Skipping the browser-boot check because greps pass | Faster phase close | Re-runs a727c13: silently un-booted phases (cost v3.0 three phases of fake-passing) | Never for any phase touching a scene/module/asset |
 
 ## Integration Gotchas
 
-Connecting the ported math brain and CC0 assets into Kaplay.
-
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Math brain → Kaplay scene | Keep selector state at module scope; it accumulates across retries | Construct fresh per scene entry; expose `reset()`; pass results via `go()` data |
-| Vendored Kaplay | Grab "latest" and mix v3001/v4000/Kaboom snippets | Pin a version, comment source+version, code against that version's docs |
-| Assets folder | Reference assets and open via `file://` | Serve over local HTTP; add a `file://` guard message |
-| CC0 packs | Trust the itch CC0 tag; ship vendor logo | Verify each pack's license page; keep CREDITS file; never ship logos |
-| Quiz UI → game gate | Render system/HTML dialog over the canvas | Render the gate in-world with game font/palette; keep avatar visible |
+| New asset (sprite sheet / parallax layer) | `assets/...` or `/assets/...` path → **silent 404**, sprite just doesn't draw | Use `../assets/...` web-root convention (repo rule); load in `main.js` after `kaplay()`, before `go()` |
+| Sprite sheet loading | Reaching for `loadSpriteSheet` (doesn't exist in Kaplay 3001) | `loadSprite(name, path, { sliceX, sliceY, anims })`; frame counts in CONFIG |
+| New scene's input | `onKeyPress` at module scope or never cancelled → stacks across scenes | Register inside scene callback or cancel its controller on `onSceneLeave` |
+| Mid-level math overlay | Opens modal without pausing world → player dies/drifts while answering | Scene pause flag respected by player+enemy update; overlay owns input; high `z`; screen-space |
+| Save schema | Add `levelProgress`, no migration → returning save lost/crashes | Version bump + additive migration; `loadSave` try/catch never zeroes XP |
+| Effect/enemy tweens | Tween handle in module scope or uncancelled → outlives scene, calls methods on destroyed objects | Handle on the object, single-flight `obj._tween?.cancel()`, cancelled on `onSceneLeave` |
 
 ## Performance Traps
 
-This ships to one Windows laptop browser — scale is tiny, but a single asset mistake can still stall it.
-
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Huge / unoptimized PNGs | Long black screen on load; stutter | Use modestly sized pixel-art sheets; trim unused frames | Even one multi-MB sheet on a slow laptop |
-| Loading assets inside the game loop | Hitches mid-play | Load all assets up front (Kaplay load phase) before the scene starts | First time an un-preloaded asset is needed |
-| Manual per-frame movement without dt | Speed varies by refresh rate | dt-scale or use body()/vel | Any non-60 Hz display |
-| Particle/effect spam | Frame drops, GC churn | Keep effects sparse and short-lived | Sustained emitters on a low-end iGPU |
+| Too many simultaneous animated/parallax elements | Frame drops / jank on her Windows laptop, reads as stress | Budget on-screen animated objects; few muted parallax layers; profile on target | When a busy level stacks player+enemies+coins+parallax+fx |
+| Uncancelled tweens/handlers accumulating across many scene switches | Gradual slowdown / double-fired logic after several level transitions | `onSceneLeave` cleanup contract (Pitfall 2) | After repeated level-select↔level round-trips in one session |
+| Re-loading the same sprites per scene instead of once at boot | Stutter on each scene entry | Load all assets once in `main.js` before `go()` | When asset loads get scattered into scene callbacks |
 
 ## Security Mistakes
 
-Local-only, offline, no backend, no PII beyond localStorage — classic web-security surface is minimal.
-
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Assuming an asset is freely usable from a tag | Licensing exposure | Verify each pack's license page; keep CREDITS |
-| Shipping a vendor logo/wordmark | Trademark misuse | Exclude logos; Kenney logo is explicitly reserved |
-| Loading the vendored library from a CDN | Breaks offline guarantee; supply-chain dependence | Vendor the pinned file locally |
+| Trusting localStorage JSON shape blindly | Corrupt/old save crashes boot for the one real user | try/catch + shape-validate in `loadSave`; safe defaults |
+| (N/A) Backend/account creep | Out of scope; privacy is a stated constraint | Keep static-hosting-only; nothing leaves her browser |
+
+> Security surface is minimal by design (static files, no backend, no PII, single local user). The real "security" risk is **data loss** (the save), covered by Pitfall 7.
 
 ## UX Pitfalls
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Gate as a stark quiz popup | "Back to homework"; disengagement | In-world door/guardian, game styling, avatar on screen |
-| Wrong answer ends run / loses progress | Shame loop; ADHD-hostile | Re-ask, no penalty, no score loss |
-| Full restart on death | Punishment loop | Checkpoint/generous respawn, progress kept |
-| Undiscoverable controls | Can't start playing | Arrows + WASD, Space+Up jump, on-screen hint |
-| Low-contrast dark theme | Can't see avatar/answers | High-contrast silhouettes + neon accents, AA text |
-| Over-juiced effects / long level | Overwhelm, fatigue | Subtle effects, one short level, no timers |
+| Wrong answer punishes (damage/lockout/death/XP loss) | Breaks trust; she stops wanting to play | Forgiving re-ask only; no losing branch (Pitfall 5) |
+| Difficulty spike (platforming + tables jump together) | Frustration wall; abandons that level | Gentle, decoupled ramp; tables via pool not time |
+| Busy/strobing parallax or >500ms flashes | Distraction/over-stimulation for ADHD profile | Slow, muted, non-strobing; ≤400–500ms cap |
+| No sense of progression on the world map | Levels feel like a flat list, not advancement | Visible unlock/completion state; locked→unlocked feedback |
+| Returning player loses XP/weak-spot history | Feels like starting over; demotivating | Migration preserves XP/level/history (Pitfall 7) |
+| Mid-level gate steals input or hides behind art | Can't answer / accidental movement | Screen-space high-z overlay that pauses world + owns input |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Asset loading:** Works when *served*, not just for the developer — verify on the target Windows laptop via the start script, and confirm the `file://` guard message appears if double-clicked.
-- [ ] **Scene retries:** Play, fail/win, replay — confirm score, question index, and HP all reset (no module-state leak).
-- [ ] **Jump feel:** Coyote time + jump buffering + variable height all present, not just a fixed grounded jump.
-- [ ] **Frame independence:** Same speed/jump on a non-60 Hz display (or with dev-tools throttling).
-- [ ] **Death/wrong answer:** Neither loses progress; respawn is near, gate re-asks with no penalty.
-- [ ] **Math gate styling:** Same font/palette as the world; avatar visible; not a system dialog.
-- [ ] **Collision:** Long flat run doesn't snag on seams; fast fall doesn't tunnel through the floor.
-- [ ] **Controls:** Arrows AND WASD work; on-screen hint present.
-- [ ] **Contrast:** Avatar, goal, gate, and answer options readable on dark bg.
-- [ ] **Licensing:** CREDITS file lists every asset's source + verified license; no vendor logos shipped.
-- [ ] **No timers:** Nowhere in platforming or gate is there a countdown.
-- [ ] **Version:** Vendored Kaplay version pinned and noted; no mixed Kaboom/v3001/v4000 calls.
+- [ ] **New scene/module:** Often missing browser-boot verification — open it in a browser, not just greps (a727c13).
+- [ ] **Sprite animation:** Often missing the `play()`-on-transition guard — verify it doesn't freeze on frame 0 while moving, and is frame-rate-independent.
+- [ ] **Each of the 4 math mechanics:** Often missing the forgiveness audit — grep + UAT that a WRONG answer never damages/locks/kills/restarts/loses XP and shows no countdown.
+- [ ] **Mid-level gate:** Often missing world-pause — open it next to a spike/enemy and confirm the player can't be hurt or move while answering.
+- [ ] **Scene transition:** Often missing cleanup — enter→leave→re-enter twice; confirm coins/keys/checkpoints/input/animation all reset.
+- [ ] **Save migration:** Often missing the real-prior-save test — load an actual v3.0 save and confirm XP/level/history survive AND level 1 is unlocked.
+- [ ] **Parallax/art/flash:** Often missing the strobe/duration check — no flash >500ms, motion slow/muted, palette still dark-grunge / no pink.
+- [ ] **Level registry:** Often missing enumeration — level-select actually lists every registered level and reflects unlock state.
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| `file://` asset failure | LOW | Add launcher + serve over HTTP; add protocol guard message |
-| Version-mixed code errors | LOW–MEDIUM | Pin one version; reconcile snippets against that version's docs |
-| State leaking across scenes | MEDIUM | Move run state into scene callback; add `reset()`; pass via `go()` data |
-| Gate feels like homework | MEDIUM | Re-skin gate in-world; keep avatar; reuse only the brain |
-| Floaty/unresponsive jump | MEDIUM | Add coyote/buffer/variable height; iterate gravity+impulse with the kid |
-| Seam stick / tunneling | MEDIUM | Merge floor colliders; cap fall speed; thicken platforms |
-| Progress lost on death | LOW–MEDIUM | Add checkpoint/respawn; make wrong answer penalty-free re-ask |
-| dt-dependent movement | LOW | Switch to body()/vel or multiply manual movement by dt() |
-| Wrong CC0 assumption | LOW | Replace asset; verify license page; update CREDITS |
+| a727c13 top-level global resurfaces | LOW | Move the global use inside the scene/factory function; re-boot in browser; add the use to `check-import-safety.sh` |
+| Cross-scene state/handler/tween leak | MEDIUM | Move state to closure + `go()` payload; add `onSceneLeave` cancel/`destroyAll`; re-test enter/leave/re-enter |
+| A mechanic punishes/times/shames | LOW–MEDIUM | Reroute through the shared forgiving overlay contract; strip damage/lockout/timer; re-run safety audit + kid-UAT |
+| Gate z-index/pause bug | LOW | Use screen-space high-z overlay + scene pause flag; verify next to a hazard |
+| Save migration bricks returning player | **HIGH** (data already lost) | Restore from any backup; harden `loadSave` to never zero XP; ship migration; re-test with real fixture — **prevention >> recovery here** |
+| Over-stimulation (parallax/flash/spike) | LOW | Slow/mute motion, cap flashes ≤400ms, soften the difficulty ramp; re-run ADHD audit |
+| Sprite-sheet slicing wrong | LOW | Recompute `sliceX/sliceY` from pixel dims; fix anim `from/to`; re-eyeball in browser |
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| `file://` CORS asset failure | P1 | Launch via start script on target laptop; assets render; guard message on double-click |
-| Kaplay/Kaboom version churn | P1 (pin) / P2 (build) | Vendored file notes version; no deprecation warnings; no `is not a function` |
-| State leaks across scenes | P2 (discipline) / P4 (port) | Replay resets score/index/HP |
-| Math gate feels like a quiz | P4 / P5 | Gate uses game font/palette, avatar visible; kid doesn't disengage in UAT |
-| Frame-rate-dependent movement | P2 | Consistent feel on non-60 Hz / throttled display |
-| Floaty/unresponsive jump | P2 / P5 | Coyote+buffer+variable height present; kid can clear gaps |
-| Seam stick / tunneling | P2 (physics) / P3 (colliders) | Flat-run + fast-drop stress test passes |
-| Progress lost on death | P2 / P4 | Respawn near failure; wrong answer penalty-free |
-| Over-stimulation / long level | P3 (scope) / P5 (audit) | One short level; subtle effects; no timers |
-| Undiscoverable controls | P2 / P5 | Arrows+WASD work; hint shown |
-| Low contrast on dark theme | P3 / P5 | Avatar/goal/gate/answers readable (AA text) |
-| Camera jitter | P2 / P5 | Smooth follow, no stutter |
-| CC0 license mistakes | P3 | CREDITS file complete; license pages verified; no logos |
-| Sprite atlas misconfig | P3 | Each animation plays correct frames, no bleed |
+| 1. Top-level-global trap (a727c13) | Scene-system / level-registry phase (foundational) | Browser boots cleanly after each new module; `check-import-safety.sh` green |
+| 2. Cross-scene state/handler/tween leak | Scene-system phase (contract) + every later phase re-applies | Enter→leave→re-enter each scene twice → clean reset; `check-leak.sh` green |
+| 3. Sprite-sheet slicing / wrong loader | Art / animation phase | Each clip eyeballed in browser; no `loadSpriteSheet` in tree |
+| 4. Anim frame-timing / flip / state thrash | Animation phase | MOVE-05-style independence check on animation; no frame-0 freeze; no flicker |
+| 5. Mechanics punish/time/shame | Four-mechanics phase (precondition) | Per-mechanic forgiveness assertion + `check-safety.sh` + kid-UAT "what if wrong" |
+| 6. Gate z-index / pause / input | Four-mechanics phase (overlay/pause contract) | Open each gate next to hazard/enemy → frozen, on-top, input-isolated |
+| 7. Save migration bricks returning player | Persistence / progression phase | Human test with real v3.0 save → XP/level/history intact + level 1 unlocked |
+| 8. Over-stimulation (art/parallax/enemies/spike) | Art/parallax phase + difficulty phase + final polish/UAT | Full 6-item ADHD-safety audit + consolidated kid-UAT across the milestone |
 
 ## Sources
 
-- [The relation of KAPLAY with Kaboom — kaplay wiki](https://github.com/kaplayjs/kaplay/wiki/The-relation-of-kaplay-with-Kaboom) — HIGH
-- [Migrating to v3001 — KAPLAY guides](https://kaplayjs.com/docs/guides/migration-kaplay/) — HIGH
-- [Kaboom.js is now Kaplay — JSLegendDev](https://jslegenddev.substack.com/p/kaboomjs-is-now-kaplay) — MEDIUM
-- [KAPLAY loadSprite docs](https://kaplayjs.com/docs/api/ctx/loadSprite/) — HIGH (states a static server is needed for local files)
-- [CORS request not HTTP — MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS/Errors/CORSRequestNotHttp) — HIGH
-- [KAPLAY Physics guide](https://kaplayjs.com/docs/guides/physics/) — HIGH (body, setGravity, isStatic, platformEffector, collision events, center-of-mass caveat)
-- [KAPLAY Scenes guide](https://kaplayjs.com/docs/guides/scenes/) — HIGH (scene/go/data, stay(), "destroys all objects", code-outside-scenes caveat)
-- [bug: Buggy sprite look when slicing #671 — kaplay](https://github.com/kaplayjs/kaplay/issues/671) — MEDIUM (sprite slicing pitfall)
-- [Improve Your Game Feel With Coyote Time and Jump Buffering — GMTK/YouTube](https://www.youtube.com/watch?v=97_jvSPoRDo) — HIGH (game-feel consensus)
-- [Creating smooth jump mechanics — Vibelf](https://www.vibelf.com/questions/2/smooth-jump-mechanics/) — MEDIUM (gravity/jump tuning ranges)
-- [GameMaker Platformer Jumping Tips — Game Developer](https://www.gamedeveloper.com/design/gamemaker-platformer-jumping-tips) — MEDIUM
-- [Platformer collision (axis-separated resolution) — LÖVE forums](https://love2d.org/forums/viewtopic.php?t=92438) — MEDIUM
-- [Kenney Support / licensing (CC0, logo reserved)](https://kenney.nl/support) — HIGH
-- [Pixel Platformer by Kenney — itch.io](https://kenney-assets.itch.io/pixel-platformer) — HIGH
-- [Public Domain & Creative Commons — Sheridan Library guide](https://sheridancollege.libguides.com/c.php?g=710771&p=5064493) — MEDIUM
-- [ADHD-Friendly Web Design — BOIA](https://www.boia.org/blog/adhd-friendly-web-design-minimizing-distractions) — MEDIUM (low-stimulation/no-timer principles)
+- `/home/magnus/dev/nox-quiz/.planning/PROJECT.md` — v4.0 milestone scope, constraints, key decisions (HIGH)
+- `/home/magnus/dev/nox-quiz/.planning/RETROSPECTIVE.md` — v2.0/v3.0 burned-in lessons: a727c13 blank-screen, self-cleaning effects, asset/path rule, migration-must-be-human-tested, 500ms flash cap, firewall + negative-grep gates (HIGH)
+- `/home/magnus/dev/nox-quiz/src/scenes/game.js` — existing closure-state anti-leak pattern, `onSceneLeave` cancel + `destroyAll("fx")` + tween-cancel template (HIGH)
+- `/home/magnus/dev/nox-quiz/src/fx.js` — self-cleaning tween/single-flight no-timer pattern (HIGH)
+- `/home/magnus/dev/nox-quiz/src/main.js` — asset-path `../assets/...` rule, `loadSprite{sliceX,anims}` (not `loadSpriteSheet`), post-`kaplay()` load ordering (HIGH)
+- `/home/magnus/dev/nox-quiz/lib/kaplay.mjs` (3001.0.19, vendored) — confirmed animation API: `play`, `stop`, `flipX`/`flipY`, `getCurAnim`, `onAnimEnd`, `animSpeed` (HIGH)
+- `.planning/phases/08-.../08-03 MOVE-05 frame-rate independence` audit — team's existing dt-correctness discipline, extended here to animation timing (MEDIUM)
 
 ---
-*Pitfalls research for: first-time Kaplay 2D platformer + math gate for a child (offline, multi-file)*
-*Researched: 2026-06-22*
+*Pitfalls research for: no-build vendored-Kaplay browser platformer — v4.0 Content & Challenge integration*
+*Researched: 2026-06-28*
