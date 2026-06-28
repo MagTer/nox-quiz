@@ -119,6 +119,11 @@ export const CONFIG = {
     POP_SCALE: 1.5, // unitless — coin/collect pop peak scale
     POP_MS: 220, // ms — coin/collect pop duration (brief)
     BURST_MS: 400, // ms — level-clear burst duration (<= HUD.FLASH_MS feel; non-strobing)
+    // BURST_Z must sit ABOVE the gate-cleared dim (mathGate.js z 9990, GATE.DIM_OPACITY
+    // backdrop) so the celebratory burst is actually VISIBLE over the cleared level, yet
+    // BELOW the "LEVEL CLEAR" banner (mathGate.js z 9994) so it never covers that text.
+    // 9993 is the only slot above the 9990 dim and below the 9994 banner (WR-01).
+    BURST_Z: 9993, // z-order — above gate dim (9990), below "LEVEL CLEAR" banner (9994)
   },
 
   // --- Persistent controls hint (Phase 12; Plan 02 consumes — SAFE-02 always-visible hint) ---

@@ -176,7 +176,10 @@ export function clearBurst() {
     anchor("center"),
     scale(1),
     fixed(), // screen-space celebration (camera-immune, like the HUD flash)
-    z(9400), // below the hud-flash banner (z 9500) so it never hides "LEVEL UP"
+    // Above the gate-cleared dim (mathGate.js z 9990) so the burst is VISIBLE over the
+    // cleared level, but below the "LEVEL CLEAR" banner (z 9994) so it never hides that
+    // text. The old z(9400) rendered the burst UNDER the 60%-black dim — invisible (WR-01).
+    z(F.BURST_Z),
     "fx",
   ]);
 
