@@ -120,6 +120,8 @@ export const CONFIG = {
     POP_SCALE: 1.5, // unitless — coin/collect pop peak scale
     POP_MS: 220, // ms — coin/collect pop duration (brief)
     BURST_MS: 400, // ms — level-clear burst duration (<= HUD.FLASH_MS feel; non-strobing)
+    BURST_SIZE: 80, // px — level-clear burst base square footprint (IN-03)
+    BURST_GROW: 4, // unitless — burst peak scale; grows 1 -> BURST_GROW over BURST_MS (IN-03)
     // BURST_Z must sit ABOVE the gate-cleared dim (mathGate.js z 9990, GATE.DIM_OPACITY
     // backdrop) so the celebratory burst is actually VISIBLE over the cleared level, yet
     // BELOW the "LEVEL CLEAR" banner (mathGate.js z 9994) so it never covers that text.

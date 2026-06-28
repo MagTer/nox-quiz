@@ -169,7 +169,7 @@ export function clearBurst() {
   const F = CONFIG.FX;
 
   const burst = add([
-    rect(80, 80),
+    rect(F.BURST_SIZE, F.BURST_SIZE),
     pos(center()),
     color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]), // neon-green
     opacity(0.6),
@@ -183,13 +183,13 @@ export function clearBurst() {
     "fx",
   ]);
 
-  // One smooth grow + fade: scale 1 -> 4 while opacity 0.6 -> 0 over BURST_MS, then destroy.
+  // One smooth grow + fade: scale 1 -> BURST_GROW while opacity 0.6 -> 0 over BURST_MS, then destroy.
   tween(
     0,
     1,
     F.BURST_MS / 1000,
     (v) => {
-      const s = 1 + 3 * v;
+      const s = 1 + (F.BURST_GROW - 1) * v;
       burst.scaleTo(s, s);
       burst.opacity = 0.6 * (1 - v);
     },
