@@ -44,7 +44,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 - [x] **Phase 9: Level Build & CC0 Assets** - One polished, completable dark/grunge level with platforms, coins, a hazard, checkpoints, and a goal. (completed 2026-06-25)
 - [x] **Phase 10: Math-Gate Integration (Port the Brain)** - Reaching the goal opens an in-world, forgiving math gate driven by the ported 6–9-weighted brain. (completed 2026-06-26)
 - [x] **Phase 11: Progression & Persistence** - Correct answers earn XP and level her up; XP, level, and practice history persist in the browser and resume on revisit. (completed 2026-06-27)
-- [ ] **Phase 12: Polish, ADHD-Safety & UAT** - Juice, discoverable controls, contrast, no-timer/forgiving audit, and verification with the actual kid.
+- [x] **Phase 12: Polish, ADHD-Safety & UAT** - Juice, discoverable controls, contrast, no-timer/forgiving audit, and verification with the actual kid. (completed 2026-06-28)
 
 ## Phase Details
 
@@ -194,7 +194,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
   4. A no-timer/forgiving audit confirms there are no countdowns anywhere and wrong answers never punish.
   5. Visuals meet readable contrast on the dark theme and effects are not over-stimulating, confirmed in UAT with the kid.
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 **Wave 0**
 
@@ -206,7 +206,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 12-02-PLAN.md — persistent fixed() corner controls hint + 12-UAT.md kid checklist + full safety-suite gate; kid sign-off (SAFE-02, SAFE-03)
+- [x] 12-02-PLAN.md — persistent fixed() corner controls hint + 12-UAT.md kid checklist + full safety-suite gate; kid sign-off (SAFE-02, SAFE-03)
 
 **UI hint**: yes
 
@@ -225,7 +225,7 @@ Dungeon crawler layer: GameFSM, CombatEngine, DungeonRenderer, DungeonRunner, 4 
 | 9. Level Build & CC0 Assets | v3.0 | 3/3 | Complete   | 2026-06-25 |
 | 10. Math-Gate Integration | v3.0 | 3/3 | Complete   | 2026-06-26 |
 | 11. Progression & Persistence | v3.0 | 4/4 | Complete   | 2026-06-27 |
-| 12. Polish, ADHD-Safety & UAT | v3.0 | 2/3 | In Progress|  |
+| 12. Polish, ADHD-Safety & UAT | v3.0 | 3/3 | Complete   | 2026-06-28 |
 
 ## Coverage (v3.0)
 
