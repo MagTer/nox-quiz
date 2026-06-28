@@ -17,6 +17,7 @@
 // onFixedUpdate (RESEARCH Pitfall 1), with onKeyPress/onKeyRelease for press edges.
 
 import { CONFIG } from "./config.js";
+import * as fx from "./fx.js"; // engine-side juice (squash/stretch/dust) — JUICE-01
 
 // Jump keys: arrow-up, space, and W (consistent with the run WASD/arrows scheme).
 const JUMP_KEYS = ["space", "up", "w"];
@@ -28,8 +29,19 @@ export function makePlayer(startX, startY) {
     area(), // collider matches the 16x32 sprite footprint (no transparent padding to tune)
     body({ maxVelocity: CONFIG.MAX_FALL_SPEED }), // gravity + collision + anti-tunnel terminal cap
     opacity(1), // enables the respawn flash (scene tweens player.opacity)
+    scale(1), // VISUAL only — enables squash/stretch via .scaleTo() (JUICE-01); brief small deltas keep area() fair
     "player",
   ]);
+
+  // Land juice (JUICE-01): body().onGround fires when the feet hit the floor — squash
+  // the player and kick up a few dust particles. Both are self-cleaning fx.js transients
+  // (tween().onEnd(destroy), no timer). Registered after the entity exists (engine init
+  // done — globals safe). A closure-local isGrounded() rising-edge in onUpdate below is the
+  // documented fallback if this body config ever misses a landing (RESEARCH Open Q1 / A1).
+  player.onGround(() => {
+    fx.squash(player);
+    fx.dust(player.pos);
+  });
 
   // Game-feel timers — CLOSURE-LOCAL (anti-leak: never module-level), in seconds.
   // coyote: grace window after leaving the ground where a jump still fires.
@@ -58,6 +70,7 @@ export function makePlayer(startX, startY) {
       player.jump(CONFIG.JUMP_FORCE);
       buffer = 0;
       coyote = 0;
+      fx.stretch(player); // JUICE-01: subtle taller/narrower stretch on the jump, eases back
     }
   });
 
