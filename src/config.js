@@ -98,4 +98,35 @@ export const CONFIG = {
     FLASH_SIZE: 36, // px — level-up flash text size
     FLASH_MS: 450, // ms — level-up flash duration (ADHD-safe window; NOT archive's 800)
   },
+
+  // --- Juice / game-feel tuning (Phase 12; Plan 01 consumes — squash/dust/pop/burst) ---
+  // Phase 12 juice tuning — retuned WITH THE KID in UAT (SAFE-03). Every magnitude here
+  // is deliberately subtle, brief, and non-strobing: small scale deltas, short ms windows,
+  // one smooth fade per effect (easeOutQuad, never elastic). BURST_MS (400) stays at or below
+  // the HUD.FLASH_MS (450) feel so the level-clear burst never out-stimulates the level-up flash.
+  FX: {
+    SQUASH_X: 1.15, // unitless — landing squash horizontal scale (wider)
+    SQUASH_Y: 0.85, // unitless — landing squash vertical scale (shorter)
+    SQUASH_MS: 140, // ms — landing squash settle duration (brief)
+    STRETCH_X: 0.9, // unitless — jump stretch horizontal scale (narrower)
+    STRETCH_Y: 1.1, // unitless — jump stretch vertical scale (taller)
+    STRETCH_MS: 120, // ms — jump stretch settle duration (brief)
+    DUST_COUNT: 4, // count — number of dust particles on landing
+    DUST_SIZE: 3, // px — dust particle square size
+    DUST_SPREAD: 8, // px — horizontal spread between dust particles
+    DUST_RISE: 16, // px — how far dust rises before fading out
+    DUST_MS: 300, // ms — dust rise + fade duration
+    POP_SCALE: 1.5, // unitless — coin/collect pop peak scale
+    POP_MS: 220, // ms — coin/collect pop duration (brief)
+    BURST_MS: 400, // ms — level-clear burst duration (<= HUD.FLASH_MS feel; non-strobing)
+  },
+
+  // --- Persistent controls hint (Phase 12; Plan 02 consumes — SAFE-02 always-visible hint) ---
+  // Bottom-left corner, deliberately clear of the top-left HUD badge/bar (HUD.X:16 / HUD.Y:16)
+  // so the always-on "LEFT/RIGHT move · SPACE jump" reminder never overlaps the level/XP UI.
+  HINT: {
+    X: 16, // px — bottom-left anchor X
+    Y: 330, // px — bottom-left anchor Y (near LEVEL_BOTTOM:360, clear of the top HUD)
+    SIZE: 12, // px — hint text size (small, unobtrusive)
+  },
 };
