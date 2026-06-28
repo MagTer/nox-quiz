@@ -212,5 +212,14 @@ export function gameScene(data) {
   // self-destroys on tween().onEnd(destroy), and tagged scene objects are torn down on
   // replay. This sweeps any effect still mid-tween at the moment the scene leaves so none
   // can ever survive a go()/respawn. No timer — a one-shot teardown on the scene-leave event.
-  onSceneLeave(() => destroyAll("fx"));
+  //
+  // WR-03: the player squash/stretch scale tweens (fx.js) are NOT "fx"-tagged objects —
+  // they drive the player's own scale via a handle on player._fxScaleTween — so the
+  // destroyAll("fx") sweep does not reach them. On any future scene leave (play again /
+  // level select) an in-flight scale tween would survive and keep calling scaleTo() on the
+  // now-destroyed player. Cancel it here alongside the sweep so no tween outlives the player.
+  onSceneLeave(() => {
+    destroyAll("fx");
+    if (player.exists() && player._fxScaleTween) player._fxScaleTween.cancel();
+  });
 }
