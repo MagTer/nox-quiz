@@ -146,6 +146,13 @@ export const CONFIG = {
   // A single horizontal row of numbered level tiles, three visual states
   // (locked/unlocked/cleared). No magic numbers in the scene — tile geometry + text
   // sizes read here. Real art is deferred to Phase 18; these are placeholder-but-tunable.
+  //
+  // IN-03 OVERFLOW FLAG (whoever appends level 2+): select.js lays tiles in ONE row at
+  // x = START_X + i * (TILE_W + GAP) with NO wrap. On the 640px internal canvas with the
+  // values below (START_X=120, TILE_W=96, GAP=24), roughly the 5th tile's center already
+  // exceeds the right edge — tiles will silently run off-canvas as LEVEL_ORDER grows. Only
+  // one level exists today so nothing overflows yet. Before adding a 5th+ level, add row
+  // wrapping (or paging) in select.js's tiles.forEach layout, or tighten these constants.
   SELECT: {
     TILE_W: 96, // px — tile width
     TILE_H: 96, // px — tile height
