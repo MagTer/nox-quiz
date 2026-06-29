@@ -57,7 +57,7 @@ import { CONFIG } from "../config.js"; // leaf constants only — CONFIG.BRAIN n
  *   in-memory EWMA accuracy weighting. snapshot() returns shallow copies of accuracy/history
  *   for the loader to persist (one-way export — the brain never reads storage).
  */
-export function createBrain({ seedAccuracy, seedHistory } = {}) {
+export function createBrain({ seedAccuracy, seedHistory, allowedTables } = {}) {
   // Per-game closure state — fresh per createBrain() call (anti-leak contract).
   // EWMA per table; hard tables start lower → higher initial selection weight (archive 667-668).
   const accuracy = {
@@ -217,13 +217,16 @@ export function createBrain({ seedAccuracy, seedHistory } = {}) {
 
   return {
     // Full weighted selection (archive selectNext 1014-1028), reading this brain's
-    // closure accuracy/history. allowedTables is left undefined so all 9 tables are
-    // in play, biased to 6–9 per GATE-02. Return shape: { a, b, answer, choices }
-    // (a=table, b=multiplicand, choices=already-shuffled options including the answer).
-    // The archive's `question:` display string is intentionally dropped — the gate
-    // (Plan 02) builds its own display string from a/b.
+    // closure accuracy/history. When createBrain was given a per-level `allowedTables`
+    // pool it now flows through here so selection is restricted to that pool; when it is
+    // undefined the call is byte-identical to before — all 9 tables in play, biased to
+    // 6–9 per GATE-02 (Phase 13 wiring only; the weighting formulas are LOCKED and the
+    // pool is NOT yet enforced as a difficulty gate — that lands in Phase 16). Return
+    // shape: { a, b, answer, choices } (a=table, b=multiplicand, choices=already-shuffled
+    // options including the answer). The archive's `question:` display string is
+    // intentionally dropped — the gate (Plan 02) builds its own display string from a/b.
     nextQuestion() {
-      const weights = calculateWeights(undefined);
+      const weights = calculateWeights(allowedTables);
       const table = weightedRandom(weights);
       const multiplicand = Math.floor(Math.random() * 10) + 1;
       const answer = table * multiplicand;
