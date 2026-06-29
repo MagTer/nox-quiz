@@ -45,7 +45,10 @@ import { CONFIG } from "./config.js"; // leaf constants — CONFIG.PROGRESS / SA
  *   threshold: (lvl: number) => number,
  *   nextThreshold: () => number,
  *   addXp: (table: number) => boolean,
- *   serialize: (brainSnapshot?: { accuracy?: object, history?: object }) => object
+ *   isLevelCleared: (id: string) => boolean,
+ *   markCleared: (id: string) => void,
+ *   serialize: (brainSnapshot?: { accuracy?: object, history?: object }) =>
+ *     { version: number, xp: number, level: number, accuracy: object, history: object, levels: object }
  * }}
  *   addXp(table) returns true exactly when a level-up occurred. The `xp`/`level`
  *   properties are live getters mirroring getXp()/getLevel() (the headless smoke reads
@@ -177,7 +180,8 @@ export function createProgress(saved) {
 // All three functions are DEFINED, not called, at import time, so importing
 // this module under node (no localStorage) touches no storage API.
 //
-// NO migration: this layer reads/writes ONLY CONFIG.SAVE.KEY (mathlab_platformer_v1).
+// NO migration: this layer reads/writes ONLY CONFIG.SAVE.KEY (the v2 clean-reset key) —
+// CONFIG.SAVE.KEY is the single source of truth, never a hardcoded literal here.
 // The school game's mathlab_save_v1/v2 keys are NEVER touched (CONTEXT lines 35-36).
 // ---------------------------------------------------------------------------
 
@@ -261,7 +265,7 @@ function storageAvailable() {
  * defaults() and NEVER throws into the caller. NO migration — a version mismatch is a
  * fresh start, the old blob is ignored.
  *
- * @returns {{ xp: number, level: number, accuracy: object, history: object }}
+ * @returns {{ xp: number, level: number, accuracy: object, history: object, levels: object }}
  */
 export function loadSave() {
   if (!storageAvailable()) return defaults();
@@ -295,7 +299,7 @@ export function loadSave() {
  * caught + warned, NEVER rethrown — the game loop must not crash on a failed save
  * (archive 888-901, RESEARCH Pattern 2 failure mode 3).
  *
- * @param {object} blob - the { version, xp, level, accuracy, history } save object.
+ * @param {object} blob - the { version, xp, level, accuracy, history, levels } save object.
  */
 export function writeSave(blob) {
   if (!storageAvailable()) return;
