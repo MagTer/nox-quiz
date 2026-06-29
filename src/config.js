@@ -132,6 +132,31 @@ export const CONFIG = {
     BURST_Z: 9993, // z-order — above gate dim (9990), below "LEVEL CLEAR" banner (9994)
   },
 
+  // --- Title scene layout (Phase 14 NAV-01; src/scenes/title.js consumes) ---
+  // Dark-grunge title screen: the centered "Math Lab" wordmark + a press-to-start
+  // prompt below it. No magic numbers live in the scene — every size/offset reads here.
+  // Real art is deferred to Phase 18; these are placeholder-but-tunable sizes.
+  TITLE: {
+    TITLE_SIZE: 64, // px — "Math Lab" wordmark text size (centered)
+    PROMPT_SIZE: 20, // px — "press to start" prompt text size
+    PROMPT_DY: 72, // px — vertical offset of the prompt BELOW the centered title
+  },
+
+  // --- Level-select scene layout (Phase 14 NAV-02; src/scenes/select.js consumes) ---
+  // A single horizontal row of numbered level tiles, three visual states
+  // (locked/unlocked/cleared). No magic numbers in the scene — tile geometry + text
+  // sizes read here. Real art is deferred to Phase 18; these are placeholder-but-tunable.
+  SELECT: {
+    TILE_W: 96, // px — tile width
+    TILE_H: 96, // px — tile height
+    GAP: 24, // px — horizontal spacing between tiles
+    ROW_Y: 180, // px — vertical center of the tile row (screen-space, fixed())
+    START_X: 120, // px — left edge / center anchor X of the first tile in the row
+    LABEL_SIZE: 28, // px — tile number label text size
+    GLYPH_SIZE: 22, // px — lock/check state-glyph text size
+    HEADING_SIZE: 24, // px — "Select a Level" heading text size
+  },
+
   // --- Persistent controls hint (Phase 12; Plan 02 consumes — SAFE-02 always-visible hint) ---
   // Bottom-left corner, deliberately clear of the top-left HUD badge/bar (HUD.X:16 / HUD.Y:16)
   // so the always-on "LEFT/RIGHT move · SPACE jump" reminder never overlaps the level/XP UI.
