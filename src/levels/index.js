@@ -36,5 +36,9 @@ export function getLevel(id) {
 export function isUnlocked(id, progress) {
   const i = LEVEL_ORDER.indexOf(id);
   if (i <= 0) return true; // first level, or unknown id treated as first — always open
+  // Forgiving (mirrors getLevel): a missing/malformed progress means "nothing cleared",
+  // so only the first level is open — never throw on a null/undefined progress. This keeps
+  // the registry immune to the boot-bricking class even once a second level is appended.
+  if (!progress || typeof progress.isLevelCleared !== "function") return false;
   return progress.isLevelCleared(LEVEL_ORDER[i - 1]);
 }
