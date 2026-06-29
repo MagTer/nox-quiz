@@ -92,6 +92,23 @@ grep -q 'scene("select"' "$ROOT/src/main.js" \
 grep -q 'go("title"' "$ROOT/src/main.js" \
   || fail "main.js must boot the title scene (Plan 02): go(\"title\")"
 
+# 1b. CALIBRATION self-test (WR-03) — prove the trap is non-trivial in BOTH directions on
+#     EVERY run, so a future edit that breaks the regex (e.g. a typo making it match nothing)
+#     can never pass silently. The gate is only as trustworthy as this two-sided proof:
+#       RED   — the trap MUST fire on the deliberately-bad fixture (scripts/fixtures/
+#               bad-scene.js), which carries a module-TOP-LEVEL engine call. If it does NOT
+#               fire, the regex is broken and the whole gate is a no-op → FAIL loudly.
+#       GREEN — the trap MUST stay silent on a known-good shipped scene (src/scenes/game.js),
+#               which references engine globals ONLY inside its factory body. A match here
+#               means the trap went over-broad and false-flags legitimate in-body use → FAIL.
+[ -f "$ROOT/scripts/fixtures/bad-scene.js" ] || fail "missing calibration fixture: scripts/fixtures/bad-scene.js"
+node --check "$ROOT/scripts/fixtures/bad-scene.js" || fail "node --check failed (syntax error in scripts/fixtures/bad-scene.js)"
+strip_comments "$ROOT/scripts/fixtures/bad-scene.js" | grep -Eq "$TOPLEVEL_TRAP" \
+  || fail "calibration RED broke: TOPLEVEL_TRAP no longer matches scripts/fixtures/bad-scene.js — the trap regex is broken and the gate would pass silently"
+if strip_comments "$ROOT/src/scenes/game.js" | grep -Eq "$TOPLEVEL_TRAP"; then
+  fail "calibration GREEN broke: TOPLEVEL_TRAP false-matches the shipped src/scenes/game.js — the trap is over-broad and would false-flag legitimate in-body engine use"
+fi
+
 # 2. NEGATIVE — a727c13 module-TOP-LEVEL gate. SCOPED to the scene modules title.js +
 #    select.js ONLY, comment-stripped, anchored to top-level statement forms. game.js and
 #    main.js are deliberately EXCLUDED — they legitimately reference engine globals inside
