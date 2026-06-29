@@ -1,163 +1,143 @@
 # Project Research Summary
 
-**Project:** Math Lab — v3.0 "The Platformer"
-**Domain:** No-build, offline, multi-file browser 2D platformer (Kaplay) with an end-of-stage math gate, for a 12-year-old (possible ADHD)
-**Researched:** 2026-06-22
+**Project:** Math Lab
+**Domain:** Kid's educational 2D platformer (vendored Kaplay 3001, no build step, ADHD-safe)
+**Researched:** 2026-06-28
 **Confidence:** HIGH
 
 ## Executive Summary
 
-v3.0 pivots Math Lab from a quiz app into a real 2D platformer built on **Kaplay 3001.0.19** (the maintained successor to Kaboom.js), with the proven v1/v2 "math brain" (weighted 6–9 multiple-choice selection) **ported verbatim** and wired in as an end-of-stage gate. The expert pattern here is well-established: Kaplay owns the game loop, physics (`body()`/`setGravity()`), sprites, and input; plain ES modules wire the level and bridge to the math brain; CC0 pixel art (Kenney) supplies the dark/grunge visuals. The engine ships as a single vendored file with zero runtime dependencies, preserving the offline guarantee — but the "double-click the HTML file" experience does **not** survive the pivot: ES-module loading and sprite `fetch()` are both blocked over `file://`, so a one-line local static server (`python3 -m http.server`) becomes the mandatory, first-class launch path.
+v4.0 "Content & Challenge" grows the shipped single-level slice into a real, replayable game: 3–5 hand-built levels + a title/level-select shell, math woven *through* each level via four mechanics, a difficulty curve, an art/animation pass, and per-level persistence. The standout research result is **convergence**: four independent researchers (stack, features, architecture, pitfalls) all landed on the same shape — almost nothing here needs new technology, and the four "new" math mechanics are really one mechanic wearing four skins.
 
-The recommended architecture draws a hard firewall: `src/math/` (the ported selector + accuracy/mastery state) imports nothing from Kaplay and stays a pure, testable module; a single `ui/mathGate.js` bridge is the *only* file that touches both worlds. The math gate itself uses a **paused-overlay-within-one-scene** pattern (`world.paused = true` on a parent container) rather than a separate scene — keeping the frozen level visible behind the question avoids the jarring scene-cut/re-spawn that would break the "I'm still in my game" feeling for the target user. Persistence/XP is deliberately deferred to a stubbed seam (`persistence/store.js`) that later costs ~3–5 lines to wire, not a restructure.
+The recommended approach is therefore **reuse-first**: every v4.0 capability (animated sprites, multiple scenes, parallax) is native to the already-vendored Kaplay 3001.0.19; the only true additions are static CC0 art files and new plain-JS data modules. Levels stay as parameterized JS data feeding the validated `buildLevel` (NOT Kaplay `addLevel`, which would undo the merged-floor anti-seam-stick colliders, and NOT Tiled, which needs an external editor/parser). The four math mechanics get one shared `ui/challenge.js` extracted from today's `ui/mathGate.js` (a no-behavior-change refactor), differing only in their `onSolved` world-mutation.
 
-The dominant risks are not performance (scale is one laptop) but **feel and framing**. The math gate must read as a diegetic in-world door/guardian in the game's own palette — never a system quiz popup ("back to homework"), which would defeat the entire pivot. Movement must feel like Mario (coyote time, jump buffering, variable jump height — none free in Kaplay, all hand-coded) and must be `dt()`-correct or it breaks on non-60 Hz displays. Failure must never punish: gentle checkpoint respawn, wrong answers re-ask with zero penalty, no lives, no timers anywhere. Module-level state leaking across `go()`/retries is a classic Kaplay trap that would silently pre-clear the gate on replay. These are all known, documented, and avoidable with discipline established early.
+The two load-bearing risks are both already-burned lessons: the **a727c13 import-time trap** (this milestone adds the most new modules ever — each a fresh chance to blank the game by touching a Kaplay global at module top level) and **save-migration bricking the one returning player** (today's `progress.js` *wipes* on a version bump by design; v4.0 must replace that with an additive migration preserving XP/level/accuracy/history). Both are prevented with established repo patterns (factory functions, function-body-only globals, an import-safety grep, a human-tested migration against a real v3.0 save) plus a mandatory per-phase browser boot.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Vanilla ES modules + a single vendored Kaplay file, served over a trivial local HTTP server. No bundler, no framework, no CDN in the shipped game. Engine choice, art source (CC0), and the ported math brain are already decided; STACK.md documents *how to execute them well* — exact versions, vendoring approach, and asset-loading APIs. Confidence is HIGH: versions were verified directly against the npm registry and jsDelivr file listing.
+Zero new runtime dependencies. Everything ships inside `lib/kaplay.mjs` @ 3001.0.19. "Stack" work is art-vendoring (CC0 sourcing + provenance via the established LICENSES/CREDITS workflow) plus code that consumes already-present engine APIs. Detail in [STACK.md](STACK.md).
 
-**Core technologies:**
-- **Kaplay 3001.0.19** (pinned, vendored `kaplay.mjs`): scenes, `body()`/gravity physics, AABB collision, input, game loop — zero runtime deps, MIT, drops into a no-build offline project. (Avoid v4000-alpha; avoid the dead `kaboom` package.)
-- **Vanilla JS (ES2020+ modules)**: game wiring + the ported `QuestionSelector` — ports in unchanged, clean multi-file split without a bundler.
-- **HTML5 + CSS3**: `index.html` host page mounting the canvas; dark/grunge chrome around it.
-- **`python3 -m http.server`** (or `npx serve`): REQUIRED for local play — browsers block ES modules and sprite fetch over `file://`. This is the canonical run command.
-- **Kenney CC0 pixel-art packs** (asset data, not a dep): default to kenney.nl for uniform CC0 + consistent grid sizes; recolor freely to the dark palette.
+**Core technologies (all native, verified against the vendored bundle + kaplayjs.com):**
+- `loadSprite(name, src, { sliceX, sliceY, anims })` + `.play()/animSpeed/onAnimEnd/flipX` — animated player (idle/run/jump). `loadSpriteSheet` does NOT exist in 3001 (old Kaboom name) — `loadSprite({sliceX,…})` is correct and already used in `main.js`.
+- `scene(name, fn)` / `go(name, data)` / `onSceneLeave` — title + level-select + per-level scenes; the level payload rides the exact `go()` data seam v3.0 already uses for `startX/startY`.
+- `setLayers` / camera (`getCamPos`/`setCamPos`) — parallax/layered background.
+- Plain JS data modules + parameterized `buildLevel` — multi-level authoring with no build step.
+
+**Do NOT add:** bundler, sprite-packer build tool, Tiled, or any external runtime lib. **Pin held at 3001.0.19** — do not upgrade during v4.0 (the `Rect`-class guard and `setCamPos`-not-`camPos` calls are version-coupled).
 
 ### Expected Features
 
-Scope is deliberately tight: **ONE polished level + the end-of-stage math gate.** The bar is "reads as a real game, not a tech demo" measured against her school's Mario-style math platformer.
+Detail in [FEATURES.md](FEATURES.md).
 
-**Must have (table stakes — P1):**
-- Run + jump with gravity/weight, tuned for a satisfying arc
-- Variable jump height, coyote time (~80–120ms), jump buffering (~100–150ms) — the difference between "Mario" and "stiff"; all hand-coded on top of Kaplay
-- Solid platforms, ground, gaps; camera follow clamped to level bounds
-- Visible goal → triggers math gate; clean physics pause for the gate
-- Math gate: paused, in-world framed, 4-choice (ported brain, 6–9 weighted), **no timer**, forgiving on wrong, celebratory on clear
-- Gentle checkpoint respawn (no lives, no XP loss); dark/grunge pixel art, no pink
+**Must have (table stakes):**
+- 3–5 traversable levels selectable from a level-select screen with locked/unlocked + completion marks + resume
+- Math woven mid-level (not only at the goal), always forgiving + no-timer
+- Per-level completion persisted; returning resumes unlocks and XP/level
 
-**Should have (competitive differentiators — P2):**
-- In-world gate framing (guardian/door/rune that "unlocks") — the key differentiator vs a popup
-- Coins (collect + pop), one simple hazard/enemy → gentle respawn
-- Jump/land juice (squash, dust), celebratory level-clear moment
+**Should have (differentiators):**
+- Four math-mechanic skins (door/keys, defeat-enemy, multiple gates, collect-the-answer) over one shared challenge
+- A gentle difficulty curve (easy table pools early → 6–9 deeper; longer/precise platforming later)
+- Animated player, real tileset, parallax background, title screen
 
-**Defer (next milestones — P3+):**
-- Audio (SFX/music — flagged as the biggest "real game" gap once the loop feels good)
-- Double jump; second/third level + level select
-- XP/leveling/persistence migration from v2
-- Richer math mechanics (locked doors, collect-the-answer, defeat-the-enemy)
-
-**Anti-features (explicitly excluded):** lives/game-over, any countdown timer, score/grade/accuracy shaming, instant-death pits, fail-out on wrong answer, leaderboards, pixel-perfect precision platforming. These encode the punishment loop the ADHD/no-pressure mandate forbids.
+**Anti-features (deliberately NOT built — load-bearing for this user):**
+- No timers/countdowns, no lives/game-over, no wrong-answer penalty, no contact-damage enemies, no losable stars/streaks, no leaderboards, no pink.
 
 ### Architecture Approach
 
-A NEW Kaplay game shell wraps the PORTED, framework-agnostic math brain, joined by a single bridge file. The math module never imports Kaplay; `ui/mathGate.js` is the one auditable integration point. The end-of-stage gate uses a paused overlay (parent-container `world.paused = true`) so the level stays visible behind the question — no scene teardown, no re-spawn, no context loss. Persistence exists from day one as a no-op stub so wiring it later is "fill in the file."
+Reuse the single-scene spine; add scenes and data, not new mechanisms. Detail in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 **Major components:**
-1. `main.js` + `assets.js` (NEW) — `kaplay()` init, centralized asset loading, scene registration
-2. `scenes/game.js` + `entities/*` + `levels/level1.js` (NEW) — the one playable level via string tile-map, player/platform/goal as Kaplay ECS component factories
-3. `ui/mathGate.js` (NEW glue) — the ONLY bridge; paused overlay, calls `selectNext`, records `updateAccuracy`, resumes/advances with deferred `wait(0,...)` unpause
-4. `math/{config,playerState,questionSelector}.js` (PORTED verbatim) — pure ES modules; minimal port = selector + CONFIG + accuracy/mastery half of PlayerState
-5. `persistence/store.js` (DEFERRED stub) — no-op seam; later ~3–5 lines to wire
+1. **Save migration (additive v1→v2)** in `progress.js` — preserve xp/level/accuracy/history, add a `levels:{}` cleared-map; *derive* unlocked from `LEVEL_ORDER`. Pure module, no a727c13 risk.
+2. **Level registry + data format** — `levels/index.js` (`LEVEL_ORDER`), `levels/level-0N.js` (plain data), `levels/build.js` (parameterized builder extending `level.js`). Pure.
+3. **Multi-scene shell** — `scenes/title.js`, `scenes/select.js`; `game.js` parametrized by `levelId` via `go(name,data)`. Engine-touching → cancel controllers on `onSceneLeave`.
+4. **Shared challenge seam** — extract `ui/challenge.js` from `mathGate.js`; `mathGate.js` becomes a one-line caller; re-point `check-gate.sh`. No-behavior-change refactor that MUST precede the mechanics.
+5. **Four mechanics** as level-data fields the builder emits, each a forgiving `onSolved` world-mutation. Door first (proves seam); defeat-enemy is the same impl with art; multiple-gates generalizes the `goalReached` latch; collect-the-answer renders `q.choices` in world-space.
+6. **Difficulty** — per-level `allowedTables` pool passed into `createBrain(...)`; never touch the LOCKED weighting. Platforming knobs in level data.
+7. **Art/animation + parallax** — presentation, deferrable to near-last so the game validates on placeholders; keep all Kaplay refs in function bodies (a727c13).
+
+`math/brain.js` stays LOCKED and untouched.
 
 ### Critical Pitfalls
 
-1. **`file://` CORS asset failure** — sprites silently never load when double-clicked. Mandate a local server; add a `location.protocol === 'file:'` guard with a friendly message. Establish this in P1 before any assets exist.
-2. **Kaplay/Kaboom version churn** — mixed-vintage snippets throw `is not a function`. Pin 3001.0.19, comment source+version atop the vendored file, code against that version's docs only.
-3. **Module-level state leaks across `go()`/retries** — score/question-index/gate-cleared flags carry over, pre-clearing the gate on replay. Initialize all run state *inside* scene callbacks; pass data via `go(name, data)`; expose `reset()`.
-4. **Math gate reads as a punishing quiz popup** — the path of least resistance (reuse the v2 modal) defeats the pivot. Build a NEW in-world gate in the game's font/palette, avatar visible; reuse only the brain.
-5. **Frame-rate-dependent movement** — `pos.x += speed` runs 2× fast on a 120Hz laptop. Use `body()`/`vel` (time-based) or multiply manual movement by `dt()`; verify on a throttled/non-60Hz display.
+Top items from [PITFALLS.md](PITFALLS.md):
 
-(Moderate/minor: floaty jump feel, tile-seam stick/tunneling, progress loss on death, over-stimulation, undiscoverable controls, dark-theme contrast, camera jitter, CC0 license verification, sprite-atlas misconfig.)
+1. **a727c13 recurrence (#1 risk)** — most new modules ever; each can blank the game via a top-level Kaplay global. Prevent with factory functions, function-body-only globals, a `check-import-safety.sh` grep, and a mandatory per-phase browser boot.
+2. **Multi-scene state/controller/tween leaks** — invisible in v3.0's single scene; with title→select→level→gate transitions they surface as double-input, pre-solved levels, calls on destroyed objects. Cancel controllers on `onSceneLeave`; factory closures, not module-level `let`.
+3. **Math mechanics drifting into punishment** — every "natural" default (keys consumed on wrong, wrong pickup damages, enemy deals damage) violates the mandate. Route all four through ONE shared forgiving (re-ask only, no timer, no losing branch) contract; grep- + UAT-enforced per mechanic.
+4. **Save migration bricking the returning player** — additive, versioned migration; human-test against a real v3.0 save fixture.
+5. **Over-stimulation creep** from richer art + parallax + enemies + difficulty — keep the ≤400–500ms flash cap, slow/muted camera-tied (non-timer) parallax, gentle difficulty ramp via table pools only.
 
 ## Implications for Roadmap
 
-The four research files converge on an explicit, dependency-driven 5-phase shape (ARCHITECTURE.md's build order and PITFALLS.md's phase mapping agree on it). Recommended structure:
+Suggested phase structure (the convergent build-order spine):
 
-### Phase 1: Project Setup & Local Serving
-**Rationale:** Riskiest infra step; unblocks everything. The `file://` and version-pinning pitfalls bite before any game code exists.
-**Delivers:** `index.html` + vendored `lib/kaplay.mjs` (pinned 3001.0.19, version-commented) + `main.js` booting an empty `scene("game")` that draws "hello", confirmed running via `python3 -m http.server`. A `file://` protocol guard message.
-**Avoids:** Pitfall 1 (`file://` CORS), Pitfall 2 (version churn).
+### Phase 1: Save migration + level registry/data format
+**Rationale:** The two highest-leverage, lowest-risk, *pure* (no a727c13) pieces; the spine everything else consumes.
+**Delivers:** additive v1→v2 save migration (XP/level/history preserved + `levels:{}` map) and the level-registry + parameterized builder.
+**Avoids:** save-bricking pitfall; sets the data shape before any scene work.
 
-### Phase 2: Platformer Core (Movement / Physics / Camera)
-**Rationale:** The intrinsically-fun spine everything decorates; establishes dt-correct movement and scene-state discipline before tuning.
-**Delivers:** Player `body()`+`area()`, gravity, run/jump (Arrows AND WASD, Space+Up), variable jump height + coyote time + jump buffering, smoothed camera follow, gentle-respawn policy.
-**Uses:** Kaplay `body()`/`setGravity()`/`isGrounded()`/`setCamPos`.
-**Implements:** `entities/player.js` component factory.
-**Avoids:** Pitfall 5 (dt), Pitfall 6 (floaty jump), Pitfall 12 (camera jitter), state-leak discipline groundwork.
+### Phase 2: Multi-scene shell (title + level-select) + game.js parametrized by levelId
+**Rationale:** Establishes the factory + closure-state + controller-cancel + import-safety contracts everything inherits once there are multiple scenes.
+**Delivers:** title screen, level-select (locked/unlocked/complete/resume), `go("game",{levelId})`.
+**Avoids:** multi-scene leak pitfalls; first place the a727c13 trap can resurface.
 
-### Phase 3: Level Build & CC0 Assets
-**Rationale:** Depends on core movement; validates asset/atlas handling and collider layout.
-**Delivers:** `assets.js` centralized loads, CC0 pack chosen + recolored dark (no pink), `levels/level1.js` string tile-map via `addLevel()`, one polished completable level with goal, coins, one hazard, checkpoints; CREDITS/LICENSES file.
-**Uses:** `loadSpriteAtlas`, Kenney CC0 packs.
-**Avoids:** Pitfall 7 (merge floor colliders, cap fall speed), Pitfall 9 (one short level, subtle effects), Pitfall 11 (contrast), Pitfall 13 (CC0 verification), Pitfall 14 (atlas config).
+### Phase 3: Shared challenge-seam extraction + the door mechanic (P1)
+**Rationale:** A no-behavior-change refactor that MUST precede the other mechanics; door proves the seam end-to-end.
+**Delivers:** `ui/challenge.js` (with `mathGate.js` as a caller), `check-gate.sh` re-pointed, one mid-level locked-door gate.
 
-### Phase 4: Math-Gate Integration (Port the Brain)
-**Rationale:** The milestone's keystone. Joins the ported brain (which can be ported in parallel with P2–P3, zero game dependency) to the level via the single bridge.
-**Delivers:** `math/*` ported verbatim as pure modules; `ui/mathGate.js` paused-overlay gate — goal collision → `world.paused = true` → in-world question (4 choices, no timer) → `updateAccuracy` → deferred unpause; forgiving wrong-answer re-ask; persistence seam stub confirmed as one-liners.
-**Implements:** the math firewall + bridge; deferred persistence seam.
-**Avoids:** Pitfall 3 (state leaks), Pitfall 4 (quiz-popup framing), Anti-pattern of modifying the tuned algorithm.
+### Phase 4: Remaining three mechanics + difficulty curve
+**Rationale:** Once the seam is proven, defeat-enemy (same impl + art), multiple-gates (per-gate latch), and collect-the-answer (world-space choices) are additive; difficulty via per-level `allowedTables`.
+**Delivers:** all four mechanics usable as level-data fields; easy-pool early levels → 6–9 deeper.
 
-### Phase 5: Polish, ADHD-Safety & UAT
-**Rationale:** Last; depends on all. Feel and framing are validated only with the actual kid.
-**Delivers:** dark/grunge styling pass, jump-feel tuning with the kid, control-hint discoverability, no-timer/forgiving-loop audit, the "Looks Done But Isn't" checklist run on the target Windows laptop.
-**Avoids:** confirms Pitfalls 4, 6, 8, 9, 10, 11, 12 are actually resolved in front of the user.
+### Phase 5: Build out the 3–5 levels
+**Rationale:** With mechanics + builder ready, author the actual content on the validated movement/collider spine.
+**Delivers:** 3–5 polished, completable levels with a difficulty ramp, wired into the registry/select.
+
+### Phase 6: Art/animation + parallax pass
+**Rationale:** Presentation deferred to near-last so gameplay validates on placeholders first; pure-ish but engine-touching (a727c13 discipline).
+**Delivers:** animated player (idle/run/jump), real tileset, parallax background, title art.
+
+### Phase 7: Polish + consolidated kid-UAT
+**Rationale:** Re-run the full ADHD-safety audit across all new mechanics + art; feel/contrast validated only with the kid.
+**Delivers:** extended `check-safety.sh`/`check-import-safety.sh` green, kid sign-off.
 
 ### Phase Ordering Rationale
-- **Infra-first:** the offline/server/version risks are cheapest to fix before code exists and would otherwise produce false "it's broken" panic on the target machine.
-- **Movement before level before gate:** collision is the spine — gaps, coins, hazards, and goal are all `area()` interactions atop `body()` movement; the gate depends on a working goal + a clean pause.
-- **Math port parallelizable:** P4's port (step 5 in ARCHITECTURE.md) has zero dependency on the shell and can run alongside P2–P3; P4's bridge is the join point.
-- **Feel/safety last and with the kid:** the ADHD-friendliness and game-feel levers are iterative and only verifiable in UAT.
+- Pure/low-risk spine (migration, registry) first; refactor (challenge seam) before the features that depend on it; content after mechanics; art near-last so logic validates on placeholders; UAT last (feel is user-validated).
+- Each phase ends with a real browser boot, not just greps (the a727c13 lesson).
 
 ### Research Flags
-
-Phases likely needing deeper research during planning:
-- **Phase 2:** Coyote time / jump buffering / variable jump height are NOT built into Kaplay `body()` — implementation patterns are decades-stable but engine-specific wiring should be spiked. Collision edge cases (seams/tunneling) are MEDIUM-confidence (Kaplay collision module still maturing) — worth a small stress-test plan.
-- **Phase 4:** The paused-overlay pause-ordering gotcha (`wait(0,...)` deferred unpause) and the exact minimal port surface of PlayerState warrant a focused read of the actual `math-lab.html` source during planning.
-
-Phases with standard, well-documented patterns (skip research-phase):
-- **Phase 1:** Vendoring + static server is fully documented in STACK.md.
-- **Phase 3:** Asset loading + string tile-map levels are HIGH-confidence official-doc territory.
+- **Art/animation phase:** exact `sliceX/sliceY/anims` frame layout unknown until the CC0 pack is picked — resolve at sourcing time; per-asset license must be re-verified at download (a CC-BY-SA coin was caught mislabeled in v3.0).
+- **Save-migration phase:** capture or hand-construct a representative real v3.0 localStorage save fixture for the human test.
+- Standard patterns (lighter research): level-data authoring, multi-scene navigation — both extend verified v3.0 seams.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Versions verified directly against npm registry + jsDelivr file listing + official kaplayjs.com docs. |
-| Features | HIGH (platformer) / MEDIUM (ADHD framing) | Platformer conventions decades-stable and cross-verified; ADHD-friendly specifics are established principles but individual response varies — verify in UAT. |
-| Architecture | HIGH | Pattern grounded in official Kaplay scene/pause docs + direct read of the v1/v2 math brain source. |
-| Pitfalls | HIGH / MEDIUM | HIGH on version/CORS/scenes/game-feel/licensing; MEDIUM on Kaplay collision edge cases (less-documented, maturing module). |
+| Stack | HIGH | All APIs verified against the vendored 3001.0.19 bundle + kaplayjs.com; zero new deps |
+| Features | HIGH | Mechanics map to one proven gate; anti-features grounded in explicit constraints |
+| Architecture | HIGH | Extends verified v3.0 seams (`go()` data, mathGate, progress versioning) |
+| Pitfalls | HIGH (MEDIUM for over-stimulation) | From this repo's burned-in lessons; ADHD response varies — verify in kid-UAT |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
-- **Game feel is iterative, not specified:** exact gravity/jump-impulse/coyote/buffer values must be tuned with the actual kid in P5 — budget explicit tuning time; treat ranges from research as starting points only.
-- **ADHD response is individual:** the no-timer/forgiving/low-stimulation principles are sound but must be confirmed via UAT (P5), not assumed.
-- **Kaplay collision robustness (MEDIUM):** build a long-flat-run + fast-drop stress strip early (P2/P3) to surface seam-stick/tunneling before the real level is built.
-- **Minimal port surface:** confirm exactly which PlayerState methods `selectNext` depends on by re-reading `math-lab.html` during P4 planning (research says selector + CONFIG + accuracy/mastery half + keep `toJSON/fromJSON`).
-- **Audio deferred but flagged:** silence noticeably weakens the "real game" feel; revisit immediately after the loop validates.
+- Exact sprite-sheet frame layouts: resolve when the art pack is chosen early in the art phase.
+- Real v3.0 save fixture for migration testing: capture from the live game or hand-construct.
+- Star/completion third criterion: must be non-punishing (recommend all-coins, never "no respawns") — decide in requirements.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- npm registry `registry.npmjs.org/kaplay` + jsDelivr `data.jsdelivr.com/.../kaplay@3001.0.19` — verified `latest`=3001.0.19, real dist files (`kaplay.js`/`.mjs`/`.cjs`, no `.min.js`), MIT.
-- kaplayjs.com docs — install (global/ESM/npm; local server needed), physics (`body`/`setGravity`/`isStatic`/`isGrounded`), scenes (`go`/`stay`/"destroys all objects"), pausing (`obj.paused`, deferred-unpause `wait(0,...)`), `loadSprite`/`loadSpriteAtlas`/`addLevel`.
-- `math-lab.html` (this repo) — QuestionSelector / PlayerState / CONFIG / PersistenceStore source of truth for the port.
-- `.planning/PROJECT.md` v3.0 — scope, ADHD/no-pressure mandate, deferred roadmap, out-of-scope.
-- kenney.nl/support + Pixel Platformer — CC0 1.0, 18×18 tiles, packed sheet, logo reserved.
-- MDN — `file://` CORS errors; W3C/MDN form + CSS references.
+- Vendored `lib/kaplay.mjs` @ 3001.0.19 — animation/scene/layer/camera API verified directly
+- kaplayjs.com — loadSprite, SpriteComp, addLevel, setLayers docs
 
 ### Secondary (MEDIUM confidence)
-- GMTK "Coyote Time and Jump Buffering" + GameMaker/Godot/Roblox community resources — game-feel consensus (treated HIGH for decades-stable mechanics).
-- JSLegendDev "Kaboom is now Kaplay" / "Kaplay in 5 Minutes" — ECS + version-relation overview.
-- BOIA ADHD-Friendly Web Design — low-stimulation / no-timer principles.
-
-### Tertiary (LOW confidence)
-- Kaplay GitHub issue #671 (sprite-slicing bug) — single-source caveat for atlas config; validate during P3.
-- itch.io CC0 tags — community-applied, must be verified per-pack against the pack's own license page.
+- OpenGameArt CC0 listings — animated character, parallax backgrounds, enemies (licenses re-verify per asset)
+- Game UI Database / level-select design references; ADHD-friendly math-game guidance (Monster Math, ADDitude)
 
 ---
-*Research completed: 2026-06-22*
+*Research completed: 2026-06-28*
 *Ready for roadmap: yes*
