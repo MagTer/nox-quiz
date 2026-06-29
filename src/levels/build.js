@@ -1,0 +1,114 @@
+// src/levels/build.js — the ONE parameterized builder that instantiates a level.
+//
+// Single responsibility: take a level DESCRIPTOR (see ./level-01.js) and turn its
+// `geometry` into the level BODY — merged-floor + platform static colliders with
+// separate visual-only tiles, plus the tagged coin/spike/goal area() entities. It
+// does NOT wire any onCollide handlers and does NOT count coins (the scene owns
+// those), and it does NOT build checkpoints (those live in geometry and the scene
+// reads them). The optional mechanics/theme/parallax descriptor slots are ignored
+// here when unset.
+//
+// Engine globals (add, sprite, rect, pos, area, body, play, vec2, Rect) come from
+// Kaplay `global: true` — do NOT import them; they are referenced ONLY inside the
+// buildLevel body (after kaplay init). The ONLY import is ../config.js — this file
+// lives in src/levels/, so the config sibling is TWO dirs up (`../`).
+//
+// INVARIANTS this module upholds (carried from Phase 8/9, lifted verbatim from the
+// v3.0 src/level.js buildLevel):
+//   - Merged-floor collider: each contiguous floor RUN gets ONE wide
+//     body({ isStatic: true }) collider; floor TILES are drawn as separate
+//     visual-only sprites with NO area()/body() (anti seam-stick, Pitfall 2).
+//   - Colliders are thick (CONFIG.FLOOR_THICKNESS) so full-speed drops cannot
+//     tunnel through them (Pitfall 3). Do NOT switch to per-tile colliders or
+//     Kaplay addLevel — that reintroduces the seam-stick the merge fixed.
+//   - buildLevel OWNS creation of the tagged coin/spike/goal area() entities so the
+//     scene can attach onCollide handlers. Spikes get a TIGHTENED area({ shape,
+//     offset }) hitbox here — definitively, not deferred (Pitfall 4).
+
+import { CONFIG } from "../config.js";
+
+const T = CONFIG.TILE_SIZE; // 16px — floor visual-tile grid step (pure config read, safe at top level)
+const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run (pure config read, safe at top level)
+
+// buildLevel(levelData) instantiates the level body from a descriptor's geometry.
+//
+// It creates: (1) merged-floor + platform static colliders with separate visual
+// tiles, and (2) the tagged coin/spike/goal area() entities. It does NOT wire any
+// onCollide handlers, does NOT count coins, and does NOT build checkpoints.
+export function buildLevel(levelData) {
+  // Fail-loud guard for the one fragile global, checked at USE time (after kaplay
+  // init), NOT at module top level. `Rect` is a CLASS global (not a factory like
+  // `rect`), used below for the tightened spike hitbox; a Kaplay bump / global:false
+  // toggle would otherwise turn `new Rect(...)` into a silent mid-build
+  // ReferenceError. The guard MUST stay inside this body — ES imports are hoisted
+  // and evaluated BEFORE kaplay({ global }) runs in main.js, so a top-level check
+  // would always throw at import and blank the game on every load (a727c13).
+  if (typeof Rect === "undefined") {
+    throw new Error(
+      "build.js: Kaplay global `Rect` is missing — check kaplay({ global }) / engine version",
+    );
+  }
+
+  const g = levelData.geometry;
+
+  // --- Solid floor runs: ONE merged collider per run + separate visual tiles ---
+  for (const run of g.floors) {
+    // Merged wide static collider for the WHOLE run (fewer seams to stick on —
+    // anti seam-stick, Pitfall 2). Thick enough to resist tunneling (Pitfall 3).
+    add([
+      rect(run.w, CONFIG.FLOOR_THICKNESS),
+      pos(run.x, FLOOR_Y),
+      area(),
+      body({ isStatic: true }),
+      "ground",
+    ]);
+
+    // Visual-only floor tiles across the run — NO area()/body() (the merged
+    // collider above is the only physics body for this run).
+    for (let tx = run.x; tx < run.x + run.w; tx += T) {
+      add([sprite("ground"), pos(tx, FLOOR_Y)]);
+    }
+  }
+
+  // --- Raised platforms: same merged-collider idiom + visual tiles on top ---
+  for (const p of g.platforms) {
+    add([
+      rect(p.w, p.h),
+      pos(p.x, p.y),
+      area(),
+      body({ isStatic: true }),
+      "ground",
+    ]);
+    for (let tx = p.x; tx < p.x + p.w; tx += T) {
+      add([sprite("ground"), pos(tx, p.y)]);
+    }
+  }
+
+  // --- Coins (REQUIRED — buildLevel owns creation; tag + area() so the scene wires) ---
+  for (const c of g.coins) {
+    const coin = add([sprite("coin"), pos(c.x, c.y), area(), "coin"]);
+    coin.play("spin"); // looping spin anim registered in main.js loadSprite
+  }
+
+  // --- Spikes (REQUIRED — tightened hitbox set HERE, Pitfall 4, NOT deferred) ---
+  // The visible spike points occupy the upper-middle of the 16px tile; a full-tile
+  // collider would kill the player from the empty top/sides (unfair). Shrink the
+  // collider to SPIKE_HITBOX_W x SPIKE_HITBOX_H and offset it down-centered onto
+  // the points so only a real touch on the spikes triggers a respawn.
+  const spikeOffX = (CONFIG.SPIKE_SIZE - CONFIG.SPIKE_HITBOX_W) / 2; // center horizontally
+  const spikeOffY = CONFIG.SPIKE_SIZE - CONFIG.SPIKE_HITBOX_H; // drop to the lower points
+  for (const s of g.spikes) {
+    add([
+      sprite("spike"),
+      pos(s.x, s.y),
+      area({
+        shape: new Rect(vec2(0), CONFIG.SPIKE_HITBOX_W, CONFIG.SPIKE_HITBOX_H),
+        offset: vec2(spikeOffX, spikeOffY),
+      }),
+      "spike",
+    ]);
+  }
+
+  // --- Goal (REQUIRED — tag + area() so the scene wires onReachGoal) ---
+  add([sprite("goal"), pos(g.goal.x, g.goal.y), area(), "goal"]);
+}
