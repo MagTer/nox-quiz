@@ -56,13 +56,19 @@ strip_comments() { sed -E 's://.*$::' "$1"; }
 ENGINE_GLOBALS='add|scene|go|loadSprite|loadSound|play|text|rect|sprite|circle|vec2|rgb|color|pos|anchor|scale|rotate|outline|fixed|z|opacity|area|body|move|offscreen|center|setGravity|getGravity|camPos|camScale|shake|destroy|destroyAll|wait|loop|tween|onKeyPress|onKeyDown|onKeyRelease|onClick|onMousePress|onUpdate|onDraw|onCollide|onHide|onShow|onSceneLeave|onAdd|onDestroy|drawRect|drawText|drawSprite|addLevel'
 
 # The module-TOP-LEVEL a727c13 trap pattern (anchored — used by Section 2 and the
-# calibration). Two forms:
+# calibration). Three forms:
 #   (a) a column-0 (const|let|var) declaration whose initializer references an engine
 #       global — `const banner = add(...)`, `const W = center()`, `let g = go;`.
-#   (b) a top-level `typeof <engine-symbol>` guard.
+#   (b) a column-0 BARE engine-call STATEMENT — `add([...]);`, `go("select");`,
+#       `onKeyPress("space", …)` left at module scope rather than inside the factory.
+#       This is the single most natural a727c13 regression (a copy-pasted add()/go() left
+#       at module level, result unassigned) and was previously UNCAUGHT (WR-01). Because
+#       the engine name must START the line, a method call `obj.add(` and a definition
+#       `function add(` (both begin with another token at column 0) can never match.
+#   (c) a top-level `typeof <engine-symbol>` guard.
 # Anchored to ^ (column 0 / leading blanks for the typeof form) so an INDENTED in-body
-# call is never matched. The factory alternation now reads from ENGINE_GLOBALS (WR-02).
-TOPLEVEL_TRAP="^(const|let|var)[^=]*=[^=]*\\b(${ENGINE_GLOBALS})\\b|^[[:space:]]*typeof (${ENGINE_GLOBALS})\\b"
+# call is never matched. All three forms read their symbol set from ENGINE_GLOBALS (WR-02).
+TOPLEVEL_TRAP="^(const|let|var)[^=]*=[^=]*\\b(${ENGINE_GLOBALS})\\b|^(${ENGINE_GLOBALS})\\(|^[[:space:]]*typeof (${ENGINE_GLOBALS})\\b"
 
 # 0. Existence + syntax gate for each module this shell is built from.
 #    Guarded so a missing/syntax-broken file produces a clear FAIL, not a raw bash error.
