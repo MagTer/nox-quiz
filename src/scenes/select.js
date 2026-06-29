@@ -1,0 +1,174 @@
+// src/scenes/select.js — the level-select scene (Phase 14 NAV-02).
+//
+// Composes three proven idioms: the scene-factory shell (src/scenes/game.js:31),
+// the in-scene canvas-UI draw (src/ui/hud.js:56), and the dual-input + boxes-array
+// recolor pattern (src/ui/mathGate.js:108-159). It reads the level registry +
+// progression FRESH on every entry (NAV-04 clean state), renders every LEVEL_ORDER
+// level in three visually distinguishable states (locked/unlocked/cleared), and lets
+// ONLY unlocked tiles reach go("game", { levelId }) via keyboard cursor or mouse click.
+//
+// ENGINE-GLOBAL DISCIPLINE (a727c13 — mirror src/ui/hud.js:8-12 / game.js:16-18):
+// EVERY Kaplay primitive (add, text, rect, color, outline, rgb, pos, anchor, center,
+// fixed, z, go) is referenced ONLY inside the factory body. They exist only AFTER
+// kaplay() runs — a module-TOP-LEVEL reference would throw at import and blank the
+// canvas. Module scope here is limited to imports and plain color-array literals.
+//
+// IN-WORLD, NOT THE DOM (CLAUDE.md canon): every visual is a Kaplay canvas object
+// (text()/rect()) — no markup-string sink, so no injection path. The scene NEVER reads
+// browser storage directly: it goes through the guarded loadSave()->createProgress()
+// seam (progress.js), which defaults forgivingly and never throws.
+//
+// ONE SOURCE OF TRUTH (RESEARCH Pitfall 2 / levels/index.js:5-7): unlock is DERIVED
+// via isUnlocked(id, progress) — the scene NEVER computes or stores its own "unlocked"
+// boolean. Cleared is read via progress.isLevelCleared(id) (strict === true).
+//
+// ANTI-LEAK: the cursor index is a CLOSURE-LOCAL `let`, never a module-level let. Tiles
+// are tagged "select" so go() teardown wipes them. Plain nav controllers (onKeyPress /
+// obj-scoped onClick) are auto-cleared by go() in Kaplay 3001 — this scene never persists
+// objects across go(), and needs no manual controller cancel (RESEARCH Pattern 6).
+//
+// scenes/ is one directory below src/, so sibling imports use `../`.
+
+import { CONFIG } from "../config.js";
+import { LEVEL_ORDER, isUnlocked } from "../levels/index.js";
+import { createProgress, loadSave } from "../progress.js";
+
+// Dark-grunge palette per CLAUDE.md (NO pink). Plain data literals — safe at module
+// scope because they call no engine global (a727c13).
+const ACCENT_GREEN = [0x00, 0xff, 0x88]; // unlocked tile + cursor highlight
+const LOCKED_GREY = [0x44, 0x44, 0x44]; // locked tile (dimmed, not selectable)
+const CLEARED_BLUE = [0x66, 0xcc, 0xff]; // cleared tile check-mark (distinct from accent)
+const LABEL_FG = [0xe8, 0xe8, 0xe8]; // tile number + heading text (#e8e8e8, ~18:1)
+const CURSOR_BORDER = [0x00, 0xff, 0x88]; // cursor outline color (accent)
+
+/**
+ * selectScene — NAV-02. Read registry + progress fresh, render three-state tiles,
+ * and route only unlocked tiles to go("game", { levelId }) via dual input.
+ *
+ * @param {object} [data] go() payload (unused here; kept for the factory contract).
+ */
+export function selectScene(data) {
+  const S = CONFIG.SELECT;
+
+  // --- Fresh derived read every entry (NAV-04 clean state) ---
+  // loadSave() is guarded (defaults under blocked/foreign storage, never throws);
+  // createProgress() is a pure factory (no module-level state). Build a tile model
+  // mapping LEVEL_ORDER → { id, i, state } where state is derived, never stored.
+  const progress = createProgress(loadSave());
+  const tiles = LEVEL_ORDER.map((id, i) => {
+    const cleared = progress.isLevelCleared(id); // strict === true
+    const unlocked = isUnlocked(id, progress); // DERIVED — one source of truth
+    const state = cleared ? "cleared" : unlocked ? "unlocked" : "locked";
+    return { id, i, state };
+  });
+
+  // Heading.
+  add([
+    text("Select a Level", { size: S.HEADING_SIZE }),
+    anchor("center"),
+    pos(center().x, S.ROW_Y - S.TILE_H),
+    color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+    fixed(),
+    z(9000),
+    "select",
+  ]);
+
+  // --- Render one numbered tile per LEVEL_ORDER entry, three distinguishable states ---
+  // Keep tile refs (the rect objects) so the keyboard cursor can recolor a highlight.
+  // LOCKED = dim grey + lock glyph, NOT selectable (no click handler, skipped by cursor).
+  // UNLOCKED = bright accent, selectable. CLEARED = a check/done mark.
+  const tileBoxes = []; // parallel to `tiles`; holds the rect entity per tile
+  tiles.forEach((t) => {
+    const x = S.START_X + t.i * (S.TILE_W + S.GAP);
+    const y = S.ROW_Y;
+
+    const fillColor =
+      t.state === "locked"
+        ? LOCKED_GREY
+        : t.state === "cleared"
+          ? CLEARED_BLUE
+          : ACCENT_GREEN;
+
+    const box = add([
+      rect(S.TILE_W, S.TILE_H),
+      anchor("center"),
+      pos(x, y),
+      color(fillColor[0], fillColor[1], fillColor[2]),
+      outline(2, rgb(CURSOR_BORDER[0], CURSOR_BORDER[1], CURSOR_BORDER[2])),
+      fixed(),
+      z(9000),
+      "select",
+      { idx: t.i },
+    ]);
+    tileBoxes.push(box);
+
+    // Tile number label (1-based for the kid).
+    add([
+      text(String(t.i + 1), { size: S.LABEL_SIZE }),
+      anchor("center"),
+      pos(x, y),
+      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      fixed(),
+      z(9001),
+      "select",
+    ]);
+
+    // State glyph: lock for locked, check for cleared (drawn below the number).
+    const glyph = t.state === "locked" ? "X" : t.state === "cleared" ? "v" : "";
+    if (glyph) {
+      add([
+        text(glyph, { size: S.GLYPH_SIZE }),
+        anchor("center"),
+        pos(x, y + S.TILE_H / 2 - S.GLYPH_SIZE),
+        color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+        fixed(),
+        z(9001),
+        "select",
+      ]);
+    }
+
+    // Mouse path: ONLY unlocked/cleared (i.e. unlocked) tiles get a click handler.
+    // Locked tiles get NO handler and are never selectable (NAV-02). Object-scoped
+    // onClick is auto-cleaned when the tile is destroyed on go() teardown.
+    if (t.state !== "locked") {
+      box.onClick(() => go("game", { levelId: t.id }));
+    }
+  });
+
+  // --- Keyboard cursor among UNLOCKED tiles only (locked are skipped) ---
+  // The list of selectable indices into `tiles`. CLOSURE-LOCAL (anti-leak: never a
+  // module-level let). If nothing is selectable the cursor stays null and Enter no-ops.
+  const selectable = tiles
+    .filter((t) => t.state !== "locked")
+    .map((t) => t.i);
+  let cursor = selectable.length > 0 ? 0 : -1; // index INTO `selectable`
+
+  // Recolor the cursor highlight: the active tile gets a bright outline, others a
+  // muted one. Pure recolor — no new objects (anti-leak), reuses the kept refs.
+  function paintCursor() {
+    tileBoxes.forEach((box, i) => {
+      const isActive = cursor >= 0 && selectable[cursor] === i;
+      const w = isActive ? 5 : 2;
+      box.outline.width = w;
+    });
+  }
+  paintCursor();
+
+  function moveCursor(delta) {
+    if (selectable.length === 0) return;
+    cursor = (cursor + delta + selectable.length) % selectable.length;
+    paintCursor();
+  }
+
+  function playCursor() {
+    if (cursor < 0) return; // nothing selectable
+    const levelId = tiles[selectable[cursor]].id;
+    go("game", { levelId }); // the ONLY cross-scene handoff
+  }
+
+  // Dual-input nav controllers, registered INSIDE the body so go() tears them down.
+  // Plain app-bus nav controllers are auto-cleared by go() in Kaplay 3001 (Pattern 6).
+  onKeyPress("left", () => moveCursor(-1));
+  onKeyPress("right", () => moveCursor(+1));
+  onKeyPress("enter", () => playCursor());
+}
