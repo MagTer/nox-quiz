@@ -14,14 +14,18 @@
 //
 // Run from the repo root:  node scripts/smoke-progress.mjs
 //
-// EXPECTED until Wave 1–2 land: the `import` of ../src/progress.js throws (module does not
-// exist yet), so this exits non-zero — a real harness, not a no-op. It turns green once
-// src/progress.js (createProgress/serialize) and the extended brain (snapshot/seedAccuracy/
-// seedHistory) exist.
+// EXPECTED until Wave 1–2 land: the `import` of ../src/levels/index.js throws (the registry
+// module does not exist yet), so this exits non-zero — a real harness, not a no-op. It turns
+// green once src/progress.js gains the levels-cleared seam (markCleared/isLevelCleared/serialize
+// `levels` map), the extended brain (snapshot/seedAccuracy/seedHistory) exists, and the
+// src/levels/ registry (LEVEL_ORDER/getLevel/isUnlocked + level-01 verbatim geometry) lands.
 
 import { createProgress } from "../src/progress.js";
 import { createBrain } from "../src/math/brain.js";
 import { CONFIG } from "../src/config.js";
+// Wave-0 registry import — RED until src/levels/index.js lands (Wave 1/2), then GREEN.
+// node-relative from the repo root, matching the ../src/... style of the imports above.
+import { LEVEL_ORDER, getLevel, isUnlocked } from "../src/levels/index.js";
 
 let failures = 0;
 // console.assert does not increment exit codes; track failures ourselves.
@@ -144,6 +148,193 @@ const check = (cond, msg) => {
   // Materially higher — at least ~1.5x the fresh baseline (RESEARCH Pitfall 2 guard).
   check(seededShare > freshShare * 1.5,
     `seeded table-7 share (${seededShare.toFixed(3)}) should be >1.5x fresh baseline (${freshShare.toFixed(3)})`);
+}
+
+// --- SAVE-06: cleared-map round-trip — markCleared survives serialize → reconstruct ---
+{
+  const brain = createBrain();
+  const p = createProgress();
+  check(p.isLevelCleared("level-01") === false,
+    `SAVE-06: a fresh progress should report level-01 NOT cleared`);
+  p.markCleared("level-01");
+  check(p.isLevelCleared("level-01") === true,
+    `SAVE-06: markCleared("level-01") should flip isLevelCleared to true`);
+
+  const blob = p.serialize(brain.snapshot());
+  const restored = createProgress(blob);
+  check(restored.isLevelCleared("level-01") === true,
+    `SAVE-06: cleared fact for level-01 should survive serialize → createProgress`);
+  check(restored.isLevelCleared("never-cleared-id") === false,
+    `SAVE-06: a never-cleared id should round-trip as NOT cleared`);
+}
+
+// --- SAVE-06: derived unlock — first level always open; later levels gate on predecessor ---
+{
+  // Nothing stored: the first level in LEVEL_ORDER is always unlocked.
+  const fresh = createProgress();
+  check(isUnlocked(LEVEL_ORDER[0], fresh) === true,
+    `SAVE-06: LEVEL_ORDER[0] should be unlocked from a fresh (nothing-cleared) progress`);
+
+  // Guard with a length check so a single-level registry does not false-fail. A second level
+  // is locked until its predecessor (LEVEL_ORDER[0]) is cleared, then unlocked after.
+  if (LEVEL_ORDER.length >= 2) {
+    const second = LEVEL_ORDER[1];
+    const locked = createProgress();
+    check(isUnlocked(second, locked) === false,
+      `SAVE-06: ${second} should be LOCKED until its predecessor is cleared`);
+    locked.markCleared(LEVEL_ORDER[0]);
+    check(isUnlocked(second, locked) === true,
+      `SAVE-06: ${second} should UNLOCK once ${LEVEL_ORDER[0]} is cleared (derived, not stored)`);
+  }
+}
+
+// --- SAVE-05: never-bricks — hostile blobs passed DIRECTLY to createProgress, never throw ---
+{
+  // 1. A corrupt-shaped levels value (not an object) must be tolerated.
+  let threw = false;
+  let p;
+  try {
+    p = createProgress({ version: 2, xp: 5, level: 1, levels: "not-an-object" });
+  } catch {
+    threw = true;
+  }
+  check(threw === false,
+    `SAVE-05: createProgress with levels:"not-an-object" must NOT throw`);
+  check(p && Number.isFinite(p.level) && p.level >= 1,
+    `SAVE-05: corrupt-levels blob should still yield a finite, >=1 level`);
+
+  // 2. A junk-id cleared map with a __proto__ key and a non-boolean cleared flag.
+  threw = false;
+  let q;
+  try {
+    q = createProgress({
+      version: 2,
+      levels: { __proto__: { cleared: true }, "ghost-level": { cleared: "yes" } },
+    });
+  } catch {
+    threw = true;
+  }
+  check(threw === false,
+    `SAVE-05: createProgress with a __proto__/junk-id levels map must NOT throw`);
+  // A non-boolean "cleared" ("yes") must NOT count as cleared (strict === true coercion).
+  check(q && q.isLevelCleared("ghost-level") !== true,
+    `SAVE-05: a non-boolean cleared flag ("yes") must NOT register as cleared`);
+  // Prototype pollution guard: constructing from a __proto__ key must not pollute Object.
+  check(({}).cleared === undefined,
+    `SAVE-05: constructing from a __proto__ levels key must NOT pollute Object.prototype`);
+
+  // 3. An Infinity level (a {"level":1e400} blob parses level to Infinity) must be sanitized.
+  threw = false;
+  let r;
+  try {
+    r = createProgress({ version: 2, level: 1e400 });
+  } catch {
+    threw = true;
+  }
+  check(threw === false,
+    `SAVE-05: createProgress with level:Infinity must NOT throw`);
+  check(r && Number.isFinite(r.level) && r.level >= 1,
+    `SAVE-05: an Infinity level must be sanitized to a finite, >=1 value (no bricked progression)`);
+
+  // 4. A wholly foreign blob (none of the expected fields) must fall back to safe defaults.
+  threw = false;
+  let s;
+  try {
+    s = createProgress({ totally: "different" });
+  } catch {
+    threw = true;
+  }
+  check(threw === false,
+    `SAVE-05: createProgress with a foreign blob must NOT throw`);
+  check(s && Number.isFinite(s.level) && s.level >= 1 && s.getXp() >= 0,
+    `SAVE-05: a foreign blob must yield safe defaults (level>=1, xp>=0)`);
+}
+
+// --- LVL-02: registry — ordered, level-01 present, forgiving lookup ---
+{
+  check(LEVEL_ORDER[0] === "level-01",
+    `LVL-02: LEVEL_ORDER[0] should be "level-01", got ${LEVEL_ORDER[0]}`);
+  const l1 = getLevel("level-01");
+  check(l1 && l1.id === "level-01",
+    `LVL-02: getLevel("level-01") should return a descriptor with id "level-01"`);
+  const fallback = getLevel("does-not-exist");
+  check(fallback && fallback.id === LEVEL_ORDER[0],
+    `LVL-02: getLevel(bad id) should fall back to the first level (forgiving)`);
+}
+
+// --- LVL-02 regression: level-01 geometry === v3.0 src/level.js values, VERBATIM ---
+{
+  // The EXACT v3.0 geometry lifted from src/level.js (floors 46-50, platforms 54-59,
+  // coins 69-80, spikes 83-87, goal 90, checkpoints 101-106). Spike/goal/checkpoint values
+  // are reconstructed from CONFIG with the same expressions the source uses, so this is a
+  // byte-equivalent comparison (proves the lift is verbatim, not eyeballed).
+  const FLOOR_Y = CONFIG.FLOOR_Y; // 320
+  const expectedGeometry = {
+    floors: [
+      { x: 0, w: 560 },
+      { x: 720, w: 480 },
+      { x: 1360, w: 880 },
+    ],
+    platforms: [
+      { x: 360, y: 240, w: 160, h: 24 },
+      { x: 560, y: 192, w: 128, h: 24 },
+      { x: 1208, y: 232, w: 152, h: 24 },
+      { x: 1640, y: 232, w: 160, h: 24 },
+    ],
+    coins: [
+      { x: 200, y: 264 },
+      { x: 392, y: 184 },
+      { x: 592, y: 136 },
+      { x: 800, y: 264 },
+      { x: 960, y: 264 },
+      { x: 1240, y: 176 },
+      { x: 1440, y: 264 },
+      { x: 1680, y: 176 },
+      { x: 1900, y: 264 },
+      { x: 2080, y: 264 },
+    ],
+    spikes: [
+      { x: 880, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1520, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2000, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+    ],
+    goal: { x: 2160, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    checkpoints: [
+      { x: 96, y: FLOOR_Y - 48 },
+      { x: 800, y: FLOOR_Y - 48 },
+      { x: 1440, y: FLOOR_Y - 48 },
+      { x: 1920, y: FLOOR_Y - 48 },
+    ],
+  };
+
+  // Small recursive deep-equal (no dependency — the no-build canon forbids one).
+  const deepEqual = (a, b) => {
+    if (a === b) return true;
+    if (typeof a !== typeof b) return false;
+    if (a === null || b === null) return a === b;
+    if (typeof a !== "object") return a === b;
+    const ak = Object.keys(a);
+    const bk = Object.keys(b);
+    if (ak.length !== bk.length) return false;
+    return ak.every((k) => deepEqual(a[k], b[k]));
+  };
+
+  const actual = getLevel("level-01").geometry;
+  check(deepEqual(actual, expectedGeometry),
+    `LVL-02 regression: getLevel("level-01").geometry must deep-equal the v3.0 src/level.js geometry verbatim`);
+}
+
+// --- SAVE-07: the new shape coexists with the old — serialize ALSO carries a levels object ---
+{
+  const brain = createBrain();
+  const p = createProgress();
+  p.addXp(7);
+  p.markCleared("level-01");
+  const blob = p.serialize(brain.snapshot());
+  check(blob.levels && typeof blob.levels === "object",
+    `SAVE-07: the serialized blob should ALSO carry a 'levels' object (new shape coexists with xp/level/accuracy/history)`);
+  check(blob.levels["level-01"] && blob.levels["level-01"].cleared === true,
+    `SAVE-07: the serialized levels map should record level-01 as cleared`);
 }
 
 if (failures > 0) {
