@@ -2,14 +2,18 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Content & Challenge
-status: planning
-last_updated: "2026-06-29T00:00:00.000Z"
+current_phase: 13
+current_phase_name: Fresh Save Format + Level Registry/Data
+status: executing
+stopped_at: v4.0 roadmap created (Phases 13–19), REQUIREMENTS.md traceability mapped, STATE.md updated
+last_updated: "2026-06-29T13:07:53.172Z"
 last_activity: 2026-06-29
+last_activity_desc: Phase 13 execution started
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 4
+  completed_plans: 1
   percent: 0
 ---
 
@@ -24,17 +28,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-28)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 13 — Fresh Save Format + Level Registry/Data (roadmap drafted; awaiting plan)
+**Current Focus:** Phase 13 — Fresh Save Format + Level Registry/Data
 
 **Tech Stack (v4.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded) + CC0 pixel-art assets. Static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL. Persistence via versioned localStorage. Zero new runtime dependencies for v4.0 — every capability is native to the vendored Kaplay bundle.
 **Shipped State (v3.0):** Real 2D Kaplay platformer — one polished dark-grunge level → forgiving 6–9 math gate → persisted XP/leveling. Kid-validated "all good." The v1/v2 quiz is archived. v4.0 grows this single-level slice into a replayable multi-level game.
 
 ## Current Position
 
-Phase: 13 — Fresh Save Format + Level Registry/Data (not started)
-Plan: —
-Status: Roadmap drafted (Phases 13–19); awaiting plan
-Last activity: 2026-06-29 — v4.0 roadmap created (7 phases, 22/22 requirements mapped)
+Phase: 13 (Fresh Save Format + Level Registry/Data) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-29 — Phase 13 execution started
 
 ## v4.0 Roadmap (Phases 13–19)
 
@@ -135,7 +139,7 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 **Resume file:** None
 
-**Last session:** 2026-06-29
+**Last session:** 2026-06-29T13:07:41.067Z
 
 **Next steps:**
 
@@ -250,8 +254,13 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 | Phase 12 P00 | 2 min | 2 tasks | 2 files |
 | Phase 12 P01 | 12min | 3 tasks | 3 files |
 | Phase 12 P02 | 6 min | 3 tasks | 2 files |
+| Phase 13 P01 | 6min | 2 tasks | 2 files |
 
 ## Operator Next Steps
 
 - Review and approve the v4.0 ROADMAP.md (Phases 13–19)
 - Then run `/gsd-plan-phase 13` to begin the milestone
+
+## Decisions
+
+- [Phase ?]: [Phase 13]: 13-01: Save key/version pinned to mathlab_platformer_v2 / VERSION 2; Wave 1 Plan 02 must match or the gate stays red
