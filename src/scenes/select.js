@@ -35,11 +35,17 @@ import { createProgress, loadSave } from "../progress.js";
 
 // Dark-grunge palette per CLAUDE.md (NO pink). Plain data literals — safe at module
 // scope because they call no engine global (a727c13).
-const ACCENT_GREEN = [0x00, 0xff, 0x88]; // unlocked tile + cursor highlight
+const ACCENT_GREEN = [0x00, 0xff, 0x88]; // unlocked tile + selectable outline
 const LOCKED_GREY = [0x44, 0x44, 0x44]; // locked tile (dimmed, not selectable)
 const CLEARED_BLUE = [0x66, 0xcc, 0xff]; // cleared tile check-mark (distinct from accent)
 const LABEL_FG = [0xe8, 0xe8, 0xe8]; // tile number + heading text (#e8e8e8, ~18:1)
-const CURSOR_BORDER = [0x00, 0xff, 0x88]; // cursor outline color (accent)
+const SELECTABLE_BORDER = [0x00, 0xff, 0x88]; // outline for selectable (unlocked/cleared) tiles (accent)
+const LOCKED_BORDER = [0x55, 0x55, 0x55]; // IN-01: dim neutral outline for LOCKED tiles —
+// a non-selectable tile must NOT wear the accent-green "selectable" frame, or the locked
+// affordance is muddied for a 12-year-old. Distinct from the grey fill so the edge still reads.
+const CURSOR_BORDER = [0xff, 0xff, 0xff]; // IN-02: bright white outline for the ACTIVE keyboard
+// cursor — distinguishes the focused tile by COLOR (not just width), so the cursor position is
+// unmissable on a single-tile row where a width-only change is near-invisible.
 
 /**
  * selectScene — NAV-02. Read registry + progress fresh, render three-state tiles,
@@ -89,16 +95,21 @@ export function selectScene(data) {
           ? CLEARED_BLUE
           : ACCENT_GREEN;
 
+    // IN-01: locked tiles get the dim neutral border; selectable (unlocked/cleared)
+    // tiles get the accent border. paintCursor() later overrides ONLY the active
+    // selectable tile's outline (color + width) — locked tiles are never touched.
+    const borderColor = t.state === "locked" ? LOCKED_BORDER : SELECTABLE_BORDER;
+
     const box = add([
       rect(S.TILE_W, S.TILE_H),
       anchor("center"),
       pos(x, y),
       color(fillColor[0], fillColor[1], fillColor[2]),
-      outline(2, rgb(CURSOR_BORDER[0], CURSOR_BORDER[1], CURSOR_BORDER[2])),
+      outline(2, rgb(borderColor[0], borderColor[1], borderColor[2])),
       fixed(),
       z(9000),
       "select",
-      { idx: t.i },
+      { idx: t.i, locked: t.state === "locked" },
     ]);
     tileBoxes.push(box);
 
@@ -143,13 +154,18 @@ export function selectScene(data) {
     .map((t) => t.i);
   let cursor = selectable.length > 0 ? 0 : -1; // index INTO `selectable`
 
-  // Recolor the cursor highlight: the active tile gets a bright outline, others a
-  // muted one. Pure recolor — no new objects (anti-leak), reuses the kept refs.
+  // Recolor the cursor highlight (IN-02): the ACTIVE selectable tile gets a bright WHITE,
+  // wider outline; every other tile is restored to its resting border (dim for locked,
+  // accent for selectable). Distinguishing the cursor by COLOR — not width alone — keeps it
+  // unmissable on a single-tile row. Pure recolor: no new objects (anti-leak), reuses refs.
   function paintCursor() {
     tileBoxes.forEach((box, i) => {
       const isActive = cursor >= 0 && selectable[cursor] === i;
-      const w = isActive ? 5 : 2;
-      box.outline.width = w;
+      // Resting border per state (IN-01): locked stays dim, selectable stays accent.
+      const resting = box.locked ? LOCKED_BORDER : SELECTABLE_BORDER;
+      const border = isActive ? CURSOR_BORDER : resting;
+      box.outline.width = isActive ? 5 : 2;
+      box.outline.color = rgb(border[0], border[1], border[2]);
     });
   }
   paintCursor();
