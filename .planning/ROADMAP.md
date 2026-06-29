@@ -55,6 +55,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 **Build-order spine (dependency-respecting):** pure save+registry first → multi-scene shell → challenge-seam refactor (must precede mechanics) → remaining mechanics + difficulty → author the levels → art near-last (so logic validates on placeholders) → consolidated kid-UAT last.
 
 **Cross-cutting mitigations baked into every engine-touching phase:**
+
 - **a727c13 rule** — no Kaplay global (or `typeof <global>` guard) at module top level; every new module keeps engine refs *inside* function bodies. Add `scripts/check-import-safety.sh` (column-0, comment-stripped grep) in Phase 14 and run it each phase after.
 - **Mandatory real browser-boot per phase** — greps passing ≠ boots in a browser (the single most expensive v3.0 lesson). No phase closes on automation alone.
 - **Anti-leak** — closure-local run state (never a module-level `let`); cancel every global controller (`onKeyPress`/`onHide`/`onClick`) on `onSceneLeave`; single-flight tween cancel on the object.
@@ -71,88 +72,114 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 ## Phase Details
 
 ### Phase 13: Fresh Save Format + Level Registry/Data
+
 **Goal**: A fresh, versioned, clean-reset save format (per-level completion/unlock + XP/level/practice-history) and a pure level registry + parameterized builder are in place — the data spine every later phase consumes, with zero engine (a727c13) risk.
 **Depends on**: Nothing (first v4.0 phase; extends shipped `progress.js` and `level.js`)
 **Requirements**: SAVE-05, SAVE-06, SAVE-07, LVL-02
 **Success Criteria** (what must be TRUE):
+
   1. The game writes and reads a fresh, versioned save under a new key; a missing, stale, or foreign/corrupt save loads safe defaults and never bricks boot (SAVE-05) — existing v3.0 data is deliberately NOT migrated.
   2. Per-level `cleared` state persists in localStorage and survives a reload; `unlocked` is *derived* from `LEVEL_ORDER` (first level unlocked; a level unlocks when the previous one is cleared) rather than stored as a second source of truth (SAVE-06).
   3. XP / level and per-table practice history persist within the fresh save and seed the (unchanged) brain so question selection stays adapted to her weak spots across visits (SAVE-07).
   4. Levels are plain JS data objects consumed by a single parameterized builder and registered in an ordered registry — the v3.0 level lifts in verbatim as level-01, with no build step, no Kaplay `addLevel`, no Tiled (LVL-02).
+
 **Plans**: 4 plans
+**Wave 1**
+
 - [ ] 13-01-PLAN.md — Wave 0: extend smoke + structural gate for the new save shape, registry, and import-safety
 - [ ] 13-02-PLAN.md — Wave 1: fresh versioned save key + per-level cleared map + helpers (SAVE-05/06/07)
 - [ ] 13-03-PLAN.md — Wave 1: level registry + parameterized builder + verbatim level-01 + derived unlock (LVL-02/SAVE-06)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 13-04-PLAN.md — Wave 2: rewire game.js to the registry, thread allowedTables, persist cleared, delete level.js, mandatory browser boot
 
 ### Phase 14: Multi-Scene Shell
+
 **Goal**: She boots into a dark-grunge title, moves to a level-select that shows locked/unlocked/cleared state, and plays any unlocked level — all via in-game screens with clean state on every entry. This phase establishes the factory + closure-state + controller-cancel + import-safety contracts every later engine-touching phase inherits.
 **Depends on**: Phase 13 (registry + save the select screen reads)
 **Requirements**: NAV-01, NAV-02, NAV-03, NAV-04
 **Success Criteria** (what must be TRUE):
+
   1. On load a dark-grunge title screen appears, from which she can start/continue into the game (NAV-01).
   2. A level-select screen lists every registered level with locked / unlocked / cleared marks and lets her pick any unlocked level to play (NAV-02).
   3. Clearing a level unlocks the next; she can return to level-select and resume from any unlocked level with no forced replay of earlier levels (NAV-03).
   4. Navigation between title, select, and a level happens via Kaplay scenes (no browser dialogs); entering→leaving→re-entering any screen twice leaves no leaked input handlers, colliders, tweens, or effects (NAV-04) — verified by a real browser boot, with `scripts/check-import-safety.sh` green.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 15: Challenge Seam + Locked-Door Mechanic
+
 **Goal**: One shared in-world challenge component backs every math interaction (forgiving, no-timer, multiple-choice), extracted from `mathGate.js` with byte-for-byte end-of-level behavior preserved; the locked-door/key mechanic proves the seam mid-level.
 **Depends on**: Phase 14 (game scene + mechanics wiring surface)
 **Requirements**: MECH-01, MECH-02
 **Success Criteria** (what must be TRUE):
+
   1. A single shared `ui/challenge.js` backs every math interaction; a wrong answer re-asks with no penalty and no progress lost, and `mathGate.js` becomes a thin caller so the existing end-of-level gate behaves identically (MECH-01).
   2. Answering correctly at a mid-level locked door/bridge opens it and clears the path to the next section; a wrong answer never consumes the key, locks her out, or sends her back (MECH-02).
   3. The mid-level overlay pauses the world (player can't move, fall, or be hurt while answering), owns input, and renders screen-space above world and parallax — confirmed by opening it next to a hazard.
   4. The structural firewall (`check-gate.sh`) is re-pointed at `challenge.js` so the one-way ui→brain firewall and no-DOM/no-timer/no-scenes invariants hold for all callers; a real browser boot confirms the end gate still works.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 16: Remaining Mechanics + Difficulty Curve
+
 **Goal**: All four math mechanics are usable as level-data fields over the one shared challenge seam, and table difficulty ramps across levels via a per-level allowed-tables pool passed into the unchanged brain.
 **Depends on**: Phase 15 (the proven challenge seam)
 **Requirements**: MECH-03, MECH-04, MECH-05, LVL-03
 **Success Criteria** (what must be TRUE):
+
   1. Defeat-enemy: answering correctly removes a blocking enemy (👺💀🐉 reuse); the enemy never deals contact damage and never ends the run (MECH-05).
   2. Multiple checkpoint gates: several in-level math gates (not only at the goal) each track independently within the level (MECH-04).
   3. Collect-the-answer: the correct numeric answer is one of several in-world pickups; collecting the right one clears the challenge and collecting a wrong one never punishes (MECH-03).
   4. Table difficulty ramps across levels — early levels draw from easier pools (e.g. 1–5), later levels restrict toward 6–9 — via a per-level allowed-tables pool fed to the (unchanged, LOCKED) weighted brain (LVL-03).
   5. Each mechanic passes a per-mechanic forgiveness check: no wrong-answer code path reduces XP/HP/position-progress, despawns, restarts, or shows a countdown (`check-safety.sh` green per mechanic).
+
 **Plans**: TBD
 
 ### Phase 17: Build the Levels
+
 **Goal**: The game has 3–5 distinct, hand-built, completable levels wired into the registry/select, each traversable start→goal on the existing movement/collider spine, with a gentle platforming difficulty ramp.
 **Depends on**: Phase 16 (all mechanics available as data fields) and Phase 13 (builder/registry)
 **Requirements**: LVL-01, LVL-04
 **Success Criteria** (what must be TRUE):
+
   1. There are 3–5 distinct, hand-built levels, each completable start→goal on the existing movement/collider spine, each enumerated and selectable from level-select (LVL-01).
   2. Platforming difficulty ramps across levels — length, gap precision, and hazard density increase gradually through level data — without any single level being a frustration wall (LVL-04).
   3. Platforming and table difficulty ramp on *decoupled* axes (no level spikes both at once), keeping the curve gentle for the ADHD profile.
   4. A full playthrough — title → select → each unlocked level → clear → next unlocks → resume — works end-to-end in a real browser.
+
 **Plans**: TBD
 
 ### Phase 18: Art, Animation & Parallax
+
 **Goal**: The game looks like a real game — an animated player, a real dark-grunge tileset, a calm parallax background, and styled title/select screens — layered onto the already-working logic, with every Kaplay reference kept inside function bodies (a727c13).
 **Depends on**: Phase 17 (levels exist to skin) and Phase 14 (title/select to style)
 **Requirements**: ART-01, ART-02, ART-03, ART-04
 **Success Criteria** (what must be TRUE):
+
   1. The player is an animated sprite with idle / run / jump states that faces its movement direction; animation is frame-rate-independent (anim `speed`, not dt) and never freezes on frame 0 while moving (ART-01).
   2. Levels render with a real dark-grunge tileset (not single-color placeholders), with readable silhouettes against the background (ART-02).
   3. A layered / parallax background gives depth — calm, camera-tied (not timer-driven), non-strobing (ART-03).
   4. The title and level-select screens are styled to the dark-grunge aesthetic with no pink (ART-04).
   5. Every new sprite/parallax module keeps all engine calls inside function bodies; `loadSprite` (not `loadSpriteSheet`) loads from `../assets/...` in `main.js` after `kaplay()`; the game boots cleanly in a real browser with `check-import-safety.sh` green.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 19: Polish & Consolidated Kid-UAT
+
 **Goal**: The full assembled milestone is audited ADHD-safe across all new mechanics, levels, enemies, and art, and is signed off by the kid in a consolidated end-to-end playtest.
 **Depends on**: Phase 18 (the finished art/parallax/enemy set to audit)
 **Requirements**: SAFE-04, SAFE-05
 **Success Criteria** (what must be TRUE):
+
   1. The no-timer / forgiving / no-game-over mandate holds across ALL new mechanics, levels, and enemies — audited green via the extended `check-safety.sh` and an import-safety grep — nothing counts down, punishes a wrong answer, or ends the run (SAFE-04).
   2. New art, parallax, and effects stay non-strobing and not over-stimulating (motion/flash within the established ≤400–500ms caps, dark-grunge / no pink), confirmed in kid-UAT (SAFE-05).
   3. The kid plays title → multiple levels → varied math gates → progression/resume end-to-end and signs off that it's fun and nothing feels unfair or too busy.
+
 **Plans**: TBD
 
 ## Progress
