@@ -81,34 +81,43 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LVL-01 | TBD | Pending |
-| LVL-02 | TBD | Pending |
-| LVL-03 | TBD | Pending |
-| LVL-04 | TBD | Pending |
-| NAV-01 | TBD | Pending |
-| NAV-02 | TBD | Pending |
-| NAV-03 | TBD | Pending |
-| NAV-04 | TBD | Pending |
-| MECH-01 | TBD | Pending |
-| MECH-02 | TBD | Pending |
-| MECH-03 | TBD | Pending |
-| MECH-04 | TBD | Pending |
-| MECH-05 | TBD | Pending |
-| ART-01 | TBD | Pending |
-| ART-02 | TBD | Pending |
-| ART-03 | TBD | Pending |
-| ART-04 | TBD | Pending |
-| SAVE-05 | TBD | Pending |
-| SAVE-06 | TBD | Pending |
-| SAVE-07 | TBD | Pending |
-| SAFE-04 | TBD | Pending |
-| SAFE-05 | TBD | Pending |
+| LVL-01 | Phase 17 | Pending |
+| LVL-02 | Phase 13 | Pending |
+| LVL-03 | Phase 16 | Pending |
+| LVL-04 | Phase 17 | Pending |
+| NAV-01 | Phase 14 | Pending |
+| NAV-02 | Phase 14 | Pending |
+| NAV-03 | Phase 14 | Pending |
+| NAV-04 | Phase 14 | Pending |
+| MECH-01 | Phase 15 | Pending |
+| MECH-02 | Phase 15 | Pending |
+| MECH-03 | Phase 16 | Pending |
+| MECH-04 | Phase 16 | Pending |
+| MECH-05 | Phase 16 | Pending |
+| ART-01 | Phase 18 | Pending |
+| ART-02 | Phase 18 | Pending |
+| ART-03 | Phase 18 | Pending |
+| ART-04 | Phase 18 | Pending |
+| SAVE-05 | Phase 13 | Pending |
+| SAVE-06 | Phase 13 | Pending |
+| SAVE-07 | Phase 13 | Pending |
+| SAFE-04 | Phase 19 | Pending |
+| SAFE-05 | Phase 19 | Pending |
 
 **Coverage:**
 - v4.0 requirements: 22 total
-- Mapped to phases: 0 (set during roadmap creation)
-- Unmapped: 22 ⚠️ (resolved by roadmapper)
+- Mapped to phases: 22 ✓ (all mapped; no orphans, no duplicates)
+- Unmapped: 0
+
+**Phase → requirement count:**
+- Phase 13 (Fresh Save Format + Level Registry/Data): SAVE-05, SAVE-06, SAVE-07, LVL-02 (4)
+- Phase 14 (Multi-Scene Shell): NAV-01, NAV-02, NAV-03, NAV-04 (4)
+- Phase 15 (Challenge Seam + Locked-Door Mechanic): MECH-01, MECH-02 (2)
+- Phase 16 (Remaining Mechanics + Difficulty Curve): MECH-03, MECH-04, MECH-05, LVL-03 (4)
+- Phase 17 (Build the Levels): LVL-01, LVL-04 (2)
+- Phase 18 (Art, Animation & Parallax): ART-01, ART-02, ART-03, ART-04 (4)
+- Phase 19 (Polish & Consolidated Kid-UAT): SAFE-04, SAFE-05 (2)
 
 ---
 *Requirements defined: 2026-06-28 for v4.0 Content & Challenge*
-*Last updated: 2026-06-28*
+*Last updated: 2026-06-29 — traceability mapped to Phases 13–19*

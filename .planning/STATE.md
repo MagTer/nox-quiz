@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Content & Challenge
 status: planning
-last_updated: "2026-06-28T18:14:54.888Z"
-last_activity: 2026-06-28
+last_updated: "2026-06-29T00:00:00.000Z"
+last_activity: 2026-06-29
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,32 +17,95 @@ progress:
 
 **Project:** Math Lab - Gamified Math Practice for Kids
 **Initialized:** 2026-06-20
-**Current Milestone:** v3.0 The Platformer (Phases 7–12)
+**Current Milestone:** v4.0 Content & Challenge (Phases 13–19)
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-22)
+See: .planning/PROJECT.md (updated 2026-06-28)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 12 — Polish, ADHD-Safety & UAT
+**Current Focus:** Phase 13 — Fresh Save Format + Level Registry/Data (roadmap drafted; awaiting plan)
 
-**Tech Stack (v3.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 + CC0 pixel-art assets. Packaged as static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL she just visits (no install, no launcher). A local dev server (`python3 -m http.server`) is used during development only. Persistence via versioned localStorage.
-**Shipped State (v2.0, being replaced):** 1,976 LOC single HTML file — a multiple-choice quiz with a goblin emoji. The math brain (weighted 6–9 selection) is carried forward; the quiz shell is replaced by a game shell.
+**Tech Stack (v4.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded) + CC0 pixel-art assets. Static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL. Persistence via versioned localStorage. Zero new runtime dependencies for v4.0 — every capability is native to the vendored Kaplay bundle.
+**Shipped State (v3.0):** Real 2D Kaplay platformer — one polished dark-grunge level → forgiving 6–9 math gate → persisted XP/leveling. Kid-validated "all good." The v1/v2 quiz is archived. v4.0 grows this single-level slice into a replayable multi-level game.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 13 — Fresh Save Format + Level Registry/Data (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-28 — Milestone v4.0 started
+Status: Roadmap drafted (Phases 13–19); awaiting plan
+Last activity: 2026-06-29 — v4.0 roadmap created (7 phases, 22/22 requirements mapped)
 
-## Quick Tasks Completed
+## v4.0 Roadmap (Phases 13–19)
 
-| Date | Slug | Summary |
-|------|------|---------|
-| 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540, crisp pixel upscale); internal 640×360 resolution unchanged so no gameplay numbers moved |
+| Phase | Goal | Requirements |
+|-------|------|--------------|
+| 13. Fresh Save Format + Level Registry/Data | Clean-reset versioned save (per-level completion/unlock + XP/level/history) + pure level registry/parameterized builder — the data spine; zero a727c13 risk | SAVE-05, SAVE-06, SAVE-07, LVL-02 |
+| 14. Multi-Scene Shell | Title + level-select (locked/unlocked/cleared/resume) + game.js parametrized by levelId; establishes factory/closure-state/controller-cancel/import-safety contracts | NAV-01..04 |
+| 15. Challenge Seam + Locked-Door Mechanic | No-behavior-change extraction of `ui/challenge.js` from mathGate.js + the locked-door/key mechanic that proves the seam | MECH-01, MECH-02 |
+| 16. Remaining Mechanics + Difficulty Curve | Defeat-enemy, multiple gates, collect-the-answer; per-level allowed-tables difficulty ramp into the unchanged brain | MECH-03, MECH-04, MECH-05, LVL-03 |
+| 17. Build the Levels | 3–5 hand-built, completable levels with a gentle platforming difficulty ramp, wired into registry/select | LVL-01, LVL-04 |
+| 18. Art, Animation & Parallax | Animated player (idle/run/jump + facing), real dark-grunge tileset, camera-tied parallax, styled title/select | ART-01..04 |
+| 19. Polish & Consolidated Kid-UAT | Extend ADHD-safety + import-safety audits across all new mechanics/art; kid sign-off | SAFE-04, SAFE-05 |
 
-## Deferred Items
+**Coverage:** 22/22 v4.0 requirements mapped, no orphans, no duplicates.
+
+**Build-order rationale:** Pure save+registry spine first (no a727c13 risk); multi-scene shell second (first place the import-time trap and cross-scene leaks resurface); challenge-seam refactor third — MUST precede the mechanics that depend on it; remaining mechanics + difficulty fourth; author levels fifth (mechanics + builder ready); art near-last so logic validates on placeholders; consolidated kid-UAT last (feel is user-validated).
+
+## Cross-Cutting Mitigations (baked into every engine-touching phase)
+
+1. **a727c13 rule** — no Kaplay global (or `typeof <global>` guard) at module top level; engine refs only inside function bodies. Add `scripts/check-import-safety.sh` (Phase 14) and run each phase after.
+2. **Mandatory real browser-boot per phase** — greps passing ≠ boots in a browser (the most expensive v3.0 lesson). No phase closes on automation alone.
+3. **Anti-leak** — closure-local run state (never module-level `let`); cancel every global controller (`onKeyPress`/`onHide`/`onClick`) on `onSceneLeave`; single-flight tween cancel on the object.
+4. **No-timer / forgiving / no-game-over** — every math interaction re-asks on wrong with zero penalty/lockout/XP-loss/despawn/restart; enemies never deal contact damage; nothing counts down. `check-safety.sh` re-run per mechanic.
+
+## Key Decisions (v4.0)
+
+| Decision | Rationale | Status |
+|----------|-----------|--------|
+| Clean-reset save (new versioned key, NO v3.0 migration) | User chose a clean slate; removes migration complexity and the bricking risk entirely (SAVE-05) | Locked in |
+| Unlock state is *derived* from LEVEL_ORDER + `cleared` facts | One source of truth; no desync between stored "unlocked" and reality | Locked in |
+| Levels = plain JS data + one parameterized builder + registry | No build step, no Kaplay `addLevel`, no Tiled; preserves merged-floor anti-seam-stick colliders | Locked in |
+| One shared `ui/challenge.js` seam for all four mechanics + end gate | Avoids 4 anti-leak/z-index/forgiveness bugs; one firewalled brain consumer; re-point check-gate.sh | Locked in |
+| Challenge-seam refactor before mechanics | It's a no-behavior-change refactor the mechanics depend on; order is non-negotiable | Locked in |
+| Difficulty via per-level allowed-tables pool only (brain LOCKED) | `math/brain.js` is validated and out of scope; ramp via table scope, never the algorithm | Locked in |
+| Art/animation deferred near-last (Phase 18) | Logic validates on placeholders; a727c13-sensitive parallax lands once the scene graph is stable | Locked in |
+| `loadSprite({sliceX,sliceY,anims})` only — `loadSpriteSheet` does NOT exist in Kaplay 3001 | Correct loader; add `loadSpriteSheet` to banned-token grep | Locked in |
+| Pin Kaplay at 3001.0.19 | Version-coupled (Rect class, setCamPos); any upgrade is its own scoped task | Locked in |
+
+## Carried-Forward Decisions (v1/v2/v3, still valid)
+
+| Decision | Rationale | Status |
+|----------|-----------|--------|
+| Multiple-choice answers (no typing) | Reduces friction for ADHD profile; faster flow | Locked in |
+| No countdown timer (hard constraint) | Time pressure triggers stress; contradicts ADHD context | Locked in |
+| Dark grunge aesthetic, no pink | Cool/edgy, not cute; holds for pixel art too | Locked in |
+| 70% hard tables (6–9), 30% easy (1–5) weighting | Targets weakness while building confidence; algorithm unchanged | Locked in |
+| WCAG AA contrast minimum on dark theme | Accessibility non-negotiable; prevents visual stress | Locked in |
+| Local-only / offline; no backend | Privacy, simplicity, no install | Locked in |
+| Wrong answer = forgiving re-ask, no penalty | ADHD-safe; no punishment loop | Locked in |
+| Respawn = checkpoint, progress preserved; no lives, no game-over | ADHD-safe | Locked in |
+| Vendored Kaplay, no-build multi-file, served over HTTP | Real game look without a build toolchain; sidesteps file:// asset block | Locked in |
+| ≤400–500ms flash/animation cap, non-strobing | ADHD over-stimulation guard (v2.0/v3.0 lesson) | Locked in |
+
+## Critical Pitfalls to Prevent (v4.0, from research)
+
+1. **a727c13 top-level-global trap resurfacing** (Phase 14 onward — most new modules ever) — factory functions, function-body-only globals, `check-import-safety.sh`, mandatory browser boot.
+2. **Cross-scene state/handler/tween leak** (Phase 14 contract; re-applied in 15/16/18) — closure state + `go()` payload; cancel controllers on `onSceneLeave`; enter→leave→re-enter test.
+3. **Sprite-sheet slicing / wrong loader** (Phase 18) — derive sliceX/sliceY from pixel dims; `loadSprite` only; eyeball each clip.
+4. **Animation frame-timing / flip / state thrash** (Phase 18) — anim `speed` not dt; `play()` on state transition only (guard with `getCurAnim()`); flip with deadzone.
+5. **Math mechanics drifting into punish/time/shame** (Phases 15–16) — one shared forgiving contract; per-mechanic forgiveness assertion + kid-UAT "what if wrong".
+6. **Gate z-index / pause / input bugs mid-level** (Phases 15–16) — screen-space high-z overlay; scene pause flag respected by player+enemy update; overlay owns input; verify next to a hazard.
+7. **(Mitigated by clean-reset save)** Save-migration bricking — SAVE-05 removes migration; still: `loadSave` try/catch never bricks boot, stale/foreign save → safe defaults (Phase 13).
+8. **ADHD over-stimulation creep** from art/parallax/enemies/difficulty (Phases 16/18/19) — slow muted camera-tied parallax, ≤400–500ms flash cap, gentle decoupled difficulty ramp, full audit + kid-UAT.
+
+## Research Flags (v4.0)
+
+- **Phase 18 (Art):** exact `sliceX/sliceY/anims` frame layout unknown until the CC0 pack is picked — resolve at sourcing time; re-verify each asset's license at download (a CC-BY-SA coin was caught mislabeled in v3.0).
+- **Phase 13 (Save):** clean-reset removes the v3.0-fixture migration test, but still capture/hand-construct a stale-and-foreign save to prove it never bricks boot.
+- Standard patterns (lighter research): level-data authoring + multi-scene navigation both extend verified v3.0 seams (`go()` data, mathGate bridge, progress versioning).
+
+## Deferred Items (from v3.0 close)
 
 Items acknowledged and deferred at v3.0 milestone close on 2026-06-28:
 
@@ -52,109 +115,48 @@ Items acknowledged and deferred at v3.0 milestone close on 2026-06-28:
 | verification | Phase 08 — 08-VERIFICATION human_needed | 13/13 must-haves verified; only the MOVE-05 feel-check outstanding |
 | deploy | Phase 07 — SETUP-02 live Dokploy deploy confirmation | container curl-proven locally; live-URL playthrough not yet confirmed |
 
-These are low-risk and independently actionable. See `.planning/v3.0-MILESTONE-AUDIT.md` (deferred_manual_verifications) for evidence and the one-time action for each.
+These are low-risk and independently actionable. See `.planning/milestones/v3.0-MILESTONE-AUDIT.md` for evidence and the one-time action for each.
 
-## v3.0 Roadmap (Phases 7–12)
+## Deferred (v2 & beyond v4.0)
 
-| Phase | Goal | Requirements |
-|-------|------|--------------|
-| 7. Project Setup & Deployment | Static files served by Docker/nginx, deployed via Dokploy at a web URL; Kaplay vendored; clean no-build multi-file layout; local dev server documented | SETUP-01..04 |
-| 8. Platformer Core | Mario-feel run/jump/land, smooth clamped camera, dt-correct, gentle checkpoint respawn | MOVE-01..05, LEVEL-06 |
-| 9. Level Build & CC0 Assets | One polished dark/grunge level: platforms, coins, a hazard, goal; licenses documented | LEVEL-01..05, LEVEL-07, LEVEL-08 |
-| 10. Math-Gate Integration | Ported math brain wired via single bridge; in-world, forgiving, no-timer gate (keystone/join) | GATE-01..06 |
-| 11. Progression & Persistence | Correct answers earn XP + level up (v1/v2 curve); XP/level/practice-history persist in localStorage and resume on revisit; XP/level visible + level-up moment | SAVE-01..04 |
-| 12. Polish, ADHD-Safety & UAT | Juice, control hints, contrast, no-timer/forgiving audit, verify with the kid | JUICE-01..03, SAFE-01..03 |
+- Audio / SFX / calm ambient music (AUDIO-01) — deferred again; silence weakens the "real game" feel, revisit after v4.0.
+- More worlds / level packs beyond the initial 3–5 (CONTENT-FUT-01).
+- Star/score-based completion texture (CONTENT-FUT-02) — kept out to stay simple and non-punishing.
 
-**Parallelization:** The math-brain port (Phase 10 prerequisite) has zero dependency on the game shell and can proceed alongside Phases 8–9; Phase 10's bridge is the join point.
+## Quick Tasks Completed
 
-## Key Decisions (v3.0)
-
-| Decision | Rationale | Status |
-|----------|-----------|--------|
-| Pivot to a real 2D platformer | v1/v2 quiz misread the intent; she wants a Mario-style game she controls | Locked in |
-| Kaplay 3001.0.19, vendored locally | Real physics/collision/sprites without hand-writing bug-prone parts; offline, no CDN | Locked in |
-| Relax single-file rule → multi-file, no build | Platformer + assets + vendored library don't fit one file; still opens in browser | Locked in |
-| Local static server is the launch path | `file://` blocks ES-module + sprite fetch; one-line server is first-class | Locked in |
-| Port math brain verbatim, rebuild shell | Keep tuned 6–9 weighted selection; replace quiz UI with game | Locked in |
-| Math = end-of-stage gate, paused overlay | Matches her school game; level stays visible behind question (no scene cut) | Locked in |
-| All four differentiators IN | In-world gate framing, coins, one hazard/enemy, juice/celebration | Locked in |
-| Wrong answer = forgiving re-ask, no penalty | ADHD-safe; no punishment loop | Locked in |
-| Respawn = checkpoint, progress preserved | ADHD-safe; no lives, no game-over | Locked in |
-| Persistence/XP is Phase 11 (pulled into this milestone) | She wants progress to persist like her school game; XP/level/practice-history in versioned localStorage | Locked in |
-| CC0 pixel-art packs (Kenney default) | Real game look, zero licensing risk; verify each pack's license page | Locked in |
-
-## Carried-Forward Decisions (v1/v2, still valid)
-
-| Decision | Rationale | Status |
-|----------|-----------|--------|
-| Multiple-choice answers (no typing) | Reduces friction for ADHD profile; faster flow | Locked in |
-| No countdown timer (hard constraint) | Time pressure triggers stress; contradicts ADHD context | Locked in |
-| Dark grunge aesthetic, no pink | Cool/edgy, not cute; holds for pixel art too | Locked in |
-| 70% hard tables (6–9), 30% easy (1–5) weighting | Targets weakness while building confidence; do not modify the algorithm | Locked in |
-| WCAG AA contrast minimum on dark theme | Accessibility non-negotiable; prevents visual stress | Locked in |
-| Local-only / offline; no backend | Privacy, simplicity, no install | Locked in |
-
-## Critical Pitfalls to Prevent (from research)
-
-1. **`file://` CORS asset failure** (Phase 7) — sprites silently never load when double-clicked. Mandate local server + `file:` protocol guard.
-2. **Kaplay/Kaboom version churn** (Phase 7) — pin 3001.0.19, comment source+version, code against that version's docs only.
-3. **Module-level state leaks across `go()`/retries** (Phase 8 discipline / Phase 10) — init run state inside scene callbacks; pass via `go(name,data)`; expose `reset()`.
-4. **Gate reads as a punishing quiz popup** (Phase 10 / Phase 12) — build a NEW in-world gate in the game's font/palette, avatar visible; reuse only the brain.
-5. **Frame-rate-dependent movement** (Phase 8) — use `body()`/`vel` or multiply manual movement by `dt()`; verify on non-60 Hz.
-6. **Floaty jump** (Phase 8 / Phase 12) — coyote time, jump buffering, variable height; tune with the kid.
-7. **Tile-seam stick / tunneling** (Phase 8 physics / Phase 9 colliders) — merge floor colliders, cap fall speed; build a stress strip early.
-8. **Progress loss on death** (Phase 8 / Phase 10) — checkpoint respawn; wrong answer penalty-free re-ask.
-9. **Over-stimulation / over-long level** (Phase 9 / Phase 12) — subtle effects, one short level, no timers.
-10. **CC0 license mistakes** (Phase 9) — verify each pack's license page; keep CREDITS; never ship vendor logos.
-
-## Research Flags
-
-- **Phase 8:** Coyote time / jump buffering / variable jump height are NOT built into Kaplay `body()` — spike the engine-specific wiring. Collision edge cases (seam/tunneling) are MEDIUM-confidence — plan a small stress-test.
-- **Phase 10:** The paused-overlay pause-ordering gotcha (`wait(0,...)` deferred unpause) and the exact minimal PlayerState port surface warrant a focused re-read of `math-lab.html` during planning.
-- **Phase 7 / Phase 9:** Standard, well-documented patterns (vendoring/server, asset loading + string tile-map) — likely skip research-phase.
-
-## Gaps to Address (from research)
-
-- Game feel is iterative: exact gravity/jump-impulse/coyote/buffer values must be tuned with the kid in Phase 12 — research ranges are starting points only.
-- ADHD response is individual: no-timer/forgiving/low-stimulation principles must be confirmed via UAT (Phase 12), not assumed.
-- Kaplay collision robustness (MEDIUM): build a long-flat-run + fast-drop stress strip early (Phase 8/9).
-- Minimal port surface: confirm which PlayerState methods `selectNext` depends on by re-reading `math-lab.html` during Phase 10 planning (selector + CONFIG + accuracy/mastery half + keep `toJSON/fromJSON`).
-- Audio deferred but flagged: silence weakens the "real game" feel; revisit immediately after the loop validates.
-
-## Deferred (v2 & beyond)
-
-- Richer math mechanics: locked doors/bridges (DOOR-01), collect-the-answer (COLLECT-01), defeat-the-enemy (ENEMY-01)
-- Content/atmosphere: multiple levels + level select (WORLD-01), audio (AUDIO-01), double jump (MOVE2-01)
+| Date | Slug | Summary |
+|------|------|---------|
+| 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540, crisp pixel upscale); internal 640×360 resolution unchanged so no gameplay numbers moved |
 
 ## Session Continuity
 
-**Stopped at:** Completed 07-02-PLAN.md
+**Stopped at:** v4.0 roadmap created (Phases 13–19), REQUIREMENTS.md traceability mapped, STATE.md updated
 
 **Resume file:** None
 
-**Last session:** 2026-06-28T06:12:34.913Z
+**Last session:** 2026-06-29
 
 **Next steps:**
 
-1. User reviews and approves ROADMAP.md (Phases 7–12)
-2. Execute `/gsd-plan-phase 7` to create the detailed plan for Project Setup & Deployment
-3. (Optional, parallel) begin porting the math brain — it has no game-shell dependency
-4. Proceed Phase 8 → 9 → 10 (keystone) → 11 (progression/persistence) → 12 (UAT with the kid)
+1. User reviews and approves ROADMAP.md (Phases 13–19)
+2. Run `/gsd-plan-phase 13` to create the detailed plan for Fresh Save Format + Level Registry/Data (pure, no a727c13 risk — good first phase)
+3. Proceed 14 (multi-scene shell) → 15 (challenge seam + door) → 16 (remaining mechanics + difficulty) → 17 (build levels) → 18 (art/parallax) → 19 (kid-UAT)
 
 **Context for next session:**
 
-- v3.0 is a 6-phase, dependency-driven roadmap (Phases 7–12) continuing v2.0's numbering
-- 33/33 v1 requirements mapped, no orphans, no duplicates
-- Infra risk (Docker/nginx static hosting via Dokploy + Kaplay version pinning) front-loaded into Phase 7
-- Phase 10 (math gate) is the keystone/join point; math port parallelizable
-- Phase 11 adds XP/leveling/persistence (depends on Phase 10's gate outcomes); feel/safety validated last and with the actual user (Phase 12)
+- v4.0 is a 7-phase, dependency-driven roadmap (Phases 13–19) continuing v3.0's numbering
+- 22/22 v4.0 requirements mapped, no orphans, no duplicates
+- Pure/low-risk spine (save + registry) front-loaded; refactor (challenge seam, Phase 15) MUST precede the mechanics (Phase 16) that depend on it; content after mechanics; art near-last so logic validates on placeholders; kid-UAT last
+- Clean-reset save (SAVE-05) removes migration complexity vs. the original research SUMMARY's additive-migration framing — honor SAVE-05
+- Every engine-touching phase ends with a REAL browser boot, not just greps (the a727c13 lesson)
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-06-22 (v3.0 roadmap revised — Phases 7–12)
+**Last updated:** 2026-06-29 (v4.0 roadmap created — Phases 13–19)
 
-## Historical Decisions (v1/v2)
+## Historical Decisions (v1/v2/v3)
 
 - [Phase 1]: PersistenceStore stub deferred to Plan 02
 - [Phase 1]: QuestionSelector uses naive uniform random in Plan 01; weighted selection by accuracy deferred to Plan 03 as designed
@@ -182,21 +184,42 @@ These are low-risk and independently actionable. See `.planning/v3.0-MILESTONE-A
 - [Phase 5]: DungeonRunner preserves HP+loot by saving before startCombat() and restoring after
 - [Phase 2]: window.CombatInputHandler exported inside DOMContentLoaded for DungeonRunner access
 - [Phase 3]: Enter Dungeon button placed inside data-panel='quiz' section for CSS data-screen visibility
+- [Phase 7] Vendored folder is lib/ (not vendor/) — passes the phase verification gate
+- [Phase 7] file:// guard inline in index.html head, not main.js — top-level import is hoisted and runs before an in-module guard
+- [Phase 7] Kaplay 3001.0.19 sha256 fb4a4ef2... recorded in lib/kaplay.mjs header for integrity (T-07-SC)
+- [Phase 7]: Custom Dockerfile over Dokploy Static preset — keeps the .mjs MIME fix under our control
+- [Phase 7]: nginx types{} re-declares js alongside mjs to avoid regressing .js to octet-stream (verified via curl on /main.js)
+- [Phase 7]: Live Dokploy deploy DEFERRED — config + docs/DEPLOY.md satisfy SETUP-02 now; live deploy is a user-triggered follow-up
+- [Phase 08]: Plan 02: single jump path — the coyote/buffer/variable-height path in makePlayer is the only jump trigger
+- [Phase 08]: Plan 02: respawn is reposition-in-place (never go()); reset() is the named anti-leak contract
+- [Phase 08]: Plan 03: MOVE-05 dt-correctness audit clean — no double-scale on vel.x, no hand-rolled gravity; zero code changes
+- [Phase 09]: assets sourced from OpenGameArt CC0 (6 Color Dungeon by HorusKDI + Rotating Coin by PuddinThur); rejected spinning-coin-0 (CC-BY-SA)
+- [Phase 09]: 09-02: Authored a JS data-list level (LEVEL) + buildLevel() with merged-floor colliders instead of addLevel symbol maps
+- [Phase 09]: 09-02: Spike hitbox tightened to 12x8 onto visible points (Pitfall 4), set in level.js
+- [Phase 09]: 09-02: buildLevel OWNS creation of tagged coin/spike/goal area() entities
+- [Phase 09]: 09-03: Single-point goal seam — one onReachGoal() + one onCollide goal handler, fire-once guarded
+- [Phase 09]: 09-03: coinsCollected + goalReached declared in the gameScene closure (anti-leak)
+- [Phase 10]: Math brain return shape locked to { a, b, answer, choices }; gate builds its own display string
+- [Phase 10]: Math brain exposed as createBrain() factory (fresh closure per game) — anti-leak vs module-level singleton
+- [Phase 10]: 10-02: math gate is in-world Kaplay fixed()/z overlay (no DOM); one-way bridge gate->brain; close cancels key controllers + destroy('math-gate')
+- [Phase 10]: 10-02: check-gate.sh is the per-commit structural gate (no JS test framework) — 8 fail-fast assertions incl. negative no-DOM/no-timer/no-scenes greps
+- [Phase 10]: brain constructed once in the game.js scene closure and injected into the gate via openMathGate — the single scene-to-gate bridge
+- [Phase 10]: onClear sets a closure levelCleared flag as a clean Phase-11 XP hook; the gate owns the LEVEL CLEAR banner
+- [Phase 11]: 11-01: createProgress() is a PURE factory — never reads localStorage at construction; the seam (loadSave/writeSave/storageAvailable) is defined-not-called at import
+- [Phase 11]: 11-01: serialize() persists ONLY {version,xp,level,accuracy,history} — NO migration from the school game's mathlab_save_* key
+- [Phase 11]: seedHistory is LOCKED so isMastered() drill-reduction resumes across visits (SAVE-03)
+- [Phase 11]: Brain seed validation is explicit per-key range-checked (never spread of untrusted blob — T-01-01)
+- [Phase 11]: Persist on correct-clear event AND onHide (visibilitychange); never on a timer (SAFE-01)
+- [Phase 11]: HUD one-way contract: src/ui/hud.js reads getLevel()/getXp()/nextThreshold() and never mutates the tracker
+- [Phase 12]: SAFE-01 audit (check-safety.sh) strips // comments before every negative grep
+- [Phase 12]: Forgiving audit uses punishment-specific tokens only to avoid false-positive on progress.js legitimate level-up surplus carry-over
 
 ## Deferred Items (from v2.0 close)
-
-Items acknowledged and deferred at milestone close on 2026-06-22:
 
 | Category | Item | Status |
 |----------|------|--------|
 | uat | Phase 01: 01-UAT.md — 11 pending browser UAT scenarios (v1 baseline) | acknowledged |
 | verification | Phase 04: 04-VERIFICATION.md — floating damage animation + HP bar drain visual confirmation (human_needed) | acknowledged |
-
-Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
-
-- SC-4: v1 localStorage migration browser test (9-step manual test documented in Phase 6 VERIFICATION.md)
-- levelUpFlash animation is 800ms; recommend reducing to 400–500ms for strict ADHD-04 compliance
-- DC-01 room-count spec mismatch: implementation uses entrance + 4 combat + 1 boss (6 rooms), spec says entrance + 3 + boss (5)
 
 ## Performance Metrics
 
@@ -228,39 +251,7 @@ Tech debt also noted in v2.0-MILESTONE-AUDIT.md:
 | Phase 12 P01 | 12min | 3 tasks | 3 files |
 | Phase 12 P02 | 6 min | 3 tasks | 2 files |
 
-## Decisions
-
-- [Phase ?]: [Phase 7] Vendored folder is lib/ (not vendor/) — passes the phase verification gate
-- [Phase ?]: [Phase 7] file:// guard inline in index.html head, not main.js — top-level import is hoisted and runs before an in-module guard
-- [Phase ?]: [Phase 7] Kaplay 3001.0.19 sha256 fb4a4ef2... recorded in lib/kaplay.mjs header for integrity (T-07-SC)
-- [Phase 7]: Custom Dockerfile over Dokploy Static preset — keeps the .mjs MIME fix under our control
-- [Phase 7]: nginx types{} re-declares js alongside mjs to avoid regressing .js to octet-stream (verified via curl on /main.js)
-- [Phase 7]: Live Dokploy deploy DEFERRED — config + docs/DEPLOY.md satisfy SETUP-02 now; live deploy is a user-triggered follow-up
-- [Phase 08]: Plan 02: single jump path — removed the Plan 01 basic grounded jump; the coyote/buffer/variable-height path in makePlayer is the only jump trigger
-- [Phase 08]: Plan 02: respawn is reposition-in-place (never go()); reset() is the named anti-leak contract, respawn() delegates to it; added opacity(1) to the player so the flash renders
-- [Phase ?]: [Phase 08]: Plan 03: MOVE-05 dt-correctness audit clean — no double-scale on vel.x, no hand-rolled gravity, timers/camera use dt(), no raw-constant lerp; zero code changes
-- [Phase ?]: [Phase 08]: Plan 03: MOVE-05 human-verify (throttled vs 60Hz) deferred to end-of-phase per human_verify_mode: end-of-phase
-- [Phase ?]: Phase 9 assets sourced from OpenGameArt CC0 (6 Color Dungeon by HorusKDI + Rotating Coin by PuddinThur); rejected spinning-coin-0 (CC-BY-SA)
-- [Phase ?]: 09-02: Authored a JS data-list level (LEVEL) + buildLevel() with merged-floor colliders instead of addLevel symbol maps, preserving the Phase 8 anti-seam-stick property
-- [Phase ?]: 09-02: Spike hitbox tightened to 12x8 offset onto the visible points (Pitfall 4), set definitively in level.js not deferred to Plan 03
-- [Phase ?]: 09-02: buildLevel OWNS creation of the tagged coin/spike/goal area() entities; Plan 03 only attaches onCollide handlers
-- [Phase 09]: 09-03: Single-point goal seam — one onReachGoal() + one onCollide goal handler, fire-once guarded; Phase 10 replaces only the stub body
-- [Phase 09]: 09-03: coinsCollected + goalReached declared in the gameScene closure (anti-leak); goal placeholder via Kaplay text() not a DOM sink (no XSS)
-- [Phase ?]: Math brain return shape locked to { a, b, answer, choices } (a=table, b=multiplicand); gate builds its own display string.
-- [Phase ?]: Math brain exposed as createBrain() factory (fresh closure per game) — anti-leak vs archive's module-level singleton.
-- [Phase ?]: 10-02: math gate is in-world Kaplay fixed()/z overlay (no DOM); one-way bridge gate->brain; close cancels key controllers + destroy('math-gate') anti-leak; wrong forgiving, correct onClear() once
-- [Phase ?]: 10-02: check-gate.sh is the per-commit structural gate (no JS test framework) — 8 fail-fast assertions incl. negative no-DOM/no-timer/no-scenes greps; banned tokens live only in grep patterns to keep gate source clean
-- [Phase ?]: Phase 10: brain constructed once in the game.js scene closure (anti-leak) and injected into the gate via openMathGate — the single scene-to-gate bridge
-- [Phase ?]: Phase 10: onClear sets a closure levelCleared flag as a clean Phase-11 XP hook; the gate owns the LEVEL CLEAR banner; no XP/persistence implemented (GATE-03)
-- [Phase ?]: 11-01: createProgress() is a PURE factory — never reads localStorage at construction; the seam (loadSave/writeSave/storageAvailable) is defined-not-called at import so progress.js stays node-importable.
-- [Phase ?]: 11-01: serialize() persists ONLY {version,xp,level,accuracy,history} — no run/session state; NO migration from the school game's mathlab_save_* key.
-- [Phase ?]: seedHistory is LOCKED (not optional) so isMastered() drill-reduction resumes across visits (SAVE-03)
-- [Phase ?]: Brain seed validation is explicit per-key range-checked (never spread of untrusted blob — T-01-01)
-- [Phase ?]: Persist on correct-clear event AND onHide (visibilitychange); never on a timer (SAFE-01)
-- [Phase ?]: HUD one-way contract: src/ui/hud.js reads getLevel()/getXp()/nextThreshold() and never mutates the tracker.
-- [Phase ?]: SAFE-01 audit (check-safety.sh) strips // comments before every negative grep so the whole-src no-timer/forgiving scan matches code, not the existing no-scheduler-discipline prose comments.
-- [Phase ?]: Forgiving audit uses punishment-specific tokens only (no broad xp-decrement) to avoid false-positive on progress.js legitimate level-up surplus carry-over.
-
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review and approve the v4.0 ROADMAP.md (Phases 13–19)
+- Then run `/gsd-plan-phase 13` to begin the milestone
