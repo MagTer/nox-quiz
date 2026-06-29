@@ -73,6 +73,20 @@ export function createProgress(saved) {
       ? Math.floor(saved.level)
       : 1;
 
+  // Per-game closure-local cleared FACTS (SAVE-06). Seeded from saved.levels with the SAME
+  // strict `rec.cleared === true` coercion validate() uses, so a non-boolean flag seeds NOT-
+  // cleared. We read own keys via Object.keys (never the prototype) and write plain own keys
+  // here, so a __proto__/junk id in the blob can never pollute Object.prototype. This map owns
+  // ONLY the cleared facts — derived unlock (isUnlocked) lives in the registry (Plan 03), which
+  // owns LEVEL_ORDER; progress.js imports no registry/engine (firewall).
+  const cleared = {};
+  if (saved && saved.levels && typeof saved.levels === "object") {
+    for (const id of Object.keys(saved.levels)) {
+      const rec = saved.levels[id];
+      if (rec != null && rec.cleared === true) cleared[id] = true;
+    }
+  }
+
   // Level-up threshold curve — VERBATIM from archive 651 (read CONFIG.PROGRESS.* here,
   // not the archive's bare CONFIG.*). threshold(1) = round(200 * 1.3^0) = 200;
   // threshold(2) = round(200 * 1.3^1) = round(260) = 260.
@@ -105,6 +119,16 @@ export function createProgress(saved) {
       return level;
     },
 
+    // Per-level cleared FACTS (SAVE-06). isLevelCleared reads the closure map with strict
+    // `=== true`; markCleared records a level as cleared. These own facts only — derived unlock
+    // (isUnlocked) lives in the registry (Plan 03); do NOT import LEVEL_ORDER or the engine here.
+    isLevelCleared(id) {
+      return cleared[id] === true;
+    },
+    markCleared(id) {
+      cleared[id] = true;
+    },
+
     threshold,
     nextThreshold: () => threshold(level),
 
@@ -129,12 +153,17 @@ export function createProgress(saved) {
     // brain's accuracy/history come from brain.snapshot(); a missing snapshot defaults
     // them to empty objects so serialize() never throws on a null brain.
     serialize(brainSnapshot) {
+      // Build the persistable per-level map from the closure cleared FACTS: ONLY { cleared: true }
+      // entries, never an `unlocked` flag (one source of truth — unlock is derived in the registry).
+      const levels = {};
+      for (const id of Object.keys(cleared)) levels[id] = { cleared: true };
       return {
         version: CONFIG.SAVE.VERSION,
         xp,
         level,
         accuracy: brainSnapshot?.accuracy ?? {},
         history: brainSnapshot?.history ?? {},
+        levels,
       };
     },
   };
@@ -155,7 +184,7 @@ export function createProgress(saved) {
 // The fresh-save shape — what createProgress and createBrain seed from when there is
 // no (or a rejected) save. Returned by loadSave() on every failure mode below.
 function defaults() {
-  return { xp: 0, level: 1, accuracy: {}, history: {} };
+  return { xp: 0, level: 1, accuracy: {}, history: {}, levels: {} };
 }
 
 // Explicit-field validation of an untrusted parsed blob (archive fromJSON 718-743).
@@ -196,6 +225,19 @@ function validate(data) {
           .filter((x) => typeof x === "boolean")
           .slice(-CONFIG.BRAIN.MASTERY_WINDOW);
       }
+    });
+  }
+
+  // Per-level cleared map (SAVE-06). Mirrors the named-key, range-checked accuracy idiom
+  // above: copy ONLY into the fresh `out.levels` (from defaults()), never spread/Object.assign
+  // the untrusted blob (prototype-pollution mitigation T-13-03 / T-01-01). Each cleared flag is
+  // STRICTLY coerced with `=== true` — a "yes"/1/non-boolean validates to NOT-cleared. Unknown
+  // / junk ids (including __proto__) are tolerated and written as plain own keys on `out.levels`;
+  // a junk id can never unlock a real level because unlock is derived from LEVEL_ORDER in the
+  // registry, never from this map. We store ONLY `cleared`, never `unlocked`.
+  if (data.levels && typeof data.levels === "object") {
+    Object.entries(data.levels).forEach(([id, rec]) => {
+      out.levels[id] = { cleared: rec != null && rec.cleared === true };
     });
   }
 
