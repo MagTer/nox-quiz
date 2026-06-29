@@ -6,14 +6,14 @@ current_phase: 14
 current_phase_name: Multi-Scene Shell
 status: executing
 stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-06-29T21:04:15.718Z"
+last_updated: "2026-06-29T21:10:55.226Z"
 last_activity: 2026-06-29
-last_activity_desc: Phase 13 complete, transitioned to Phase 14
+last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
   percent: 14
 ---
 
@@ -28,17 +28,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-28)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 13 — Fresh Save Format + Level Registry/Data
+**Current Focus:** Phase 14 — Multi-Scene Shell
 
 **Tech Stack (v4.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded) + CC0 pixel-art assets. Static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL. Persistence via versioned localStorage. Zero new runtime dependencies for v4.0 — every capability is native to the vendored Kaplay bundle.
 **Shipped State (v3.0):** Real 2D Kaplay platformer — one polished dark-grunge level → forgiving 6–9 math gate → persisted XP/leveling. Kid-validated "all good." The v1/v2 quiz is archived. v4.0 grows this single-level slice into a replayable multi-level game.
 
 ## Current Position
 
-Phase: 14 — Multi-Scene Shell
-Plan: Not started
+Phase: 14 (Multi-Scene Shell) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-29 — Phase 13 complete, transitioned to Phase 14
+Last activity: 2026-06-29 — Phase 14 execution started
 
 ## v4.0 Roadmap (Phases 13–19)
 
@@ -139,7 +139,7 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 **Resume file:** None
 
-**Last session:** 2026-06-29T13:21:15.152Z
+**Last session:** 2026-06-29T21:10:34.267Z
 
 **Next steps:**
 
@@ -258,6 +258,7 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 | Phase 13 P02 | 2min | 2 tasks | 2 files |
 | Phase 13 P03 | 3min | 3 tasks | 3 files |
 | Phase 13 P04 | ~5min | 3 tasks | 3 files |
+| Phase 14 P01 | ~3min | 3 tasks | 5 files |
 
 ## Operator Next Steps
 
@@ -269,3 +270,5 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 - [Phase ?]: [Phase 13]: 13-01: Save key/version pinned to mathlab_platformer_v2 / VERSION 2; Wave 1 Plan 02 must match or the gate stays red
 - [Phase ?]: [Phase 13]: 13-02: v4.0 clean-reset save key mathlab_platformer_v2 / VERSION 2; per-level cleared map stores ONLY cleared facts, unlock derived in registry
 - [Phase ?]: Level registry: ordered LEVEL_ORDER + getLevel + derived isUnlocked; v3.0 geometry lifted verbatim into level-01 descriptor; a727c13 Rect guard kept inside buildLevel body
+- [Phase ?]: [Phase 14] 14-01: check-import-safety.sh negative grep is ANCHORED to module-top-level forms and SCOPED to title.js/select.js only (game.js/main.js excluded); calibrated RED on scripts/fixtures/bad-scene.js, GREEN on shipped game.js
+- [Phase ?]: [Phase 14] 14-01: titleScene + selectScene are pure-canvas closure factories (engine globals body-only, a727c13); select derives unlock via isUnlocked + reads createProgress(loadSave()) fresh every entry — one source of truth, never stores its own unlocked flag
