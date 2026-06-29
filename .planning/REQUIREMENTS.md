@@ -42,9 +42,9 @@ selection algorithm in `math/brain.js` is LOCKED and unchanged this milestone.
 
 ### Persistence
 
-- [ ] **SAVE-05**: v4.0 uses a fresh, versioned save format (new key/version); existing v3.0 progress is NOT migrated (clean slate by design), and a stale or foreign save never bricks the game.
-- [ ] **SAVE-06**: Per-level completion (cleared) and derived unlock state persist in localStorage and resume on revisit.
-- [ ] **SAVE-07**: XP / level and per-table practice history persist within the fresh save and keep question selection adapted to her weak spots across visits.
+- [x] **SAVE-05**: v4.0 uses a fresh, versioned save format (new key/version); existing v3.0 progress is NOT migrated (clean slate by design), and a stale or foreign save never bricks the game.
+- [x] **SAVE-06**: Per-level completion (cleared) and derived unlock state persist in localStorage and resume on revisit.
+- [x] **SAVE-07**: XP / level and per-table practice history persist within the fresh save and keep question selection adapted to her weak spots across visits.
 
 ### ADHD-Safety (extended)
 
@@ -98,18 +98,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ART-02 | Phase 18 | Pending |
 | ART-03 | Phase 18 | Pending |
 | ART-04 | Phase 18 | Pending |
-| SAVE-05 | Phase 13 | Pending |
-| SAVE-06 | Phase 13 | Pending |
-| SAVE-07 | Phase 13 | Pending |
+| SAVE-05 | Phase 13 | Complete |
+| SAVE-06 | Phase 13 | Complete |
+| SAVE-07 | Phase 13 | Complete |
 | SAFE-04 | Phase 19 | Pending |
 | SAFE-05 | Phase 19 | Pending |
 
 **Coverage:**
+
 - v4.0 requirements: 22 total
 - Mapped to phases: 22 ✓ (all mapped; no orphans, no duplicates)
 - Unmapped: 0
 
 **Phase → requirement count:**
+
 - Phase 13 (Fresh Save Format + Level Registry/Data): SAVE-05, SAVE-06, SAVE-07, LVL-02 (4)
 - Phase 14 (Multi-Scene Shell): NAV-01, NAV-02, NAV-03, NAV-04 (4)
 - Phase 15 (Challenge Seam + Locked-Door Mechanic): MECH-01, MECH-02 (2)
