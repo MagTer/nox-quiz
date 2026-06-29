@@ -77,12 +77,15 @@ export const CONFIG = {
     EASY_TABLES: [1, 2, 3, 4, 5], // easy tables (award XP_EASY)
   },
 
-  // --- Save / persistence (NEW namespaced key — independent of the archive's mathlab_save_*) ---
-  // Phase 11 creates a fresh, independent platformer save. NO migration from the school game
-  // (CONTEXT line 35-36). The old mathlab_save_v1/v2 keys are NEVER read or written.
+  // --- Save / persistence (v4.0 CLEAN-RESET key — new namespace, no migration) ---
+  // v4.0 deliberately starts a FRESH save under a NEW key + version. The v3.0 blob under
+  // the old key (mathlab_platformer_v?) is NOT migrated and NOT deleted — it is simply made
+  // invisible by this new key, the PRIMARY clean-reset guard (SAVE-05). The version gate in
+  // loadSave() is the second guard. The old key is never read or written anywhere.
+  // (allowedTables et al. are level DATA, not config — they live in the level registry.)
   SAVE: {
-    KEY: "mathlab_platformer_v1", // localStorage key for the platformer progression
-    VERSION: 1, // bump for future save-format migrations
+    KEY: "mathlab_platformer_v2", // v4.0 clean-reset localStorage key for the platformer progression
+    VERSION: 2, // v4.0 save-format version (gate: a foreign/older blob → safe defaults)
   },
 
   // --- HUD layout (level badge + XP bar + level-up flash; Wave 3 consumes; Phase 12 retunes) ---
