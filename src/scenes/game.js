@@ -192,10 +192,23 @@ export function gameScene(data) {
         // snapshot. Run/session state (coins, goalReached, position) is NEVER serialized.
         // writeSave is guarded (no-op under blocked storage; never throws into the loop).
         writeSave(progress.serialize(brain.snapshot()));
+
+        // NAV-03: after the persist, RETURN to level-select — no auto-advance into
+        // the next level. go() tears down this scene's fixed() gate objects cleanly
+        // (nothing persists across scenes); select re-derives unlock fresh. NO wait()/timer
+        // to "let the banner show" (SAFE-01 — check-safety.sh bans wait(/loop(/setTimeout);
+        // fx.clearBurst() already fired for the current frame above before teardown).
+        go("select");
       },
     });
   }
   player.onCollide("goal", onReachGoal);
+
+  // --- Escape → level-select (NAV-03 agency) ---
+  // Lets her bail back to select mid-level with no forced replay of earlier levels.
+  // Registered in the scene body (not module top level); go() auto-clears this
+  // controller in Kaplay 3001, so no manual cancel is needed. No timer, no persistence.
+  onKeyPress("escape", () => go("select"));
 
   // --- Per-frame scene update ---
   onUpdate(() => {
