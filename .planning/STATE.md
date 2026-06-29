@@ -4,17 +4,17 @@ milestone: v4.0
 milestone_name: Content & Challenge
 current_phase: 14
 current_phase_name: Multi-Scene Shell
-status: executing
-stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-06-29T21:14:02.753Z"
+status: verifying
+stopped_at: Completed 14-03-PLAN.md (static gates green; browser boot pending human-verify)
+last_updated: "2026-06-29T21:17:57.972Z"
 last_activity: 2026-06-29
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
-  percent: 14
+  completed_plans: 7
+  percent: 29
 ---
 
 # Project State: Math Lab
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-06-28)
 
 Phase: 14 (Multi-Scene Shell) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-29 — Phase 14 execution started
 
 ## v4.0 Roadmap (Phases 13–19)
@@ -135,11 +135,11 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 ## Session Continuity
 
-**Stopped at:** Completed 13-03-PLAN.md
+**Stopped at:** Completed 14-03-PLAN.md (static gates green; browser boot pending human-verify)
 
 **Resume file:** None
 
-**Last session:** 2026-06-29T21:14:02.743Z
+**Last session:** 2026-06-29T21:17:57.963Z
 
 **Next steps:**
 
@@ -259,6 +259,7 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 | Phase 13 P03 | 3min | 3 tasks | 3 files |
 | Phase 13 P04 | ~5min | 3 tasks | 3 files |
 | Phase 14 P01 | ~3min | 3 tasks | 5 files |
+| Phase 14 P03 | 1min | 2 tasks | 1 files |
 
 ## Operator Next Steps
 
@@ -272,3 +273,4 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 - [Phase ?]: Level registry: ordered LEVEL_ORDER + getLevel + derived isUnlocked; v3.0 geometry lifted verbatim into level-01 descriptor; a727c13 Rect guard kept inside buildLevel body
 - [Phase ?]: [Phase 14] 14-01: check-import-safety.sh negative grep is ANCHORED to module-top-level forms and SCOPED to title.js/select.js only (game.js/main.js excluded); calibrated RED on scripts/fixtures/bad-scene.js, GREEN on shipped game.js
 - [Phase ?]: [Phase 14] 14-01: titleScene + selectScene are pure-canvas closure factories (engine globals body-only, a727c13); select derives unlock via isUnlocked + reads createProgress(loadSave()) fresh every entry — one source of truth, never stores its own unlocked flag
+- [Phase 14]: 14-03: static gate suite (import-safety+progress+safety) re-run GREEN; real-browser NAV-01..04 boot recorded PENDING as a blocking human-verify (autonomous:false) — NAV reqs close at runtime sign-off, not on greps
