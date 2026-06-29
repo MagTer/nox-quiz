@@ -61,7 +61,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 - **Anti-leak** — closure-local run state (never a module-level `let`); cancel every global controller (`onKeyPress`/`onHide`/`onClick`) on `onSceneLeave`; single-flight tween cancel on the object.
 - **No-timer / forgiving / no-game-over** — every math interaction re-asks on wrong with zero penalty/lockout/XP-loss/despawn/restart; enemies never deal contact damage; nothing counts down.
 
-- [ ] **Phase 13: Fresh Save Format + Level Registry/Data** - Clean-reset versioned save + per-level persistence and the pure level registry/builder spine
+- [x] **Phase 13: Fresh Save Format + Level Registry/Data** - Clean-reset versioned save + per-level persistence and the pure level registry/builder spine (completed 2026-06-29)
 - [ ] **Phase 14: Multi-Scene Shell** - Title + level-select + game.js parametrized by levelId, establishing the factory/closure/controller-cancel/import-safety contracts
 - [ ] **Phase 15: Challenge Seam + Locked-Door Mechanic** - No-behavior-change extraction of the shared forgiving challenge component; the door/key mechanic proves the seam
 - [ ] **Phase 16: Remaining Mechanics + Difficulty Curve** - Defeat-enemy, multiple gates, collect-the-answer, plus the per-level allowed-tables ramp
@@ -83,7 +83,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   3. XP / level and per-table practice history persist within the fresh save and seed the (unchanged) brain so question selection stays adapted to her weak spots across visits (SAVE-07).
   4. Levels are plain JS data objects consumed by a single parameterized builder and registered in an ordered registry — the v3.0 level lifts in verbatim as level-01, with no build step, no Kaplay `addLevel`, no Tiled (LVL-02).
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 **Wave 1**
 
 - [x] 13-01-PLAN.md — Wave 0: extend smoke + structural gate for the new save shape, registry, and import-safety
@@ -92,7 +92,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 13-04-PLAN.md — Wave 2: rewire game.js to the registry, thread allowedTables, persist cleared, delete level.js, mandatory browser boot
+- [x] 13-04-PLAN.md — Wave 2: rewire game.js to the registry, thread allowedTables, persist cleared, delete level.js, mandatory browser boot
 
 ### Phase 14: Multi-Scene Shell
 
@@ -198,7 +198,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 10. Math-Gate Integration | v3.0 | 3/3 | ✅ Complete | 2026-06-26 |
 | 11. Progression & Persistence | v3.0 | 4/4 | ✅ Complete | 2026-06-27 |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 3/3 | ✅ Complete | 2026-06-28 |
-| 13. Fresh Save Format + Level Registry/Data | v4.0 | 3/4 | In Progress|  |
+| 13. Fresh Save Format + Level Registry/Data | v4.0 | 4/4 | Complete   | 2026-06-29 |
 | 14. Multi-Scene Shell | v4.0 | 0/? | Not started | - |
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 0/? | Not started | - |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 0/? | Not started | - |
