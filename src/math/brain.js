@@ -58,6 +58,18 @@ import { CONFIG } from "../config.js"; // leaf constants only — CONFIG.BRAIN n
  *   for the loader to persist (one-way export — the brain never reads storage).
  */
 export function createBrain({ seedAccuracy, seedHistory, allowedTables } = {}) {
+  // --- allowedTables sanitation (defensive seam, mirrors the seedAccuracy/seedHistory guards).
+  // allowedTables is the documented Phase 16 difficulty seam: today it comes from a trusted level
+  // descriptor, but a typo'd or future data-driven value must NOT silently generate out-of-range
+  // questions (e.g. `100 × 7`). Filter to in-range integer tables (1..9); an empty/invalid pool
+  // falls back to the default (all-9) behaviour by leaving `allowedSet` null. Computed ONCE here so
+  // calculateWeights/weightedRandom share the same validated pool (no per-call rebuild). This is
+  // input validation only — the LOCKED weighting formulas / CONFIG.BRAIN values are untouched.
+  const validTables = Array.isArray(allowedTables)
+    ? allowedTables.filter((t) => Number.isInteger(t) && t >= 1 && t <= 9)
+    : [];
+  const allowedSet = validTables.length ? new Set(validTables) : null;
+
   // Per-game closure state — fresh per createBrain() call (anti-leak contract).
   // EWMA per table; hard tables start lower → higher initial selection weight (archive 667-668).
   const accuracy = {
@@ -125,9 +137,9 @@ export function createBrain({ seedAccuracy, seedHistory, allowedTables } = {}) {
   // Hard tables: base weight (1 - acc)^1.5, boosted if struggling, reduced if mastered.
   // Easy tables: base weight (1 - acc)^0.8 * 0.3 so they average ~30% total selection.
   // Edge case: if total weight rounds to zero (all mastered), reset to equal weights.
-  const calculateWeights = (allowedTables) => {
+  const calculateWeights = () => {
     const weights = {};
-    const allowed = allowedTables ? new Set(allowedTables) : null;
+    const allowed = allowedSet; // validated pool computed once in the factory (null = all 9)
 
     CONFIG.BRAIN.HARD_TABLES.forEach((table) => {
       if (allowed && !allowed.has(table)) return;
@@ -226,7 +238,7 @@ export function createBrain({ seedAccuracy, seedHistory, allowedTables } = {}) {
     // options including the answer). The archive's `question:` display string is
     // intentionally dropped — the gate (Plan 02) builds its own display string from a/b.
     nextQuestion() {
-      const weights = calculateWeights(allowedTables);
+      const weights = calculateWeights();
       const table = weightedRandom(weights);
       const multiplicand = Math.floor(Math.random() * 10) + 1;
       const answer = table * multiplicand;
