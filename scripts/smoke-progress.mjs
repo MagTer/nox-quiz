@@ -204,13 +204,18 @@ const check = (cond, msg) => {
     `SAVE-05: corrupt-levels blob should still yield a finite, >=1 level`);
 
   // 2. A junk-id cleared map with a __proto__ key and a non-boolean cleared flag.
+  // Build the hostile blob via JSON.parse — NOT an object literal. In a literal, `__proto__`
+  // is special syntax that sets the prototype and creates NO own key, so it exercises only the
+  // WEAKER case. JSON.parse('{"__proto__":...}') creates a GENUINE own enumerable `__proto__`
+  // key — the real prototype-pollution attack vector the seeding/validate loops must withstand.
   threw = false;
   let q;
   try {
-    q = createProgress({
-      version: 2,
-      levels: { __proto__: { cleared: true }, "ghost-level": { cleared: "yes" } },
-    });
+    q = createProgress(
+      JSON.parse(
+        '{"version":2,"levels":{"__proto__":{"cleared":true},"ghost-level":{"cleared":"yes"}}}',
+      ),
+    );
   } catch {
     threw = true;
   }
