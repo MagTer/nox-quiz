@@ -79,7 +79,11 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   2. Per-level `cleared` state persists in localStorage and survives a reload; `unlocked` is *derived* from `LEVEL_ORDER` (first level unlocked; a level unlocks when the previous one is cleared) rather than stored as a second source of truth (SAVE-06).
   3. XP / level and per-table practice history persist within the fresh save and seed the (unchanged) brain so question selection stays adapted to her weak spots across visits (SAVE-07).
   4. Levels are plain JS data objects consumed by a single parameterized builder and registered in an ordered registry — the v3.0 level lifts in verbatim as level-01, with no build step, no Kaplay `addLevel`, no Tiled (LVL-02).
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 13-01-PLAN.md — Wave 0: extend smoke + structural gate for the new save shape, registry, and import-safety
+- [ ] 13-02-PLAN.md — Wave 1: fresh versioned save key + per-level cleared map + helpers (SAVE-05/06/07)
+- [ ] 13-03-PLAN.md — Wave 1: level registry + parameterized builder + verbatim level-01 + derived unlock (LVL-02/SAVE-06)
+- [ ] 13-04-PLAN.md — Wave 2: rewire game.js to the registry, thread allowedTables, persist cleared, delete level.js, mandatory browser boot
 
 ### Phase 14: Multi-Scene Shell
 **Goal**: She boots into a dark-grunge title, moves to a level-select that shows locked/unlocked/cleared state, and plays any unlocked level — all via in-game screens with clean state on every entry. This phase establishes the factory + closure-state + controller-cancel + import-safety contracts every later engine-touching phase inherits.
@@ -167,7 +171,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 10. Math-Gate Integration | v3.0 | 3/3 | ✅ Complete | 2026-06-26 |
 | 11. Progression & Persistence | v3.0 | 4/4 | ✅ Complete | 2026-06-27 |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 3/3 | ✅ Complete | 2026-06-28 |
-| 13. Fresh Save Format + Level Registry/Data | v4.0 | 0/? | Not started | - |
+| 13. Fresh Save Format + Level Registry/Data | v4.0 | 0/4 | Planned | - |
 | 14. Multi-Scene Shell | v4.0 | 0/? | Not started | - |
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 0/? | Not started | - |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 0/? | Not started | - |
