@@ -38,14 +38,31 @@ fail() {
 # uses // line comments almost exclusively; extend this if a /* */ block is ever added.
 strip_comments() { sed -E 's://.*$::' "$1"; }
 
+# --- The banned Kaplay engine-global vocabulary (the surface this gate polices) ---
+# Every symbol here comes from Kaplay `global: true` and exists ONLY after kaplay() runs;
+# referencing any of them at module TOP LEVEL throws at import and blanks the canvas
+# (the a727c13 regression). This alternation is the SINGLE maintainable list — extend it
+# HERE (not in the regexes below) as scenes adopt new primitives. It deliberately covers
+# the globals the shipped scenes already use (add/text/rect/color/pos/anchor/center/fixed/
+# z/outline/rgb/go/onKeyPress/onClick — title.js + select.js) AND the ones the platformer
+# and future engine-touching phases (15–18) reach for (setGravity/area/body/opacity/tween/
+# destroy/onUpdate/onCollide/onHide/onSceneLeave/…), so the gate does not silently narrow
+# as the engine surface grows (WR-02).
+#
+# It deliberately does NOT list our own module imports (CONFIG, createProgress, loadSave,
+# isUnlocked, getLevel, buildLevel, makePlayer, mountHud, openMathGate, createBrain, …) or
+# pure-JS builtins (Math./Object./String/Array/Number/JSON/…) — those are legitimate at
+# module scope. Only true Kaplay engine globals belong here.
+ENGINE_GLOBALS='add|scene|go|loadSprite|loadSound|play|text|rect|sprite|circle|vec2|rgb|color|pos|anchor|scale|rotate|outline|fixed|z|opacity|area|body|move|offscreen|center|setGravity|getGravity|camPos|camScale|shake|destroy|destroyAll|wait|loop|tween|onKeyPress|onKeyDown|onKeyRelease|onClick|onMousePress|onUpdate|onDraw|onCollide|onHide|onShow|onSceneLeave|onAdd|onDestroy|drawRect|drawText|drawSprite|addLevel'
+
 # The module-TOP-LEVEL a727c13 trap pattern (anchored — used by Section 2 and the
 # calibration). Two forms:
-#   (a) a column-0 (const|let|var) declaration whose initializer calls a Kaplay engine
-#       factory: add/rect/sprite/text/vec2/rgb/onKeyPress/onKeyDown/onClick/onUpdate
-#   (b) a top-level `typeof <engine-symbol>` guard (Rect|add|vec2|rgb)
+#   (a) a column-0 (const|let|var) declaration whose initializer references an engine
+#       global — `const banner = add(...)`, `const W = center()`, `let g = go;`.
+#   (b) a top-level `typeof <engine-symbol>` guard.
 # Anchored to ^ (column 0 / leading blanks for the typeof form) so an INDENTED in-body
-# call is never matched.
-TOPLEVEL_TRAP='^(const|let|var)[^=]*=[^=]*\b(add|rect|sprite|text|vec2|rgb|onKeyPress|onKeyDown|onClick|onUpdate)\(|^[[:space:]]*typeof (Rect|add|vec2|rgb)\b'
+# call is never matched. The factory alternation now reads from ENGINE_GLOBALS (WR-02).
+TOPLEVEL_TRAP="^(const|let|var)[^=]*=[^=]*\\b(${ENGINE_GLOBALS})\\b|^[[:space:]]*typeof (${ENGINE_GLOBALS})\\b"
 
 # 0. Existence + syntax gate for each module this shell is built from.
 #    Guarded so a missing/syntax-broken file produces a clear FAIL, not a raw bash error.
