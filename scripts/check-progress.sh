@@ -28,18 +28,29 @@ fail() {
   exit 1
 }
 
+# Strip // line comments so a banned token in prose never false-matches a NEGATIVE grep
+# (repo convention; mirrors scripts/check-safety.sh strip_comments). The codebase uses
+# // line comments almost exclusively; extend this if a /* */ block comment is ever added.
+strip_comments() { sed -E 's://.*$::' "$1"; }
+
 # 0. Existence + syntax gate for each module this layer is built from.
 #    Each guarded so a missing Wave-1+ file produces a clear FAIL, not a raw bash error.
-for f in "src/progress.js" "src/ui/hud.js" "src/math/brain.js"; do
-  [ -f "$ROOT/$f" ] || fail "missing module: $f (created by Phase 11 Wave 1–3)"
+#    The three src/levels/* registry modules (Phase 13 Wave 1–2) are added to the loop so a
+#    missing or syntax-broken registry file yields a clear FAIL, not a raw bash error.
+for f in \
+  "src/progress.js" "src/ui/hud.js" "src/math/brain.js" \
+  "src/levels/index.js" "src/levels/build.js" "src/levels/level-01.js"; do
+  [ -f "$ROOT/$f" ] || fail "missing module: $f (created by Phase 11/13 Wave 1–3)"
   node --check "$ROOT/$f" || fail "node --check failed (syntax error in $f)"
 done
 
 # 1. Persistence seam present — the guarded quota catch + the versioned save key.
 grep -q 'QuotaExceededError' "$ROOT/src/progress.js" \
   || fail "missing 'QuotaExceededError' guard in src/progress.js (writeSave must tolerate a full quota)"
-grep -q 'mathlab_platformer_v1' "$ROOT/src/config.js" \
-  || fail "missing versioned save key 'mathlab_platformer_v1' in src/config.js"
+# Phase 13 clean-reset key bump: the NEW versioned key (v2), NOT the v3.0 v1 key. This grep
+# and CONFIG.SAVE.KEY in src/config.js must agree (the canonical grep-coupling trap, Pitfall 6).
+grep -q 'mathlab_platformer_v2' "$ROOT/src/config.js" \
+  || fail "missing NEW versioned save key 'mathlab_platformer_v2' in src/config.js (Phase 13 clean reset)"
 
 # 2. Brain seeding wired BOTH ends — accuracy resume (SAVE-03).
 grep -q 'seedAccuracy' "$ROOT/src/scenes/game.js" \
@@ -81,7 +92,40 @@ if grep -q 'addXp' "$ROOT/src/ui/mathGate.js"; then
   fail "XP award found in src/ui/mathGate.js — wrong answers must be penalty-free; XP only on onClear (forgiving)"
 fi
 
-# 10. Final step — invoke the headless math/seed smoke.
+# --- Phase 13: new save shape (per-level cleared map) + level registry/builder ---
+
+# 11. Cleared-map seam present in progress.js (SAVE-06 stored fact). The levels map plus the
+#     two helpers prove the per-level completion seam exists in the pure module.
+grep -q 'markCleared' "$ROOT/src/progress.js" \
+  || fail "missing 'markCleared' in src/progress.js (SAVE-06: per-level cleared fact must be settable)"
+grep -q 'isLevelCleared' "$ROOT/src/progress.js" \
+  || fail "missing 'isLevelCleared' in src/progress.js (SAVE-06: per-level cleared fact must be readable)"
+grep -q 'levels' "$ROOT/src/progress.js" \
+  || fail "missing 'levels' map in src/progress.js (SAVE-06: serialize/validate must carry the cleared map)"
+
+# 12. Registry / builder API present (LVL-02). The ordered registry exposes LEVEL_ORDER +
+#     getLevel + the derived-unlock helper; the builder exposes buildLevel.
+grep -q 'LEVEL_ORDER' "$ROOT/src/levels/index.js" \
+  || fail "missing 'LEVEL_ORDER' export in src/levels/index.js (LVL-02: the ordered registry)"
+grep -q 'getLevel' "$ROOT/src/levels/index.js" \
+  || fail "missing 'getLevel' in src/levels/index.js (LVL-02: id → descriptor lookup)"
+grep -q 'isUnlocked' "$ROOT/src/levels/index.js" \
+  || fail "missing 'isUnlocked' in src/levels/index.js (SAVE-06: derived unlock from LEVEL_ORDER)"
+grep -q 'buildLevel' "$ROOT/src/levels/build.js" \
+  || fail "missing 'buildLevel' in src/levels/build.js (LVL-02: the one parameterized builder)"
+
+# 13. NEGATIVE — a727c13 import-safety: the DATA + REGISTRY modules reference NO engine globals
+#     at all (engine globals only exist after kaplay({global}) runs; a top-level reference would
+#     throw at import and blank the game). Comments stripped first so a prose mention never
+#     false-flags. SCOPED to level-01.js + index.js ONLY — build.js LEGITIMATELY references
+#     Rect/add(/etc. INSIDE buildLevel's body (a727c13-correct), so it is excluded here.
+for f in "src/levels/level-01.js" "src/levels/index.js"; do
+  if strip_comments "$ROOT/$f" | grep -Eq 'typeof Rect|[^a-zA-Z]add\(|[^a-zA-Z]rect\(|[^a-zA-Z]sprite\(|[^a-zA-Z]vec2\(|kaplay'; then
+    fail "engine global referenced in $f — registry/data modules must be a727c13-safe (no top-level engine ref; that throws at import and blanks the game)"
+  fi
+done
+
+# 14. Final step — invoke the headless math/seed smoke.
 node "$ROOT/scripts/smoke-progress.mjs" || fail "smoke-progress failed (pure XP/level + seed adaptation)"
 
 echo "progress checks: PASS"
