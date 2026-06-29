@@ -198,7 +198,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 10. Math-Gate Integration | v3.0 | 3/3 | ✅ Complete | 2026-06-26 |
 | 11. Progression & Persistence | v3.0 | 4/4 | ✅ Complete | 2026-06-27 |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 3/3 | ✅ Complete | 2026-06-28 |
-| 13. Fresh Save Format + Level Registry/Data | v4.0 | 4/4 | Complete   | 2026-06-29 |
+| 13. Fresh Save Format + Level Registry/Data | v4.0 | 4/4 | Complete    | 2026-06-29 |
 | 14. Multi-Scene Shell | v4.0 | 0/? | Not started | - |
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 0/? | Not started | - |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 0/? | Not started | - |
