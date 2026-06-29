@@ -106,8 +106,20 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   3. Clearing a level unlocks the next; she can return to level-select and resume from any unlocked level with no forced replay of earlier levels (NAV-03).
   4. Navigation between title, select, and a level happens via Kaplay scenes (no browser dialogs); entering→leaving→re-entering any screen twice leaves no leaked input handlers, colliders, tweens, or effects (NAV-04) — verified by a real browser boot, with `scripts/check-import-safety.sh` green.
 
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+
+**Wave 1**
+
+- [ ] 14-01-PLAN.md — Wave 0 import-safety gate (a727c13) + title scene (NAV-01) + select scene (NAV-02) + CONFIG layout
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 14-02-PLAN.md — main.js boot → go("title"); game.js clear→select + Escape→select (NAV-03); full static gate green
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 14-03-PLAN.md — mandatory real browser boot: full nav flow + NAV-04 enter→leave→re-enter-twice leak check (blocking human-verify)
 
 ### Phase 15: Challenge Seam + Locked-Door Mechanic
 
@@ -199,7 +211,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 11. Progression & Persistence | v3.0 | 4/4 | ✅ Complete | 2026-06-27 |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 3/3 | ✅ Complete | 2026-06-28 |
 | 13. Fresh Save Format + Level Registry/Data | v4.0 | 4/4 | Complete    | 2026-06-29 |
-| 14. Multi-Scene Shell | v4.0 | 0/? | Not started | - |
+| 14. Multi-Scene Shell | v4.0 | 0/3 | Not started | - |
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 0/? | Not started | - |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 0/? | Not started | - |
 | 17. Build the Levels | v4.0 | 0/? | Not started | - |
