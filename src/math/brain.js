@@ -175,14 +175,18 @@ export function createBrain({ seedAccuracy, seedHistory, allowedTables } = {}) {
   // Weighted random table selection from weights map (archive 960-969).
   // Rolls a random number in [0, total) and walks the weights.
   const weightedRandom = (weights) => {
-    const total = Object.values(weights).reduce((a, b) => a + b, 0);
+    const entries = Object.entries(weights);
+    const total = entries.reduce((sum, [, w]) => sum + w, 0);
     let roll = Math.random() * total;
-    for (const [table, w] of Object.entries(weights)) {
+    for (const [table, w] of entries) {
       roll -= w;
       if (roll <= 0) return parseInt(table, 10);
     }
-    // Fallback (floating point rounding edge): return first hard table.
-    return CONFIG.BRAIN.HARD_TABLES[0];
+    // Fallback (floating-point rounding edge): return the FIRST table present in the weight
+    // map. The map is already restricted to the validated allowed pool by calculateWeights, so
+    // this respects the difficulty seam — never leaks a disallowed table (e.g. hard table 6 when
+    // a pool excludes it). The CONFIG default is a last resort only if the map is somehow empty.
+    return entries.length ? parseInt(entries[0][0], 10) : CONFIG.BRAIN.HARD_TABLES[0];
   };
 
   // Distractor generation: ±1/±2 multiplicand on same table (archive 975-1009).
