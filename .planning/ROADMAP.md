@@ -83,12 +83,12 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   3. XP / level and per-table practice history persist within the fresh save and seed the (unchanged) brain so question selection stays adapted to her weak spots across visits (SAVE-07).
   4. Levels are plain JS data objects consumed by a single parameterized builder and registered in an ordered registry — the v3.0 level lifts in verbatim as level-01, with no build step, no Kaplay `addLevel`, no Tiled (LVL-02).
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 **Wave 1**
 
 - [x] 13-01-PLAN.md — Wave 0: extend smoke + structural gate for the new save shape, registry, and import-safety
 - [x] 13-02-PLAN.md — Wave 1: fresh versioned save key + per-level cleared map + helpers (SAVE-05/06/07)
-- [ ] 13-03-PLAN.md — Wave 1: level registry + parameterized builder + verbatim level-01 + derived unlock (LVL-02/SAVE-06)
+- [x] 13-03-PLAN.md — Wave 1: level registry + parameterized builder + verbatim level-01 + derived unlock (LVL-02/SAVE-06)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -198,7 +198,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 10. Math-Gate Integration | v3.0 | 3/3 | ✅ Complete | 2026-06-26 |
 | 11. Progression & Persistence | v3.0 | 4/4 | ✅ Complete | 2026-06-27 |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 3/3 | ✅ Complete | 2026-06-28 |
-| 13. Fresh Save Format + Level Registry/Data | v4.0 | 2/4 | In Progress|  |
+| 13. Fresh Save Format + Level Registry/Data | v4.0 | 3/4 | In Progress|  |
 | 14. Multi-Scene Shell | v4.0 | 0/? | Not started | - |
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 0/? | Not started | - |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 0/? | Not started | - |
