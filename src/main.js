@@ -10,6 +10,8 @@
 
 import kaplay from "../lib/kaplay.mjs";
 import { CONFIG } from "./config.js";
+import { titleScene } from "./scenes/title.js";
+import { selectScene } from "./scenes/select.js";
 import { gameScene } from "./scenes/game.js";
 
 // kaplay() returns a context and, with global: true (the default), also
@@ -63,6 +65,12 @@ loadSprite("coin", "../assets/coin.png", {
 // Register the real platformer scene and boot it. Seed data is passed via
 // go(name, data) — the CONTEXT-locked anti-leak mechanism: the scene reads its
 // start position from this payload instead of any module-level state.
+// Register all three navigation scenes BEFORE any go() — the title is the boot
+// entry (NAV-01). The select→game handoff carries a levelId payload; the game
+// scene derives its start defaults internally (data?.startX ?? 64), so no start
+// coords are passed at boot.
+scene("title", titleScene);
+scene("select", selectScene);
 scene("game", gameScene);
 
-go("game", { startX: 64, startY: 64 });
+go("title");
