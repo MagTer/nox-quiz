@@ -4,7 +4,8 @@
 // Pitfall 5 — no module-level `let` for run state). It is seeded via the go() data payload.
 //
 // Phase 9 replaced the Phase 8 stress-test strip with one hand-authored level:
-// the geometry now comes from buildLevel(LEVEL) (level.js), and the player renders
+// the geometry now comes from buildLevel(level) (levels/build.js, loaded by id from the
+// levels/index.js registry — Phase 13), and the player renders
 // as a CC0 sprite. The Phase 8 spine is preserved verbatim — merged-floor colliders
 // (anti seam-stick, Pitfall 2), the body({ maxVelocity }) anti-tunnel cap, the
 // reposition-in-place reset()/respawn() (never game-over), the checkpoint
@@ -19,7 +20,8 @@
 import { CONFIG } from "../config.js";
 import { makePlayer } from "../player.js";
 import { followCamera } from "../camera.js";
-import { LEVEL, buildLevel } from "../level.js";
+import { getLevel, LEVEL_ORDER } from "../levels/index.js";
+import { buildLevel } from "../levels/build.js";
 import { createBrain } from "../math/brain.js";
 import { openMathGate } from "../ui/mathGate.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
@@ -55,9 +57,19 @@ export function gameScene(data) {
   // goalReached, position) is NEVER part of the save — only xp/level/accuracy/history.
   const saved = loadSave();
   const progress = createProgress(saved);
+
+  // Load the level to play by id from the registry (SAVE-06/LVL-02 spine). The go() data
+  // payload may carry a levelId (Phase 14's level-select); default to the first level.
+  // getLevel is forgiving — an unknown id falls back to LEVEL_ORDER[0], never crashes
+  // (T-13-10). This phase adds NO scenes; it only proves the data spine loads/plays/persists.
+  const level = getLevel(data?.levelId ?? LEVEL_ORDER[0]);
+
+  // The brain is seeded from saved accuracy/history (SAVE-03) AND given the level's
+  // allowedTables pool — the difficulty seam WIRED (not enforced; Phase 16 owns enforcement).
   const brain = createBrain({
     seedAccuracy: saved.accuracy,
     seedHistory: saved.history,
+    allowedTables: level.allowedTables,
   });
 
   // The HUD reads the loaded XP/level and renders a camera-immune screen-space overlay
@@ -70,7 +82,7 @@ export function gameScene(data) {
   // buildLevel emits the merged-floor + platform colliders, the visual ground
   // tiles, and the tagged coin/spike/goal area() entities. It runs BEFORE the
   // player so the player spawns onto solid ground.
-  buildLevel(LEVEL);
+  buildLevel(level);
 
   // --- Player ---
   // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).
@@ -86,7 +98,7 @@ export function gameScene(data) {
 
   // Place markers from the authored level data: one near the start and one just
   // before each spike (a respawn never costs meaningful progress — ADHD-safe).
-  for (const cp of LEVEL.checkpoints) {
+  for (const cp of level.geometry.checkpoints) {
     addCheckpoint(cp.x, cp.y);
   }
 
@@ -112,7 +124,7 @@ export function gameScene(data) {
   const respawn = reset;
 
   // --- Interactable collisions (Plan 03) ---
-  // The "coin"/"spike"/"goal" tagged area() entities ALREADY EXIST — buildLevel(LEVEL)
+  // The "coin"/"spike"/"goal" tagged area() entities ALREADY EXIST — buildLevel(level)
   // (Plan 02, above) created them, including the tightened spike area({shape,offset})
   // hitbox. This plan ONLY attaches handlers via the repo's one collision idiom
   // (player.onCollide("<tag>", ...) — same as the checkpoint promotion above). It does
@@ -128,7 +140,7 @@ export function gameScene(data) {
 
   // Spikes (LEVEL-05): route into the EXISTING Phase 8 respawn() seam
   // (reposition-in-place, zero momentum, quick flash). A generous checkpoint sits
-  // just before each spike (seeded from LEVEL.checkpoints above) so a respawn never
+  // just before each spike (seeded from level.geometry.checkpoints above) so a respawn never
   // costs meaningful progress. This is the gentle checkpoint policy — no failure
   // construct of any kind is introduced (CONTEXT-locked, ADHD-safe).
   player.onCollide("spike", () => respawn());
@@ -161,6 +173,11 @@ export function gameScene(data) {
         // Award XP for the cleared table (SAVE-01); addXp returns true on a level-up.
         // The gate carried `table` (q.a) — the gate itself awards NO XP (forgiving).
         const leveledUp = progress.addXp(table);
+
+        // Mark THIS level cleared (SAVE-06) so the per-level cleared fact persists in the
+        // SAME write as the XP below (one atomic save; unlock is derived in the registry,
+        // never stored). progress.serialize now includes the levels map (Plan 02).
+        progress.markCleared(level.id);
 
         // One-way HUD update, then flash on a level-up (SAVE-04).
         hud.refresh();
