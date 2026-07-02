@@ -4,17 +4,17 @@ milestone: v4.0
 milestone_name: Content & Challenge
 current_phase: 14
 current_phase_name: Multi-Scene Shell
-status: verifying
-stopped_at: Completed 14-03-PLAN.md (static gates green; browser boot pending human-verify)
-last_updated: "2026-06-29T21:17:57.972Z"
-last_activity: 2026-06-29
-last_activity_desc: Phase 14 execution started
+status: verification_deferred_human
+stopped_at: Phase 14 verified human_needed; deferred pending user browser check (/gsd-verify-work 14)
+last_updated: "2026-07-02T18:00:00.000Z"
+last_activity: 2026-07-02
+last_activity_desc: Phase 14 code-review fixes complete, verifier ran, human checkpoint deferred
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 1
   total_plans: 7
   completed_plans: 7
-  percent: 29
+  percent: 14
 ---
 
 # Project State: Math Lab
@@ -35,10 +35,10 @@ See: .planning/PROJECT.md (updated 2026-06-28)
 
 ## Current Position
 
-Phase: 14 (Multi-Scene Shell) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-29 — Phase 14 execution started
+Phase: 14 (Multi-Scene Shell) — VERIFICATION DEFERRED (human)
+Plan: 3 of 3 (code complete)
+Status: human_needed — mandatory real-browser NAV-01..04 checkpoint pending; resume with /gsd-verify-work 14
+Last activity: 2026-07-02 — verifier ran, static gates green, browser checkpoint deferred
 
 ## v4.0 Roadmap (Phases 13–19)
 
@@ -133,19 +133,25 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 |------|------|---------|
 | 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540, crisp pixel upscale); internal 640×360 resolution unchanged so no gameplay numbers moved |
 
+## Deferred Verification
+
+| Phase | State | Resume |
+|-------|-------|--------|
+| 14 | verification_deferred_human | /gsd-verify-work 14 |
+
 ## Session Continuity
 
-**Stopped at:** Completed 14-03-PLAN.md (static gates green; browser boot pending human-verify)
+**Stopped at:** Phase 14 (Multi-Scene Shell) code + code-review fixes complete, all static gates green (check-import-safety.sh, check-progress.sh, check-safety.sh); 14-VERIFICATION.md status human_needed — mandatory real-browser NAV-01..04 boot/re-entry checkpoint (14-03-PLAN.md's own blocking checkpoint) still pending. Autonomous mode paused here per user unavailability rather than silently skip or auto-decide the phase.
 
-**Resume file:** None
+**Resume file:** .planning/phases/14-multi-scene-shell/14-VERIFICATION.md (human_verification section has the 3 test steps)
 
-**Last session:** 2026-06-29T21:17:57.963Z
+**Last session:** 2026-07-02T18:00:00.000Z
 
 **Next steps:**
 
-1. User reviews and approves ROADMAP.md (Phases 13–19)
-2. Run `/gsd-plan-phase 13` to create the detailed plan for Fresh Save Format + Level Registry/Data (pure, no a727c13 risk — good first phase)
-3. Proceed 14 (multi-scene shell) → 15 (challenge seam + door) → 16 (remaining mechanics + difficulty) → 17 (build levels) → 18 (art/parallax) → 19 (kid-UAT)
+1. Run `/gsd-verify-work 14` (or manually: `cd src && python3 -m http.server 8000` → http://localhost:8000/) and walk the 3 checks in 14-VERIFICATION.md: (a) title boot + Enter/Space/click all advance to select with no console errors, (b) select shows level-01 unlocked, mouse+arrow pick both work, clearing returns to select with a CLEARED mark (no auto-advance), Escape bails mid-level, (c) NAV-04 load-bearing check — enter→leave→re-enter title/select/a level TWICE each, confirming no double-fired input, no stale cursor, no ghost colliders/tweens, no blank canvas, no console errors, and `bash scripts/check-import-safety.sh` stays green.
+2. On pass: mark 14-VERIFICATION.md status `passed`, un-defer in STATE.md, and Phase 14 completes properly (ROADMAP.md/REQUIREMENTS.md checkboxes were corrected back from a premature "Complete" marking — see 14-VERIFICATION.md Gaps Summary).
+3. Resume `/gsd-autonomous` (or `/gsd-autonomous --from 15`) to continue 15 (challenge seam + door) → 16 (remaining mechanics + difficulty) → 17 (build levels) → 18 (art/parallax) → 19 (kid-UAT).
 
 **Context for next session:**
 

@@ -62,7 +62,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 - **No-timer / forgiving / no-game-over** — every math interaction re-asks on wrong with zero penalty/lockout/XP-loss/despawn/restart; enemies never deal contact damage; nothing counts down.
 
 - [x] **Phase 13: Fresh Save Format + Level Registry/Data** - Clean-reset versioned save + per-level persistence and the pure level registry/builder spine (completed 2026-06-29)
-- [x] **Phase 14: Multi-Scene Shell** - Title + level-select + game.js parametrized by levelId, establishing the factory/closure/controller-cancel/import-safety contracts (completed 2026-06-29)
+- [ ] **Phase 14: Multi-Scene Shell** - Title + level-select + game.js parametrized by levelId, establishing the factory/closure/controller-cancel/import-safety contracts (code complete 2026-06-29; mandatory real-browser NAV-04 checkpoint pending human-verify)
 - [ ] **Phase 15: Challenge Seam + Locked-Door Mechanic** - No-behavior-change extraction of the shared forgiving challenge component; the door/key mechanic proves the seam
 - [ ] **Phase 16: Remaining Mechanics + Difficulty Curve** - Defeat-enemy, multiple gates, collect-the-answer, plus the per-level allowed-tables ramp
 - [ ] **Phase 17: Build the Levels** - 3–5 hand-built, completable levels with a platforming difficulty ramp on the ready builder + mechanics
@@ -211,7 +211,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 11. Progression & Persistence | v3.0 | 4/4 | ✅ Complete | 2026-06-27 |
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 3/3 | ✅ Complete | 2026-06-28 |
 | 13. Fresh Save Format + Level Registry/Data | v4.0 | 4/4 | Complete    | 2026-06-29 |
-| 14. Multi-Scene Shell | v4.0 | 3/3 | Complete   | 2026-06-29 |
+| 14. Multi-Scene Shell | v4.0 | 3/3 | Verifying (human-verify pending) | - |
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 0/? | Not started | - |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 0/? | Not started | - |
 | 17. Build the Levels | v4.0 | 0/? | Not started | - |
