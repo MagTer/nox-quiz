@@ -24,6 +24,7 @@ import { getLevel, LEVEL_ORDER } from "../levels/index.js";
 import { buildLevel } from "../levels/build.js";
 import { createBrain } from "../math/brain.js";
 import { openMathGate } from "../ui/mathGate.js";
+import { wireDoor } from "../mechanics/door.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
 import { mountHud } from "../ui/hud.js";
 import * as fx from "../fx.js"; // engine-side juice (coin pop + clear burst) — JUICE-02/03
@@ -221,6 +222,9 @@ export function gameScene(data) {
     });
   }
   player.onCollide("goal", onReachGoal);
+
+  // Phase 15 MECH-02 wiring: every "door" entity routes through the shared challenge seam.
+  wireDoor({ player, brain });
 
   // --- Escape → level-select (NAV-03 agency) ---
   // Lets her bail back to select mid-level with no forced replay of earlier levels.
