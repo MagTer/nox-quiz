@@ -1,11 +1,42 @@
 ---
 phase: 14-multi-scene-shell
 verified: 2026-07-02T17:52:03Z
-status: human_needed
-score: 4/4 must-haves code-verified (1 present-but-behavior-unverified)
-behavior_unverified: 1
+human_verified: 2026-07-02T18:30:00.000Z
+status: passed
+score: 4/4 must-haves verified (code + human browser session)
+behavior_unverified: 0
 overrides_applied: 0
-human_verification:
+human_verification_result: |
+  All 3 checkpoints passed live in-browser (served via `cd src && python3 -m http.server 8000`):
+  - NAV-01: title renders, all three inputs (Enter/Space/click) advance to select.
+  - NAV-02/03: select shows level-01 with distinguishable locked/unlocked/cleared states
+    (square tile, "1", "v" checkmark for cleared); both mouse-click and arrow+Enter pick
+    paths work; clearing persists (confirmed via localStorage dump) and returns to select
+    with the CLEARED mark, no auto-advance; Escape bails mid-level to select.
+  - NAV-04: repeated enter->leave->re-enter (including Escape mid-celebration-pause) fires
+    no double actions, no stale cursor, no console errors; only console line was a benign
+    favicon.ico 404 (unrelated to game/engine code).
+
+  Two real defects were found DURING this human session (static analysis could not have
+  caught either — this is exactly why the checkpoint is load-bearing) and fixed/committed
+  before sign-off:
+  1. `box.onClick()` on select-screen tiles was missing the `area()` component required for
+     click hit-testing (mathGate.js's pattern had it; select.js's tile boxes did not) —
+     commit bb6bb58.
+  2. The pre-existing "+50% canvas display scale" quick task (2026-06-28, predates v4.0) set
+     `canvas.style.width/height` directly, which desynced Kaplay's raw `event.offsetX/offsetY`
+     mouse-position math from the 640x360 world-coordinate space — breaking every
+     object-scoped, position-based `box.onClick()` (select tiles AND, latently, the v3.0
+     math-gate answer boxes) while leaving position-agnostic global onClick (title's
+     "click anywhere") unaffected. Fixed by switching to CSS `transform: scale(1.5)`
+     (offsetX/Y are computed in the untransformed layout box) — commit 5e34933.
+  3. (Secondary, found while re-testing the above) `onClear`'s `go("select")` fired
+     synchronously in the same tick as the gate's "LEVEL CLEAR" banner + fx.clearBurst(),
+     so the celebration never actually painted before scene teardown. Deferred via
+     `tween().onEnd()` (not a banned wait()/setTimeout/loop() — CONFIG.FX.BURST_MS,
+     the same non-strobing <=400-500ms cap the burst already respects), with an
+     onSceneLeave-cancelled guard against Escape firing go("select") twice — commit 25653f6.
+human_verification_historical:
   - test: "Serve the game over HTTP (`cd src && python3 -m http.server 8000`, open http://localhost:8000/ — note: src/ is the web root, matching the Dockerfile's `COPY src/ /usr/share/nginx/html/` convention; the 14-03-PLAN's 'serve from the repo root' phrasing is imprecise). Confirm the dark-grunge 'Math Lab' title renders on load with NO console errors, then press Enter, reload+Space, reload+click — all three advance to select."
     expected: "Title renders (no pink, NO 'ReferenceError: add/rgb/vec2 is not defined' a727c13 signature in DevTools console); all three start inputs (Enter/Space/click) advance to select."
     why_human: "Rendering, click/keyboard event dispatch, and console-error absence are runtime browser behaviors; static grep/`node --check` can prove the code is present and wired but cannot prove the page actually paints or that no exception fires at runtime."

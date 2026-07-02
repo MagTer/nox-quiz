@@ -23,7 +23,7 @@ selection algorithm in `math/brain.js` is LOCKED and unchanged this milestone.
 - [x] **NAV-01**: A dark-grunge title screen is shown on load, from which she can start/continue into the game.
 - [x] **NAV-02**: A level-select screen lists the levels with locked / unlocked / cleared state and lets her pick any unlocked level to play.
 - [x] **NAV-03**: Clearing a level unlocks the next; she can return to level-select and resume from any unlocked level (no forced replay of earlier levels).
-- [ ] **NAV-04**: Navigation between title, level-select, and a level happens via in-game screens (no browser dialogs), with clean state on each entry — no leaked input handlers, colliders, or effects across screen changes. (code-verified; mandatory real-browser re-entry leak check pending human-verify)
+- [x] **NAV-04**: Navigation between title, level-select, and a level happens via in-game screens (no browser dialogs), with clean state on each entry — no leaked input handlers, colliders, or effects across screen changes.
 
 ### Mid-Game Math Mechanics
 
@@ -88,7 +88,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-01 | Phase 14 | Complete |
 | NAV-02 | Phase 14 | Complete |
 | NAV-03 | Phase 14 | Complete |
-| NAV-04 | Phase 14 | In Progress |
+| NAV-04 | Phase 14 | Complete |
 | MECH-01 | Phase 15 | Pending |
 | MECH-02 | Phase 15 | Pending |
 | MECH-03 | Phase 16 | Pending |

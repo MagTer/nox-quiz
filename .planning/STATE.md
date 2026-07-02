@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Content & Challenge
-current_phase: 14
-current_phase_name: Multi-Scene Shell
-status: verification_deferred_human
-stopped_at: Phase 14 verified human_needed; deferred pending user browser check (/gsd-verify-work 14)
-last_updated: "2026-07-02T18:00:00.000Z"
+current_phase: 15
+current_phase_name: Challenge Seam + Locked-Door Mechanic
+status: ready
+stopped_at: Phase 14 (Multi-Scene Shell) complete — real-browser NAV-01..04 checkpoint passed (14-VERIFICATION.md), including two live-session bug fixes (select-tile click hit-testing, celebration-timing). Ready to begin Phase 15.
+last_updated: "2026-07-02T18:35:00.000Z"
 last_activity: 2026-07-02
-last_activity_desc: Phase 14 code-review fixes complete, verifier ran, human checkpoint deferred
+last_activity_desc: Phase 14 complete, transitioned to Phase 15
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
   completed_plans: 7
-  percent: 14
+  percent: 29
 ---
 
 # Project State: Math Lab
@@ -28,17 +28,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-28)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 14 — Multi-Scene Shell
+**Current Focus:** Phase 15 — Challenge Seam + Locked-Door Mechanic
 
 **Tech Stack (v4.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded) + CC0 pixel-art assets. Static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL. Persistence via versioned localStorage. Zero new runtime dependencies for v4.0 — every capability is native to the vendored Kaplay bundle.
 **Shipped State (v3.0):** Real 2D Kaplay platformer — one polished dark-grunge level → forgiving 6–9 math gate → persisted XP/leveling. Kid-validated "all good." The v1/v2 quiz is archived. v4.0 grows this single-level slice into a replayable multi-level game.
 
 ## Current Position
 
-Phase: 14 (Multi-Scene Shell) — VERIFICATION DEFERRED (human)
-Plan: 3 of 3 (code complete)
-Status: human_needed — mandatory real-browser NAV-01..04 checkpoint pending; resume with /gsd-verify-work 14
-Last activity: 2026-07-02 — verifier ran, static gates green, browser checkpoint deferred
+Phase: 15 — Challenge Seam + Locked-Door Mechanic
+Plan: Not started
+Status: ready to begin
+Last activity: 2026-07-02 — Phase 14 complete (real-browser checkpoint passed), transitioned to Phase 15
 
 ## v4.0 Roadmap (Phases 13–19)
 
@@ -133,25 +133,18 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 |------|------|---------|
 | 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540, crisp pixel upscale); internal 640×360 resolution unchanged so no gameplay numbers moved |
 
-## Deferred Verification
-
-| Phase | State | Resume |
-|-------|-------|--------|
-| 14 | verification_deferred_human | /gsd-verify-work 14 |
-
 ## Session Continuity
 
-**Stopped at:** Phase 14 (Multi-Scene Shell) code + code-review fixes complete, all static gates green (check-import-safety.sh, check-progress.sh, check-safety.sh); 14-VERIFICATION.md status human_needed — mandatory real-browser NAV-01..04 boot/re-entry checkpoint (14-03-PLAN.md's own blocking checkpoint) still pending. Autonomous mode paused here per user unavailability rather than silently skip or auto-decide the phase.
+**Stopped at:** Phase 14 (Multi-Scene Shell) fully complete — real-browser NAV-01..04 checkpoint passed live with the user. Two real defects were found and fixed during that session (not visible to static analysis): select-tile clicks missing the `area()` component (commit bb6bb58), and a canvas-scale CSS override desyncing Kaplay's mouse coordinates from the 640x360 world space, breaking all position-based clicks including the v3.0 math-gate answer boxes (commit 5e34933) — fixed via CSS `transform` instead of `width`/`height`. A third UX finding (the LEVEL CLEAR celebration never painted before the synchronous scene transition) was also fixed (commit 25653f6). Ready to begin Phase 15.
 
-**Resume file:** .planning/phases/14-multi-scene-shell/14-VERIFICATION.md (human_verification section has the 3 test steps)
+**Resume file:** None
 
-**Last session:** 2026-07-02T18:00:00.000Z
+**Last session:** 2026-07-02T18:35:00.000Z
 
 **Next steps:**
 
-1. Run `/gsd-verify-work 14` (or manually: `cd src && python3 -m http.server 8000` → http://localhost:8000/) and walk the 3 checks in 14-VERIFICATION.md: (a) title boot + Enter/Space/click all advance to select with no console errors, (b) select shows level-01 unlocked, mouse+arrow pick both work, clearing returns to select with a CLEARED mark (no auto-advance), Escape bails mid-level, (c) NAV-04 load-bearing check — enter→leave→re-enter title/select/a level TWICE each, confirming no double-fired input, no stale cursor, no ghost colliders/tweens, no blank canvas, no console errors, and `bash scripts/check-import-safety.sh` stays green.
-2. On pass: mark 14-VERIFICATION.md status `passed`, un-defer in STATE.md, and Phase 14 completes properly (ROADMAP.md/REQUIREMENTS.md checkboxes were corrected back from a premature "Complete" marking — see 14-VERIFICATION.md Gaps Summary).
-3. Resume `/gsd-autonomous` (or `/gsd-autonomous --from 15`) to continue 15 (challenge seam + door) → 16 (remaining mechanics + difficulty) → 17 (build levels) → 18 (art/parallax) → 19 (kid-UAT).
+1. Continue `/gsd-autonomous` (or `/gsd-autonomous --from 15`) into Phase 15 (Challenge Seam + Locked-Door Mechanic) → 16 (remaining mechanics + difficulty) → 17 (build levels) → 18 (art/parallax) → 19 (kid-UAT).
+2. Worth flagging when Phase 15/16 touch `ui/mathGate.js`: confirm the math-gate answer-box mouse-click path (same `box.onClick()` + `area()` pattern as the fixed select tiles) actually works now that the canvas-scale bug is fixed — it was likely silently broken since the 2026-06-28 "+50% display scale" quick task, predating this milestone, and was never independently re-verified beyond this session's spot-check.
 
 **Context for next session:**
 
