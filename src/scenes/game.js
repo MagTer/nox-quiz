@@ -48,6 +48,14 @@ export function gameScene(data) {
   // every overlap frame; this latches so onReachGoal() runs EXACTLY once.
   let goalReached = false;
 
+  // Handle for the clear->select transition tween (see onReachGoal's onClear below).
+  // Closure-local, same anti-leak contract as player._fxScaleTween in fx.js: if the
+  // player mashes Escape during the celebratory pause, the Escape handler's go("select")
+  // fires first and this in-flight tween would otherwise survive scene teardown and call
+  // go("select") a SECOND time ~400ms later, resetting the select screen out from under
+  // the player. Cancelled in the onSceneLeave sweep below alongside the fx tween.
+  let clearTransitionTween = null;
+
   // --- Progression load + seed (Phase 11, SAVE-01/02/03) ---
   // Load the validated save ONCE on scene entry (guarded — defaults under node/blocked
   // storage; never throws). Construct the progression tracker and the brain from it, ALL
@@ -193,12 +201,22 @@ export function gameScene(data) {
         // writeSave is guarded (no-op under blocked storage; never throws into the loop).
         writeSave(progress.serialize(brain.snapshot()));
 
-        // NAV-03: after the persist, RETURN to level-select — no auto-advance into
-        // the next level. go() tears down this scene's fixed() gate objects cleanly
-        // (nothing persists across scenes); select re-derives unlock fresh. NO wait()/timer
-        // to "let the banner show" (SAFE-01 — check-safety.sh bans wait(/loop(/setTimeout);
-        // fx.clearBurst() already fired for the current frame above before teardown).
-        go("select");
+        // NAV-03: after the persist, RETURN to level-select — no auto-advance into the
+        // next level. go() was previously called SYNCHRONOUSLY right here, in the same
+        // tick as the gate's "LEVEL CLEAR" banner add() above (mathGate.js) and
+        // fx.clearBurst() — the scene tore itself down before the browser ever painted
+        // a frame, so the celebration was never actually visible (found during real-browser
+        // NAV-04 verification). This does NOT use wait()/setTimeout/loop() (still banned by
+        // SAFE-01 / check-safety.sh) — it reuses the SAME tween().onEnd self-clean idiom as
+        // fx.js, deferring only the scene transition for CONFIG.FX.BURST_MS (the same
+        // non-strobing ≤400-500ms flash-cap duration the burst itself already respects) so
+        // the banner + burst get their one on-screen beat. This is a celebratory pause the
+        // player already cleared the level to earn, not a punishing wait during play.
+        clearTransitionTween = tween(0, 1, CONFIG.FX.BURST_MS / 1000, () => {}, easings.linear);
+        clearTransitionTween.onEnd(() => {
+          clearTransitionTween = null;
+          go("select");
+        });
       },
     });
   }
@@ -251,5 +269,6 @@ export function gameScene(data) {
   onSceneLeave(() => {
     destroyAll("fx");
     if (player.exists() && player._fxScaleTween) player._fxScaleTween.cancel();
+    if (clearTransitionTween) clearTransitionTween.cancel();
   });
 }
