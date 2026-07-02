@@ -310,6 +310,9 @@ const check = (cond, msg) => {
       { x: 1440, y: FLOOR_Y - 48 },
       { x: 1920, y: FLOOR_Y - 48 },
     ],
+    doors: [
+      { x: 1480, y: FLOOR_Y - CONFIG.DOOR.H },
+    ],
   };
 
   // Small recursive deep-equal (no dependency — the no-build canon forbids one).

@@ -97,6 +97,12 @@ export const LEVEL_01 = {
       { x: 1440, y: FLOOR_Y - 48 }, // before the second spike (x=1520)
       { x: 1920, y: FLOOR_Y - 48 }, // before the third spike (x=2000)
     ],
+
+    // Locked door — mid-level challenge seam (Plan 15-03). Sits on the final run, 40px
+    // before the x:1520 spike, so it is hazard-adjacent and cannot be bypassed.
+    doors: [
+      { x: 1480, y: FLOOR_Y - CONFIG.DOOR.H },
+    ],
   },
 
   // --- Forward-looking optional slots (buildLevel ignores them when unset) ---
