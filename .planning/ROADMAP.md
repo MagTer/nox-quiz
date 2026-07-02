@@ -133,8 +133,21 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   3. The mid-level overlay pauses the world (player can't move, fall, or be hurt while answering), owns input, and renders screen-space above world and parallax — confirmed by opening it next to a hazard.
   4. The structural firewall (`check-gate.sh`) is re-pointed at `challenge.js` so the one-way ui→brain firewall and no-DOM/no-timer/no-scenes invariants hold for all callers; a real browser boot confirms the end gate still works.
 
-**Plans**: TBD
+**Plans**: 4 plans
 **UI hint**: yes
+
+**Wave 1**
+
+- [ ] 15-01-PLAN.md — Wave 0 tooling: restore + re-point `check-gate.sh` at `challenge.js`; extend `check-import-safety.sh` for `challenge.js`/`door.js`
+- [ ] 15-02-PLAN.md — Extract `ui/challenge.js` from `mathGate.js`; rewrite `mathGate.js` as a thin wrapper (MECH-01)
+
+**Wave 2** *(blocked on 15-02)*
+
+- [ ] 15-03-PLAN.md — Locked-door entity + mechanic: `CONFIG.DOOR`, level-01 door placement, `build.js` consumer, `mechanics/door.js` (MECH-02)
+
+**Wave 3** *(blocked on 15-01 + 15-03)*
+
+- [ ] 15-04-PLAN.md — Wire `wireDoor` into `game.js`; full static suite green; mandatory real-browser boot (MECH-01/MECH-02 sign-off)
 
 ### Phase 16: Remaining Mechanics + Difficulty Curve
 
@@ -212,7 +225,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 12. Polish, ADHD-Safety & UAT | v3.0 | 3/3 | ✅ Complete | 2026-06-28 |
 | 13. Fresh Save Format + Level Registry/Data | v4.0 | 4/4 | Complete    | 2026-06-29 |
 | 14. Multi-Scene Shell | v4.0 | 3/3 | Complete    | 2026-07-02 |
-| 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 0/? | Not started | - |
+| 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 0/4 | Not started | - |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 0/? | Not started | - |
 | 17. Build the Levels | v4.0 | 0/? | Not started | - |
 | 18. Art, Animation & Parallax | v4.0 | 0/? | Not started | - |
