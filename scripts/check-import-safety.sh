@@ -9,11 +9,13 @@
 #
 # Scaffolding (set -euo pipefail, ROOT, fail(), strip_comments) mirrors
 # scripts/check-progress.sh verbatim. The negative grep is SCOPED to the pure-at-import
-# scene modules (title.js, select.js) and ANCHORED to top-level statement forms ONLY —
-# a naive whole-file grep would false-flag the legitimate, body-internal add()/text()/
-# rect() calls those scenes (and game.js) make inside their factory bodies (RESEARCH
-# Pitfall 5). game.js and main.js are NOT scanned by the negative grep — they
-# legitimately use engine globals inside function bodies / at post-init module scope.
+# scene modules (title.js, select.js) — and, as of Phase 15, the shared math-challenge
+# seam and the locked-door mechanic module (see Section 2's file list below) — and
+# ANCHORED to top-level statement forms ONLY — a naive whole-file grep would false-flag
+# the legitimate, body-internal add()/text()/rect() calls those modules (and game.js)
+# make inside their factory bodies (RESEARCH Pitfall 5). game.js and main.js are NOT
+# scanned by the negative grep — they legitimately use engine globals inside function
+# bodies / at post-init module scope.
 #
 # EXPECTED until Plan 02 lands: Section 1's main.js greps FAIL (the title/select scenes
 # are registered nowhere and the boot still go("game", ...)). That is the real red state
@@ -74,7 +76,8 @@ TOPLEVEL_TRAP="^(const|let|var)[^=]*=[^=]*\\b(${ENGINE_GLOBALS})\\b|^(${ENGINE_G
 #    Guarded so a missing/syntax-broken file produces a clear FAIL, not a raw bash error.
 for f in \
   "src/scenes/title.js" "src/scenes/select.js" \
-  "src/scenes/game.js" "src/main.js"; do
+  "src/scenes/game.js" "src/main.js" \
+  "src/ui/challenge.js" "src/mechanics/door.js"; do
   [ -f "$ROOT/$f" ] || fail "missing module: $f"
   node --check "$ROOT/$f" || fail "node --check failed (syntax error in $f)"
 done
@@ -110,10 +113,12 @@ if strip_comments "$ROOT/src/scenes/game.js" | grep -Eq "$TOPLEVEL_TRAP"; then
 fi
 
 # 2. NEGATIVE — a727c13 module-TOP-LEVEL gate. SCOPED to the scene modules title.js +
-#    select.js ONLY, comment-stripped, anchored to top-level statement forms. game.js and
-#    main.js are deliberately EXCLUDED — they legitimately reference engine globals inside
-#    function bodies / at post-init module scope (RESEARCH Pitfall 5).
-for f in "src/scenes/title.js" "src/scenes/select.js"; do
+#    select.js, PLUS the Phase 15 challenge-seam/door-mechanic modules, comment-stripped,
+#    anchored to top-level statement forms. game.js and main.js are deliberately
+#    EXCLUDED — they legitimately reference engine globals inside function bodies / at
+#    post-init module scope (RESEARCH Pitfall 5).
+for f in "src/scenes/title.js" "src/scenes/select.js" \
+  "src/ui/challenge.js" "src/mechanics/door.js"; do
   if strip_comments "$ROOT/$f" | grep -Eq "$TOPLEVEL_TRAP"; then
     fail "engine global referenced at MODULE TOP LEVEL in $f — scenes must be a727c13-safe (engine globals only INSIDE the factory body; a top-level ref throws at import and blanks the game)"
   fi
