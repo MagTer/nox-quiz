@@ -26,17 +26,26 @@ const k = kaplay({
 
 // --- Display scaling (+50%) — DISPLAY ONLY, not internal resolution ---
 // The internal render buffer stays 640x360 (above), so every collider, jump,
-// camera, and level number in CONFIG remains valid. We only enlarge the
-// *displayed* canvas via CSS. Kaplay writes canvas.style.cssText at init with
-// inline `width: 640px; height: 360px` (both width+height were passed), which
-// beats any stylesheet rule — so we override it HERE, after init. 640x360 * 1.5
-// = 960x540. `crisp: true` keeps the upscale sharp; index.html's
-// `canvas { display:block; margin:auto }` still centers it (cssText leaves those
-// properties untouched).
+// camera, and level number in CONFIG remains valid. We enlarge the *displayed*
+// canvas via a CSS `transform: scale()`, NOT `width`/`height`. This is
+// deliberate, not stylistic: Kaplay's non-letterbox mouse handler reads the
+// browser-native `event.offsetX/offsetY` directly as the mouse position,
+// assuming the canvas's CSS-rendered size equals its internal resolution
+// (640x360). `offsetX/offsetY` are computed in the element's untransformed
+// layout box, so a `transform: scale()` visually enlarges the canvas while
+// leaving that assumption intact; setting `width`/`height` instead changes the
+// layout box itself and desyncs offsetX/offsetY from the 640x360 world space
+// — silently breaking every object-scoped, position-based `box.onClick()`
+// (area()-gated hit-testing) while leaving position-agnostic global onClick
+// handlers (e.g. the title screen's "click anywhere to start") unaffected.
+// Found via the Phase 14 mandatory browser-boot checkpoint: level-select tile
+// clicks silently missed their target after the width/height version shipped.
+// `transform-origin` defaults to the element's center, matching index.html's
+// `canvas { display:block; margin:auto }` centering — scaling from center
+// keeps the visually-enlarged canvas centered without any layout changes.
 {
   const canvas = document.querySelector("#game");
-  canvas.style.width = "960px";
-  canvas.style.height = "540px";
+  canvas.style.transform = "scale(1.5)";
 }
 
 // --- CC0 sprite loads (Phase 9) ---
