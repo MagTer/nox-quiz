@@ -16,7 +16,7 @@
 // INVARIANTS this module upholds (carried from Phase 8/9, lifted verbatim from the
 // v3.0 src/level.js buildLevel):
 //   - Merged-floor collider: each contiguous floor RUN gets ONE wide
-//     body({ isStatic: true }) collider; floor TILES are drawn as separate
+//     body({isStatic:true}) collider; floor TILES are drawn as separate
 //     visual-only sprites with NO area()/body() (anti seam-stick, Pitfall 2).
 //   - Colliders are thick (CONFIG.FLOOR_THICKNESS) so full-speed drops cannot
 //     tunnel through them (Pitfall 3). Do NOT switch to per-tile colliders or
@@ -111,4 +111,29 @@ export function buildLevel(levelData) {
 
   // --- Goal (REQUIRED — tag + area() so the scene wires onReachGoal) ---
   add([sprite("goal"), pos(g.goal.x, g.goal.y), area(), "goal"]);
+
+  // --- Locked doors (optional — guarded so older/forward-looking levels without doors still build) ---
+  for (const d of g.doors ?? []) {
+    // Solid blocking collider: the player cannot pass while locked.
+    const door = add([
+      rect(CONFIG.DOOR.W, CONFIG.DOOR.H),
+      pos(d.x, d.y),
+      color(...CONFIG.DOOR.LOCKED_GREY),
+      outline(2, rgb(...CONFIG.DOOR.LOCKED_BORDER)),
+      area(),
+      body({ isStatic: true }),
+      "door",
+    ]);
+
+    // Visual lock glyph — purely cosmetic, no area() so it never collides.
+    const glyph = add([
+      text("X", { size: CONFIG.DOOR.GLYPH_SIZE }),
+      anchor("center"),
+      pos(d.x + CONFIG.DOOR.W / 2, d.y + CONFIG.DOOR.H / 2),
+      "door-glyph",
+    ]);
+
+    // Stash the glyph handle on the door so the mechanic can clean up both at once.
+    door.glyphObj = glyph;
+  }
 }
