@@ -102,6 +102,7 @@ export function selectScene(data) {
 
     const box = add([
       rect(S.TILE_W, S.TILE_H),
+      area(),
       anchor("center"),
       pos(x, y),
       color(fillColor[0], fillColor[1], fillColor[2]),
