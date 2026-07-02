@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Content & Challenge
 current_phase: 15
-status: completed
-stopped_at: Phase 14 (Multi-Scene Shell) complete — real-browser NAV-01..04 checkpoint passed (14-VERIFICATION.md), including two live-session bug fixes (select-tile click hit-testing, celebration-timing). Ready to begin Phase 15.
-last_updated: "2026-07-02T20:39:25.744Z"
+status: executing
+stopped_at: Phase 15 executed — all 4 plans complete, static suite green, real-browser MECH-01/MECH-02 verification pending human sign-off.
+last_updated: "2026-07-02T20:45:00.000Z"
 last_activity: 2026-07-02
-last_activity_desc: Phase 15 marked complete
+last_activity_desc: Phase 15 executed; real-browser verification deferred
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 2
   total_plans: 11
   completed_plans: 11
-  percent: 43
+  percent: 29
 current_phase_name: Challenge Seam + Locked-Door Mechanic
 ---
 
@@ -35,10 +35,16 @@ See: .planning/PROJECT.md (updated 2026-06-28)
 
 ## Current Position
 
-Phase: 15 — COMPLETE
-Plan: 1 of 4
-Status: Phase 15 complete
-Last activity: 2026-07-02 — Phase 15 marked complete
+Phase: 15 — EXECUTED (verification pending)
+Plan: 4 of 4
+Status: All Phase 15 plans executed; static suite green; real-browser MECH-01/MECH-02 sign-off deferred to human verification
+Last activity: 2026-07-02 — Phase 15 plans executed; real-browser verification deferred
+
+## Deferred Verification
+
+| Phase | State | Resume |
+|-------|-------|--------|
+| 15 | verification_deferred_human | Serve over HTTP, play level-01, confirm end-gate no-drift and door blocks/opens/clears path with no soft-lock; then `/gsd:autonomous --from 16` |
 
 ## v4.0 Roadmap (Phases 13–19)
 
