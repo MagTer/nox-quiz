@@ -48,8 +48,8 @@ const k = kaplay({
   canvas.style.transform = "scale(1.5)";
 }
 
-// --- CC0 sprite loads (Phase 9) ---
-// Register every image asset by name BEFORE go("game") so the scene never draws
+// --- Sprite loads (Phase 9 + Phase 18 art/animation/parallax) ---
+// Register every image asset by name BEFORE the boot go() so scenes never draw
 // against missing sprites — Kaplay queues these loads and shows its loading
 // screen until they resolve.
 //
@@ -57,11 +57,20 @@ const k = kaplay({
 // the `../assets/...` web-root convention, mirroring the `import ... from
 // "../lib/kaplay.mjs"` above. `assets/` is a SIBLING of the served src/ root, so
 // `assets/` or `/assets/` would silently fail to load. Use `loadSprite` with
-// `sliceX` (the old-Kaboom sheet-loader helper does NOT exist in Kaplay 3001).
-loadSprite("ground", "../assets/tiles/ground.png");
+// `sliceX`/`anims` — `loadSpriteSheet` does NOT exist in Kaplay 3001.
+loadSprite("ground", "../assets/tiles/ground.png", {
+  sliceX: CONFIG.GROUND_FRAMES,
+});
 loadSprite("spike", "../assets/spike.png");
 loadSprite("goal", "../assets/goal.png");
-loadSprite("player", "../assets/player.png");
+loadSprite("player", "../assets/player.png", {
+  sliceX: CONFIG.PLAYER_FRAMES,
+  anims: {
+    idle: { from: 0, to: 1, loop: true, speed: CONFIG.PLAYER_IDLE_SPEED },
+    run: { from: 2, to: 3, loop: true, speed: CONFIG.PLAYER_RUN_SPEED },
+    jump: { from: 4, to: 4, loop: false, speed: CONFIG.PLAYER_JUMP_SPEED },
+  },
+});
 loadSprite("coin", "../assets/coin.png", {
   // coin.png is 256x32 = 8 evenly-gridded 32px frames; sliceX:8 cuts them and the
   // named `spin` anim loops 0..7 at the CONFIG-tuned frame rate (no magic numbers).
@@ -70,6 +79,14 @@ loadSprite("coin", "../assets/coin.png", {
     spin: { from: 0, to: CONFIG.COIN_FRAMES - 1, loop: true, speed: CONFIG.COIN_SPIN_SPEED },
   },
 });
+
+// Parallax background layers (Phase 18 ART-03)
+loadSprite("bg-far", "../assets/parallax/far.png");
+loadSprite("bg-mid", "../assets/parallax/mid.png");
+loadSprite("bg-near", "../assets/parallax/near.png");
+
+// Shared title / level-select dark-grunge backdrop (Phase 18 ART-04)
+loadSprite("title-bg", "../assets/tiles/title-bg.png");
 
 // Register the real platformer scene and boot it. Seed data is passed via
 // go(name, data) — the CONTEXT-locked anti-leak mechanism: the scene reads its

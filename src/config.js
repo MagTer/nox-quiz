@@ -34,6 +34,25 @@ export const CONFIG = {
   TILE_SIZE: 16, // px — CC0 pack native tile size (sprite slice + floor-tile grid math)
   FLOOR_Y: 320, // px — top edge of the floor runs (player stands at this Y)
   FLOOR_THICKNESS: 40, // px — merged-floor collider depth; thick to resist tunneling on tall drops (Pitfall 3)
+
+  // --- Visual tuning constants (Phase 18 art/animation/parallax) ---
+  PLAYER_FRAMES: 5, // count — player.png sliceX (5 frames of 16x32)
+  PLAYER_ANIM_DEADZONE: 10, // px/s — below this treat horizontal speed as idle/rest
+  PLAYER_IDLE_SPEED: 6, // fps — idle anim frame rate
+  PLAYER_RUN_SPEED: 10, // fps — run anim frame rate
+  PLAYER_JUMP_SPEED: 0, // fps — single-frame jump anim, speed ignored
+  GROUND_FRAMES: 5, // count — ground.png sliceX (5 frames of 16x16)
+  PARALLAX: {
+    FAR_RATIO: 0.15, // far layer scroll ratio vs camera
+    MID_RATIO: 0.45, // mid layer scroll ratio vs camera
+    NEAR_RATIO: 0.75, // near layer scroll ratio vs camera
+    FAR_Z: -30, // z-order: behind everything
+    MID_Z: -20,
+    NEAR_Z: -10,
+    Y_ANCHOR: 320, // bottom edge anchor near the floor
+  },
+  TITLE_BG_Z: -100, // z-order for shared title/select backdrop
+
   COIN_FRAMES: 8, // count — coin.png is a 256x32 sheet of 8 evenly-gridded 32px frames (sliceX)
   COIN_SPIN_SPEED: 12, // fps — coin spin anim frame rate
   // (No COIN_SIZE: coin placement is intentionally data-driven via raw {x, y} in
