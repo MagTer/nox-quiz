@@ -48,7 +48,7 @@ key-decisions:
 
 patterns-established:
   - "Mid-level mechanics are thin callers of src/ui/challenge.js; they never import mathGate.js"
-  - "Tagged placeholder entities (answer-pickup-slot) are activated by value assignment rather than created at challenge time"
+  - "Tagged placeholder entities (answer-pickup-slot) are activated by value assignment and destroyed on clear"
 
 requirements-completed: [MECH-03, MECH-04, MECH-05, LVL-03]
 
@@ -154,7 +154,7 @@ status: complete
 5. **Task 5: Extend build.js** - `687a906` (feat)
 6. **Task 6: Implement checkpoint gates (MECH-04)** - `1c08e90` (feat)
 7. **Task 7: Implement defeat-enemy (MECH-05)** - `c56b176` (feat)
-8. **Task 8: Implement collect-the-answer (MECH-03)** - `5d9e38e` (feat)
+8. **Task 8: Implement collect-the-answer (MECH-03)** - `5d9e38e` (feat), with post-summary fix `bfe682c` to destroy slot entities on clear
 
 ## Files Created/Modified
 - `src/ui/challenge.js` — optional `question`, `renderChoices`, and `{ close }` return.
@@ -169,7 +169,7 @@ status: complete
 ## Decisions Made
 - Followed the door.js freeze/destroy/unfreeze pattern verbatim for gates and enemy to preserve the no-soft-lock guarantee.
 - In collect.js, generated the question once and passed the same object to both the prompt-only overlay and the spawned pickups.
-- Used `get("answer-pickup-slot").find(...)` to activate placeholder slots by index rather than creating new entities mid-challenge.
+- Used `get("answer-pickup-slot").find(...)` to activate placeholder slots by index rather than creating new entities mid-challenge, and destroyed the slot objects (plus their labels) on a correct clear.
 
 ## Deviations from Plan
 
