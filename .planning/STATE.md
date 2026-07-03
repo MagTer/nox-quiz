@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Content & Challenge
 current_phase: 16
+current_phase_name: Remaining Mechanics + Difficulty Curve
 status: executing
-stopped_at: Phase 15 verification passed — real-browser MECH-01/MECH-02 sign-off complete. Ready to begin Phase 16.
-last_updated: "2026-07-02T21:20:00.000Z"
-last_activity: 2026-07-02
-last_activity_desc: Phase 15 verified passed; beginning Phase 16
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-07-03T14:19:59.417Z"
+last_activity: 2026-07-03
+last_activity_desc: Phase 16 planning complete — 3 plans ready
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 14
+  completed_plans: 12
   percent: 43
-current_phase_name: Remaining Mechanics + Difficulty Curve
 ---
 
 # Project State: Math Lab
@@ -28,17 +28,17 @@ current_phase_name: Remaining Mechanics + Difficulty Curve
 See: .planning/PROJECT.md (updated 2026-06-28)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 15 — Challenge Seam + Locked-Door Mechanic
+**Current Focus:** Phase 16 — Remaining Mechanics + Difficulty Curve
 
 **Tech Stack (v4.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded) + CC0 pixel-art assets. Static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL. Persistence via versioned localStorage. Zero new runtime dependencies for v4.0 — every capability is native to the vendored Kaplay bundle.
 **Shipped State (v3.0):** Real 2D Kaplay platformer — one polished dark-grunge level → forgiving 6–9 math gate → persisted XP/leveling. Kid-validated "all good." The v1/v2 quiz is archived. v4.0 grows this single-level slice into a replayable multi-level game.
 
 ## Current Position
 
-Phase: 16 — NOT STARTED
-Plan: 0 of TBD
-Status: Phase 15 verified passed; Phase 16 (Remaining Mechanics + Difficulty Curve) ready to begin
-Last activity: 2026-07-02 — Phase 15 verified passed; beginning Phase 16
+Phase: 16 — Ready to execute
+Plan: 1 of 3
+Status: Phase 16 planning complete; 3 plans ready
+Last activity: 2026-07-03 — Phase 16 planning complete — 3 plans ready
 
 ## Deferred Verification
 
@@ -141,11 +141,11 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 ## Session Continuity
 
-**Stopped at:** Phase 14 (Multi-Scene Shell) fully complete — real-browser NAV-01..04 checkpoint passed live with the user. Two real defects were found and fixed during that session (not visible to static analysis): select-tile clicks missing the `area()` component (commit bb6bb58), and a canvas-scale CSS override desyncing Kaplay's mouse coordinates from the 640x360 world space, breaking all position-based clicks including the v3.0 math-gate answer boxes (commit 5e34933) — fixed via CSS `transform` instead of `width`/`height`. A third UX finding (the LEVEL CLEAR celebration never painted before the synchronous scene transition) was also fixed (commit 25653f6). Ready to begin Phase 15.
+**Stopped at:** Completed 16-01-PLAN.md
 
 **Resume file:** None
 
-**Last session:** 2026-07-02T18:35:00.000Z
+**Last session:** 2026-07-03T14:19:59.407Z
 
 **Next steps:**
 
@@ -265,6 +265,7 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 | Phase 13 P04 | ~5min | 3 tasks | 3 files |
 | Phase 14 P01 | ~3min | 3 tasks | 5 files |
 | Phase 14 P03 | 1min | 2 tasks | 1 files |
+| Phase 16 P01 | 2 | 2 tasks | 2 files |
 
 ## Operator Next Steps
 

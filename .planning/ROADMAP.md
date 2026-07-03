@@ -162,7 +162,16 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   4. Table difficulty ramps across levels — early levels draw from easier pools (e.g. 1–5), later levels restrict toward 6–9 — via a per-level allowed-tables pool fed to the (unchanged, LOCKED) weighted brain (LVL-03).
   5. Each mechanic passes a per-mechanic forgiveness check: no wrong-answer code path reduces XP/HP/position-progress, despawns, restarts, or shows a countdown (`check-safety.sh` green per mechanic).
 
-**Plans**: TBD
+**Plans**: 3
+
+**Wave 1**
+
+- [ ] 16-01-PLAN.md — Wave 0: extend check-gate.sh and check-import-safety.sh to cover gates/enemy/collect modules
+- [ ] 16-02-PLAN.md — Wave 1: extend challenge.js; add CONFIG blocks; add mathGates/enemies/collect data; build mechanic modules
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 16-03-PLAN.md — Wave 2: wire all mechanics into game.js; full static suite green; mandatory real-browser boot (MECH-03/04/05 + LVL-03 sign-off)
 
 ### Phase 17: Build the Levels
 
