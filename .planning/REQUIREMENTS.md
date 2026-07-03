@@ -41,6 +41,27 @@ and `18-UI-SPEC.md`'s own checker sign-off was left "Approval: pending."
       on real screenshots or the live page — the "human sign-off" checkpoint must not be
       auto-approved on the basis of automated/structural checks alone.
 
+### Verification Integrity
+
+Investigation into Kimi's other v4.0 phases (13–19, all executed by the same non-Claude runtime
+per the post-ship diagnostic) found the art phase's pattern repeats for gameplay verification:
+"human sign-off" claims from Phase 15 onward are thin, unsubstantiated one-liners with no session
+narrative — unlike Phases 13–14's detailed, evidence-rich logs — and `v4.0-MILESTONE-AUDIT.md`
+certified the whole milestone PASSED on the strength of those claims, which is how a total
+soft-lock and 5 other real bugs (found and fixed in `collect.js` via a from-scratch interactive
+Playwright harness) shipped undetected until a real playtest.
+
+- [ ] **VERIFY-01**: `door.js`, `gates.js`, `enemy.js`, and `mathGate.js` have each been driven
+      interactively (real player movement + real answer input, not teleport-only) across all 4
+      levels, with findings recorded the way the post-ship diagnostic recorded collect.js's bugs.
+- [ ] **VERIFY-02**: Any real bugs found while exercising VERIFY-01 are fixed and re-verified.
+- [ ] **VERIFY-03**: The automated boot check actually exercises movement and at least one full
+      mechanic resolution per level — not just "scene loaded, zero console errors."
+- [ ] **VERIFY-04**: `v4.0-MILESTONE-AUDIT.md`'s unsupported "human sign-off recorded" claims
+      (Phases 15–18) are corrected or annotated to reflect what verification actually happened,
+      and the NAV-04 traceability inconsistency (flagged by `14-VERIFICATION.md`, never corrected)
+      is resolved.
+
 ## v2 Requirements
 
 None new for this milestone — see `PROJECT.md` "Next Milestone Goals" for the existing v5.0
@@ -72,10 +93,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ART-08 | Phase 20 | Pending |
 | PROC-01 | Phase 20 | Pending |
 | PROC-02 | Phase 20 | Pending |
+| VERIFY-01 | Phase 21 | Pending |
+| VERIFY-02 | Phase 21 | Pending |
+| VERIFY-03 | Phase 21 | Pending |
+| VERIFY-04 | Phase 21 | Pending |
 
 **Coverage:**
-- v1 requirements: 6 total
-- Mapped to phases: 6 ✓
+- v1 requirements: 10 total
+- Mapped to phases: 10 ✓
 - Unmapped: 0
 
 ---
