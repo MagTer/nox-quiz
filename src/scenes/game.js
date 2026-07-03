@@ -25,6 +25,9 @@ import { buildLevel } from "../levels/build.js";
 import { createBrain } from "../math/brain.js";
 import { openMathGate } from "../ui/mathGate.js";
 import { wireDoor } from "../mechanics/door.js";
+import { wireGates } from "../mechanics/gates.js";
+import { wireEnemy } from "../mechanics/enemy.js";
+import { wireCollect } from "../mechanics/collect.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
 import { mountHud } from "../ui/hud.js";
 import * as fx from "../fx.js"; // engine-side juice (coin pop + clear burst) — JUICE-02/03
@@ -225,6 +228,12 @@ export function gameScene(data) {
 
   // Phase 15 MECH-02 wiring: every "door" entity routes through the shared challenge seam.
   wireDoor({ player, brain });
+
+  // Phase 16 MECH-03/04/05 wiring: collect zone, checkpoint gates, and enemy each use the
+  // same shared challenge seam and the same closure-local brain instance.
+  wireGates({ player, brain });
+  wireEnemy({ player, brain });
+  wireCollect({ player, brain });
 
   // --- Escape → level-select (NAV-03 agency) ---
   // Lets her bail back to select mid-level with no forced replay of earlier levels.
