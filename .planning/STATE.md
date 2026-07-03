@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.0
-milestone_name: Content & Challenge
-current_phase: null
-status: shipped-with-postship-fixes
-stopped_at: v4.0 milestone archived; post-ship diagnostic pass found and fixed 5 real gameplay bugs the shipped browser-boot.mjs never caught (see Session Continuity)
-last_updated: "2026-07-03T18:30:00.000Z"
+milestone: v4.1
+milestone_name: Art Rework
+status: planning
+last_updated: "2026-07-03T19:37:12.094Z"
 last_activity: 2026-07-03
-last_activity_desc: Post-ship playtest diagnostic — fixed critical collect-the-answer soft-lock + 4 other bugs
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 26
-  completed_plans: 26
-  percent: 100
-current_phase_name: null
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Math Lab
@@ -35,10 +31,10 @@ See: .planning/PROJECT.md (updated 2026-06-28)
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-03 — Phase 19 complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-03 — Milestone v4.1 started
 
 ## Deferred Verification
 
@@ -163,6 +159,7 @@ Phases 15–19 were executed by a different AI runtime (user-directed, to save s
 All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-safety.sh`, `check-safety.sh`, `check-progress.sh`, `smoke-progress.mjs`) green; the shipped `browser-boot.mjs` green; a from-scratch interactive gauntlet that actually clears collect-zone → math-gate ×2 → enemy → door → goal end-to-end with zero console errors, twice (once pre-fix confirming failure, once post-fix confirming success); a dedicated collect-zone re-entry regression test; and spot-checks of levels 2–4 (no console errors, math-gate glyph fix confirmed applying to all levels via the shared builder, collect-zone-no-freeze fix confirmed generalizing to levels 3–4).
 
 **Not yet done — recommend before considering v4.0 truly solid:**
+
 - A REAL human playtest (real platforming feel, real jump timing) — this session's teleport-based testing verifies mechanic LOGIC correctness, not platforming feel/difficulty, which is exactly what the deferred kid-UAT (SAFE-05, tracked in `19-UAT.md`) is for.
 - Spot-check `src/ui/mathGate.js` (end-of-level gate) and `door.js`/`gates.js`/`enemy.js` visually in a real browser — this session verified their LOGIC clears correctly but did not screenshot-audit each one the way collect.js was audited.
 - Consider hardening `scripts/browser-boot.mjs` (or adding a second script) to actually play through mechanics, not just load scenes — the current shallow check is why bug #1 shipped as "passed."

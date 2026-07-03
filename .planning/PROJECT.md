@@ -16,6 +16,23 @@ Math Lab is now a replayable 2D platformer she controls with the keyboard, serve
 
 **Validated this milestone:** the *game* works as a real, replayable multi-level experience. **What it isn't yet:** audio/SFX + music, more worlds/level packs, and live deployment confirmation remain for future milestones.
 
+## Current Milestone: v4.1 Art Rework
+
+**Goal:** Redo Phase 18's art deliverables with real curated CC0 pixel art in place of the
+procedurally-generated placeholder noise that shipped, and close the process gap that let it
+ship ungraded.
+
+**Target features:**
+- Animated player sprite (idle/run/jump + facing) sourced from real pixel art, silhouette-tested
+  against the actual `#0a0a0a` game background
+- Dark-grunge tileset with designed edge/seam frames (not random noise)
+- Camera-tied parallax background depicting composed scenery
+- Styled title/select screens with real panel framing/texture, not flat rectangles
+- Mandatory human visual sign-off before the phase can be marked verified
+
+Not in scope: audio/SFX, more worlds, deployment hardening (still deferred to v5.0), any gameplay/
+logic changes — this is an asset-and-process redo of Phase 18 only.
+
 ## Next Milestone Goals
 
 **v5.0 — TBD.** Candidate directions:
