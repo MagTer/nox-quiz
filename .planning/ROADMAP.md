@@ -89,7 +89,13 @@ Grew the single-level v3.0 slice into a replayable multi-level game: four hand-b
   5. Every new or replaced asset has a CC0 license proof (source URL + quoted CC0 declaration) recorded in `CREDITS.md` and `assets/LICENSES/*.txt`, matching the existing player/ground/spike/goal/coin entries' rigor.
   6. The phase cannot be marked verified until a real human has looked at actual screenshots or the live page and given explicit sign-off — the "human sign-off" checkpoint is not auto-approved on the basis of automated/structural checks alone.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 20-01-PLAN.md — Vendor Kenney "Platformer Characters" + "Pixel Platformer", build the real player + ground assets, rewrite their license proof (ART-05, ART-06, PROC-01)
+- [ ] 20-02-PLAN.md — Vendor Kenney "Background Elements", composite the real parallax + title-bg assets, license proof (ART-07, ART-08, PROC-01)
+- [ ] 20-03-PLAN.md — Screenshot the running game, re-verify the full automated suite, and obtain a genuine blocking human visual sign-off (PROC-02)
+
 **UI hint**: yes
 
 ### Phase 21: Real Verification Pass — Mechanics & Sign-off Integrity
