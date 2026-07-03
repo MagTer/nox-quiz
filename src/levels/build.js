@@ -51,6 +51,18 @@ export function buildLevel(levelData) {
 
   const g = levelData.geometry;
 
+  // Helper: pick the correct ground.png frame for a top-surface tile based on
+  // its position within a run/platform. Pure visual pass — colliders are merged
+  // separately and untouched (Phase 18 ART-02).
+  function pickTopFrame(tx, runX, runW) {
+    const isLeft = tx === runX;
+    const isRight = tx + CONFIG.TILE_SIZE >= runX + runW;
+    if (isLeft && isRight) return 0; // single-tile run
+    if (isLeft) return 1;            // left edge
+    if (isRight) return 3;           // right edge
+    return 2;                        // center fill
+  }
+
   // --- Solid floor runs: ONE merged collider per run + separate visual tiles ---
   for (const run of g.floors) {
     // Merged wide static collider for the WHOLE run (fewer seams to stick on —
@@ -66,7 +78,7 @@ export function buildLevel(levelData) {
     // Visual-only floor tiles across the run — NO area()/body() (the merged
     // collider above is the only physics body for this run).
     for (let tx = run.x; tx < run.x + run.w; tx += T) {
-      add([sprite("ground"), pos(tx, FLOOR_Y)]);
+      add([sprite("ground"), frame(pickTopFrame(tx, run.x, run.w)), pos(tx, FLOOR_Y)]);
     }
   }
 
@@ -80,7 +92,7 @@ export function buildLevel(levelData) {
       "ground",
     ]);
     for (let tx = p.x; tx < p.x + p.w; tx += T) {
-      add([sprite("ground"), pos(tx, p.y)]);
+      add([sprite("ground"), frame(pickTopFrame(tx, p.x, p.w)), pos(tx, p.y)]);
     }
   }
 
@@ -149,10 +161,10 @@ export function buildLevel(levelData) {
   }
 
   // --- Checkpoint math gates (MECH-04) ---
-  for (const g of g.mathGates ?? []) {
+  for (const mg of g.mathGates ?? []) {
     const gateObj = add([
       rect(CONFIG.MATH_GATE.W, CONFIG.MATH_GATE.H),
-      pos(g.x, g.y),
+      pos(mg.x, mg.y),
       area(),
       body({ isStatic: true }),
       color(...CONFIG.MATH_GATE.LOCKED_GREY),

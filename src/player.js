@@ -92,6 +92,32 @@ export function makePlayer(startX, startY) {
     if (player.vel.y < 0) player.vel.y *= CONFIG.JUMP_CUT;
   });
 
+  // Animation state machine (Phase 18 ART-01). Driven by grounded state and
+  // horizontal speed, with a small deadzone so tiny jitter doesn't flicker.
+  player.onUpdate(() => {
+    const deadzone = CONFIG.PLAYER_ANIM_DEADZONE;
+    const speedX = Math.abs(player.vel.x);
+
+    let target;
+    if (!player.isGrounded()) {
+      target = "jump";
+    } else if (speedX >= deadzone) {
+      target = "run";
+    } else {
+      target = "idle";
+    }
+
+    // Only call play() on real state transitions so loops don't reset to frame 0.
+    if (player.getCurAnim()?.name !== target) {
+      player.play(target);
+    }
+
+    // Face movement direction, but preserve the last facing direction at rest.
+    if (speedX >= deadzone) {
+      player.flipX = player.vel.x < 0;
+    }
+  });
+
   // Returned so the scene can attach checkpoint/respawn logic.
   return player;
 }
