@@ -77,6 +77,21 @@ export function gameScene(data) {
   // (T-13-10). This phase adds NO scenes; it only proves the data spine loads/plays/persists.
   const level = getLevel(data?.levelId ?? LEVEL_ORDER[0]);
 
+  // Derive level bounds from authored geometry so camera follow and parallax tiling
+  // cover the whole level regardless of its length. Falls back to CONFIG defaults if
+  // the descriptor already carries explicit bounds (forward-looking slot).
+  const levelRight = Math.max(
+    ...level.geometry.floors.map((f) => f.x + f.w),
+    ...level.geometry.platforms.map((p) => p.x + p.w),
+    level.geometry.goal.x + CONFIG.GOAL_SIZE,
+  );
+  const bounds = level.bounds ?? {
+    left: CONFIG.LEVEL_LEFT,
+    right: levelRight,
+    top: CONFIG.LEVEL_TOP,
+    bottom: CONFIG.LEVEL_BOTTOM,
+  };
+
   // The brain is seeded from saved accuracy/history (SAVE-03) AND given the level's
   // allowedTables pool — the difficulty seam WIRED (not enforced; Phase 16 owns enforcement).
   const brain = createBrain({
@@ -100,7 +115,7 @@ export function gameScene(data) {
   // --- Parallax background (Phase 18 ART-03) ---
   // Camera-driven layers below gameplay z-order; created after the level so
   // bounds are known and before the player so the player draws on top.
-  const parallaxLayers = makeParallaxLayers(level.bounds);
+  const parallaxLayers = makeParallaxLayers(bounds);
 
   // --- Player ---
   // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).
@@ -251,10 +266,10 @@ export function gameScene(data) {
   onUpdate(() => {
     // Frame-rate-independent camera follow, clamped to level bounds (MOVE-04).
     // Per-level bounds let longer levels grow beyond CONFIG.LEVEL_RIGHT without a global change.
-    followCamera(player, level.bounds);
+    followCamera(player, bounds);
 
     // Parallax layers track the camera X only (Phase 18 ART-03). No timers.
-    updateParallaxLayers(parallaxLayers, getCamPos().x, level.bounds);
+    updateParallaxLayers(parallaxLayers, getCamPos().x, bounds);
 
     // Fall-off-world: respawn at the last-touched checkpoint (LEVEL-06).
     if (player.pos.y > CONFIG.LEVEL_BOTTOM + CONFIG.FALL_MARGIN) {

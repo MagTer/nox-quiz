@@ -40,7 +40,7 @@ export const CONFIG = {
   PLAYER_ANIM_DEADZONE: 10, // px/s — below this treat horizontal speed as idle/rest
   PLAYER_IDLE_SPEED: 6, // fps — idle anim frame rate
   PLAYER_RUN_SPEED: 10, // fps — run anim frame rate
-  PLAYER_JUMP_SPEED: 0, // fps — single-frame jump anim, speed ignored
+  PLAYER_JUMP_SPEED: 1, // fps — single-frame jump anim; speed must be >0 in Kaplay
   GROUND_FRAMES: 5, // count — ground.png sliceX (5 frames of 16x16)
   PARALLAX: {
     FAR_RATIO: 0.15, // far layer scroll ratio vs camera

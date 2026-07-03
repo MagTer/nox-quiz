@@ -35,6 +35,10 @@ const HINT_FG = [0xe8, 0xe8, 0xe8]; // press-to-start prompt (#e8e8e8 — ~18:1 
 export function titleScene(data) {
   const T = CONFIG.TITLE;
 
+  // Shared dark-grunge backdrop (Phase 18 ART-04). Added first so it renders
+  // behind everything; fixed() + low z() keeps it camera-immune and below UI.
+  add([sprite("title-bg"), pos(0, 0), fixed(), z(CONFIG.TITLE_BG_Z), "title"]);
+
   // Centered "Math Lab" wordmark — neon-green accent, fixed() + high z() so it floats
   // in screen space (camera-immune). Minimal dark-grunge styling; real art is Phase 18.
   add([

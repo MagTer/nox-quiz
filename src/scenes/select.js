@@ -35,11 +35,12 @@ import { createProgress, loadSave } from "../progress.js";
 
 // Dark-grunge palette per CLAUDE.md (NO pink). Plain data literals — safe at module
 // scope because they call no engine global (a727c13).
-const ACCENT_GREEN = [0x00, 0xff, 0x88]; // unlocked tile + selectable outline
+const ACCENT_GREEN = [0x00, 0xff, 0x88]; // unlocked/cleared tile border + selectable outline
+const UNLOCKED_FILL = [0x11, 0x11, 0x11]; // unlocked/cleared tile fill (dark surface)
 const LOCKED_GREY = [0x44, 0x44, 0x44]; // locked tile (dimmed, not selectable)
-const CLEARED_BLUE = [0x66, 0xcc, 0xff]; // cleared tile check-mark (distinct from accent)
+const CLEARED_BLUE = [0x66, 0xcc, 0xff]; // cleared tile border + check glyph (distinct from accent)
 const LABEL_FG = [0xe8, 0xe8, 0xe8]; // tile number + heading text (#e8e8e8, ~18:1)
-const SELECTABLE_BORDER = [0x00, 0xff, 0x88]; // outline for selectable (unlocked/cleared) tiles (accent)
+const SELECTABLE_BORDER = [0x00, 0xff, 0x88]; // outline for selectable (unlocked) tiles (accent)
 const LOCKED_BORDER = [0x55, 0x55, 0x55]; // IN-01: dim neutral outline for LOCKED tiles —
 // a non-selectable tile must NOT wear the accent-green "selectable" frame, or the locked
 // affordance is muddied for a 12-year-old. Distinct from the grey fill so the edge still reads.
@@ -55,6 +56,10 @@ const CURSOR_BORDER = [0xff, 0xff, 0xff]; // IN-02: bright white outline for the
  */
 export function selectScene(data) {
   const S = CONFIG.SELECT;
+
+  // Shared dark-grunge backdrop (Phase 18 ART-04). Added first so it renders
+  // behind tiles and heading; fixed() + low z() keeps it camera-immune.
+  add([sprite("title-bg"), pos(0, 0), fixed(), z(CONFIG.TITLE_BG_Z), "select"]);
 
   // --- Fresh derived read every entry (NAV-04 clean state) ---
   // loadSave() is guarded (defaults under blocked/foreign storage, never throws);
@@ -88,17 +93,17 @@ export function selectScene(data) {
     const x = S.START_X + t.i * (S.TILE_W + S.GAP);
     const y = S.ROW_Y;
 
-    const fillColor =
+    const fillColor = t.state === "locked" ? LOCKED_GREY : UNLOCKED_FILL;
+
+    // IN-01: locked tiles get the dim neutral border; unlocked tiles get the accent
+    // green border; cleared tiles get the blue border. paintCursor() later overrides
+    // ONLY the active selectable tile's outline (color + width) — locked tiles are never touched.
+    const borderColor =
       t.state === "locked"
-        ? LOCKED_GREY
+        ? LOCKED_BORDER
         : t.state === "cleared"
           ? CLEARED_BLUE
-          : ACCENT_GREEN;
-
-    // IN-01: locked tiles get the dim neutral border; selectable (unlocked/cleared)
-    // tiles get the accent border. paintCursor() later overrides ONLY the active
-    // selectable tile's outline (color + width) — locked tiles are never touched.
-    const borderColor = t.state === "locked" ? LOCKED_BORDER : SELECTABLE_BORDER;
+          : SELECTABLE_BORDER;
 
     const box = add([
       rect(S.TILE_W, S.TILE_H),
@@ -110,7 +115,7 @@ export function selectScene(data) {
       fixed(),
       z(9000),
       "select",
-      { idx: t.i, locked: t.state === "locked" },
+      { idx: t.i, locked: t.state === "locked", restingBorder: borderColor },
     ]);
     tileBoxes.push(box);
 
@@ -162,9 +167,10 @@ export function selectScene(data) {
   function paintCursor() {
     tileBoxes.forEach((box, i) => {
       const isActive = cursor >= 0 && selectable[cursor] === i;
-      // Resting border per state (IN-01): locked stays dim, selectable stays accent.
-      const resting = box.locked ? LOCKED_BORDER : SELECTABLE_BORDER;
-      const border = isActive ? CURSOR_BORDER : resting;
+      // Resting border per state (IN-01): locked stays dim, unlocked stays accent,
+      // cleared stays blue. Use the border stored at creation so cleared tiles keep
+      // their blue border when the cursor moves elsewhere.
+      const border = isActive ? CURSOR_BORDER : box.restingBorder;
       box.outline.width = isActive ? 5 : 2;
       box.outline.color = rgb(border[0], border[1], border[2]);
     });
