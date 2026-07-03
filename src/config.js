@@ -68,7 +68,7 @@ export const CONFIG = {
   // visual language is consistent across the whole game.
   DOOR: {
     W: 32, // px — door footprint width
-    H: 64, // px — door footprint height (2x player height so it cannot be jumped over)
+    H: 128, // px — door footprint height (~JUMP_FORCE²/2g + player height margin so it cannot be jumped over)
     LOCKED_GREY: [0x44, 0x44, 0x44], // locked fill (matches select.js LOCKED_GREY)
     LOCKED_BORDER: [0x55, 0x55, 0x55], // locked outline (matches select.js LOCKED_BORDER)
     GLYPH_SIZE: 22, // px — lock glyph text size (matches SELECT.GLYPH_SIZE)
