@@ -34,8 +34,21 @@ export function wireCollect({ player, brain }) {
   // so it is garbage-collected with the scene and cannot leak across replays.
   const cleared = new Set();
 
+  // The currently-open collect challenge, if any — closure-local, single mutable slot
+  // (never module-level). ANTI-LEAK: the pickup-collision handler is registered EXACTLY
+  // ONCE below (not per zone-open) and reads this instead of closing over a per-open `q`.
+  // Registering a fresh player.onCollide("answer-pickup-slot", ...) inside the zone
+  // handler (the original shape) would stack a NEW, never-cancelled handler every time an
+  // unanswered zone is re-touched (walk in, walk away, walk back in — onCollide fires once
+  // per touch-session, confirmed from the Kaplay source, so re-entry genuinely re-fires
+  // the outer handler): each stacked handler independently calls brain.reportResult() and
+  // challenge.close() on every future pickup touch, skewing accuracy tracking and stacking
+  // duplicate overlay objects. One handler + one mutable `active` slot has no such leak.
+  let active = null; // { zoneObj, q, challenge }
+
   player.onCollide("answer-zone", (zoneObj) => {
     if (cleared.has(zoneObj)) return;
+    if (active && active.zoneObj === zoneObj) return; // already open for this zone
 
     // CRITICAL: unlike door/gates/enemy, this mechanic's ONLY resolution path is walking
     // into the correct pickup — so the player must NOT be frozen. `player.paused = true`
@@ -78,24 +91,28 @@ export function wireCollect({ player, brain }) {
       prompt: `Collect the answer to ${q.a} × ${q.b}`,
     });
 
-    // Pickup collision: only activated slots carry a value.
-    player.onCollide("answer-pickup-slot", (slotObj) => {
-      if (slotObj.value === undefined) return;
+    active = { zoneObj, q, challenge };
+  });
 
-      const correct = slotObj.value === q.answer;
-      brain.reportResult(q.a, correct);
+  // Pickup collision: registered ONCE for the scene's lifetime. Reads `active` (set above)
+  // instead of a per-open closure, so no handler ever stacks across zone re-entries.
+  player.onCollide("answer-pickup-slot", (slotObj) => {
+    if (!active || slotObj.value === undefined) return;
 
-      if (correct) {
-        cleared.add(zoneObj);
-        challenge.close();
-        destroyPickups(zoneObj);
-        player.paused = false;
-      } else {
-        // Brief, non-punishing visual nudge. The challenge stays open, the player stays
-        // frozen, and the pickups remain available until the correct answer is chosen.
-        fx.pop(slotObj.pos.clone());
-      }
-    });
+    const { zoneObj, q, challenge } = active;
+    const correct = slotObj.value === q.answer;
+    brain.reportResult(q.a, correct);
+
+    if (correct) {
+      cleared.add(zoneObj);
+      challenge.close();
+      destroyPickups(zoneObj);
+      active = null;
+    } else {
+      // Brief, non-punishing visual nudge. The challenge stays open, the player keeps
+      // moving freely, and the pickups remain available until the correct answer is chosen.
+      fx.pop(slotObj.pos.clone());
+    }
   });
 
   /**
