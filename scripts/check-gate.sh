@@ -102,4 +102,22 @@ DOOR="$ROOT/src/mechanics/door.js"
 strip_comments "$DOOR" | grep -q 'openChallenge' \
   || fail "src/mechanics/door.js does not call openChallenge — the door mechanic must reuse the shared seam"
 
+# 11. THIN CALLER — src/mechanics/gates.js must reuse the shared seam (MECH-04).
+GATES="$ROOT/src/mechanics/gates.js"
+[ -f "$GATES" ] || fail "missing src/mechanics/gates.js — the checkpoint gate mechanic must reuse the shared seam"
+strip_comments "$GATES" | grep -q 'openChallenge' \
+  || fail "src/mechanics/gates.js does not call openChallenge — the checkpoint gate mechanic must reuse the shared seam"
+
+# 12. THIN CALLER — src/mechanics/enemy.js must reuse the shared seam (MECH-05).
+ENEMY="$ROOT/src/mechanics/enemy.js"
+[ -f "$ENEMY" ] || fail "missing src/mechanics/enemy.js — the enemy mechanic must reuse the shared seam"
+strip_comments "$ENEMY" | grep -q 'openChallenge' \
+  || fail "src/mechanics/enemy.js does not call openChallenge — the enemy mechanic must reuse the shared seam"
+
+# 13. THIN CALLER — src/mechanics/collect.js must reuse the shared seam (MECH-03).
+COLLECT="$ROOT/src/mechanics/collect.js"
+[ -f "$COLLECT" ] || fail "missing src/mechanics/collect.js — the collect mechanic must reuse the shared seam"
+strip_comments "$COLLECT" | grep -q 'openChallenge' \
+  || fail "src/mechanics/collect.js does not call openChallenge — the collect mechanic must reuse the shared seam"
+
 echo "gate checks: PASS"
