@@ -26,6 +26,11 @@
 #
 # Run from the repo root (or any cwd — ROOT is resolved via git):
 #   bash scripts/check-safety.sh
+#
+# Phase 19 verified: the whole-src find below covers every new module added in
+# Phases 13–18, including src/mechanics/, src/parallax.js, src/levels/, src/ui/,
+# src/scenes/, and all art/animation consumers. The no-timer + no-punishment
+# scans therefore apply to the fully assembled v4.0 tree.
 
 set -euo pipefail
 

@@ -267,6 +267,18 @@ const check = (cond, msg) => {
     `LVL-02: getLevel(bad id) should fall back to the first level (forgiving)`);
 }
 
+// Small recursive deep-equal (no dependency — the no-build canon forbids one).
+const deepEqual = (a, b) => {
+  if (a === b) return true;
+  if (typeof a !== typeof b) return false;
+  if (a === null || b === null) return a === b;
+  if (typeof a !== "object") return a === b;
+  const ak = Object.keys(a);
+  const bk = Object.keys(b);
+  if (ak.length !== bk.length) return false;
+  return ak.every((k) => deepEqual(a[k], b[k]));
+};
+
 // --- LVL-02 regression: level-01 geometry === v3.0 src/level.js values, VERBATIM ---
 {
   // The EXACT v3.0 geometry lifted from src/level.js (floors 46-50, platforms 54-59,
@@ -331,21 +343,245 @@ const check = (cond, msg) => {
     ],
   };
 
-  // Small recursive deep-equal (no dependency — the no-build canon forbids one).
-  const deepEqual = (a, b) => {
-    if (a === b) return true;
-    if (typeof a !== typeof b) return false;
-    if (a === null || b === null) return a === b;
-    if (typeof a !== "object") return a === b;
-    const ak = Object.keys(a);
-    const bk = Object.keys(b);
-    if (ak.length !== bk.length) return false;
-    return ak.every((k) => deepEqual(a[k], b[k]));
-  };
-
   const actual = getLevel("level-01").geometry;
   check(deepEqual(actual, expectedGeometry),
     `LVL-02 regression: getLevel("level-01").geometry must deep-equal the v3.0 src/level.js geometry verbatim`);
+}
+
+// --- LVL-02 regression: level-02 geometry matches authored descriptor ---
+{
+  const FLOOR_Y = CONFIG.FLOOR_Y;
+  const expectedGeometry = {
+    floors: [
+      { x: 0, w: 520 },
+      { x: 700, w: 560 },
+      { x: 1420, w: 600 },
+      { x: 2180, w: 620 },
+    ],
+    platforms: [
+      { x: 280, y: 240, w: 160, h: 24 },
+      { x: 500, y: 192, w: 128, h: 24 },
+      { x: 640, y: 232, w: 128, h: 24 },
+      { x: 1200, y: 232, w: 128, h: 24 },
+      { x: 1360, y: 192, w: 96, h: 24 },
+      { x: 2020, y: 232, w: 128, h: 24 },
+      { x: 2360, y: 240, w: 128, h: 24 },
+    ],
+    coins: [
+      { x: 160, y: 264 },
+      { x: 320, y: 184 },
+      { x: 540, y: 136 },
+      { x: 760, y: 264 },
+      { x: 1040, y: 264 },
+      { x: 1260, y: 176 },
+      { x: 1560, y: 264 },
+      { x: 1900, y: 176 },
+      { x: 2280, y: 264 },
+      { x: 2600, y: 264 },
+    ],
+    spikes: [
+      { x: 920, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1180, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1760, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2560, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+    ],
+    goal: { x: 2720, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    checkpoints: [
+      { x: 96, y: FLOOR_Y - 48 },
+      { x: 340, y: FLOOR_Y - 48 },
+      { x: 840, y: FLOOR_Y - 48 },
+      { x: 1020, y: FLOOR_Y - 48 },
+      { x: 1120, y: FLOOR_Y - 48 },
+      { x: 1460, y: FLOOR_Y - 48 },
+      { x: 1680, y: FLOOR_Y - 48 },
+      { x: 2480, y: FLOOR_Y - 48 },
+    ],
+    doors: [
+      { x: 1540, y: FLOOR_Y - CONFIG.DOOR.H },
+    ],
+    mathGates: [
+      { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 1100, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+    ],
+    enemies: [],
+    collectZones: [],
+    answerPickupSlots: [],
+  };
+
+  const actual = getLevel("level-02").geometry;
+  check(deepEqual(actual, expectedGeometry),
+    `LVL-02 regression: getLevel("level-02").geometry must match the authored descriptor`);
+}
+
+// --- LVL-02 regression: level-03 geometry matches authored descriptor ---
+{
+  const FLOOR_Y = CONFIG.FLOOR_Y;
+  const expectedGeometry = {
+    floors: [
+      { x: 0, w: 480 },
+      { x: 640, w: 560 },
+      { x: 1320, w: 600 },
+      { x: 2040, w: 640 },
+      { x: 2840, w: 560 },
+    ],
+    platforms: [
+      { x: 280, y: 240, w: 128, h: 24 },
+      { x: 480, y: 184, w: 96, h: 24 },
+      { x: 1160, y: 224, w: 112, h: 24 },
+      { x: 1520, y: 232, w: 96, h: 24 },
+      { x: 1880, y: 184, w: 128, h: 24 },
+      { x: 2220, y: 232, w: 96, h: 24 },
+      { x: 2640, y: 192, w: 128, h: 24 },
+    ],
+    coins: [
+      { x: 140, y: 264 },
+      { x: 300, y: 184 },
+      { x: 520, y: 128 },
+      { x: 800, y: 264 },
+      { x: 1080, y: 264 },
+      { x: 1420, y: 176 },
+      { x: 1740, y: 264 },
+      { x: 1980, y: 128 },
+      { x: 2380, y: 264 },
+      { x: 2860, y: 264 },
+      { x: 3180, y: 264 },
+    ],
+    spikes: [
+      { x: 820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1040, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1580, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 3020, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 3260, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+    ],
+    goal: { x: 3320, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    checkpoints: [
+      { x: 96, y: FLOOR_Y - 48 },
+      { x: 340, y: FLOOR_Y - 48 },
+      { x: 740, y: FLOOR_Y - 48 },
+      { x: 960, y: FLOOR_Y - 48 },
+      { x: 1500, y: FLOOR_Y - 48 },
+      { x: 1740, y: FLOOR_Y - 48 },
+      { x: 2300, y: FLOOR_Y - 48 },
+      { x: 2920, y: FLOOR_Y - 48 },
+      { x: 3160, y: FLOOR_Y - 48 },
+    ],
+    doors: [],
+    mathGates: [
+      { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+    ],
+    enemies: [
+      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
+    ],
+    collectZones: [
+      { x: 200, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
+    ],
+    answerPickupSlots: [
+      { x: 170, y: FLOOR_Y - 100 },
+      { x: 230, y: FLOOR_Y - 100 },
+      { x: 170, y: FLOOR_Y - 40 },
+      { x: 230, y: FLOOR_Y - 40 },
+    ],
+  };
+
+  const actual = getLevel("level-03").geometry;
+  check(deepEqual(actual, expectedGeometry),
+    `LVL-02 regression: getLevel("level-03").geometry must match the authored descriptor`);
+}
+
+// --- LVL-02 regression: level-04 geometry matches authored descriptor ---
+{
+  const FLOOR_Y = CONFIG.FLOOR_Y;
+  const expectedGeometry = {
+    floors: [
+      { x: 0, w: 440 },
+      { x: 600, w: 480 },
+      { x: 1240, w: 520 },
+      { x: 1960, w: 560 },
+      { x: 2680, w: 560 },
+      { x: 3400, w: 600 },
+    ],
+    platforms: [
+      { x: 240, y: 232, w: 112, h: 24 },
+      { x: 440, y: 168, w: 80, h: 24 },
+      { x: 1080, y: 200, w: 112, h: 24 },
+      { x: 1400, y: 216, w: 80, h: 24 },
+      { x: 1760, y: 176, w: 128, h: 24 },
+      { x: 2140, y: 216, w: 80, h: 24 },
+      { x: 2520, y: 192, w: 112, h: 24 },
+      { x: 2880, y: 224, w: 80, h: 24 },
+      { x: 3240, y: 184, w: 112, h: 24 },
+    ],
+    coins: [
+      { x: 120, y: 264 },
+      { x: 260, y: 176 },
+      { x: 460, y: 112 },
+      { x: 760, y: 264 },
+      { x: 980, y: 264 },
+      { x: 1300, y: 176 },
+      { x: 1660, y: 264 },
+      { x: 1900, y: 128 },
+      { x: 2300, y: 264 },
+      { x: 2600, y: 264 },
+      { x: 3000, y: 264 },
+      { x: 3560, y: 264 },
+    ],
+    spikes: [
+      { x: 820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1000, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1480, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1700, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2320, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2480, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 3880, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+    ],
+    goal: { x: 3920, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    checkpoints: [
+      { x: 96, y: FLOOR_Y - 48 },
+      { x: 200, y: FLOOR_Y - 48 },
+      { x: 740, y: FLOOR_Y - 48 },
+      { x: 860, y: FLOOR_Y - 48 },
+      { x: 920, y: FLOOR_Y - 48 },
+      { x: 1400, y: FLOOR_Y - 48 },
+      { x: 1620, y: FLOOR_Y - 48 },
+      { x: 1740, y: FLOOR_Y - 48 },
+      { x: 2240, y: FLOOR_Y - 48 },
+      { x: 2360, y: FLOOR_Y - 48 },
+      { x: 2440, y: FLOOR_Y - 48 },
+      { x: 3800, y: FLOOR_Y - 48 },
+    ],
+    doors: [
+      { x: 900, y: FLOOR_Y - CONFIG.DOOR.H },
+    ],
+    mathGates: [
+      { x: 320, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 1800, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+    ],
+    enemies: [
+      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
+    ],
+    collectZones: [
+      { x: 160, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
+    ],
+    answerPickupSlots: [
+      { x: 130, y: FLOOR_Y - 100 },
+      { x: 190, y: FLOOR_Y - 100 },
+      { x: 130, y: FLOOR_Y - 40 },
+      { x: 190, y: FLOOR_Y - 40 },
+    ],
+  };
+
+  const actual = getLevel("level-04").geometry;
+  check(deepEqual(actual, expectedGeometry),
+    `LVL-02 regression: getLevel("level-04").geometry must match the authored descriptor`);
+}
+
+// --- LVL-01/04: full registry length and derived unlock of the second level ---
+{
+  check(LEVEL_ORDER.length === 4,
+    `LVL-01/04: LEVEL_ORDER should have 4 levels, got ${LEVEL_ORDER.length}`);
+  check(LEVEL_ORDER[1] === "level-02",
+    `LVL-04: LEVEL_ORDER[1] should be "level-02", got ${LEVEL_ORDER[1]}`);
 }
 
 // --- SAVE-07: the new shape coexists with the old — serialize ALSO carries a levels object ---

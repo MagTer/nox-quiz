@@ -24,6 +24,13 @@
 #
 # Run from the repo root:
 #   bash scripts/check-import-safety.sh
+#
+# Phase 19 verified: the negative top-level-engine scan below scopes to every
+# Phase 13–18 pure-at-import module — title/select scenes, src/parallax.js,
+# src/ui/challenge.js, and all four src/mechanics/ modules — plus existence and
+# syntax checks for src/scenes/game.js and src/main.js. The scoped list captures
+# all new a727c13-sensitive modules while excluding game.js/main.js, which
+# legitimately use engine globals inside function bodies / post-init scope.
 
 set -euo pipefail
 

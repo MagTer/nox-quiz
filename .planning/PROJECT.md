@@ -10,27 +10,20 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 
 She opens it because she *wants* to, not because she has to.
 
-## Current State (shipped v3.0 — The Platformer, 2026-06-28)
+## Current State (shipped v4.0 — Content & Challenge, 2026-07-03)
 
-Math Lab is now a real 2D platformer she controls with the keyboard, served at a web URL. The full loop is live and kid-validated: run/jump through one polished dark-grunge level → reach the goal → an in-world, forgiving, no-timer math gate (weighted 6–9) → a correct answer clears the level → XP/leveling on the v1/v2 curve → XP/level/practice-history persist in the browser and resume on revisit. ADHD-safe juice, discoverable controls, readable contrast. Built on vendored Kaplay with no build step; static files in an nginx container (Dokploy-deployable). Kid sign-off: "the game seems to be working… all good."
+Math Lab is now a replayable 2D platformer she controls with the keyboard, served as static files over HTTP. The full loop is live: title screen → level-select with locked / unlocked / cleared marks → four hand-built dark-grunge levels → four forgiving, no-timer, multiple-choice math mechanics (locked doors, checkpoint gates, defeat-enemy, collect-the-answer) woven throughout the levels → correct answers clear gates and award XP/leveling on the v1/v2 curve → per-level completion/unlock, XP/level, and per-table practice history persist in a fresh versioned localStorage save and resume on revisit. Table difficulty ramps from easier pools to the 6–9 weak spots; platforming difficulty ramps gently across levels. Animated player (idle/run/jump + facing), real tileset, camera-tied parallax, styled title/select screens. Built on vendored Kaplay with no build step; static files in an nginx container. All 22 v4.0 requirements satisfied (21 verified + automated browser boot; SAFE-05 kid-UAT live sign-off deferred and tracked in `19-UAT.md`).
 
-**Validated this milestone:** the *mechanic* works and she enjoys it. **What it isn't yet:** it's a working vertical slice — one level, placeholder CC0 art, a single math gate experienced once (~30s of content). Those are the next milestone's targets.
+**Validated this milestone:** the *game* works as a real, replayable multi-level experience. **What it isn't yet:** audio/SFX + music, more worlds/level packs, and live deployment confirmation remain for future milestones.
 
-## Current Milestone: v4.0 Content & Challenge
+## Next Milestone Goals
 
-**Goal:** Grow the working single-level slice into a real, replayable game — multiple polished levels with a sense of progression, math woven *throughout* each level via varied gates, a difficulty curve, and a real art pass so it looks like an actual game.
+**v5.0 — TBD.** Candidate directions:
+- Audio / SFX / calm ambient music (AUDIO-01, deferred since v3.0)
+- More worlds / level packs beyond the initial four levels (CONTENT-FUT-01)
+- Deployment hardening: live Dokploy URL playthrough confirmation (deferred from v3.0 SETUP-02)
 
-**Target features:**
-- 3–5 hand-built levels + a level-select / world-map screen with a sense of advancing
-- A difficulty curve across levels (harder platforming + harder tables deeper in)
-- Mid-game math mechanics — all four flavors: locked doors/keys, collect-the-answer pickups, multiple checkpoint gates, and defeat-enemy-with-answer (reusing v2's 👺💀🐉 idea)
-- Art / presentation pass: animated player (idle/run/jump), real tileset, background/parallax, likely a title screen
-- Persistence extended: per-level completion/unlock state saved alongside XP/level/practice-history
-- Carried-forward constraints: vendored Kaplay, no build step, served over HTTP, dark grunge / no pink, ADHD-safe (no timers, forgiving, non-strobing), the 6–9 weighted brain unchanged
-
-**Key context:** Builds on v3.0's shipped slice — reuse the movement/camera/respawn spine, the `mathGate.js` bridge, and the brain/progress firewalls rather than rebuilding. The a727c13 import-time rule, self-cleaning-effect pattern, and asset/path conventions carry forward. Large milestone; expected to phase into art, level system + select, the four math mechanics, difficulty/persistence, and polish/UAT.
-
-**Still deferred (not this milestone):** audio/SFX + music (AUDIO-01).
+A fresh `REQUIREMENTS.md` will be created when the next milestone is opened.
 
 ## Requirements
 
@@ -51,15 +44,16 @@ Math Lab is now a real 2D platformer she controls with the keyboard, served at a
 - ✓ Served at a web URL via Docker (nginx static) + Dokploy — v3.0 (live deploy confirmation deferred)
 - ✓ XP/leveling/practice-history persisted in the browser (localStorage), resumes on revisit — v3.0
 - ✓ ADHD-safe juice, discoverable controls, readable contrast (audited + kid-UAT) — v3.0
+- ✓ 3–5 hand-built levels + level-select / world-map screen with progression — v4.0
+- ✓ Difficulty curve across levels (platforming + table difficulty) — v4.0
+- ✓ Mid-game math mechanics: locked doors/keys, collect-the-answer, multiple checkpoint gates, defeat-enemy-with-answer — v4.0
+- ✓ Art/presentation pass: animated player, real tileset, background/parallax, title screen — v4.0
+- ✓ Per-level completion/unlock state persisted alongside XP/level/practice-history — v4.0
 
 ### Active
 
-*(v4.0 Content & Challenge — see REQUIREMENTS.md for REQ-IDs)*
-- 3–5 hand-built levels + a level-select / world-map screen with progression
-- A difficulty curve across levels (platforming + table difficulty)
-- Mid-game math mechanics: locked doors/keys, collect-the-answer, multiple checkpoint gates, defeat-enemy-with-answer
-- Art/presentation pass: animated player, real tileset, background/parallax, title screen
-- Per-level completion/unlock state persisted alongside XP/level/practice-history
+*(Next milestone — requirements to be defined when v5.0 is opened)*
+
 
 ### Out of Scope
 
@@ -78,7 +72,7 @@ Math Lab is now a real 2D platformer she controls with the keyboard, served at a
 - **Focus**: 6–9 times tables are the weak spot, but mixing in 1–5 keeps it fun
 - **Platform**: Played in any browser by visiting a **web URL**. v3.0 relaxes the single-file rule — multi-file project (HTML + JS modules + vendored Kaplay + assets folder) served as static files from a Docker container (nginx) deployed via Dokploy. Hosting the files over HTTP also sidesteps the `file://` module/asset-loading block — no local server needed for her. A local dev server (`python3 -m http.server`) is used only during development.
 - **Reference**: Her school has a Mario-style 2D platformer that gives math questions at the end of each stage. "I want something like this" is the north star — the v1/v2 quiz was a misread of that intent.
-- **Current state (v3.0 shipped)**: a real 2D Kaplay platformer (~1,944 LOC across `src/`, excl. vendored Kaplay), no build step, served over HTTP — one level → forgiving 6–9 math gate → persisted XP/leveling. Kid-validated end-to-end. The v1/v2 quiz is archived. Next: more levels + mid-game challenges (v4.0).
+- **Current state (v4.0 shipped)**: a real 2D Kaplay platformer (~3,456 LOC across `src/`, excl. vendored Kaplay), no build step, served over HTTP — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion/unlock. Automated browser-boot regression green; kid-UAT live sign-off for SAFE-05 deferred and tracked. The v1/v2 quiz and v3.0 single-level slice are archived. Next: v5.0 (audio, more worlds, or deployment hardening).
 - **Math integration roadmap**: Start with end-of-stage gate (v3.0). Add locked doors/bridges, collect-the-answer, and defeat-the-enemy (reusing v2's 👺💀🐉) as staged additions in later milestones.
 - **Art**: Pixel-art sprites from free CC0 packs (Kenney.nl / itch.io), styled to the dark/grunge palette. Pack chosen early in the milestone.
 - **User feedback**: Not yet collected post-v2.0 — the platformer is the response to the core feedback that v1/v2 weren't an actual game.
@@ -134,4 +128,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-28 — v4.0 Content & Challenge milestone opened (content + mid-game math mechanics + art pass)*
+*Last updated: 2026-07-03 — v4.0 Content & Challenge milestone shipped*

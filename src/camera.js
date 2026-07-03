@@ -13,7 +13,7 @@
 
 import { CONFIG } from "./config.js";
 
-export function followCamera(target) {
+export function followCamera(target, bounds) {
   const cur = getCamPos(); // current camera center
 
   // Frame-rate-independent smoothing factor: 1 - exp(-rate * dt()).
@@ -23,10 +23,16 @@ export function followCamera(target) {
   let ny = lerp(cur.y, target.pos.y, t * CONFIG.CAM_Y_FACTOR); // gentle Y follow
 
   // Clamp so the half-viewport never extends past the level bounds (no void at edges).
+  // Per-level bounds override CONFIG defaults; omitting/falsifying bounds preserves level-01 behavior.
+  const left = bounds?.left ?? CONFIG.LEVEL_LEFT;
+  const right = bounds?.right ?? CONFIG.LEVEL_RIGHT;
+  const top = bounds?.top ?? CONFIG.LEVEL_TOP;
+  const bottom = bounds?.bottom ?? CONFIG.LEVEL_BOTTOM;
+
   const halfW = width() / 2;
   const halfH = height() / 2;
-  nx = clamp(nx, CONFIG.LEVEL_LEFT + halfW, CONFIG.LEVEL_RIGHT - halfW);
-  ny = clamp(ny, CONFIG.LEVEL_TOP + halfH, CONFIG.LEVEL_BOTTOM - halfH);
+  nx = clamp(nx, left + halfW, right - halfW);
+  ny = clamp(ny, top + halfH, bottom - halfH);
 
   setCamPos(nx, ny);
 }

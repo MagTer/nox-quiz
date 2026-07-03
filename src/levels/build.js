@@ -78,7 +78,7 @@ export function buildLevel(levelData) {
     // Visual-only floor tiles across the run — NO area()/body() (the merged
     // collider above is the only physics body for this run).
     for (let tx = run.x; tx < run.x + run.w; tx += T) {
-      add([sprite("ground"), frame(pickTopFrame(tx, run.x, run.w)), pos(tx, FLOOR_Y)]);
+      add([sprite("ground", { frame: pickTopFrame(tx, run.x, run.w) }), pos(tx, FLOOR_Y)]);
     }
   }
 
@@ -92,7 +92,7 @@ export function buildLevel(levelData) {
       "ground",
     ]);
     for (let tx = p.x; tx < p.x + p.w; tx += T) {
-      add([sprite("ground"), frame(pickTopFrame(tx, p.x, p.w)), pos(tx, p.y)]);
+      add([sprite("ground", { frame: pickTopFrame(tx, p.x, p.w) }), pos(tx, p.y)]);
     }
   }
 

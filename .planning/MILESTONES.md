@@ -1,5 +1,35 @@
 # Milestones: Math Lab
 
+## v4.0 — Content & Challenge
+
+**Status:** ✅ SHIPPED 2026-07-03
+**Phases:** 13–19 (7 phases, 26 plans)
+**Timeline:** 2026-06-28 → 2026-07-03 (6 days)
+
+**Delivered:**
+Grew the working single-level v3.0 slice into a real, replayable multi-level game: four hand-built dark-grunge levels, a title screen, a level-select map, and four forgiving in-world math mechanics (locked doors, checkpoint gates, defeat-enemy, collect-the-answer) woven throughout. Table and platforming difficulty ramp gently; art/animation/parallax pass makes it look like an actual game.
+
+**Key Accomplishments:**
+
+1. Fresh save format + level registry: versioned clean-reset save with per-level completion/unlock derived from `LEVEL_ORDER`, plus a pure parameterized builder and plain-JS level descriptors (no build step, no Tiled, no Kaplay `addLevel`).
+2. Multi-scene navigation shell: dark-grunge title screen, level-select with locked/unlocked/cleared state, and clean scene transitions with no leaked handlers/effects across title → select → game.
+3. Shared `ui/challenge.js` seam + four math mechanics: locked doors, checkpoint gates, defeat-enemy, and collect-the-answer — all forgiving, no-timer, wrong-answer re-asks with zero punishment or progress loss.
+4. Four hand-built levels with decoupled platforming and table difficulty ramps, traversable start→goal on the existing movement/collider spine.
+5. Art/animation/parallax pass: animated player (idle/run/jump + facing), real dark-grunge tileset, camera-tied parallax, styled title/select screens.
+6. Full ADHD-safety + import-safety (a727c13) audits across all new code; automated browser-boot regression green for title → select → all four levels.
+
+**Stats:**
+- ~3,456 LOC across `src/` (excl. vendored Kaplay), HTML, and nginx config — multi-file, no build step
+- Requirements: 22/22 v4.0 requirements satisfied (21 verified + automated browser boot; SAFE-05 kid-UAT live sign-off deferred)
+- Git range `5151d32..HEAD`: 190 files changed, 16,639 insertions(+), 1,664 deletions(-)
+
+**Known Deferred Items at Close:** 1
+- Phase 19 SAFE-05: live kid-UAT sign-off for non-strobing/non-over-stimulating art and fun/fair feel. Protocol in `.planning/phases/19-polish-consolidated-kid-uat/19-UAT.md`.
+
+**Archive:** `.planning/milestones/v4.0-ROADMAP.md`, `.planning/milestones/v4.0-REQUIREMENTS.md`
+
+---
+
 ## v3.0 — The Platformer
 
 **Status:** ✅ SHIPPED 2026-06-28

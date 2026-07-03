@@ -12,9 +12,12 @@
 // no-engine-global invariant (a727c13).
 
 import { LEVEL_01 } from "./level-01.js";
+import { LEVEL_02 } from "./level-02.js";
+import { LEVEL_03 } from "./level-03.js";
+import { LEVEL_04 } from "./level-04.js";
 
 // The ORDERED registry — the single source of level order. Future levels append here.
-const LEVELS = [LEVEL_01];
+const LEVELS = [LEVEL_01, LEVEL_02, LEVEL_03, LEVEL_04];
 
 // id → descriptor lookup (built once from the ordered registry).
 const BY_ID = new Map(LEVELS.map((l) => [l.id, l]));
