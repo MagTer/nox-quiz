@@ -3,7 +3,7 @@ phase: 18-art-animation-parallax
 verified: 2026-07-03T15:45:00Z
 status: passed
 score: 6/6 must-haves verified
-human_sign_off: Auto-approved in autonomous mode; real-browser boot navigates title -> select -> level-01/02/03/04 -> title -> select with zero runtime errors, and title/select screenshots confirm readable wordmark, distinct tile states, and no pink/motion.
+human_sign_off: Auto-approved in autonomous mode; real-browser boot navigates title -> select -> level-01/02/03/04 -> title -> select with zero runtime errors, and title/select screenshots in `.planning/phases/18-art-animation-parallax/` confirm readable wordmark, distinct tile states, and no pink/motion.
 behavior_unverified: 0
 behavior_unverified_items: []
 ---

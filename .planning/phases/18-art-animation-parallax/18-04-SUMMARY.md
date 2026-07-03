@@ -44,7 +44,7 @@ coverage:
         ref: grep -E 'sprite\("title-bg"\)|fixed\(\)|z\(CONFIG.TITLE_BG_Z\)' src/scenes/title.js
         status: pass
       - kind: screenshot
-        ref: phase18-title.png
+        ref: .planning/phases/18-art-animation-parallax/phase18-title.png
         status: pass
     human_judgment: true
     rationale: Screenshot confirms "Math Lab" readable over dark-grunge backdrop, no pink, no distracting animation.
@@ -57,7 +57,7 @@ coverage:
         ref: grep -E 'title-bg|#444444|#555555|#00ff88|#66ccff|CURSOR_BORDER|restingBorder' src/scenes/select.js
         status: pass
       - kind: screenshot
-        ref: phase18-select.png
+        ref: .planning/phases/18-art-animation-parallax/phase18-select.png
         status: pass
     human_judgment: true
     rationale: Screenshot confirms locked/unlocked/cleared palette and white active cursor are visually distinct.
@@ -82,7 +82,7 @@ coverage:
   - deliverable: Checkpoint real-browser visual sign-off
     verification:
       - kind: screenshot
-        ref: phase18-title.png, phase18-select.png
+        ref: .planning/phases/18-art-animation-parallax/phase18-title.png, .planning/phases/18-art-animation-parallax/phase18-select.png
         status: pass
     human_judgment: true
     rationale: Auto-approved in autonomous mode; screenshots and passing browser boot satisfy the visual/readability/leak checks.
