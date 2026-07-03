@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Content & Challenge
 current_phase: null
-status: shipped
-stopped_at: v4.0 milestone archived
-last_updated: "2026-07-03T16:22:41.802Z"
+status: shipped-with-postship-fixes
+stopped_at: v4.0 milestone archived; post-ship diagnostic pass found and fixed 5 real gameplay bugs the shipped browser-boot.mjs never caught (see Session Continuity)
+last_updated: "2026-07-03T18:30:00.000Z"
 last_activity: 2026-07-03
-last_activity_desc: v4.0 milestone archived
+last_activity_desc: Post-ship playtest diagnostic — fixed critical collect-the-answer soft-lock + 4 other bugs
 progress:
   total_phases: 7
   completed_phases: 7
@@ -141,24 +141,40 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 ## Session Continuity
 
-**Stopped at:** Completed Phase 18 all plans
+**Stopped at:** Post-ship diagnostic + fix pass on v4.0 (all 7 phases were executed by a different AI runtime after this session lost continuity — see below). Found and fixed 5 real bugs via a headless-but-actually-interactive Playwright playtest; all static gates + the shipped `browser-boot.mjs` still pass.
 
 **Resume file:** None
 
-**Last session:** 2026-07-03T15:50:12.610Z
+**Last session:** 2026-07-03T18:30:00.000Z
 
-**Next steps:**
+**Context — how this diagnostic pass came about:**
 
-1. Continue `/gsd-autonomous` (or `/gsd-autonomous --from 15`) into Phase 15 (Challenge Seam + Locked-Door Mechanic) → 16 (remaining mechanics + difficulty) → 17 (build levels) → 18 (art/parallax) → 19 (kid-UAT).
-2. Worth flagging when Phase 15/16 touch `ui/mathGate.js`: confirm the math-gate answer-box mouse-click path (same `box.onClick()` + `area()` pattern as the fixed select tiles) actually works now that the canvas-scale bug is fixed — it was likely silently broken since the 2026-06-28 "+50% display scale" quick task, predating this milestone, and was never independently re-verified beyond this session's spot-check.
+Phases 15–19 were executed by a different AI runtime (user-directed, to save session cost) while this session was between turns. That runtime self-reported the milestone shipped (`v4.0-MILESTONE-AUDIT.md`: status `passed`, 22/22 requirements, "browser boot round-trip passed"). The user then reported "not much is working." Investigation found the audit's browser-boot check (`scripts/browser-boot.mjs`) only verifies scenes LOAD with zero console errors — it seeds all levels as pre-cleared and never actually plays: no movement, no math-gate/mechanic interaction, nothing. This is a real validation gap, not a one-off oversight — it let a **total, permanent soft-lock** ship as "passed."
 
-**Context for next session:**
+**Bugs found and fixed this session** (all confirmed via a from-scratch interactive Playwright harness that actually moves the player and answers challenges — not the shipped shallow check):
+
+1. **CRITICAL — collect-the-answer mechanic (MECH-03) was a total soft-lock.** `wireCollect` set `player.paused = true` on zone entry, copying the door/gates/enemy freeze pattern — but Kaplay's collision system skips paused objects entirely (confirmed from the vendored engine source), and collect-the-answer's ONLY resolution path is walking into a pickup. The player froze permanently the instant they touched the zone, with no way to move, collide, or escape (no Escape handler either). Level-01 places this zone at x:300 — immediately after spawn — so this blocked progress at the very start of the very first level. Fixed by removing the pause; this mechanic must keep movement/collision live. (`src/mechanics/collect.js`)
+2. **Canvas vertically off-center**, exposing ~90px of dead background and clipping the top of the game world off-screen on every screen. Caused by this session's earlier `transform: scale(1.5)` click-coordinate fix (see 2026-07-02 entry below) combined with `index.html`'s `margin:auto`, which only centers block elements horizontally. Fixed via flex-centering both axes before the transform applies. (`src/index.html`)
+3. **Math-gate "?" glyph rendered at NaN,NaN** — `build.js` used the level's `geometry` container object (`g.x`/`g.y`, always undefined) instead of the loop variable (`mg.x`/`mg.y`) for glyph position. The gate's collider was unaffected (correct variable used there), so the mechanic worked, just invisibly. (`src/levels/build.js`)
+4. **Collect-the-answer pickups were completely hidden** behind the shared challenge overlay's 420×220 opaque panel, which rendered unconditionally even when `renderChoices:false` (collect.js's only use case — it has no answer boxes for the panel to hold). Confirmed via `toScreen()` that all 4 of level-01's pickups fall inside the panel's footprint at the level's default camera position. Panel now only renders when `renderChoices` is true. (`src/ui/challenge.js`)
+5. **Pickup badges + number labels had no `color()` component** — both defaulted to the same engine fill, making every number invisible even once the panel-hiding bug (above) was fixed. Added `CONFIG.COLLECT.PICKUP_BG/BORDER/FG` reusing the existing dark-grunge palette. (`src/config.js`, `src/levels/build.js`, `src/mechanics/collect.js`)
+6. **Collect-zone re-entry stacked duplicate collision handlers** — touching the zone, walking away without answering, then walking back in re-fired the outer handler (onCollide fires once per touch-session, not once per object-lifetime), each time registering a NEW never-cancelled pickup handler. Refactored to a single handler + closure-local `active` state, matching the one-handler-many-triggers shape door.js/gates.js/enemy.js already use. (`src/mechanics/collect.js`)
+
+All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-safety.sh`, `check-safety.sh`, `check-progress.sh`, `smoke-progress.mjs`) green; the shipped `browser-boot.mjs` green; a from-scratch interactive gauntlet that actually clears collect-zone → math-gate ×2 → enemy → door → goal end-to-end with zero console errors, twice (once pre-fix confirming failure, once post-fix confirming success); a dedicated collect-zone re-entry regression test; and spot-checks of levels 2–4 (no console errors, math-gate glyph fix confirmed applying to all levels via the shared builder, collect-zone-no-freeze fix confirmed generalizing to levels 3–4).
+
+**Not yet done — recommend before considering v4.0 truly solid:**
+- A REAL human playtest (real platforming feel, real jump timing) — this session's teleport-based testing verifies mechanic LOGIC correctness, not platforming feel/difficulty, which is exactly what the deferred kid-UAT (SAFE-05, tracked in `19-UAT.md`) is for.
+- Spot-check `src/ui/mathGate.js` (end-of-level gate) and `door.js`/`gates.js`/`enemy.js` visually in a real browser — this session verified their LOGIC clears correctly but did not screenshot-audit each one the way collect.js was audited.
+- Consider hardening `scripts/browser-boot.mjs` (or adding a second script) to actually play through mechanics, not just load scenes — the current shallow check is why bug #1 shipped as "passed."
+
+**Prior context (2026-07-02, this session, before the multi-phase gap):**
 
 - v4.0 is a 7-phase, dependency-driven roadmap (Phases 13–19) continuing v3.0's numbering
 - 22/22 v4.0 requirements mapped, no orphans, no duplicates
 - Pure/low-risk spine (save + registry) front-loaded; refactor (challenge seam, Phase 15) MUST precede the mechanics (Phase 16) that depend on it; content after mechanics; art near-last so logic validates on placeholders; kid-UAT last
 - Clean-reset save (SAVE-05) removes migration complexity vs. the original research SUMMARY's additive-migration framing — honor SAVE-05
-- Every engine-touching phase ends with a REAL browser boot, not just greps (the a727c13 lesson)
+- Every engine-touching phase ends with a REAL browser boot, not just greps (the a727c13 lesson) — this session's diagnostic pass is a concrete case study in why: the shipped browser-boot.mjs technically ran but never actually exercised gameplay
+- Worth flagging: confirm the math-gate/mathGate.js answer-box mouse-click path (same `box.onClick()` + `area()` pattern as the fixed select tiles) actually works now that the canvas-scale bug is fixed — likely silently broken since the 2026-06-28 "+50% display scale" quick task, predating this milestone, never independently re-verified beyond a spot-check
 
 ---
 
