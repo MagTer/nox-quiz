@@ -64,7 +64,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 - [x] **Phase 13: Fresh Save Format + Level Registry/Data** - Clean-reset versioned save + per-level persistence and the pure level registry/builder spine (completed 2026-06-29)
 - [x] **Phase 14: Multi-Scene Shell** - Title + level-select + game.js parametrized by levelId, establishing the factory/closure/controller-cancel/import-safety contracts (completed 2026-07-02, incl. mandatory real-browser NAV-01..04 checkpoint)
 - [x] **Phase 15: Challenge Seam + Locked-Door Mechanic** - No-behavior-change extraction of the shared forgiving challenge component; the door/key mechanic proves the seam (completed 2026-07-02)
-- [ ] **Phase 16: Remaining Mechanics + Difficulty Curve** - Defeat-enemy, multiple gates, collect-the-answer, plus the per-level allowed-tables ramp
+- [x] **Phase 16: Remaining Mechanics + Difficulty Curve** - Defeat-enemy, multiple gates, collect-the-answer, plus the per-level allowed-tables ramp (completed 2026-07-03)
 - [ ] **Phase 17: Build the Levels** - 3–5 hand-built, completable levels with a platforming difficulty ramp on the ready builder + mechanics
 - [ ] **Phase 18: Art, Animation & Parallax** - Animated player, real dark-grunge tileset, camera-tied parallax, styled title/select screens
 - [ ] **Phase 19: Polish & Consolidated Kid-UAT** - Extend the ADHD-safety + import-safety audits across all new mechanics/art; kid sign-off
@@ -162,16 +162,16 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   4. Table difficulty ramps across levels — early levels draw from easier pools (e.g. 1–5), later levels restrict toward 6–9 — via a per-level allowed-tables pool fed to the (unchanged, LOCKED) weighted brain (LVL-03).
   5. Each mechanic passes a per-mechanic forgiveness check: no wrong-answer code path reduces XP/HP/position-progress, despawns, restarts, or shows a countdown (`check-safety.sh` green per mechanic).
 
-**Plans**: 3
+**Plans**: 3/3 plans complete
 
 **Wave 1**
 
-- [ ] 16-01-PLAN.md — Wave 0: extend check-gate.sh and check-import-safety.sh to cover gates/enemy/collect modules
-- [ ] 16-02-PLAN.md — Wave 1: extend challenge.js; add CONFIG blocks; add mathGates/enemies/collect data; build mechanic modules
+- [x] 16-01-PLAN.md — Wave 0: extend check-gate.sh and check-import-safety.sh to cover gates/enemy/collect modules
+- [x] 16-02-PLAN.md — Wave 1: extend challenge.js; add CONFIG blocks; add mathGates/enemies/collect data; build mechanic modules
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 16-03-PLAN.md — Wave 2: wire all mechanics into game.js; full static suite green; mandatory real-browser boot (MECH-03/04/05 + LVL-03 sign-off)
+- [x] 16-03-PLAN.md — Wave 2: wire all mechanics into game.js; full static suite green; mandatory real-browser boot (MECH-03/04/05 + LVL-03 sign-off)
 
 ### Phase 17: Build the Levels
 
@@ -235,7 +235,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 13. Fresh Save Format + Level Registry/Data | v4.0 | 4/4 | Complete    | 2026-06-29 |
 | 14. Multi-Scene Shell | v4.0 | 3/3 | Complete    | 2026-07-02 |
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 4/4 | ✅ Complete | 2026-07-02 |
-| 16. Remaining Mechanics + Difficulty Curve | v4.0 | 0/? | Not started | - |
+| 16. Remaining Mechanics + Difficulty Curve | v4.0 | 3/3 | Complete   | 2026-07-03 |
 | 17. Build the Levels | v4.0 | 0/? | Not started | - |
 | 18. Art, Animation & Parallax | v4.0 | 0/? | Not started | - |
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 0/? | Not started | - |
