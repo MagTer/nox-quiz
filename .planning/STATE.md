@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Art Rework
-status: planning
-last_updated: "2026-07-03T19:37:12.094Z"
+status: roadmapped
+last_updated: "2026-07-03T21:00:00.000Z"
 last_activity: 2026-07-03
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,24 +17,24 @@ progress:
 
 **Project:** Math Lab - Gamified Math Practice for Kids
 **Initialized:** 2026-06-20
-**Current Milestone:** v4.0 Content & Challenge (Phases 13–19)
+**Current Milestone:** v4.1 Art Rework (Phase 20)
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-28)
+See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Planning next milestone (v5.0 TBD)
+**Current Focus:** Phase 20 — Real CC0 Art Redo & Human Sign-off (roadmap drafted; awaiting plan)
 
-**Tech Stack (v4.0):** Multi-file (no JS build step) — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded) + CC0 pixel-art assets. Static files served by a Docker (nginx) container, deployed via Dokploy, reachable at a web URL. Persistence via versioned localStorage. Zero new runtime dependencies for v4.0 — every capability is native to the vendored Kaplay bundle.
-**Shipped State (v3.0):** Real 2D Kaplay platformer — one polished dark-grunge level → forgiving 6–9 math gate → persisted XP/leveling. Kid-validated "all good." The v1/v2 quiz is archived. v4.0 grows this single-level slice into a replayable multi-level game.
+**Tech Stack (v4.1):** Same as v4.0 — multi-file (no JS build step), HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded), static files served by a Docker (nginx) container via Dokploy, versioned localStorage persistence. Zero new runtime dependencies — this milestone only swaps asset *content* (PNGs + license docs), never code architecture.
+**Shipped State (v4.0):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics (locked doors, checkpoint gates, defeat-enemy, collect-the-answer) → persisted XP/leveling + per-level completion. All 22 v4.0 requirements satisfied, but the "art/animation/parallax pass" (Phase 18) shipped procedurally-generated placeholder noise instead of real curated art, and its human sign-off checkpoint was auto-approved without anyone actually looking at it. v4.1 redoes that asset output and closes the process gap.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 20 — Real CC0 Art Redo & Human Sign-off (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-03 — Milestone v4.1 started
+Status: Roadmap drafted (Phase 20); awaiting plan
+Last activity: 2026-07-03 — v4.1 roadmap created (1 phase, 6/6 requirements mapped)
 
 ## Deferred Verification
 
@@ -42,44 +42,34 @@ Last activity: 2026-07-03 — Milestone v4.1 started
 |-------|-------|--------|
 | (none) | — | — |
 
-## v4.0 Roadmap (Phases 13–19)
+## v4.1 Roadmap (Phase 20)
 
 | Phase | Goal | Requirements |
 |-------|------|--------------|
-| 13. Fresh Save Format + Level Registry/Data | Clean-reset versioned save (per-level completion/unlock + XP/level/history) + pure level registry/parameterized builder — the data spine; zero a727c13 risk | SAVE-05, SAVE-06, SAVE-07, LVL-02 |
-| 14. Multi-Scene Shell | Title + level-select (locked/unlocked/cleared/resume) + game.js parametrized by levelId; establishes factory/closure-state/controller-cancel/import-safety contracts | NAV-01..04 |
-| 15. Challenge Seam + Locked-Door Mechanic | No-behavior-change extraction of `ui/challenge.js` from mathGate.js + the locked-door/key mechanic that proves the seam | MECH-01, MECH-02 |
-| 16. Remaining Mechanics + Difficulty Curve | Defeat-enemy, multiple gates, collect-the-answer; per-level allowed-tables difficulty ramp into the unchanged brain | MECH-03, MECH-04, MECH-05, LVL-03 |
-| 17. Build the Levels | 3–5 hand-built, completable levels with a gentle platforming difficulty ramp, wired into registry/select | LVL-01, LVL-04 |
-| 18. Art, Animation & Parallax | Animated player (idle/run/jump + facing), real dark-grunge tileset, camera-tied parallax, styled title/select | ART-01..04 |
-| 19. Polish & Consolidated Kid-UAT | Extend ADHD-safety + import-safety audits across all new mechanics/art; kid sign-off | SAFE-04, SAFE-05 |
+| 20. Real CC0 Art Redo & Human Sign-off | Replace Phase 18's procedurally-generated placeholder art (player, tileset, parallax, title/select) with real curated CC0 pixel art, wired through Phase 18's unchanged technical contract, with license proof recorded and a genuine human visual sign-off gating verification | ART-05, ART-06, ART-07, ART-08, PROC-01, PROC-02 |
 
-**Coverage:** 22/22 v4.0 requirements mapped, no orphans, no duplicates.
+**Coverage:** 6/6 v4.1 requirements mapped, no orphans, no duplicates.
 
-**Build-order rationale:** Pure save+registry spine first (no a727c13 risk); multi-scene shell second (first place the import-time trap and cross-scene leaks resurface); challenge-seam refactor third — MUST precede the mechanics that depend on it; remaining mechanics + difficulty fourth; author levels fifth (mechanics + builder ready); art near-last so logic validates on placeholders; consolidated kid-UAT last (feel is user-validated).
+**Build-order rationale:** Single narrow phase — sourcing/licensing, palette-mapping, integration, and human sign-off are one coherent asset-redo deliverable that doesn't benefit from being split across phase boundaries; it will decompose internally into multiple plans (e.g. source+license the art, wire player+tileset, wire parallax+title/select, run the sign-off gate).
 
 ## Cross-Cutting Mitigations (baked into every engine-touching phase)
 
-1. **a727c13 rule** — no Kaplay global (or `typeof <global>` guard) at module top level; engine refs only inside function bodies. Add `scripts/check-import-safety.sh` (Phase 14) and run each phase after.
-2. **Mandatory real browser-boot per phase** — greps passing ≠ boots in a browser (the most expensive v3.0 lesson). No phase closes on automation alone.
+1. **a727c13 rule** — no Kaplay global (or `typeof <global>` guard) at module top level; engine refs only inside function bodies. Still binding for Phase 20's re-wiring of `src/main.js`/`src/player.js`/`src/parallax.js`.
+2. **Mandatory real browser-boot per phase** — greps passing ≠ boots in a browser (the most expensive v3.0 lesson). No phase closes on automation alone — and for Phase 20 specifically, automation alone is explicitly insufficient even for sign-off (PROC-02).
 3. **Anti-leak** — closure-local run state (never module-level `let`); cancel every global controller (`onKeyPress`/`onHide`/`onClick`) on `onSceneLeave`; single-flight tween cancel on the object.
-4. **No-timer / forgiving / no-game-over** — every math interaction re-asks on wrong with zero penalty/lockout/XP-loss/despawn/restart; enemies never deal contact damage; nothing counts down. `check-safety.sh` re-run per mechanic.
+4. **No-timer / forgiving / no-game-over** — every math interaction re-asks on wrong with zero penalty/lockout/XP-loss/despawn/restart; enemies never deal contact damage; nothing counts down. Not directly touched by an art-only phase, but must not regress.
 
-## Key Decisions (v4.0)
+## Key Decisions (v4.1)
 
 | Decision | Rationale | Status |
 |----------|-----------|--------|
-| Clean-reset save (new versioned key, NO v3.0 migration) | User chose a clean slate; removes migration complexity and the bricking risk entirely (SAVE-05) | Locked in |
-| Unlock state is *derived* from LEVEL_ORDER + `cleared` facts | One source of truth; no desync between stored "unlocked" and reality | Locked in |
-| Levels = plain JS data + one parameterized builder + registry | No build step, no Kaplay `addLevel`, no Tiled; preserves merged-floor anti-seam-stick colliders | Locked in |
-| One shared `ui/challenge.js` seam for all four mechanics + end gate | Avoids 4 anti-leak/z-index/forgiveness bugs; one firewalled brain consumer; re-point check-gate.sh | Locked in |
-| Challenge-seam refactor before mechanics | It's a no-behavior-change refactor the mechanics depend on; order is non-negotiable | Locked in |
-| Difficulty via per-level allowed-tables pool only (brain LOCKED) | `math/brain.js` is validated and out of scope; ramp via table scope, never the algorithm | Locked in |
-| Art/animation deferred near-last (Phase 18) | Logic validates on placeholders; a727c13-sensitive parallax lands once the scene graph is stable | Locked in |
-| `loadSprite({sliceX,sliceY,anims})` only — `loadSpriteSheet` does NOT exist in Kaplay 3001 | Correct loader; add `loadSpriteSheet` to banned-token grep | Locked in |
-| Pin Kaplay at 3001.0.19 | Version-coupled (Rect class, setCamPos); any upgrade is its own scoped task | Locked in |
+| Reuse Phase 18's technical contract (`18-UI-SPEC.md`) unchanged | Frame layout, animation state machine, z-order, parallax scroll ratios, and color/spacing/typography tokens were never the problem — the asset *source* was (procedurally-drawn placeholder noise) | Locked in |
+| Single narrow phase (Phase 20), no gameplay/level/difficulty changes | Requirements explicitly scope this as an asset-and-process redo of Phase 18 only | Locked in |
+| Candidate art sources: continue OpenGameArt "6 Color Dungeon 16x16" CC0 family and/or Kenney "Pixel Platformer" CC0 pack with a palette-remap pass | Matches existing spike/goal/coin provenance (zero new license risk to evaluate from scratch); palette-remap keeps the locked dark-grunge palette (`#0a0a0a`/`#00ff88`/`#66ccff`/`#e8e8e8`, no pink) | To be confirmed during sourcing |
+| Mandatory human visual sign-off gate before verification (PROC-02) | Phase 18's sign-off was auto-approved on a passing browser-boot check alone, with no one actually looking at the result; this closes that process gap for good | Locked in |
+| `scripts/generate-art-assets.py` stays in the repo only as a clearly-labeled dev/prototyping tool, not the shipped pipeline | It is precisely what's being replaced as the source of shipped assets, but remains useful for future placeholder generation during development | Locked in |
 
-## Carried-Forward Decisions (v1/v2/v3, still valid)
+## Carried-Forward Decisions (v1/v2/v3/v4.0, still valid)
 
 | Decision | Rationale | Status |
 |----------|-----------|--------|
@@ -93,23 +83,25 @@ Last activity: 2026-07-03 — Milestone v4.1 started
 | Respawn = checkpoint, progress preserved; no lives, no game-over | ADHD-safe | Locked in |
 | Vendored Kaplay, no-build multi-file, served over HTTP | Real game look without a build toolchain; sidesteps file:// asset block | Locked in |
 | ≤400–500ms flash/animation cap, non-strobing | ADHD over-stimulation guard (v2.0/v3.0 lesson) | Locked in |
+| Clean-reset save (new versioned key, NO v3.0 migration) | User chose a clean slate; removes migration complexity and the bricking risk entirely (SAVE-05) | Locked in |
+| Unlock state is *derived* from LEVEL_ORDER + `cleared` facts | One source of truth; no desync between stored "unlocked" and reality | Locked in |
+| Levels = plain JS data + one parameterized builder + registry | No build step, no Kaplay `addLevel`, no Tiled; preserves merged-floor anti-seam-stick colliders | Locked in |
+| One shared `ui/challenge.js` seam for all four mechanics + end gate | Avoids 4 anti-leak/z-index/forgiveness bugs; one firewalled brain consumer; re-point check-gate.sh | Locked in |
+| Difficulty via per-level allowed-tables pool only (brain LOCKED) | `math/brain.js` is validated and out of scope; ramp via table scope, never the algorithm | Locked in |
+| `loadSprite({sliceX,sliceY,anims})` only — `loadSpriteSheet` does NOT exist in Kaplay 3001 | Correct loader; still binding for Phase 20's re-wiring | Locked in |
+| Pin Kaplay at 3001.0.19 | Version-coupled (Rect class, setCamPos); any upgrade is its own scoped task | Locked in |
 
-## Critical Pitfalls to Prevent (v4.0, from research)
+## Critical Pitfalls to Prevent (v4.1, from research)
 
-1. **a727c13 top-level-global trap resurfacing** (Phase 14 onward — most new modules ever) — factory functions, function-body-only globals, `check-import-safety.sh`, mandatory browser boot.
-2. **Cross-scene state/handler/tween leak** (Phase 14 contract; re-applied in 15/16/18) — closure state + `go()` payload; cancel controllers on `onSceneLeave`; enter→leave→re-enter test.
-3. **Sprite-sheet slicing / wrong loader** (Phase 18) — derive sliceX/sliceY from pixel dims; `loadSprite` only; eyeball each clip.
-4. **Animation frame-timing / flip / state thrash** (Phase 18) — anim `speed` not dt; `play()` on state transition only (guard with `getCurAnim()`); flip with deadzone.
-5. **Math mechanics drifting into punish/time/shame** (Phases 15–16) — one shared forgiving contract; per-mechanic forgiveness assertion + kid-UAT "what if wrong".
-6. **Gate z-index / pause / input bugs mid-level** (Phases 15–16) — screen-space high-z overlay; scene pause flag respected by player+enemy update; overlay owns input; verify next to a hazard.
-7. **(Mitigated by clean-reset save)** Save-migration bricking — SAVE-05 removes migration; still: `loadSave` try/catch never bricks boot, stale/foreign save → safe defaults (Phase 13).
-8. **ADHD over-stimulation creep** from art/parallax/enemies/difficulty (Phases 16/18/19) — slow muted camera-tied parallax, ≤400–500ms flash cap, gentle decoupled difficulty ramp, full audit + kid-UAT.
+1. **New art doesn't match the locked frame layout** — the reused player/tileset/parallax integration points assume specific `sliceX`/`sliceY`/frame-count/pixel dimensions from `18-UI-SPEC.md`; verify the new sheet's dimensions against the spec (or adjust the slice params to match) before wiring — do not assume a same-named PNG drops in cleanly.
+2. **Palette-remap breaks silhouette readability** — recoloring existing CC0 art onto the locked palette (`#0a0a0a`/`#00ff88`/`#66ccff`/`#e8e8e8`, no pink) must be re-verified in-browser against the actual level background per ART-05, not eyeballed in an image editor.
+3. **License mislabeling** — re-verify CC0 (not CC-BY-SA or other) at each source page before vendoring, exactly as a CC-BY-SA "spinning-coin-0" was caught and rejected in v3.0; record proof in `CREDITS.md` + `assets/LICENSES/*.txt` before considering an asset shipped.
+4. **Process gap repeats** — "browser boots with zero console errors" must never again stand in for looking at the art; PROC-02 exists specifically because that substitution is what let Phase 18 ship ungraded.
+5. **Scope creep into gameplay** — this is an asset swap only; touching math mechanics, level geometry, or difficulty while in the same files (`src/levels/build.js`, `src/player.js`) is explicitly out of scope and must be avoided.
 
-## Research Flags (v4.0)
+## Research Flags (v4.1)
 
-- **Phase 18 (Art):** exact `sliceX/sliceY/anims` frame layout unknown until the CC0 pack is picked — resolve at sourcing time; re-verify each asset's license at download (a CC-BY-SA coin was caught mislabeled in v3.0).
-- **Phase 13 (Save):** clean-reset removes the v3.0-fixture migration test, but still capture/hand-construct a stale-and-foreign save to prove it never bricks boot.
-- Standard patterns (lighter research): level-data authoring + multi-scene navigation both extend verified v3.0 seams (`go()` data, mathGate bridge, progress versioning).
+No dedicated research phase was run for v4.1 — this is a narrow, single-purpose milestone and context was carried forward from this session's direct investigation of why Phase 18's art shipped as placeholder noise (see Key Decisions above and `PROJECT.md`'s Key Decisions table). Re-verify exact CC0 pack frame dimensions at sourcing time, same as Phase 18's original research flag.
 
 ## Deferred Items (from v3.0 close)
 
@@ -125,9 +117,10 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 ## Deferred (v2 & beyond v4.0)
 
-- Audio / SFX / calm ambient music (AUDIO-01) — deferred again; silence weakens the "real game" feel, revisit after v4.0.
+- Audio / SFX / calm ambient music (AUDIO-01) — deferred again; silence weakens the "real game" feel, revisit after v4.1.
 - More worlds / level packs beyond the initial 3–5 (CONTENT-FUT-01).
 - Star/score-based completion texture (CONTENT-FUT-02) — kept out to stay simple and non-punishing.
+- Phase 19 SAFE-05: live kid-UAT sign-off for non-strobing/non-over-stimulating art and fun/fair feel — protocol in `.planning/phases/19-polish-consolidated-kid-uat/19-UAT.md`; the v4.1 human sign-off gate (PROC-02) is a related but distinct check (art quality vs. platforming feel) and does not supersede it.
 
 ## Quick Tasks Completed
 
@@ -176,7 +169,7 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-06-29 (v4.0 roadmap created — Phases 13–19)
+**Last updated:** 2026-07-03 (v4.1 roadmap created — Phase 20)
 
 ## Historical Decisions (v1/v2/v3)
 
@@ -285,8 +278,8 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 
 ## Operator Next Steps
 
-- Review and approve the v4.0 ROADMAP.md (Phases 13–19)
-- Then run `/gsd-plan-phase 13` to begin the milestone
+- Review and approve the v4.1 ROADMAP.md (Phase 20)
+- Then run `/gsd-plan-phase 20` to begin the milestone
 
 ## Decisions
 

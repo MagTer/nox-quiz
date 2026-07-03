@@ -66,18 +66,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ART-05 | TBD | Pending |
-| ART-06 | TBD | Pending |
-| ART-07 | TBD | Pending |
-| ART-08 | TBD | Pending |
-| PROC-01 | TBD | Pending |
-| PROC-02 | TBD | Pending |
+| ART-05 | Phase 20 | Pending |
+| ART-06 | Phase 20 | Pending |
+| ART-07 | Phase 20 | Pending |
+| ART-08 | Phase 20 | Pending |
+| PROC-01 | Phase 20 | Pending |
+| PROC-02 | Phase 20 | Pending |
 
 **Coverage:**
 - v1 requirements: 6 total
-- Mapped to phases: 0 (roadmap not yet created)
-- Unmapped: 6 ⚠️ (expected — roadmapper fills this in)
+- Mapped to phases: 6 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-03*
-*Last updated: 2026-07-03 after v4.1 Art Rework milestone opened*
+*Last updated: 2026-07-03 — mapped to Phase 20 (ROADMAP.md created)*
