@@ -92,8 +92,16 @@ Grew the single-level v3.0 slice into a replayable multi-level game: four hand-b
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 20-01-PLAN.md — Vendor Kenney "Platformer Characters" + "Pixel Platformer", build the real player + ground assets, rewrite their license proof (ART-05, ART-06, PROC-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 20-02-PLAN.md — Vendor Kenney "Background Elements", composite the real parallax + title-bg assets, license proof (ART-07, ART-08, PROC-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 20-03-PLAN.md — Screenshot the running game, re-verify the full automated suite, and obtain a genuine blocking human visual sign-off (PROC-02)
 
 **UI hint**: yes
@@ -116,10 +124,13 @@ independent of Phase 20's art work
   1. `door.js`, `gates.js`, `enemy.js`, and `mathGate.js` have each been driven interactively
      (real player movement + real answer input, not teleport-only) across all 4 levels, with
      findings recorded the way the post-ship diagnostic recorded collect.js's 5 bugs.
+
   2. Any real bugs found in mechanic #1 are fixed and re-verified, the same way the 6 post-ship
      bugs were.
+
   3. The automated boot check actually exercises movement and at least one full mechanic
      resolution per level (not just "scene loaded, zero console errors").
+
   4. `v4.0-MILESTONE-AUDIT.md`'s unsupported "human sign-off recorded" claims (Phases 15–18) are
      corrected or annotated to reflect what verification actually happened, and the NAV-04
      traceability inconsistency is resolved.

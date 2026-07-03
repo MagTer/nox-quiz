@@ -727,9 +727,9 @@ retained only as a dev/prototyping tool per CONTEXT.md and REQUIREMENTS.md's Out
 notes, but A1 is a substantive correction to a CONTEXT.md-locked claim and should be flagged to
 the user during planning/discuss, not just buried in research.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should the player really source from a different Kenney pack than CONTEXT.md named?**
+1. **Should the player really source from a different Kenney pack than CONTEXT.md named?** — **RESOLVED:** yes, substituted. Implemented and explained in `20-01-PLAN.md`.
    - What we know: CONTEXT.md locked "source player from Kenney's Pixel Platformer pack because
      it ships walk/jump animation frames." Direct inspection this session shows this specific
      claim about that pack is factually wrong — no walk cycle exists in its character tiles.
@@ -744,7 +744,7 @@ the user during planning/discuss, not just buried in research.
      plan, but the planner should surface this explicitly as a one-line confirmation point rather
      than silently deviating from a locked decision.
 
-2. **Exact number of proof files for parallax (one combined vs. one-per-layer)**
+2. **Exact number of proof files for parallax (one combined vs. one-per-layer)** — **RESOLVED:** one combined `parallax.txt`, per `20-02-PLAN.md`.
    - What we know: CONTEXT.md explicitly leaves this to Claude's discretion ("one per asset, or
      one combined file if all three layers share a single source page").
    - What's unclear: nothing blocking — this is genuinely open by design.
