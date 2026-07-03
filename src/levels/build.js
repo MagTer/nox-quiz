@@ -147,4 +147,73 @@ export function buildLevel(levelData) {
     blocker.panelObj = panel;
     blocker.glyphObj = glyph;
   }
+
+  // --- Checkpoint math gates (MECH-04) ---
+  for (const g of g.mathGates ?? []) {
+    const gateObj = add([
+      rect(CONFIG.MATH_GATE.W, CONFIG.MATH_GATE.H),
+      pos(g.x, g.y),
+      area(),
+      body({ isStatic: true }),
+      color(...CONFIG.MATH_GATE.LOCKED_GREY),
+      outline(2, rgb(...CONFIG.MATH_GATE.LOCKED_BORDER)),
+      "math-gate",
+    ]);
+
+    const glyph = add([
+      text("?", { size: CONFIG.MATH_GATE.GLYPH_SIZE }),
+      anchor("center"),
+      pos(g.x + CONFIG.MATH_GATE.W / 2, g.y + CONFIG.MATH_GATE.H / 2),
+      "math-gate-glyph",
+    ]);
+
+    gateObj.glyphObj = glyph;
+  }
+
+  // --- Defeat-enemy encounters (MECH-05) ---
+  for (const e of g.enemies ?? []) {
+    const enemyObj = add([
+      rect(CONFIG.ENEMY.W, CONFIG.ENEMY.H),
+      pos(e.x, e.y),
+      area(),
+      body({ isStatic: true }),
+      color(...CONFIG.ENEMY.COLOR),
+      "enemy",
+    ]);
+
+    const glyph = add([
+      text("!", { size: CONFIG.ENEMY.GLYPH_SIZE }),
+      anchor("center"),
+      pos(e.x + CONFIG.ENEMY.W / 2, e.y + CONFIG.ENEMY.H / 2),
+      "enemy-glyph",
+    ]);
+
+    enemyObj.glyphObj = glyph;
+  }
+
+  // --- Collect-the-answer zones (MECH-03) ---
+  for (const z of g.collectZones ?? []) {
+    const zoneObj = add([
+      rect(CONFIG.COLLECT.ZONE_W, CONFIG.COLLECT.ZONE_H),
+      pos(z.x, z.y),
+      area(),
+      opacity(0),
+      "answer-zone",
+    ]);
+
+    zoneObj.slots = z.slots;
+  }
+
+  // --- Collect-the-answer pickup slots (MECH-03) ---
+  for (const [i, s] of (g.answerPickupSlots ?? []).entries()) {
+    const slotObj = add([
+      rect(CONFIG.COLLECT.PICKUP_W, CONFIG.COLLECT.PICKUP_H),
+      pos(s.x, s.y),
+      area(),
+      opacity(0),
+      "answer-pickup-slot",
+    ]);
+
+    slotObj.slotIndex = i;
+  }
 }
