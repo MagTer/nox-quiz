@@ -66,7 +66,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 - [x] **Phase 15: Challenge Seam + Locked-Door Mechanic** - No-behavior-change extraction of the shared forgiving challenge component; the door/key mechanic proves the seam (completed 2026-07-02)
 - [x] **Phase 16: Remaining Mechanics + Difficulty Curve** - Defeat-enemy, multiple gates, collect-the-answer, plus the per-level allowed-tables ramp (completed 2026-07-03)
 - [ ] **Phase 17: Build the Levels** - 3–5 hand-built, completable levels with a platforming difficulty ramp on the ready builder + mechanics
-- [ ] **Phase 18: Art, Animation & Parallax** - Animated player, real dark-grunge tileset, camera-tied parallax, styled title/select screens
+- [x] **Phase 18: Art, Animation & Parallax** - Animated player, real dark-grunge tileset, camera-tied parallax, styled title/select screens (completed 2026-07-03)
 - [ ] **Phase 19: Polish & Consolidated Kid-UAT** - Extend the ADHD-safety + import-safety audits across all new mechanics/art; kid sign-off
 
 ## Phase Details
@@ -185,7 +185,23 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   3. Platforming and table difficulty ramp on *decoupled* axes (no level spikes both at once), keeping the curve gentle for the ADHD profile.
   4. A full playthrough — title → select → each unlocked level → clear → next unlocks → resume — works end-to-end in a real browser.
 
-**Plans**: TBD
+**Plans**: 4/4 plans complete
+
+**Wave 1**
+
+- [ ] 17-01-PLAN.md — Per-level camera bounds support in camera.js + game.js (LVL-04)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 17-02-PLAN.md — Author level-02, level-03, and level-04 descriptors (LVL-01, LVL-04)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 17-03-PLAN.md — Register levels and extend smoke-progress.mjs regression fixture (LVL-01, LVL-04)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 17-04-PLAN.md — Extend browser-boot.mjs, run full static suite, human completability checkpoint (LVL-01, LVL-04)
 
 ### Phase 18: Art, Animation & Parallax
 
@@ -200,7 +216,13 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   4. The title and level-select screens are styled to the dark-grunge aesthetic with no pink (ART-04).
   5. Every new sprite/parallax module keeps all engine calls inside function bodies; `loadSprite` (not `loadSpriteSheet`) loads from `../assets/...` in `main.js` after `kaplay()`; the game boots cleanly in a real browser with `check-import-safety.sh` green.
 
-**Plans**: TBD
+**Plans**: 4/4 plans complete
+
+- [x] 18-01-PLAN.md
+- [x] 18-02-PLAN.md
+- [x] 18-03-PLAN.md
+- [x] 18-04-PLAN.md
+
 **UI hint**: yes
 
 ### Phase 19: Polish & Consolidated Kid-UAT
@@ -237,7 +259,7 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 4/4 | ✅ Complete | 2026-07-02 |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 3/3 | Complete   | 2026-07-03 |
 | 17. Build the Levels | v4.0 | 0/? | Not started | - |
-| 18. Art, Animation & Parallax | v4.0 | 0/? | Not started | - |
+| 18. Art, Animation & Parallax | v4.0 | 4/4 | Complete   | 2026-07-03 |
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 0/? | Not started | - |
 
 ---

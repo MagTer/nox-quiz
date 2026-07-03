@@ -35,10 +35,10 @@ selection algorithm in `math/brain.js` is LOCKED and unchanged this milestone.
 
 ### Art & Presentation Pass
 
-- [ ] **ART-01**: The player is an animated sprite with idle / run / jump states and faces its movement direction.
-- [ ] **ART-02**: Levels render with a real dark-grunge tileset (not single-color placeholders), with readable silhouettes against the background.
-- [ ] **ART-03**: A layered / parallax background gives depth — calm, camera-tied (not timer-driven), and non-strobing.
-- [ ] **ART-04**: The title and level-select screens are styled to the dark-grunge aesthetic (no pink).
+- [x] **ART-01**: The player is an animated sprite with idle / run / jump states and faces its movement direction.
+- [x] **ART-02**: Levels render with a real dark-grunge tileset (not single-color placeholders), with readable silhouettes against the background.
+- [x] **ART-03**: A layered / parallax background gives depth — calm, camera-tied (not timer-driven), and non-strobing.
+- [x] **ART-04**: The title and level-select screens are styled to the dark-grunge aesthetic (no pink).
 
 ### Persistence
 
@@ -94,10 +94,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MECH-03 | Phase 16 | Complete |
 | MECH-04 | Phase 16 | Complete |
 | MECH-05 | Phase 16 | Complete |
-| ART-01 | Phase 18 | Pending |
-| ART-02 | Phase 18 | Pending |
-| ART-03 | Phase 18 | Pending |
-| ART-04 | Phase 18 | Pending |
+| ART-01 | Phase 18 | Complete |
+| ART-02 | Phase 18 | Complete |
+| ART-03 | Phase 18 | Complete |
+| ART-04 | Phase 18 | Complete |
 | SAVE-05 | Phase 13 | Complete |
 | SAVE-06 | Phase 13 | Complete |
 | SAVE-07 | Phase 13 | Complete |
