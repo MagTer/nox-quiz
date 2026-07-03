@@ -60,14 +60,21 @@ const ACCENT_RED = [0xff, 0x44, 0x33]; // wrong nudge
  * @param {string} [args.prompt]
  *   Optional plain-string prompt override. If omitted, the default `${q.a} × ${q.b}`
  *   expression is rendered.
+ * @param {{ a: number, b: number, answer: number, choices: number[] }} [args.question]
+ *   Optional caller-supplied question object. When provided, it is used instead of calling
+ *   `brain.nextQuestion()`, so the overlay prompt can match spawned pickups (MECH-03).
+ * @param {boolean} [args.renderChoices=true]
+ *   When false, the answer-box grid and 1-4 key handlers are omitted. The caller provides
+ *   its own input path (e.g. collect-the-answer pickups). close() remains safe either way.
  */
-export function openChallenge({ brain, onSuccess, prompt } = {}) {
+export function openChallenge({ brain, onSuccess, prompt, question, renderChoices = true } = {}) {
   // Self-standing fallback so the challenge never throws if the caller forgets a brain.
   if (!brain) brain = createBrain();
 
   // Pull the question ONCE and keep this SAME object for the whole session: a
   // forgiving re-ask reuses it, so a wrong pick re-presents the identical question (GATE-04).
-  const q = brain.nextQuestion();
+  // Callers may pass their own question (e.g. collect.js) so the overlay matches spawned pickups.
+  const q = question ?? brain.nextQuestion();
   const display = prompt ?? `${q.a} × ${q.b}`; // U+00D7 multiplication glyph; fall back to 'x' if tofu.
 
   // Fire-once latch for onSuccess (a correct pick must fire EXACTLY once — Pitfall 5).
@@ -112,56 +119,60 @@ export function openChallenge({ brain, onSuccess, prompt } = {}) {
   ]);
 
   // --- Four answer boxes from q.choices, dual-input (mouse-click + keys 1-4) ---
-  const BOX_W = 84;
-  const BOX_H = 44;
-  const GAP = 16;
-  const totalW = q.choices.length * BOX_W + (q.choices.length - 1) * GAP;
-  const startX = center().x - totalW / 2 + BOX_W / 2;
-  const rowY = center().y + 30;
-
-  // Keep box refs so the wrong/correct branches can recolor / shake the chosen one.
+  // Callers can suppress the answer boxes (e.g. collect.js spawns pickups instead).
+  // Box refs and captured key controllers are kept empty when suppressed so close() stays safe.
   const boxes = [];
+  let keyCtrls = [];
 
-  q.choices.forEach((choice, i) => {
-    const bx = startX + i * (BOX_W + GAP);
+  if (renderChoices) {
+    const BOX_W = 84;
+    const BOX_H = 44;
+    const GAP = 16;
+    const totalW = q.choices.length * BOX_W + (q.choices.length - 1) * GAP;
+    const startX = center().x - totalW / 2 + BOX_W / 2;
+    const rowY = center().y + 30;
 
-    const box = add([
-      rect(BOX_W, BOX_H),
-      area(),
-      anchor("center"),
-      pos(bx, rowY),
-      color(BOX_BG[0], BOX_BG[1], BOX_BG[2]),
-      outline(2, rgb(BOX_BORDER[0], BOX_BORDER[1], BOX_BORDER[2])),
-      fixed(),
-      z(9992),
-      "challenge",
-      "answer",
-      { idx: i },
-    ]);
+    q.choices.forEach((choice, i) => {
+      const bx = startX + i * (BOX_W + GAP);
 
-    // Label: the index (1-4) plus the choice value, so the key mapping is legible.
-    add([
-      text(i + 1 + ") " + choice, { size: 22 }),
-      anchor("center"),
-      pos(bx, rowY),
-      fixed(),
-      z(9993),
-      "challenge",
-    ]);
+      const box = add([
+        rect(BOX_W, BOX_H),
+        area(),
+        anchor("center"),
+        pos(bx, rowY),
+        color(BOX_BG[0], BOX_BG[1], BOX_BG[2]),
+        outline(2, rgb(BOX_BORDER[0], BOX_BORDER[1], BOX_BORDER[2])),
+        fixed(),
+        z(9992),
+        "challenge",
+        "answer",
+        { idx: i },
+      ]);
 
-    // Mouse path: object-scoped, auto-cleaned when the box is destroyed (no leak).
-    box.onClick(() => choose(i));
+      // Label: the index (1-4) plus the choice value, so the key mapping is legible.
+      add([
+        text(i + 1 + ") " + choice, { size: 22 }),
+        anchor("center"),
+        pos(bx, rowY),
+        fixed(),
+        z(9993),
+        "challenge",
+      ]);
 
-    boxes.push(box);
-  });
+      // Mouse path: object-scoped, auto-cleaned when the box is destroyed (no leak).
+      box.onClick(() => choose(i));
 
-  // Keyboard path: number keys 1-4 select the matching box. These are GLOBAL controllers
-  // that outlive their objects, so each is captured and cancelled on close (anti-leak).
-  // WR-03: keys 1-4 are RESERVED for the challenge while it is open — future phases must
-  // not rebind them globally (level-select / debug hotkeys) or the bindings would collide
-  // while the challenge is up. The cleared/bounds guards in choose() are the safety net if
-  // they ever do; cancellation on close() frees the keys the moment the challenge tears down.
-  const keyCtrls = ["1", "2", "3", "4"].map((k, i) => onKeyPress(k, () => choose(i)));
+      boxes.push(box);
+    });
+
+    // Keyboard path: number keys 1-4 select the matching box. These are GLOBAL controllers
+    // that outlive their objects, so each is captured and cancelled on close (anti-leak).
+    // WR-03: keys 1-4 are RESERVED for the challenge while it is up — future phases must
+    // not rebind them globally (level-select / debug hotkeys) or the bindings would collide
+    // while the challenge is up. The cleared/bounds guards in choose() are the safety net if
+    // they ever do; cancellation on close() frees the keys the moment the challenge tears down.
+    keyCtrls = ["1", "2", "3", "4"].map((k, i) => onKeyPress(k, () => choose(i)));
+  }
 
   /**
    * Single answer-handling path for BOTH input methods.
@@ -205,4 +216,6 @@ export function openChallenge({ brain, onSuccess, prompt } = {}) {
     keyCtrls.forEach((c) => c.cancel());
     destroyAll("challenge"); // tag-based bulk removal; destroy() only accepts a GameObj
   }
+
+  return { close };
 }
