@@ -313,6 +313,22 @@ const check = (cond, msg) => {
     doors: [
       { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
+    mathGates: [
+      { x: 600, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+    ],
+    enemies: [
+      { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H },
+    ],
+    collectZones: [
+      { x: 300, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
+    ],
+    answerPickupSlots: [
+      { x: 270, y: FLOOR_Y - 100 },
+      { x: 330, y: FLOOR_Y - 100 },
+      { x: 270, y: FLOOR_Y - 40 },
+      { x: 330, y: FLOOR_Y - 40 },
+    ],
   };
 
   // Small recursive deep-equal (no dependency — the no-build canon forbids one).
