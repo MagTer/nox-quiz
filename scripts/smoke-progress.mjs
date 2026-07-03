@@ -311,7 +311,7 @@ const check = (cond, msg) => {
       { x: 1920, y: FLOOR_Y - 48 },
     ],
     doors: [
-      { x: 1480, y: FLOOR_Y - CONFIG.DOOR.H },
+      { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
   };
 

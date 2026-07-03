@@ -125,6 +125,18 @@ export function buildLevel(levelData) {
       "door",
     ]);
 
+    // Lintel above the door — a thin static bar that blocks jumping over the door.
+    // It stays after the door opens (it is level architecture, not the moving panel).
+    const lintelW = CONFIG.DOOR.W + CONFIG.DOOR.LINTEL_OVERHANG * 2;
+    add([
+      rect(lintelW, CONFIG.DOOR.LINTEL_H),
+      pos(d.x - CONFIG.DOOR.LINTEL_OVERHANG, d.y - CONFIG.DOOR.LINTEL_H),
+      color(...CONFIG.DOOR.LOCKED_BORDER),
+      area(),
+      body({ isStatic: true }),
+      "door-lintel",
+    ]);
+
     // Visual lock glyph — purely cosmetic, no area() so it never collides.
     const glyph = add([
       text("X", { size: CONFIG.DOOR.GLYPH_SIZE }),
