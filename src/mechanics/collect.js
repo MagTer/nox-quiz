@@ -92,14 +92,14 @@ export function wireCollect({ player, brain }) {
   });
 
   /**
-   * Remove all pickups and labels belonging to a cleared zone.
+   * Destroy all pickups and labels belonging to a cleared zone.
    */
   function destroyPickups(zoneObj) {
     for (const slotObj of get("answer-pickup-slot")) {
       if (!zoneObj.slots.includes(slotObj.slotIndex)) continue;
       if (slotObj.labelObj) destroy(slotObj.labelObj);
       slotObj.value = undefined;
-      slotObj.opacity = 0;
+      destroy(slotObj);
     }
   }
 
