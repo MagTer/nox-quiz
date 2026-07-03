@@ -74,6 +74,37 @@ export const CONFIG = {
     GLYPH_SIZE: 22, // px — lock glyph text size (matches SELECT.GLYPH_SIZE)
   },
 
+  // --- Checkpoint math gates (mid-level challenge seam; MECH-04) ---
+  // Mirrors DOOR dimensions/palette so the locked checkpoint reads as a related barrier.
+  MATH_GATE: {
+    W: 32, // px — gate footprint width
+    H: 64, // px — gate panel height
+    LOCKED_GREY: [0x44, 0x44, 0x44], // locked fill (matches DOOR/SELECT locked-tile palette)
+    LOCKED_BORDER: [0x55, 0x55, 0x55], // locked outline
+    GLYPH_SIZE: 22, // px — gate glyph text size
+  },
+
+  // --- Defeat-enemy placeholder (MECH-05) ---
+  // Compact square placeholder; Phase 18 replaces it with a sprite. Muted red, no pink.
+  ENEMY: {
+    W: 32, // px — enemy footprint width
+    H: 32, // px — enemy footprint height
+    COLOR: [0xff, 0x44, 0x33], // muted red placeholder (NO pink)
+    GLYPH_SIZE: 22, // px — enemy glyph text size
+  },
+
+  // --- Collect-the-answer zone + pickups (MECH-03) ---
+  // Invisible trigger zone, numeric pickup badges, and glow colors for feedback.
+  COLLECT: {
+    ZONE_W: 64, // px — invisible answer-zone width
+    ZONE_H: 64, // px — invisible answer-zone height
+    PICKUP_W: 28, // px — pickup badge width
+    PICKUP_H: 28, // px — pickup badge height
+    PICKUP_SIZE: 18, // px — pickup number text size
+    CORRECT_GLOW: [0x00, 0xff, 0x88], // neon green — used when correct pickup is chosen
+    WRONG_GLOW: [0xff, 0x44, 0x33], // muted red — brief non-punishing nudge on wrong pickup
+  },
+
   // --- Progression / XP (ported VERBATIM from archive/math-lab.html 604-619 — DO NOT re-tune) ---
   // The XP-per-table amounts and the level-threshold curve are the validated v1/v2 values.
   // Read by src/progress.js (Phase 11 Wave 1) only. HARD_TABLES/EASY_TABLES are intentionally
