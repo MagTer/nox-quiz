@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Content & Challenge
-current_phase: 15
+current_phase: 16
 status: executing
-stopped_at: Phase 15 — verification found door could be jumped over. Final fix: a tall invisible vertical blocker covers the jump arc and triggers the challenge, paired with a visible 64px panel; proof door at x:1400. Re-verification needed.
-last_updated: "2026-07-02T21:15:00.000Z"
+stopped_at: Phase 15 verification passed — real-browser MECH-01/MECH-02 sign-off complete. Ready to begin Phase 16.
+last_updated: "2026-07-02T21:20:00.000Z"
 last_activity: 2026-07-02
-last_activity_desc: tall invisible blocker fix applied; awaiting re-verification
+last_activity_desc: Phase 15 verified passed; beginning Phase 16
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
   completed_plans: 11
-  percent: 29
-current_phase_name: Challenge Seam + Locked-Door Mechanic
+  percent: 43
+current_phase_name: Remaining Mechanics + Difficulty Curve
 ---
 
 # Project State: Math Lab
@@ -35,16 +35,16 @@ See: .planning/PROJECT.md (updated 2026-06-28)
 
 ## Current Position
 
-Phase: 15 — EXECUTED (re-verification pending)
-Plan: 4 of 4
-Status: All Phase 15 plans executed; static suite green; verification found jump-bypass from ledge, fixed by adding door lintel + moving door to x:1400; awaiting re-verification
-Last activity: 2026-07-02 — lintel + reposition fix applied; re-verification pending
+Phase: 16 — NOT STARTED
+Plan: 0 of TBD
+Status: Phase 15 verified passed; Phase 16 (Remaining Mechanics + Difficulty Curve) ready to begin
+Last activity: 2026-07-02 — Phase 15 verified passed; beginning Phase 16
 
 ## Deferred Verification
 
 | Phase | State | Resume |
 |-------|-------|--------|
-| 15 | verification_deferred_human | Re-test level-01 after lintel fix: confirm the player cannot bypass the door at x:1400 from the floor, from the raised platform at x:1640, or from any other ledge; confirm end-gate still OK; then `/gsd:autonomous --from 16` |
+| (none) | — | — |
 
 ## v4.0 Roadmap (Phases 13–19)
 
