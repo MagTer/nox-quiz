@@ -25,6 +25,7 @@ export const LEVEL_01 = {
 
   // Difficulty seam — DATA only (wired through in Wave 2; enforced for real in
   // Phase 16). NOT a behavior change here.
+  // Reminder: level-01 stays on the v3.0 hard pool (tables 6–9); do not soften.
   allowedTables: [6, 7, 8, 9],
 
   // --- Authored level geometry (gentle left-to-right difficulty curve) ---
@@ -103,6 +104,31 @@ export const LEVEL_01 = {
     // with a lintel above that blocks jumping over from the floor.
     doors: [
       { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
+    ],
+
+    // --- Mid-level math mechanics (Phase 16) ---
+    // MECH-04: two checkpoint gates on different floor runs.
+    mathGates: [
+      { x: 600, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // opening run, just before gap 1
+      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // final run, before the door at 1400
+    ],
+
+    // MECH-05: one defeat-enemy encounter on the middle run.
+    enemies: [
+      { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H },
+    ],
+
+    // MECH-03: one collect-the-answer zone near the start.
+    collectZones: [
+      { x: 300, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
+    ],
+
+    // MECH-03: four pickup slot positions around the zone.
+    answerPickupSlots: [
+      { x: 270, y: FLOOR_Y - 100 },
+      { x: 330, y: FLOOR_Y - 100 },
+      { x: 270, y: FLOOR_Y - 40 },
+      { x: 330, y: FLOOR_Y - 40 },
     ],
   },
 
