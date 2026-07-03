@@ -114,29 +114,25 @@ export function buildLevel(levelData) {
 
   // --- Locked doors (optional — guarded so older/forward-looking levels without doors still build) ---
   for (const d of g.doors ?? []) {
-    // Solid blocking collider: the player cannot pass while locked.
-    const door = add([
-      rect(CONFIG.DOOR.W, CONFIG.DOOR.H),
-      pos(d.x, d.y),
-      color(...CONFIG.DOOR.LOCKED_GREY),
-      outline(2, rgb(...CONFIG.DOOR.LOCKED_BORDER)),
+    // Invisible vertical blocker: a tall solid collider that physically prevents bypassing
+    // the door by jumping, and triggers the shared challenge seam on touch.
+    const blockerH = 160; // tall enough to cover the player's max jump arc above the door
+    const blocker = add([
+      rect(CONFIG.DOOR.W, blockerH),
+      pos(d.x, d.y + CONFIG.DOOR.H - blockerH),
+      opacity(0), // invisible — the visible panel below provides the art
       area(),
       body({ isStatic: true }),
       "door",
     ]);
 
-    // Lintel above the door — a thin static bar that blocks jumping over the door.
-    // Positioned at the player's max-jump height (~96px above floor) so the player
-    // cannot arc over the doorway. It stays after the door opens (architecture).
-    const lintelW = CONFIG.DOOR.W + CONFIG.DOOR.LINTEL_OVERHANG * 2;
-    const lintelTopOffset = 66; // door top y minus this = lintel top, tuned to intersect peak jump
-    add([
-      rect(lintelW, CONFIG.DOOR.LINTEL_H),
-      pos(d.x - CONFIG.DOOR.LINTEL_OVERHANG, d.y - lintelTopOffset),
-      color(...CONFIG.DOOR.LOCKED_BORDER),
-      area(),
-      body({ isStatic: true }),
-      "door-lintel",
+    // Visible door panel — the cosmetic locked door the player sees.
+    const panel = add([
+      rect(CONFIG.DOOR.W, CONFIG.DOOR.H),
+      pos(d.x, d.y),
+      color(...CONFIG.DOOR.LOCKED_GREY),
+      outline(2, rgb(...CONFIG.DOOR.LOCKED_BORDER)),
+      "door-panel",
     ]);
 
     // Visual lock glyph — purely cosmetic, no area() so it never collides.
@@ -147,7 +143,8 @@ export function buildLevel(levelData) {
       "door-glyph",
     ]);
 
-    // Stash the glyph handle on the door so the mechanic can clean up both at once.
-    door.glyphObj = glyph;
+    // Stash linked visual objects on the blocker so door.js can clean everything up at once.
+    blocker.panelObj = panel;
+    blocker.glyphObj = glyph;
   }
 }

@@ -54,10 +54,11 @@ export function wireDoor({ player, brain }) {
 
         fx.clearBurst();
 
-        // Destroy BOTH the collider and its stashed glyph BEFORE unfreezing. This ordering
-        // is load-bearing: the collider must not exist when player.paused becomes false,
-        // or the same touch session could re-trigger and soft-lock the player.
+        // Destroy the touched collider, its visible panel, and its glyph BEFORE unfreezing.
+        // This ordering is load-bearing: the collider must not exist when player.paused
+        // becomes false, or the same touch session could re-trigger and soft-lock the player.
         destroy(doorObj);
+        if (doorObj.panelObj) destroy(doorObj.panelObj);
         if (doorObj.glyphObj) destroy(doorObj.glyphObj);
 
         // CRITICAL: always resume play. Unlike the end-of-level goal, the scene continues.

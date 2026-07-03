@@ -68,9 +68,7 @@ export const CONFIG = {
   // visual language is consistent across the whole game.
   DOOR: {
     W: 32, // px — door footprint width
-    H: 64, // px — door panel height (kept compact; a lintel above blocks jump bypasses)
-    LINTEL_H: 8, // px — horizontal bar height above the door
-    LINTEL_OVERHANG: 24, // px — lintel extends this far past each side of the door
+    H: 64, // px — door panel height (compact visual; an invisible tall blocker handles physics)
     LOCKED_GREY: [0x44, 0x44, 0x44], // locked fill (matches select.js LOCKED_GREY)
     LOCKED_BORDER: [0x55, 0x55, 0x55], // locked outline (matches select.js LOCKED_BORDER)
     GLYPH_SIZE: 22, // px — lock glyph text size (matches SELECT.GLYPH_SIZE)
