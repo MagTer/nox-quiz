@@ -95,17 +95,26 @@ export function openChallenge({ brain, onSuccess, prompt, question, renderChoice
     "challenge",
   ]);
 
-  // Centered dark-grunge panel.
-  add([
-    rect(CONFIG.GATE.PANEL_W, CONFIG.GATE.PANEL_H),
-    anchor("center"),
-    pos(center()),
-    color(PANEL_BG[0], PANEL_BG[1], PANEL_BG[2]),
-    outline(2, rgb(PANEL_BORDER[0], PANEL_BORDER[1], PANEL_BORDER[2])),
-    fixed(),
-    z(9991),
-    "challenge",
-  ]);
+  // Centered dark-grunge panel — ONLY when rendering answer boxes. The panel exists to
+  // visually hold the 4 answer boxes; when renderChoices is false (collect.js's only use
+  // case), the panel has nothing to contain but is a 420x220 OPAQUE rect at screen-center
+  // that would otherwise sit directly on top of world content positioned near the player
+  // (e.g. collect.js's pickups) — completely hiding it. Found via headless playtest:
+  // level-01's collect-zone pickups all fall within the panel's footprint at the level's
+  // default camera position, making them entirely invisible to the player. Without the
+  // panel, the dim layer above still darkens-but-shows the world per its own comment.
+  if (renderChoices) {
+    add([
+      rect(CONFIG.GATE.PANEL_W, CONFIG.GATE.PANEL_H),
+      anchor("center"),
+      pos(center()),
+      color(PANEL_BG[0], PANEL_BG[1], PANEL_BG[2]),
+      outline(2, rgb(PANEL_BORDER[0], PANEL_BORDER[1], PANEL_BORDER[2])),
+      fixed(),
+      z(9991),
+      "challenge",
+    ]);
+  }
 
   // Big question expression near the top of the panel (built here — the brain dropped its
   // display field). Pure canvas text(), never a markup sink.

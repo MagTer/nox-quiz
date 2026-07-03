@@ -120,6 +120,15 @@ export const CONFIG = {
     PICKUP_W: 28, // px — pickup badge width
     PICKUP_H: 28, // px — pickup badge height
     PICKUP_SIZE: 18, // px — pickup number text size
+    // PICKUP_BG/BORDER/FG: neither the pickup badge nor its number label had a color()
+    // component before this fix — both silently fell back to the SAME engine default fill,
+    // making every number invisible against its own badge (found via headless playtest:
+    // labels existed with correct values but were visually unreadable). Reuses the same
+    // dark-grunge box/label palette as challenge.js's answer boxes (BOX_BG/BOX_BORDER) and
+    // select.js's tile labels (LABEL_FG, ~18:1 contrast, WCAG AA) for visual consistency.
+    PICKUP_BG: [30, 30, 30],
+    PICKUP_BORDER: [0x44, 0x44, 0x44],
+    PICKUP_FG: [0xe8, 0xe8, 0xe8],
     CORRECT_GLOW: [0x00, 0xff, 0x88], // neon green — used when correct pickup is chosen
     WRONG_GLOW: [0xff, 0x44, 0x33], // muted red — brief non-punishing nudge on wrong pickup
   },

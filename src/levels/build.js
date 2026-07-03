@@ -223,6 +223,8 @@ export function buildLevel(levelData) {
       pos(s.x, s.y),
       area(),
       opacity(0),
+      color(...CONFIG.COLLECT.PICKUP_BG),
+      outline(2, rgb(...CONFIG.COLLECT.PICKUP_BORDER)),
       "answer-pickup-slot",
     ]);
 

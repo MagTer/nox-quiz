@@ -37,9 +37,13 @@ export function wireCollect({ player, brain }) {
   player.onCollide("answer-zone", (zoneObj) => {
     if (cleared.has(zoneObj)) return;
 
-    // Freeze the player exactly like the door mechanic does.
-    player.vel = vec2(0);
-    player.paused = true;
+    // CRITICAL: unlike door/gates/enemy, this mechanic's ONLY resolution path is walking
+    // into the correct pickup — so the player must NOT be frozen. `player.paused = true`
+    // halts BOTH onUpdate (movement) and onCollide (Kaplay's collision spatial-hash
+    // explicitly skips paused objects as self or partner) — pausing here would make the
+    // pickups permanently unreachable, soft-locking the player the instant they touch the
+    // zone (found via headless playtest: player.pos was provably frozen and unable to
+    // reach any pickup). Movement and collision stay fully live through this challenge.
 
     // Generate the question ONCE and use the same object for both the prompt and pickups.
     const q = brain.nextQuestion();
@@ -54,11 +58,14 @@ export function wireCollect({ player, brain }) {
       slotObj.value = shuffledChoices[i];
       slotObj.opacity = 1;
 
-      // Numeric label centered on the pickup.
+      // Numeric label centered on the pickup. Explicit color is load-bearing: without it,
+      // the label defaults to the SAME engine fill as the (also previously uncolored)
+      // badge rect, rendering the number invisible against its own background.
       slotObj.labelObj = add([
         text(String(slotObj.value), { size: CONFIG.COLLECT.PICKUP_SIZE }),
         anchor("center"),
         pos(slotObj.pos.x + CONFIG.COLLECT.PICKUP_W / 2, slotObj.pos.y + CONFIG.COLLECT.PICKUP_H / 2),
+        color(...CONFIG.COLLECT.PICKUP_FG),
         "answer-pickup-label",
       ]);
     }
