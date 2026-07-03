@@ -5,8 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Math Lab — loading</title>
   <style>
-    html, body { margin: 0; background: #0a0a0a; }
-    canvas { display: block; margin: auto; }
+    /*
+      Flex-centers the canvas on BOTH axes. This matters specifically because
+      main.js applies `transform: scale(1.5)` to the canvas for the +50%
+      display-scale feature (CSS transform, not width/height — see main.js's
+      comment for why). transform-origin defaults to the element's own center,
+      so scaling only fills the viewport symmetrically if the canvas was
+      already centered on both axes BEFORE the transform. A plain
+      `display:block; margin:auto` (the pre-Kaplay original) only centers
+      block-level elements HORIZONTALLY — vertical auto-margins resolve to 0
+      in normal flow — so the un-transformed 640x360 canvas sat at the TOP of
+      the page, and scaling it from its own (vertically off-center) middle
+      pushed content ~90px above the viewport (clipped) while leaving ~90px
+      of dead background exposed at the bottom. Found via headless playtest
+      after the transform-scale fix landed.
+    */
+    html, body { margin: 0; background: #0a0a0a; height: 100%; }
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    canvas { display: block; }
   </style>
   <!--
     file:// protocol guard — runs FIRST as a non-module inline script.

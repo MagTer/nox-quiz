@@ -175,7 +175,7 @@ export function buildLevel(levelData) {
     const glyph = add([
       text("?", { size: CONFIG.MATH_GATE.GLYPH_SIZE }),
       anchor("center"),
-      pos(g.x + CONFIG.MATH_GATE.W / 2, g.y + CONFIG.MATH_GATE.H / 2),
+      pos(mg.x + CONFIG.MATH_GATE.W / 2, mg.y + CONFIG.MATH_GATE.H / 2),
       "math-gate-glyph",
     ]);
 
