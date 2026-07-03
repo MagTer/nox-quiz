@@ -4,10 +4,10 @@ milestone: v4.0
 milestone_name: Content & Challenge
 current_phase: 15
 status: executing
-stopped_at: Phase 15 executed — all 4 plans complete, static suite green, real-browser MECH-01/MECH-02 verification pending human sign-off.
-last_updated: "2026-07-02T20:45:00.000Z"
+stopped_at: Phase 15 — verification found door could be jumped over; fixed by raising CONFIG.DOOR.H from 64 to 128px. Re-verification needed.
+last_updated: "2026-07-02T20:55:00.000Z"
 last_activity: 2026-07-02
-last_activity_desc: Phase 15 executed; real-browser verification deferred
+last_activity_desc: Phase 15 verification found jump-bypass defect; fixed and awaiting re-verification
 progress:
   total_phases: 7
   completed_phases: 2
@@ -35,16 +35,16 @@ See: .planning/PROJECT.md (updated 2026-06-28)
 
 ## Current Position
 
-Phase: 15 — EXECUTED (verification pending)
+Phase: 15 — EXECUTED (re-verification pending)
 Plan: 4 of 4
-Status: All Phase 15 plans executed; static suite green; real-browser MECH-01/MECH-02 sign-off deferred to human verification
-Last activity: 2026-07-02 — Phase 15 plans executed; real-browser verification deferred
+Status: All Phase 15 plans executed; static suite green; verification found jump-bypass defect, fixed by raising CONFIG.DOOR.H to 128px; awaiting re-verification
+Last activity: 2026-07-02 — jump-bypass defect fixed; re-verification pending
 
 ## Deferred Verification
 
 | Phase | State | Resume |
 |-------|-------|--------|
-| 15 | verification_deferred_human | Serve over HTTP, play level-01, confirm end-gate no-drift and door blocks/opens/clears path with no soft-lock; then `/gsd:autonomous --from 16` |
+| 15 | verification_deferred_human | Re-test level-01 after door-height fix: confirm the player can NO LONGER jump over the door at x:1480 and must answer to progress; confirm end-gate still OK; then `/gsd:autonomous --from 16` |
 
 ## v4.0 Roadmap (Phases 13–19)
 
