@@ -4,10 +4,10 @@ milestone: v4.0
 milestone_name: Content & Challenge
 current_phase: 15
 status: executing
-stopped_at: Phase 15 — verification found door could be jumped over. Fixed by adding a lintel at peak-jump height above the door, moving the proof door to x:1400, and reverting door height to 64px. Re-verification needed.
-last_updated: "2026-07-02T21:10:00.000Z"
+stopped_at: Phase 15 — verification found door could be jumped over. Final fix: a tall invisible vertical blocker covers the jump arc and triggers the challenge, paired with a visible 64px panel; proof door at x:1400. Re-verification needed.
+last_updated: "2026-07-02T21:15:00.000Z"
 last_activity: 2026-07-02
-last_activity_desc: lintel repositioned to peak jump height; awaiting re-verification
+last_activity_desc: tall invisible blocker fix applied; awaiting re-verification
 progress:
   total_phases: 7
   completed_phases: 2
