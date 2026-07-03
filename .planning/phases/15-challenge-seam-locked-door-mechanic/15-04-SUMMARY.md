@@ -55,6 +55,7 @@ OK
 ## Commits
 - `40ac75d` feat(game): wire `wireDoor({player, brain})` for Phase 15 MECH-02
 - `1492905` fix(15): increase door height to block jump bypass
+- `4b2343f` fix(15): door lintel + reposition to prevent aerial bypass
 
 ## Verification
 
@@ -65,10 +66,15 @@ First verification pass:
 - **MECH-01:** end-of-level gate still behaves identically — ✅ user confirmed OK.
 - **MECH-02:** door opens the challenge overlay on touch — ✅ user confirmed OK.
 - **MECH-02 defect found:** the 64px door could be jumped over, allowing progress without
-  answering. Root cause: max jump height (~96px) exceeds the door height. Fixed by raising
-  `CONFIG.DOOR.H` from 64 to 128px. Static suite re-run green.
+  answering. First fix raised `CONFIG.DOOR.H` to 128px, but it still could be bypassed by
+  jumping from the raised platform at x:1640 and looked silly.
+- **Second fix:** reverted `CONFIG.DOOR.H` to 64px, added a static lintel above each door in
+  `buildLevel`, and moved the proof door from x:1480 to x:1400 (out of platform jump range).
+  The lintel blocks floor jumps; the reposition blocks aerial bypass from the nearby ledge.
+  Static suite re-run green.
 
-Re-verification needed: confirm the player can no longer jump over the door at x:1480 and must
-answer the challenge to progress.
+Re-verification needed: confirm the player cannot bypass the door at x:1400 from the floor,
+from the raised platform at x:1640, or from any other ledge, and must answer the challenge to
+progress.
 
 
