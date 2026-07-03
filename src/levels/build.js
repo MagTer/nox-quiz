@@ -126,11 +126,13 @@ export function buildLevel(levelData) {
     ]);
 
     // Lintel above the door — a thin static bar that blocks jumping over the door.
-    // It stays after the door opens (it is level architecture, not the moving panel).
+    // Positioned at the player's max-jump height (~96px above floor) so the player
+    // cannot arc over the doorway. It stays after the door opens (architecture).
     const lintelW = CONFIG.DOOR.W + CONFIG.DOOR.LINTEL_OVERHANG * 2;
+    const lintelTopOffset = 66; // door top y minus this = lintel top, tuned to intersect peak jump
     add([
       rect(lintelW, CONFIG.DOOR.LINTEL_H),
-      pos(d.x - CONFIG.DOOR.LINTEL_OVERHANG, d.y - CONFIG.DOOR.LINTEL_H),
+      pos(d.x - CONFIG.DOOR.LINTEL_OVERHANG, d.y - lintelTopOffset),
       color(...CONFIG.DOOR.LOCKED_BORDER),
       area(),
       body({ isStatic: true }),
