@@ -56,6 +56,7 @@ OK
 - `40ac75d` feat(game): wire `wireDoor({player, brain})` for Phase 15 MECH-02
 - `1492905` fix(15): increase door height to block jump bypass
 - `4b2343f` fix(15): door lintel + reposition to prevent aerial bypass
+- `222e5bc` fix(15): position lintel at max jump height, not just above door
 
 ## Verification
 
@@ -69,9 +70,9 @@ First verification pass:
   answering. First fix raised `CONFIG.DOOR.H` to 128px, but it still could be bypassed by
   jumping from the raised platform at x:1640 and looked silly.
 - **Second fix:** reverted `CONFIG.DOOR.H` to 64px, added a static lintel above each door in
-  `buildLevel`, and moved the proof door from x:1480 to x:1400 (out of platform jump range).
-  The lintel blocks floor jumps; the reposition blocks aerial bypass from the nearby ledge.
-  Static suite re-run green.
+  `buildLevel`, moved the proof door from x:1480 to x:1400 (out of platform jump range), and
+  positioned the lintel at the player's peak jump height (~66px above the door panel) so it
+  actually intercepts jump arcs. Static suite re-run green.
 
 Re-verification needed: confirm the player cannot bypass the door at x:1400 from the floor,
 from the raised platform at x:1640, or from any other ledge, and must answer the challenge to
