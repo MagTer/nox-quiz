@@ -67,11 +67,17 @@ export function buildLevel(levelData) {
   for (const run of g.floors) {
     // Merged wide static collider for the WHOLE run (fewer seams to stick on —
     // anti seam-stick, Pitfall 2). Thick enough to resist tunneling (Pitfall 3).
+    // opacity(0): this collider is taller (FLOOR_THICKNESS, e.g. 40px) than the visual
+    // tile it sits under (T, 16px) — without opacity(0) it renders with Kaplay's default
+    // rect fill (a flat mid-gray, NOT the dark-grunge ground.png palette), showing as a
+    // glaring solid bar beneath every floor/platform (found via headless playtest — the
+    // project's own door.js blocker already uses this exact opacity(0)-collider pattern).
     add([
       rect(run.w, CONFIG.FLOOR_THICKNESS),
       pos(run.x, FLOOR_Y),
       area(),
       body({ isStatic: true }),
+      opacity(0),
       "ground",
     ]);
 
@@ -84,11 +90,14 @@ export function buildLevel(levelData) {
 
   // --- Raised platforms: same merged-collider idiom + visual tiles on top ---
   for (const p of g.platforms) {
+    // opacity(0): same reasoning as the floor-run collider above — p.h (e.g. 24px) can
+    // exceed the 16px visual tile height, exposing the collider's default gray fill.
     add([
       rect(p.w, p.h),
       pos(p.x, p.y),
       area(),
       body({ isStatic: true }),
+      opacity(0),
       "ground",
     ]);
     for (let tx = p.x; tx < p.x + p.w; tx += T) {
