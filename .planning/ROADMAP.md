@@ -236,7 +236,20 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
   2. New art, parallax, and effects stay non-strobing and not over-stimulating (motion/flash within the established ≤400–500ms caps, dark-grunge / no pink), confirmed in kid-UAT (SAFE-05).
   3. The kid plays title → multiple levels → varied math gates → progression/resume end-to-end and signs off that it's fun and nothing feels unfair or too busy.
 
-**Plans**: TBD
+**Plans**: 4/4 plans complete
+
+**Wave 1**
+
+- [x] 19-01-PLAN.md — Wave 1: extend/run whole-project safety audit across all new mechanics/art/levels (SAFE-04)
+- [x] 19-02-PLAN.md — Wave 1: import-safety + structural-gate audit and real-browser boot regression (SAFE-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 19-03-PLAN.md — Wave 2: kid-UAT protocol, checklist, and structured playtest session (SAFE-05)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 19-04-PLAN.md — Wave 3: audit/UAT-driven polish fixes, final sign-off, and v4.0 milestone close (SAFE-04, SAFE-05)
 
 ## Progress
 
@@ -259,8 +272,8 @@ Grow the working single-level slice into a real, replayable game: 3–5 hand-bui
 | 15. Challenge Seam + Locked-Door Mechanic | v4.0 | 4/4 | ✅ Complete | 2026-07-02 |
 | 16. Remaining Mechanics + Difficulty Curve | v4.0 | 3/3 | Complete   | 2026-07-03 |
 | 17. Build the Levels | v4.0 | 0/? | Not started | - |
-| 18. Art, Animation & Parallax | v4.0 | 4/4 | Complete   | 2026-07-03 |
-| 19. Polish & Consolidated Kid-UAT | v4.0 | 0/? | Not started | - |
+| 18. Art, Animation & Parallax | v4.0 | 4/4 | Complete    | 2026-07-03 |
+| 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | Ready to execute | - |
 
 ---
 
