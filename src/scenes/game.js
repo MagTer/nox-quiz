@@ -20,6 +20,7 @@
 import { CONFIG } from "../config.js";
 import { makePlayer } from "../player.js";
 import { followCamera } from "../camera.js";
+import { makeParallaxLayers, updateParallaxLayers } from "../parallax.js";
 import { getLevel, LEVEL_ORDER } from "../levels/index.js";
 import { buildLevel } from "../levels/build.js";
 import { createBrain } from "../math/brain.js";
@@ -95,6 +96,11 @@ export function gameScene(data) {
   // tiles, and the tagged coin/spike/goal area() entities. It runs BEFORE the
   // player so the player spawns onto solid ground.
   buildLevel(level);
+
+  // --- Parallax background (Phase 18 ART-03) ---
+  // Camera-driven layers below gameplay z-order; created after the level so
+  // bounds are known and before the player so the player draws on top.
+  const parallaxLayers = makeParallaxLayers(level.bounds);
 
   // --- Player ---
   // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).
@@ -244,7 +250,11 @@ export function gameScene(data) {
   // --- Per-frame scene update ---
   onUpdate(() => {
     // Frame-rate-independent camera follow, clamped to level bounds (MOVE-04).
-    followCamera(player);
+    // Per-level bounds let longer levels grow beyond CONFIG.LEVEL_RIGHT without a global change.
+    followCamera(player, level.bounds);
+
+    // Parallax layers track the camera X only (Phase 18 ART-03). No timers.
+    updateParallaxLayers(parallaxLayers, getCamPos().x, level.bounds);
 
     // Fall-off-world: respawn at the last-touched checkpoint (LEVEL-06).
     if (player.pos.y > CONFIG.LEVEL_BOTTOM + CONFIG.FALL_MARGIN) {
@@ -280,6 +290,7 @@ export function gameScene(data) {
   // level select) an in-flight scale tween would survive and keep calling scaleTo() on the
   // now-destroyed player. Cancel it here alongside the sweep so no tween outlives the player.
   onSceneLeave(() => {
+    destroyAll("parallax");
     destroyAll("fx");
     if (player.exists() && player._fxScaleTween) player._fxScaleTween.cancel();
     if (clearTransitionTween) clearTransitionTween.cancel();

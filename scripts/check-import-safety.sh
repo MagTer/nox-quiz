@@ -76,7 +76,7 @@ TOPLEVEL_TRAP="^(const|let|var)[^=]*=[^=]*\\b(${ENGINE_GLOBALS})\\b|^(${ENGINE_G
 #    Guarded so a missing/syntax-broken file produces a clear FAIL, not a raw bash error.
 for f in \
   "src/scenes/title.js" "src/scenes/select.js" \
-  "src/scenes/game.js" "src/main.js" \
+  "src/scenes/game.js" "src/main.js" "src/parallax.js" \
   "src/ui/challenge.js" "src/mechanics/door.js" \
   "src/mechanics/gates.js" "src/mechanics/enemy.js" "src/mechanics/collect.js"; do
   [ -f "$ROOT/$f" ] || fail "missing module: $f"
@@ -118,7 +118,7 @@ fi
 #    anchored to top-level statement forms. game.js and main.js are deliberately
 #    EXCLUDED — they legitimately reference engine globals inside function bodies / at
 #    post-init module scope (RESEARCH Pitfall 5).
-for f in "src/scenes/title.js" "src/scenes/select.js" \
+for f in "src/scenes/title.js" "src/scenes/select.js" "src/parallax.js" \
   "src/ui/challenge.js" "src/mechanics/door.js" \
   "src/mechanics/gates.js" "src/mechanics/enemy.js" "src/mechanics/collect.js"; do
   if strip_comments "$ROOT/$f" | grep -Eq "$TOPLEVEL_TRAP"; then

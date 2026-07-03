@@ -1,0 +1,78 @@
+// src/parallax.js — camera-driven parallax background helpers (Phase 18 ART-03).
+//
+// Builds three horizontally tiled background layers and updates their positions
+// from the camera X coordinate. No timers, no tweens, no auto-scroll — motion is
+// a pure function of getCamPos().x.
+//
+// Engine globals (add, sprite, pos, z, width, destroyAll) are referenced ONLY
+// inside function bodies (a727c13). The module imports nothing but CONFIG.
+
+import { CONFIG } from "./config.js";
+
+/**
+ * Build one tiled parallax layer.
+ * @param {string} name - sprite name (e.g. "bg-far")
+ * @param {object} bounds - level bounds with left/right
+ * @param {number} ratio - parallax scroll ratio (0 = camera-locked, 1 = world-locked)
+ * @param {number} zLayer - z-order for this layer
+ * @param {number} y - world-space y position (top edge)
+ * @returns {GameObj[]} array of layer sprite instances
+ */
+function makeParallaxLayer(name, bounds, ratio, zLayer, y) {
+  const levelWidth = bounds.right - bounds.left;
+  const count = Math.ceil((levelWidth + width() * 2) / width()) + 1;
+  const instances = [];
+  for (let i = 0; i < count; i++) {
+    instances.push(
+      add([
+        sprite(name),
+        pos(bounds.left - width() + i * width(), y),
+        z(zLayer),
+        "parallax",
+        { ratio },
+      ]),
+    );
+  }
+  return instances;
+}
+
+/**
+ * Build all three parallax layers for a level.
+ * @param {object} bounds - level bounds with left/right
+ * @returns {{name: string, instances: GameObj[], ratio: number}[]}
+ */
+export function makeParallaxLayers(bounds) {
+  const P = CONFIG.PARALLAX;
+  return [
+    {
+      name: "bg-far",
+      instances: makeParallaxLayer("bg-far", bounds, P.FAR_RATIO, P.FAR_Z, P.Y_ANCHOR - 120),
+      ratio: P.FAR_RATIO,
+    },
+    {
+      name: "bg-mid",
+      instances: makeParallaxLayer("bg-mid", bounds, P.MID_RATIO, P.MID_Z, P.Y_ANCHOR - 144),
+      ratio: P.MID_RATIO,
+    },
+    {
+      name: "bg-near",
+      instances: makeParallaxLayer("bg-near", bounds, P.NEAR_RATIO, P.NEAR_Z, P.Y_ANCHOR - 90),
+      ratio: P.NEAR_RATIO,
+    },
+  ];
+}
+
+/**
+ * Update parallax layer positions from the current camera X.
+ * @param {{name: string, instances: GameObj[], ratio: number}[]} layers
+ * @param {number} camX
+ * @param {object} bounds
+ */
+export function updateParallaxLayers(layers, camX, bounds) {
+  for (const layer of layers) {
+    for (let i = 0; i < layer.instances.length; i++) {
+      const inst = layer.instances[i];
+      inst.pos.x = bounds.left - width() + i * width() + camX * (1 - inst.ratio);
+    }
+  }
+}
