@@ -54,20 +54,21 @@ OK
 
 ## Commits
 - `40ac75d` feat(game): wire `wireDoor({player, brain})` for Phase 15 MECH-02
+- `1492905` fix(15): increase door height to block jump bypass
 
-## Left pending
+## Verification
 
 ### Task 2: Mandatory real-browser boot (human verification)
-Task 2 was **not** executed. It requires a real browser boot to confirm:
 
-- **MECH-01:** the end-of-level math gate still behaves identically after the
-  `challenge.js` extraction (same completion banner, same XP award, same return-to-select).
-- **MECH-02:** the locked door blocks the player until answered, opens on a correct answer,
-  clears the path, and the player can still move/jump/fall normally afterward (no soft-lock).
-- **MECH-02:** a wrong answer at the door never consumes progress, never locks the player
-  out, and never sends her back — the same question re-asks.
-- **MECH-02:** the overlay pauses the world and renders above the nearby hazard when opened
-  next to it.
+First verification pass:
 
-The static suite is fully green and the code change is committed. Task 2 is pending human
-verification before this phase can be signed off.
+- **MECH-01:** end-of-level gate still behaves identically — ✅ user confirmed OK.
+- **MECH-02:** door opens the challenge overlay on touch — ✅ user confirmed OK.
+- **MECH-02 defect found:** the 64px door could be jumped over, allowing progress without
+  answering. Root cause: max jump height (~96px) exceeds the door height. Fixed by raising
+  `CONFIG.DOOR.H` from 64 to 128px. Static suite re-run green.
+
+Re-verification needed: confirm the player can no longer jump over the door at x:1480 and must
+answer the challenge to progress.
+
+
