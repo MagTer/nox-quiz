@@ -27,8 +27,8 @@ selection algorithm in `math/brain.js` is LOCKED and unchanged this milestone.
 
 ### Mid-Game Math Mechanics
 
-- [ ] **MECH-01**: A single shared in-world challenge component (forgiving, no-timer, multiple-choice) backs every math interaction; a wrong answer re-asks with no penalty and no progress lost.
-- [ ] **MECH-02**: Locked door / key — answering correctly opens a door or bridge that gates the next section mid-level.
+- [x] **MECH-01**: A single shared in-world challenge component (forgiving, no-timer, multiple-choice) backs every math interaction; a wrong answer re-asks with no penalty and no progress lost.
+- [x] **MECH-02**: Locked door / key — answering correctly opens a door or bridge that gates the next section mid-level.
 - [ ] **MECH-03**: Collect-the-answer — the correct numeric answer is one of several in-world pickups; collecting the right one clears the challenge, and collecting a wrong one never punishes.
 - [ ] **MECH-04**: Multiple checkpoint gates — several in-level math gates (not only at the goal), each independently tracked within the level.
 - [ ] **MECH-05**: Defeat-enemy-with-answer — answering correctly removes a blocking enemy; the enemy never deals contact damage and never ends the run.
@@ -89,8 +89,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-02 | Phase 14 | Complete |
 | NAV-03 | Phase 14 | Complete |
 | NAV-04 | Phase 14 | Complete |
-| MECH-01 | Phase 15 | Pending |
-| MECH-02 | Phase 15 | Pending |
+| MECH-01 | Phase 15 | Complete |
+| MECH-02 | Phase 15 | Complete |
 | MECH-03 | Phase 16 | Pending |
 | MECH-04 | Phase 16 | Pending |
 | MECH-05 | Phase 16 | Pending |
