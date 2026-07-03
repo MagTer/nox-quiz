@@ -7,20 +7,23 @@
   `LOCKED_GREY: [0x44, 0x44, 0x44]`, `LOCKED_BORDER: [0x55, 0x55, 0x55]`,
   and `GLYPH_SIZE: 22` — mirroring `src/scenes/select.js` locked-tile palette verbatim.
 - Added one door descriptor to `src/levels/level-01.js` geometry:
-  `{ x: 1480, y: FLOOR_Y - CONFIG.DOOR.H }`, placed 40 px before the x:1520 spike.
+  `{ x: 1400, y: FLOOR_Y - CONFIG.DOOR.H }`, on the final run away from the raised
+  platform at x:1640 so it cannot be bypassed from the air.
 - Updated the LVL-02 regression fixture in `scripts/smoke-progress.mjs` with the same
   `doors` array so the deep-equal of `getLevel("level-01").geometry` stays balanced.
 
 ### Task 2: build.js doors consumer
 - Added a guarded doors loop to `src/levels/build.js` using `g.doors ?? []`.
 - Each door instantiates:
-  - A solid blocking collider (`rect`, `area`, `body({ isStatic: true })`, tag `"door"`)
-    colored with `CONFIG.DOOR.LOCKED_GREY` / `CONFIG.DOOR.LOCKED_BORDER`.
+  - An invisible tall blocking collider (`rect`, `area`, `body({ isStatic: true })`, tag
+    `"door"`, `opacity(0)`) that covers the player's max jump arc so the door cannot be
+    bypassed by jumping over it.
+  - A visible 64px door panel (`rect`, tag `"door-panel"`) colored with
+    `CONFIG.DOOR.LOCKED_GREY` / `CONFIG.DOOR.LOCKED_BORDER`.
   - A separate lock-glyph text entity (`text("X")`, `anchor("center")`, tag `"door-glyph"`)
     with no `area()`.
-- The glyph handle is stashed on the door as `door.glyphObj` for paired cleanup.
-- Adjusted a comment in the file so the static `body({ isStatic: true })` count check
-  accurately reflects the three runtime occurrences (floor + platform + door).
+- The panel and glyph handles are stashed on the blocker so `door.js` can clean up all
+  three entities at once on a correct answer.
 
 ### Task 3: src/mechanics/door.js
 - Created `src/mechanics/door.js`, the first module in `src/mechanics/`.
@@ -51,7 +54,7 @@ node --check src/config.js && node --check src/levels/level-01.js && \
   grep -q 'DOOR:' src/config.js && \
   grep -q 'LOCKED_GREY: \[0x44, 0x44, 0x44\]' src/config.js && \
   grep -q 'doors:' src/levels/level-01.js && \
-  grep -q '{ x: 1480' src/levels/level-01.js && \
+  grep -q '{ x: 1400' src/levels/level-01.js && \
   grep -q 'doors:' scripts/smoke-progress.mjs && \
   node scripts/smoke-progress.mjs && echo OK
 # → smoke-progress: PASS / OK
@@ -59,7 +62,9 @@ node --check src/config.js && node --check src/levels/level-01.js && \
 node --check src/levels/build.js && \
   grep -q 'g.doors' src/levels/build.js && \
   grep -q '"door"' src/levels/build.js && \
+  grep -q '"door-panel"' src/levels/build.js && \
   grep -q '"door-glyph"' src/levels/build.js && \
+  grep -q 'panelObj' src/levels/build.js && \
   grep -q 'glyphObj' src/levels/build.js && \
   test "$(grep -c 'body({ isStatic: true })' src/levels/build.js)" = "3" && \
   bash scripts/check-safety.sh && echo OK
@@ -71,6 +76,7 @@ node --check src/mechanics/door.js && \
   test "$(grep -c 'from "../ui/mathGate.js"' src/mechanics/door.js)" = "0" && \
   grep -q 'player.paused = false' src/mechanics/door.js && \
   grep -q 'destroy(doorObj)' src/mechanics/door.js && \
+  grep -q 'panelObj' src/mechanics/door.js && \
   grep -q 'glyphObj' src/mechanics/door.js && \
   DESTROY_LINE=$(grep -n 'destroy(doorObj)' src/mechanics/door.js | head -1 | cut -d: -f1) && \
   UNPAUSE_LINE=$(grep -n 'player.paused = false' src/mechanics/door.js | head -1 | cut -d: -f1) && \
@@ -96,6 +102,7 @@ satisfied.
 - `0e8b415` Task 1: CONFIG.DOOR, level-01 doors array, and smoke-progress fixture
 - `a6c6a63` Task 2: build.js doors consumer — solid collider + lock glyph
 - `3f7f6f8` Task 3: src/mechanics/door.js — wireDoor with freeze/challenge/destroy/unfreeze
+- `6a782ea` fix(15): replace lintel with tall invisible blocker
 
 ## Left for 15-04
 - The actual `wireDoor({ player, brain })` call site in `src/scenes/game.js`.

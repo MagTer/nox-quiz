@@ -57,6 +57,7 @@ OK
 - `1492905` fix(15): increase door height to block jump bypass
 - `4b2343f` fix(15): door lintel + reposition to prevent aerial bypass
 - `222e5bc` fix(15): position lintel at max jump height, not just above door
+- `6a782ea` fix(15): replace lintel with tall invisible blocker
 
 ## Verification
 
@@ -67,12 +68,14 @@ First verification pass:
 - **MECH-01:** end-of-level gate still behaves identically — ✅ user confirmed OK.
 - **MECH-02:** door opens the challenge overlay on touch — ✅ user confirmed OK.
 - **MECH-02 defect found:** the 64px door could be jumped over, allowing progress without
-  answering. First fix raised `CONFIG.DOOR.H` to 128px, but it still could be bypassed by
-  jumping from the raised platform at x:1640 and looked silly.
-- **Second fix:** reverted `CONFIG.DOOR.H` to 64px, added a static lintel above each door in
-  `buildLevel`, moved the proof door from x:1480 to x:1400 (out of platform jump range), and
-  positioned the lintel at the player's peak jump height (~66px above the door panel) so it
-  actually intercepts jump arcs. Static suite re-run green.
+  answering. Multiple attempted fixes:
+  - Raising `CONFIG.DOOR.H` to 128px — still bypassable from the raised platform and looked
+    silly.
+  - Adding a horizontal lintel — acted as a ledge the player could stand on and pass.
+  - **Final fix:** a tall *vertical invisible blocker* (tag `"door"`, `opacity(0)`) that
+    covers the player's jump arc, paired with a separate visible 64px panel and glyph. The
+    blocker physically prevents bypass and triggers the challenge on contact; the panel
+    provides the visual. Static suite re-run green.
 
 Re-verification needed: confirm the player cannot bypass the door at x:1400 from the floor,
 from the raised platform at x:1640, or from any other ledge, and must answer the challenge to
