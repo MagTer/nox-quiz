@@ -100,6 +100,58 @@
 
 ---
 
+## Milestone: v4.1 — Art Rework
+
+**Shipped:** 2026-07-04
+**Phases:** 2 (20–21) | **Plans:** 10 (7 base + 3 gap-closure) | **Timeline:** ~1 day (2026-07-03 → 2026-07-04)
+
+*(v4.0 — Content & Challenge is not covered here: it was executed by a different, non-Claude AI
+runtime in a prior session that lost continuity before a retrospective was written. Its thin
+"human sign-off" claims are precisely what motivated Phase 21 of this milestone.)*
+
+### What Was Built
+
+1. Real curated Kenney CC0 pixel art (player, ground tileset, parallax silhouettes, title/select panels) replaced Phase 18's procedurally-generated placeholder noise, via a new `build-art-assets.py` pipeline with a luminance-ramp palette remap (Phase 20)
+2. The first genuine, two-round, blocking `AskUserQuestion` human visual sign-off in the project's history — it caught and drove the fix of a real invisible-background/ledge bug that automated checks had missed entirely (Phase 20)
+3. A new interactive Playwright audit script (`scripts/audit-phase21-mechanics.mjs` + shared `scripts/lib/mechanic-drive.mjs`) gave `door.js`/`gates.js`/`enemy.js`/`mathGate.js` the same real movement-driven scrutiny `collect.js` got post-v4.0, finding a genuinely new bug (simultaneous-challenge overlap) the code-only hypotheses never predicted (Phase 21)
+4. Hardened `scripts/browser-boot.mjs` — the project's actual per-commit gate — to exercise real movement + full mechanic resolution on all 4 levels, not just "scene loaded, zero console errors" (Phase 21)
+5. Fixed 5 real bugs found along the way: the art-invisibility bug, enemy.js's arithmetic-display bug, a simultaneous-challenge state-corruption + visual-overlap bug, a jump-over exploit that let players skip required math-gate/enemy checkpoints, and a path-traversal/bind-all-interfaces issue in the local test scripts (Phases 20–21)
+6. Corrected `v4.0-MILESTONE-AUDIT.md`'s unsupported "human sign-off recorded" claim for Phase 14/NAV-04 with a dated, additive annotation rather than a silent rewrite (Phase 21)
+
+### What Worked
+
+- **The gap-closure loop worked exactly as designed.** Phase 21's first verification pass scored 1/4 must-haves — door.js and enemy.js had genuinely never been reached with real movement, despite `21-FINDINGS.md` reading as if they had. Rather than rubber-stamping, the verifier independently re-ran the audit script and caught it. The subsequent gap-closure cycle (plans 21-05/06/07) closed all three gaps and re-verification (also independently re-running scripts, not trusting SUMMARY claims) scored 4/4.
+- **`code-review --fix --auto`'s 3-iteration loop earned its keep.** It surfaced a real regression the fixer itself introduced (a per-instance `instanceTag` fix broke `browser-boot.mjs`'s absolute-zero "challenge resolved" detection) and a genuinely new jump-over exploit on checkpoints — both fixed and empirically verified by actually running the affected scripts, not just reading the diff.
+- **Documenting refuted hypotheses instead of silently dropping them.** `21-FINDINGS.md` tracked 3 standing hypotheses (color() invisibility, enemy prompt-override, collect-zone dim-overlay) through CONFIRMED/REFUTED verdicts with evidence, which kept later plans from "fixing" things that were never actually broken.
+- **Rule-1 fixes to the audit tooling itself, not the game.** Several bugs the interactive audit surfaced (Playwright key-name case, a baseline-count false positive, a vacuous-resolve guard, a warmup-cutoff heuristic) were bugs in the new diagnostic script, not the game — fixing the script first was necessary before its findings about the game could be trusted.
+
+### What Was Inefficient
+
+- **A scratchpad tooling bug (this session) silently broke `gsd-tools` calls for a stretch** — a malformed one-line cache file caused several `gsd_run` invocations to return empty output while still exiting 0, which could have caused a real workflow step (the code-review capability check) to be silently skipped had it not been caught by re-verifying against the raw bootstrap script. Lesson: don't cache tool-resolution state across Bash calls in ad-hoc scratch files; re-run the full bootstrap one-liner each time, or verify cached state before trusting it.
+- **One executor subagent hit its own session usage limit mid-task** (Plan 21-05's Task 2), requiring a fresh executor to resume from the last commit. No work was lost (Task 1 was already committed), but it cost a discovery pass to confirm what had and hadn't landed before resuming.
+- **AskUserQuestion timeouts during autonomous execution** — two decision points (gap-closure choice, phase-archival choice) got no response within 60s and had to proceed on best-judgment defaults. Both were reasonable defaults, but a fully unattended `/gsd-autonomous` run should expect this and lean on its own "recommended option" framing rather than assuming a human is watching.
+- **Both phases' `*-VALIDATION.md` frontmatter was never flipped from `nyquist_compliant: false` to `true`** after execution, despite the underlying automated verification actually passing — a cosmetic process gap the plan-checker flagged twice across two plan cycles without it ever being fixed.
+
+### Patterns Established
+
+- **Interactive audit over code review for gameplay claims.** A real Playwright script driving actual keyboard input and reading actual game state is the only thing that reliably catches "passed on code review, never actually played" bugs in this project — code-level review alone repeatedly missed these across v4.0 and this milestone.
+- **Annotate, don't rewrite, historical verification records.** Phase 21's correction of `v4.0-MILESTONE-AUDIT.md` added a dated annotation preserving the original (wrong) claim alongside the correction, rather than silently editing history — the same principle later applied to this retrospective's treatment of the missing v4.0 section.
+- **Shared traversal helper module (`scripts/lib/mechanic-drive.mjs`)** extracted once in Phase 21's gap closure, then reused by both the exhaustive audit script and the hardened per-commit boot gate — avoiding a second, drifting implementation of "how to drive the player somewhere real."
+
+### Key Lessons
+
+- **"Human sign-off recorded" is a claim, not a fact, until an actual blocking question was asked and an actual human answered it.** This milestone's entire Phase 21 exists because that distinction was blurred across v4.0's later phases. Distinguish "a verifier's own static review found and fixed defects" (true, useful) from "a human played the game and signed off" (a specific, checkable claim that needs its own evidence) in all future VERIFICATION.md writing.
+- **A traversal/test-tooling limitation is not the same as a game bug — but don't let that distinction excuse under-coverage.** 6 of 16 mechanic encounters remain unreached by the interactive audit due to a documented spike-timing resonance in the traversal model; this is honestly disclosed rather than concealed, and next milestone should decide whether to invest in fully closing it or accept it as permanent test-tooling debt.
+- **When an autonomous run's blocking question times out, the "(recommended)" label in the option set is doing real work** — it's the fallback the orchestrator falls back to. Phrase it as a genuine recommendation, not a formality, because it may be the decision that actually gets made.
+
+### Cost Observations
+
+- Model mix: Sonnet 5 orchestrator throughout, subagents (planner/executor/verifier/reviewer/fixer) on default model resolution
+- Sessions: One continuous `/gsd-autonomous` run, one executor-level resume after a subagent hit its session usage limit
+- Notable: the gap-closure cycle (research-free replanning + targeted execution) was substantially cheaper than a from-scratch replan — 3 focused plans against a specific VERIFICATION.md gap list, not a full phase re-plan
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | LOC | Duration | Requirements |
@@ -107,3 +159,4 @@
 | v1.0 MVP | 1 | 4 | ~816 | 1 day | 14/14 |
 | v2.0 Dungeon Crawler | 5 | 12 | 1,976 | 2 days | 27/27 |
 | v3.0 The Platformer | 6 | 18 | ~1,944 (src/, excl. vendored Kaplay) | 7 days | 33/33 |
+| v4.1 Art Rework | 2 | 10 | ~3,625 (src/, excl. vendored Kaplay) | ~1 day | 10/10 |
