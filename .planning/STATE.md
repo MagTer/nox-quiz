@@ -44,7 +44,7 @@ Last activity: 2026-07-03 — Phase 20 execution started
 
 | Phase | State | Resume |
 |-------|-------|--------|
-| (none) | — | — |
+| 20 | verification_deferred_human (round 2 pending — round 1 found+fixed a real visibility defect) | `/gsd-verify-work 20` |
 
 ## v4.1 Roadmap (Phase 20)
 
