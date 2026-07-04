@@ -135,7 +135,7 @@ independent of Phase 20's art work
      corrected or annotated to reflect what verification actually happened, and the NAV-04
      traceability inconsistency is resolved.
 
-**Plans**: 4/7 plans complete (3 gap-closure plans added 2026-07-04 after VERIFICATION.md scored 1/4 must-haves — see 21-05/21-06/21-07 below)
+**Plans**: 5/7 plans executed
 
 Plans:
 **Wave 1**
@@ -152,7 +152,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 21-05-PLAN.md — Replace the single-jump-per-gap traversal model with a physics-informed, platform-aware jump-while-grounded model so door.js and enemy.js are genuinely reached across the 4 levels (VERIFY-01)
+- [x] 21-05-PLAN.md — Replace the single-jump-per-gap traversal model with a physics-informed, platform-aware jump-while-grounded model so door.js and enemy.js are genuinely reached across the 4 levels (VERIFY-01)
 
 **Wave 2** *(blocked on Wave 1 / 21-05 completion)*
 
@@ -185,7 +185,7 @@ Plans:
 | 18. Art, Animation & Parallax | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | Complete    | 2026-07-04 |
-| 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 4/4 | Complete   | 2026-07-04 |
+| 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 5/7 | In Progress|  |
 
 ## Coverage (v4.1)
 
