@@ -1,5 +1,24 @@
 # Milestones: Math Lab
 
+## v4.1 Art Rework (Shipped: 2026-07-04)
+
+**Phases completed:** 2 phases, 10 plans, 22 tasks
+
+**Key accomplishments:**
+
+- Real Kenney CC0 art (Platformer Characters Adventurer + Pixel Platformer grass/dirt tiles) replaces Phase 18's procedural placeholder player/ground sprites, via a new build-art-assets.py pipeline with a luminance-ramp palette remap fix.
+- Real Kenney "Background Elements" silhouettes (mountains, hills, temple, castle, tower, clouds) replace Phase 18's random-rectangle parallax and low-contrast noise title backdrop, composited onto the locked canvas dimensions and palette-remapped via Plan 01's luminance-ramp technique.
+- A real, two-round, blocking AskUserQuestion sign-off — the first genuine one in this project's history — caught and drove the fix of a real art-invisibility bug, then confirmed the fix, closing PROC-02 for real.
+- New Playwright audit script drives real movement + real answer-key input across all 4 levels, refuting 2 of 3 standing hypotheses with screenshot evidence and discovering a new overlapping-challenge bug the code-only hypotheses never predicted.
+- Hardened `scripts/browser-boot.mjs` to hold real directional input and fully resolve level-01's collect zone + math gate via real key input, then proved the hardening genuine with a RED/GREEN calibration against the exact v4.0 collect.js soft-lock pattern.
+- Replaced v4.0-MILESTONE-AUDIT.md's unqualified "Human browser-boot NAV-01..04 sign-off recorded" claim with a dated, additive annotation citing 14-VERIFICATION.md's own `human_needed` status and never-executed checkpoint, mirrored into v4.0-REQUIREMENTS.md's NAV-04 traceability row.
+- Fixed enemy.js's arithmetic-hiding bug via an additive two-line label/arithmetic display in challenge.js, applied defensive color() consistency to challenge.js/build.js, and re-confirmed zero regressions via a full 4-level interactive audit re-run.
+- Platform-aware jump-whenever-grounded traversal in scripts/lib/mechanic-drive.mjs newly reaches door.js and enemy.js via real keyboard movement (not teleport), with a Rule-1 regression fix scoping an opt-in reactive warmup to each level's first encounter only.
+- openChallenge() now hides an already-open earlier challenge's overlay via Kaplay's base `hidden` flag and restores it on close(), closing the last open gap from VERIFICATION.md's VERIFY-02 truth.
+- Replaced `scripts/browser-boot.mjs`'s level-01-only hand-tuned movement/resolution check with a generic, geometry-driven per-level loop (reusing Plan 21-05's shared `mechanic-drive.mjs` helpers) that holds real directional input and fully resolves at least one mechanic on every one of the 4 levels — closing VERIFY-03's remaining gap and fixing a genuine intermittent flake discovered along the way.
+
+---
+
 ## v4.0 — Content & Challenge
 
 **Status:** ✅ SHIPPED 2026-07-03
@@ -19,11 +38,13 @@ Grew the working single-level v3.0 slice into a real, replayable multi-level gam
 6. Full ADHD-safety + import-safety (a727c13) audits across all new code; automated browser-boot regression green for title → select → all four levels.
 
 **Stats:**
+
 - ~3,456 LOC across `src/` (excl. vendored Kaplay), HTML, and nginx config — multi-file, no build step
 - Requirements: 22/22 v4.0 requirements satisfied (21 verified + automated browser boot; SAFE-05 kid-UAT live sign-off deferred)
 - Git range `5151d32..HEAD`: 190 files changed, 16,639 insertions(+), 1,664 deletions(-)
 
 **Known Deferred Items at Close:** 1
+
 - Phase 19 SAFE-05: live kid-UAT sign-off for non-strobing/non-over-stimulating art and fun/fair feel. Protocol in `.planning/phases/19-polish-consolidated-kid-uat/19-UAT.md`.
 
 **Archive:** `.planning/milestones/v4.0-ROADMAP.md`, `.planning/milestones/v4.0-REQUIREMENTS.md`
@@ -49,10 +70,12 @@ Pivoted Math Lab from a quiz/dungeon into a real 2D platformer she controls with
 6. Polish + ADHD-safety: self-cleaning juice (squash/stretch, dust, coin pop, non-strobing level-clear burst — no timers, no pink), persistent controls hint, readable contrast; comment-stripped `check-safety.sh` audit (no-timer/forgiving) passing; kid-UAT 7/7.
 
 **Stats:**
+
 - ~1,944 LOC across `src/` (excl. vendored Kaplay), HTML, and nginx config — multi-file, no build step
 - Requirements: 33/33 v3.0 requirements satisfied (32 verified + kid-UAT)
 
 **Known Deferred Items at Close:** 3 (see STATE.md Deferred Items)
+
 - Phase 08 MOVE-05: throttled/non-60Hz empirical check not run (code verified dt-correct)
 - Phase 08 VERIFICATION human_needed: 13/13 must-haves verified; only the MOVE-05 feel-check outstanding
 - Phase 07 SETUP-02: live Dokploy deploy not yet confirmed (container curl-proven locally)

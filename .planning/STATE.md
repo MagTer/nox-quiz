@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Art Rework
-current_phase: 21
-status: executing
+current_phase: 1
+status: Awaiting next milestone
 stopped_at: Completed 21-07-PLAN.md — browser-boot.mjs hardened to all 4 levels; VERIFY-03 gap closed
-last_updated: "2026-07-04T21:35:27.736Z"
+last_updated: "2026-07-04T21:41:36.152Z"
 last_activity: 2026-07-04
-last_activity_desc: Phase 21 complete
+last_activity_desc: Milestone v4.1 completed and archived
 progress:
   total_phases: 2
   completed_phases: 2
@@ -35,17 +35,10 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 
 ## Current Position
 
-Phase: 21
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-04 — Phase 21 complete
-color() hypothesis via the vendored Kaplay source — text defaults to white, not
-invisible; confirmed the REAL bug instead: `enemy.js` passes a `prompt` string that
-REPLACES the arithmetic display rather than prefixing it, exactly matching the
-user's live report "gives me answers but no question"; also flagged a
-medium-confidence theory that the "no ID... greyed out" report is the
-collect-the-answer zone's contrast being washed out by challenge.js's full-screen
-dim overlay — needs live confirmation, not yet proven)
+Phase: Milestone v4.1 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-04 — Milestone v4.1 completed and archived
 
 ### Resume here
 
@@ -302,8 +295,7 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 
 ## Operator Next Steps
 
-- Review and approve the v4.1 ROADMAP.md (Phase 20)
-- Then run `/gsd-plan-phase 20` to begin the milestone
+- Start the next milestone with /gsd-new-milestone
 
 ## Decisions
 
