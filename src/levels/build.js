@@ -144,7 +144,11 @@ export function buildLevel(levelData) {
   for (const d of g.doors ?? []) {
     // Invisible vertical blocker: a tall solid collider that physically prevents bypassing
     // the door by jumping, and triggers the shared challenge seam on touch.
-    const blockerH = 160; // tall enough to cover the player's max jump arc above the door
+    // WR-04: derived from jump physics (apex height = JUMP_FORCE^2 / (2*GRAVITY), ~97px at
+    // current tuning) + a fixed margin, rather than a bare literal — so a future retune of
+    // CONFIG.JUMP_FORCE/CONFIG.GRAVITY can't silently shrink real coverage below the actual
+    // jump arc and let the player jump over a locked door.
+    const blockerH = Math.ceil((CONFIG.JUMP_FORCE ** 2) / (2 * CONFIG.GRAVITY)) + 64; // apex + margin
     const blocker = add([
       rect(CONFIG.DOOR.W, blockerH),
       pos(d.x, d.y + CONFIG.DOOR.H - blockerH),
