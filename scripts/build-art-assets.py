@@ -211,6 +211,111 @@ def build_ground():
     save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", "ground.png"))
 
 
+# Per-layer environment sub-palettes — all reused from ENVIRONMENT_PALETTE's
+# existing tokens (never invented), matching 18-UI-SPEC.md's stated per-layer
+# color-mood tokens (far #151515/#0f0f1a, mid #111111/#1a1a20, near #0f0f0f/
+# #141414 — each already present or a near-duplicate of an ENVIRONMENT_PALETTE
+# entry). Kept narrow/dark on purpose (calm, non-strobing parallax); the
+# luminance-ramp remap (not raw nearest-RGB) is what makes that narrowness
+# still preserve real silhouette structure (see _remap_luminance docstring).
+ENVIRONMENT_PALETTE_FAR = [ENVIRONMENT_PALETTE[0], ENVIRONMENT_PALETTE[6], ENVIRONMENT_PALETTE[3]]
+ENVIRONMENT_PALETTE_MID = [
+    ENVIRONMENT_PALETTE[0],
+    ENVIRONMENT_PALETTE[1],
+    ENVIRONMENT_PALETTE[2],
+    ENVIRONMENT_PALETTE[4],
+    ENVIRONMENT_PALETTE[5],
+]
+ENVIRONMENT_PALETTE_NEAR = [ENVIRONMENT_PALETTE[0], ENVIRONMENT_PALETTE[1], ENVIRONMENT_PALETTE[2]]
+ENVIRONMENT_PALETTE_TITLE = [
+    ENVIRONMENT_PALETTE[0],
+    ENVIRONMENT_PALETTE[1],
+    ENVIRONMENT_PALETTE[2],
+    ENVIRONMENT_PALETTE[6],
+]
+
+
+def _load_be(fname):
+    return Image.open(os.path.join(SRC, "background-elements", fname)).convert("RGBA")
+
+
+def _scale_to_width(im, target_w):
+    scale = target_w / im.width
+    return im.resize((target_w, max(1, round(im.height * scale))), Image.LANCZOS)
+
+
+def build_parallax():
+    """Kenney "Background Elements" silhouettes -> assets/parallax/{far,mid,near}.png.
+
+    Pattern 4: composite real silhouette elements (mountains/hills/temple/
+    castle/tower) onto blank canvases at the exact locked dimensions, bottom-
+    anchored, then luminance-remap onto a narrow per-layer dark palette. The
+    mid layer uses at least two of temple/castle/tower for ART-07's "distant
+    ruin/structure silhouette with a deliberate horizon rhythm" — real
+    structural variety, not one repeated shape.
+    """
+    # Far (640x120): pointy_mountains.png as the sole, faintest, most distant base layer.
+    far_w, far_h = 640, 120
+    far = Image.new("RGBA", (far_w, far_h), (0, 0, 0, 0))
+    mtn = _scale_to_width(_load_be("pointy_mountains.png"), far_w)
+    far.paste(mtn.crop((0, max(0, mtn.height - far_h), far_w, mtn.height)), (0, far_h - min(far_h, mtn.height)), mtn.crop((0, max(0, mtn.height - far_h), far_w, mtn.height)))
+    far_remapped = _remap_luminance(far, ENVIRONMENT_PALETTE_FAR)
+    assert far_remapped.size == (far_w, far_h), f"far layer wrong size: {far_remapped.size}"
+    save(far_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", "far.png"))
+
+    # Mid (640x144): hills1.png base + temple/castle/tower at intervals — the
+    # "horizon rhythm" ART-07 requires (real structural variety, 3 distinct shapes).
+    mid_w, mid_h = 640, 144
+    mid = Image.new("RGBA", (mid_w, mid_h), (0, 0, 0, 0))
+    hills = _scale_to_width(_load_be("hills1.png"), mid_w)
+    mid.paste(hills.crop((0, max(0, hills.height - mid_h), mid_w, hills.height)), (0, mid_h - min(mid_h, hills.height)), hills.crop((0, max(0, hills.height - mid_h), mid_w, hills.height)))
+    for fname, x, scale in [("temple.png", 60, 0.55), ("castle.png", 280, 0.55), ("tower.png", 500, 0.55)]:
+        motif = _load_be(fname)
+        motif = motif.resize((max(1, round(motif.width * scale)), max(1, round(motif.height * scale))), Image.LANCZOS)
+        mid.paste(motif, (x, mid_h - motif.height), motif)
+    mid_remapped = _remap_luminance(mid, ENVIRONMENT_PALETTE_MID)
+    assert mid_remapped.size == (mid_w, mid_h), f"mid layer wrong size: {mid_remapped.size}"
+    save(mid_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", "mid.png"))
+
+    # Near (640x90): hills2.png, subtler/darker than mid — closest, most muted layer.
+    near_w, near_h = 640, 90
+    near = Image.new("RGBA", (near_w, near_h), (0, 0, 0, 0))
+    hills2 = _scale_to_width(_load_be("hills2.png"), near_w)
+    near.paste(hills2.crop((0, max(0, hills2.height - near_h), near_w, hills2.height)), (0, near_h - min(near_h, hills2.height)), hills2.crop((0, max(0, hills2.height - near_h), near_w, hills2.height)))
+    near_remapped = _remap_luminance(near, ENVIRONMENT_PALETTE_NEAR)
+    assert near_remapped.size == (near_w, near_h), f"near layer wrong size: {near_remapped.size}"
+    save(near_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", "near.png"))
+
+
+def build_title_bg():
+    """Kenney "Background Elements" composite -> assets/tiles/title-bg.png (640x360).
+
+    Composites castle + hills1 + a cloud element into one very-low-contrast
+    backdrop scene per 18-UI-SPEC.md's title-bg art direction (dark-grunge,
+    no animation, no bright/rapidly moving elements).
+    """
+    w, h = 640, 360
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+
+    hills = _scale_to_width(_load_be("hills1.png"), w)
+    canvas.paste(hills.crop((0, max(0, hills.height - 140), w, hills.height)), (0, h - min(140, hills.height)), hills.crop((0, max(0, hills.height - 140), w, hills.height)))
+
+    castle = _load_be("castle.png")
+    castle = castle.resize((max(1, round(castle.width * 1.1)), max(1, round(castle.height * 1.1))), Image.LANCZOS)
+    canvas.paste(castle, ((w - castle.width) // 2, h - 140 - castle.height + 30), castle)
+
+    cloud = _load_be("cloud1.png")
+    cloud = cloud.resize((max(1, round(cloud.width * 0.8)), max(1, round(cloud.height * 0.8))), Image.LANCZOS)
+    canvas.paste(cloud, (80, 60), cloud)
+    canvas.paste(cloud, (420, 40), cloud)
+
+    remapped = _remap_luminance(canvas, ENVIRONMENT_PALETTE_TITLE)
+    assert remapped.size == (w, h), f"title-bg wrong size: {remapped.size}"
+    save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", "title-bg.png"))
+
+
 if __name__ == "__main__":
     build_player()
     build_ground()
+    build_parallax()
+    build_title_bg()
