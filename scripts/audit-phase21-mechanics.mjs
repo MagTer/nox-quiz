@@ -222,11 +222,17 @@ async function resolveIfBoxed(page, renderChoices) {
     return { resolved: false };
   }
 
+  // CR-01 fix (2nd review pass): an absolute `left === 0` check is invalid whenever a
+  // prior challenge was deliberately left open (collect.js's renderChoices:false zones
+  // stay open by design — driveToX's own baseline comment above documents this exact
+  // leftover-count hazard). `initial` here already reflects that leftover count, so
+  // mirror driveToX's baseline/decrease pattern: this SPECIFIC challenge resolved once
+  // the shared tag count drops BELOW `initial`, not only when it hits zero.
   for (const k of ["1", "2", "3", "4"]) {
     await page.keyboard.press(k);
     await page.waitForTimeout(200);
     const left = await page.evaluate(() => get("challenge").length);
-    if (left === 0) {
+    if (left < initial) {
       return { resolved: true };
     }
   }

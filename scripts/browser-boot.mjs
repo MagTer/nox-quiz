@@ -162,12 +162,21 @@ try {
       await page.keyboard.up("ArrowRight");
 
       // Cycle keys 1-4 to fully resolve the math-gate challenge via real key input.
+      //
+      // CR-01 fix (2nd review pass): an absolute `remaining === 0` check is invalid here —
+      // the collect-zone challenge at x:300 is deliberately left open by collect.js
+      // (renderChoices:false; movement stays live by design, per src/ui/challenge.js's own
+      // comment), so the shared "challenge" tag count can never reach zero again even once
+      // the math-gate itself resolves correctly. Capture a baseline BEFORE cycling and
+      // check for a decrease instead, exactly mirroring audit-phase21-mechanics.mjs's
+      // driveToX/resolveIfBoxed pattern.
       let mathGateResolved = false;
+      const initialChallengeCount = await page.evaluate(() => get("challenge").length);
       for (const key of ["1", "2", "3", "4"]) {
         await page.keyboard.press(key);
         await page.waitForTimeout(200);
         const remaining = await page.evaluate(() => get("challenge").length);
-        if (remaining === 0) {
+        if (remaining < initialChallengeCount) {
           mathGateResolved = true;
           break;
         }
