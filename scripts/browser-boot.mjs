@@ -7,6 +7,7 @@ import { createRequire } from "module";
 import { createServer } from "http";
 import { readFile } from "fs/promises";
 import { extname, join, resolve, sep } from "path";
+import { LEVEL_ORDER } from "../src/levels/index.js";
 
 // WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
 // path. Tries (1) normal project-relative resolution (works once `playwright` is a real
@@ -54,17 +55,18 @@ const MIME = {
 };
 
 const SAVE_KEY = "mathlab_platformer_v2";
+// WR-02: derive the unlocked-levels blob from the live LEVEL_ORDER import instead of a
+// hardcoded 3-level literal, matching audit-phase21-mechanics.mjs's own fixed version —
+// so this script can never silently drift out of sync (and silently skip visiting a new
+// level) if a level is added or removed (unlock is derived: clearing level-N unlocks
+// N+1, so marking every level except the last "cleared" unlocks all of them).
 const SAVE_BLOB = {
   version: 2,
   xp: 0,
   level: 1,
   accuracy: {},
   history: {},
-  levels: {
-    "level-01": { cleared: true },
-    "level-02": { cleared: true },
-    "level-03": { cleared: true },
-  },
+  levels: Object.fromEntries(LEVEL_ORDER.slice(0, -1).map((id) => [id, { cleared: true }])),
 };
 
 const server = createServer(async (req, res) => {
@@ -126,7 +128,8 @@ try {
   await page.waitForTimeout(800);
 
   // Visit every level in order: cursor starts at the first unlocked tile.
-  const levels = ["level-01", "level-02", "level-03", "level-04"];
+  // WR-02: derive from the live LEVEL_ORDER import instead of a hardcoded 4-level literal.
+  const levels = LEVEL_ORDER;
   for (let i = 0; i < levels.length; i++) {
     // Move the cursor right to the i-th selectable tile (first tile is already focused).
     for (let j = 0; j < i; j++) {
