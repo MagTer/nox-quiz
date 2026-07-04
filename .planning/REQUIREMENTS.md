@@ -15,16 +15,19 @@ actually shipped. Technical contracts (frame layout, animation state machine, z-
 scroll ratios, color/spacing/typography tokens) carry forward unchanged from `18-UI-SPEC.md` —
 only the asset content changes.
 
-- [ ] **ART-05**: The player is a real curated pixel-art sprite (not procedurally generated) with
+- [x] **ART-05**: The player is a real curated pixel-art sprite (not procedurally generated) with
       idle/run/jump animation states and facing direction, whose silhouette reads clearly against
       the game's actual `#0a0a0a` in-level background (verified in-browser, not assumed).
-- [ ] **ART-06**: The ground/platform tileset is real curated pixel art with designed edge/seam
+
+- [x] **ART-06**: The ground/platform tileset is real curated pixel art with designed edge/seam
       frames (left/center/right/underside) that depict an actual material transition and tile
       seamlessly — not per-pixel random noise standing in for texture.
-- [ ] **ART-07**: Parallax background layers depict composed scenery (e.g. distant
+
+- [x] **ART-07**: Parallax background layers depict composed scenery (e.g. distant
       ruins/structure silhouettes with intentional horizon rhythm) rather than randomly scattered
       rectangles, remain purely camera-driven (no timers), and stay non-strobing.
-- [ ] **ART-08**: Title and level-select screens use real panel framing/texture and visual
+
+- [x] **ART-08**: Title and level-select screens use real panel framing/texture and visual
       hierarchy — not flat-color rectangles with a single text glyph, matching the dark-grunge
       aesthetic with no pink.
 
@@ -34,10 +37,11 @@ Closes the gap that let Phase 18 ship without anyone actually looking at whether
 good: the phase was auto-approved in autonomous mode on the basis of a passing browser-boot check,
 and `18-UI-SPEC.md`'s own checker sign-off was left "Approval: pending."
 
-- [ ] **PROC-01**: Every new or replaced art asset has a CC0 license proof recorded in
+- [x] **PROC-01**: Every new or replaced art asset has a CC0 license proof recorded in
       `CREDITS.md` and `assets/LICENSES/*.txt` (source URL + quoted CC0 declaration), matching the
       rigor already established for the untouched v3.0 assets (player/ground/spike/goal/coin).
-- [ ] **PROC-02**: The phase cannot be marked verified without an explicit human visual sign-off
+
+- [x] **PROC-02**: The phase cannot be marked verified without an explicit human visual sign-off
       on real screenshots or the live page — the "human sign-off" checkpoint must not be
       auto-approved on the basis of automated/structural checks alone.
 
@@ -54,9 +58,11 @@ Playwright harness) shipped undetected until a real playtest.
 - [ ] **VERIFY-01**: `door.js`, `gates.js`, `enemy.js`, and `mathGate.js` have each been driven
       interactively (real player movement + real answer input, not teleport-only) across all 4
       levels, with findings recorded the way the post-ship diagnostic recorded collect.js's bugs.
+
 - [ ] **VERIFY-02**: Any real bugs found while exercising VERIFY-01 are fixed and re-verified.
 - [ ] **VERIFY-03**: The automated boot check actually exercises movement and at least one full
       mechanic resolution per level — not just "scene loaded, zero console errors."
+
 - [ ] **VERIFY-04**: `v4.0-MILESTONE-AUDIT.md`'s unsupported "human sign-off recorded" claims
       (Phases 15–18) are corrected or annotated to reflect what verification actually happened,
       and the NAV-04 traceability inconsistency (flagged by `14-VERIFICATION.md`, never corrected)
@@ -87,18 +93,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ART-05 | Phase 20 | Pending |
-| ART-06 | Phase 20 | Pending |
-| ART-07 | Phase 20 | Pending |
-| ART-08 | Phase 20 | Pending |
-| PROC-01 | Phase 20 | Pending |
-| PROC-02 | Phase 20 | Pending |
+| ART-05 | Phase 20 | Complete |
+| ART-06 | Phase 20 | Complete |
+| ART-07 | Phase 20 | Complete |
+| ART-08 | Phase 20 | Complete |
+| PROC-01 | Phase 20 | Complete |
+| PROC-02 | Phase 20 | Complete |
 | VERIFY-01 | Phase 21 | Pending |
 | VERIFY-02 | Phase 21 | Pending |
 | VERIFY-03 | Phase 21 | Pending |
 | VERIFY-04 | Phase 21 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 10 total
 - Mapped to phases: 10 ✓
 - Unmapped: 0

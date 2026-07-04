@@ -70,7 +70,7 @@ Grew the single-level v3.0 slice into a replayable multi-level game: four hand-b
 
 **Granularity:** standard · **Phase numbering:** sequential, continuing from v4.0 (ended at Phase 19).
 
-- [ ] **Phase 20: Real CC0 Art Redo & Human Sign-off** - Real curated CC0 pixel art (player, tileset, parallax, title/select) replaces the procedural placeholder, wired through Phase 18's unchanged technical contract, with license proof recorded and a genuine human visual sign-off gating verification.
+- [x] **Phase 20: Real CC0 Art Redo & Human Sign-off** - Real curated CC0 pixel art (player, tileset, parallax, title/select) replaces the procedural placeholder, wired through Phase 18's unchanged technical contract, with license proof recorded and a genuine human visual sign-off gating verification. (completed 2026-07-04)
 - [ ] **Phase 21: Real Verification Pass — Mechanics & Sign-off Integrity** - Real interactive playtest of door/gates/enemy/mathGate across all 4 levels, a hardened automated boot gate that actually plays instead of just loading, and a correction of the unsupported sign-off claims in the milestone audit + REQUIREMENTS.md traceability.
 
 ## Phase Details
@@ -89,7 +89,7 @@ Grew the single-level v3.0 slice into a replayable multi-level game: four hand-b
   5. Every new or replaced asset has a CC0 license proof (source URL + quoted CC0 declaration) recorded in `CREDITS.md` and `assets/LICENSES/*.txt`, matching the existing player/ground/spike/goal/coin entries' rigor.
   6. The phase cannot be marked verified until a real human has looked at actual screenshots or the live page and given explicit sign-off — the "human sign-off" checkpoint is not auto-approved on the basis of automated/structural checks alone.
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -102,7 +102,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 20-03-PLAN.md — Screenshot the running game, re-verify the full automated suite, and obtain a genuine blocking human visual sign-off (PROC-02)
+- [x] 20-03-PLAN.md — Screenshot the running game, re-verify the full automated suite, and obtain a genuine blocking human visual sign-off (PROC-02)
 
 **UI hint**: yes
 
@@ -161,7 +161,7 @@ independent of Phase 20's art work
 | 17. Build the Levels | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 18. Art, Animation & Parallax | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
-| 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 2/3 | In Progress|  |
+| 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | Complete    | 2026-07-04 |
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 0/? | Not started | - |
 
 ## Coverage (v4.1)
