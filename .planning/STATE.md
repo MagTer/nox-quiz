@@ -2,13 +2,17 @@
 gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Art Rework
-status: roadmapped
-last_updated: "2026-07-03T21:00:00.000Z"
+current_phase: 20
+current_phase_name: Real CC0 Art Redo & Human Sign-off
+status: executing
+stopped_at: Post-ship diagnostic + fix pass on v4.0 (all 7 phases were executed by a different AI runtime after this session lost continuity — see below). Found and fixed 5 real bugs via a headless-but-actually-interactive Playwright playtest; all static gates + the shipped `browser-boot.mjs` still pass.
+last_updated: "2026-07-03T20:53:35.486Z"
 last_activity: 2026-07-03
+last_activity_desc: Phase 20 execution started
 progress:
-  total_phases: 1
+  total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
   percent: 0
 ---
@@ -24,17 +28,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 20 — Real CC0 Art Redo & Human Sign-off (roadmap drafted; awaiting plan)
+**Current Focus:** Phase 20 — Real CC0 Art Redo & Human Sign-off
 
 **Tech Stack (v4.1):** Same as v4.0 — multi-file (no JS build step), HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded), static files served by a Docker (nginx) container via Dokploy, versioned localStorage persistence. Zero new runtime dependencies — this milestone only swaps asset *content* (PNGs + license docs), never code architecture.
 **Shipped State (v4.0):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics (locked doors, checkpoint gates, defeat-enemy, collect-the-answer) → persisted XP/leveling + per-level completion. All 22 v4.0 requirements satisfied, but the "art/animation/parallax pass" (Phase 18) shipped procedurally-generated placeholder noise instead of real curated art, and its human sign-off checkpoint was auto-approved without anyone actually looking at it. v4.1 redoes that asset output and closes the process gap.
 
 ## Current Position
 
-Phase: 20 — Real CC0 Art Redo & Human Sign-off (not started)
-Plan: —
-Status: Roadmap drafted (Phase 20); awaiting plan
-Last activity: 2026-07-03 — v4.1 roadmap created (1 phase, 6/6 requirements mapped)
+Phase: 20 (Real CC0 Art Redo & Human Sign-off) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 20
+Last activity: 2026-07-03 — Phase 20 execution started
 
 ## Deferred Verification
 

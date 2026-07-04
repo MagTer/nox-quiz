@@ -89,12 +89,12 @@ Grew the single-level v3.0 slice into a replayable multi-level game: four hand-b
   5. Every new or replaced asset has a CC0 license proof (source URL + quoted CC0 declaration) recorded in `CREDITS.md` and `assets/LICENSES/*.txt`, matching the existing player/ground/spike/goal/coin entries' rigor.
   6. The phase cannot be marked verified until a real human has looked at actual screenshots or the live page and given explicit sign-off — the "human sign-off" checkpoint is not auto-approved on the basis of automated/structural checks alone.
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 20-01-PLAN.md — Vendor Kenney "Platformer Characters" + "Pixel Platformer", build the real player + ground assets, rewrite their license proof (ART-05, ART-06, PROC-01)
+- [x] 20-01-PLAN.md — Vendor Kenney "Platformer Characters" + "Pixel Platformer", build the real player + ground assets, rewrite their license proof (ART-05, ART-06, PROC-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -161,7 +161,7 @@ independent of Phase 20's art work
 | 17. Build the Levels | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 18. Art, Animation & Parallax | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
-| 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 0/? | Not started | - |
+| 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 1/3 | In Progress|  |
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 0/? | Not started | - |
 
 ## Coverage (v4.1)
