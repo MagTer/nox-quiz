@@ -4,17 +4,17 @@ milestone: v4.1
 milestone_name: Art Rework
 current_phase: 21
 current_phase_name: Real Verification Pass — Mechanics & Sign-off Integrity
-status: executing
+status: verifying
 stopped_at: Post-ship diagnostic + fix pass on v4.0 (all 7 phases were executed by a different AI runtime after this session lost continuity — see below). Found and fixed 5 real bugs via a headless-but-actually-interactive Playwright playtest; all static gates + the shipped `browser-boot.mjs` still pass.
-last_updated: "2026-07-04T09:56:04.079Z"
+last_updated: "2026-07-04T10:11:59.186Z"
 last_activity: 2026-07-04
 last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
-  percent: 50
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State: Math Lab
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 
 Phase: 21 (Real Verification Pass — Mechanics & Sign-off Integrity) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-04 — Phase 21 execution started
 color() hypothesis via the vendored Kaplay source — text defaults to white, not
 invisible; confirmed the REAL bug instead: `enemy.js` passes a `prompt` string that
@@ -151,7 +151,7 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 **Resume file:** None
 
-**Last session:** 2026-07-04T09:55:33.789Z
+**Last session:** 2026-07-04T10:11:27.693Z
 
 **Context — how this diagnostic pass came about:**
 
@@ -295,6 +295,7 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 | Phase 21 P01 | ~25min | 2 tasks | 34 files |
 | Phase 21 P02 | ~8min | 2 tasks | 1 files |
 | Phase 21 P03 | ~4min | 2 tasks | 2 files |
+| Phase 21 P04 | ~14min | 2 tasks | 6 files |
 
 ## Operator Next Steps
 
@@ -315,3 +316,5 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 - [Phase 21]: New Finding 4: simultaneous/overlapping openChallenge() sessions garble each other's UI and cross-destroy via shared challenge tag - deferred to Plan 21-04
 - [Phase 21]: Plan 02: browser-boot.mjs hardened to hold real ArrowRight input + resolve level-01 collect zone (x:300) and math-gate (x:600) via keys 1-4, feeding the existing errors array; RED/GREEN calibration confirmed genuine (non-no-op) via temporarily reintroducing collect.js's exact v4.0 player.paused soft-lock
 - [Phase 21]: Plan 03: Annotate, don't rewrite — v4.0-MILESTONE-AUDIT.md's Phase 14 sign-off claim corrected to cite human_needed status; NAV-04 coverage row mirrors SAFE-05's partial shape; matching annotation added to archived v4.0-REQUIREMENTS.md
+- [Phase 21]: Plan 04: enemy.js/challenge.js fix applies label as its OWN rendered line above the arithmetic expression (not string concatenation) - a naive concatenation overflowed the canvas for the enemy's longer label, found via manual visual verification and fixed in the same task
+- [Phase 21]: Plan 04: Finding 3 (collect-zone dim contrast) REFUTED - no dim param added, collect.js left byte-identical; New Finding 4 (simultaneous-challenge overlap) remains open, explicitly out of this plan's scope

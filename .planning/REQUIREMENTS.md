@@ -59,7 +59,7 @@ Playwright harness) shipped undetected until a real playtest.
       interactively (real player movement + real answer input, not teleport-only) across all 4
       levels, with findings recorded the way the post-ship diagnostic recorded collect.js's bugs.
 
-- [ ] **VERIFY-02**: Any real bugs found while exercising VERIFY-01 are fixed and re-verified.
+- [x] **VERIFY-02**: Any real bugs found while exercising VERIFY-01 are fixed and re-verified.
 - [x] **VERIFY-03**: The automated boot check actually exercises movement and at least one full
       mechanic resolution per level — not just "scene loaded, zero console errors."
 
@@ -100,7 +100,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROC-01 | Phase 20 | Complete |
 | PROC-02 | Phase 20 | Complete |
 | VERIFY-01 | Phase 21 | Complete |
-| VERIFY-02 | Phase 21 | Pending |
+| VERIFY-02 | Phase 21 | Complete |
 | VERIFY-03 | Phase 21 | Complete |
 | VERIFY-04 | Phase 21 | Complete |
 
