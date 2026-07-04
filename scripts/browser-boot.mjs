@@ -151,13 +151,22 @@ try {
     // scripts/audit-phase21-mechanics.mjs (Plan 21-01/21-05), not here.
     const level = getLevel(LEVEL_ORDER[i]);
     const encounters = deriveEncounters(level.geometry);
-    for (let e = 0; e < encounters.length; e++) {
-      const encounter = encounters[e];
-      // Rule 1 fix (mirrors scripts/audit-phase21-mechanics.mjs's own usage): only the
-      // level's FIRST encounter needs warmupUntilFirstGap — driveToXClimbing's own doc
-      // explains why constant-jump-when-grounded otherwise sails over a ground-level
-      // trigger (e.g. a collect zone) on the initial hazard-free stretch from spawn.
-      const driveOpts = e === 0 ? { warmupUntilFirstGap: true } : {};
+    // Rule 1 fix (found via Task 2's own repeated-run regression check — level-03 and
+    // level-04 each place TWO encounters on the same gap-free opening floor run, e.g.
+    // level-03's collect-zone(200) AND math-gate(420) both sit before its first gap at
+    // 480): scripts/audit-phase21-mechanics.mjs's own "only encounterIdx===0" rule
+    // (mirrored here originally) silently assumes a level's first floor run holds only
+    // ONE encounter, which is false for level-03/04. Reusing driveToXClimbing's own
+    // already-proven, opt-in warmupUntilFirstGap option (unchanged, from
+    // scripts/lib/mechanic-drive.mjs), extend it to EVERY encounter still within that
+    // same opening, hazard-free floor run (not just index 0) — a strictly narrower,
+    // already-safe superset of the single-encounter case, derived straight from
+    // level.geometry.floors rather than a positional index guess.
+    const firstFloorEnd = level.geometry.floors?.[0]
+      ? level.geometry.floors[0].x + level.geometry.floors[0].w
+      : 0;
+    for (const encounter of encounters) {
+      const driveOpts = encounter.x < firstFloorEnd ? { warmupUntilFirstGap: true } : {};
       const { triggered } = await driveToXClimbing(page, encounter.x, driveOpts);
       if (!triggered) {
         errors.push({
