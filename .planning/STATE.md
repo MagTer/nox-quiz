@@ -5,16 +5,16 @@ milestone_name: Art Rework
 current_phase: 21
 current_phase_name: Real Verification Pass — Mechanics & Sign-off Integrity
 status: executing
-stopped_at: Completed 21-06-PLAN.md — New Finding 4 fully closed (both halves fixed)
-last_updated: "2026-07-04T21:01:33.596Z"
+stopped_at: Completed 21-07-PLAN.md — browser-boot.mjs hardened to all 4 levels; VERIFY-03 gap closed
+last_updated: "2026-07-04T21:21:52.183Z"
 last_activity: 2026-07-04
 last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
-  percent: 50
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State: Math Lab
@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 ## Current Position
 
 Phase: 21 (Real Verification Pass — Mechanics & Sign-off Integrity) — EXECUTING
-Plan: 3 of 7
+Plan: 7 of 7 (all plans complete — VERIFY-03 gap closed)
 Status: Ready to execute
 Last activity: 2026-07-04 — Phase 21 execution started
 color() hypothesis via the vendored Kaplay source — text defaults to white, not
@@ -147,11 +147,11 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 ## Session Continuity
 
-**Stopped at:** Completed 21-06-PLAN.md — New Finding 4 fully closed (both halves fixed)
+**Stopped at:** Completed 21-07-PLAN.md — browser-boot.mjs hardened to all 4 levels; VERIFY-03 gap closed
 
 **Resume file:** None
 
-**Last session:** 2026-07-04T21:01:33.586Z
+**Last session:** 2026-07-04T21:21:52.174Z
 
 **Context — how this diagnostic pass came about:**
 
@@ -298,6 +298,7 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 | Phase 21 P04 | ~14min | 2 tasks | 6 files |
 | Phase 21 P05 | ~55min | 2 tasks | 3 files |
 | Phase 21 P06 | ~10min | 2 tasks | 3 files |
+| Phase 21 P07 | ~17min | 2 tasks | 1 files |
 
 ## Operator Next Steps
 
@@ -323,3 +324,5 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 - [Phase 21]: Plan 05: constant-jump-when-grounded traversal regressed level-01's collect zone (over-jumped it from spawn); fixed via opt-in warmupUntilFirstGap scoped to each level's first encounter only, after two broader reactive-jump alternatives were tried and empirically rejected (both caused worse spike-hazard regressions, one crashed the audit)
 - [Phase 21]: Plan 05: door.js (level-01 x:1400, level-04 x:900) and enemy.js (level-01 x:1000) now confirmed triggered+resolved via real keyboard movement in the committed audit script — VERIFICATION.md's PRIORITY gap closed; 6 of 16 encounters remain genuinely unreached due to spike-hazard timing resonance in denser floor runs, documented in 21-FINDINGS.md
 - [Phase ?]: Phase 21 Plan 06: openChallenge() hides an already-open earlier challenge's overlay via Kaplay's base hidden flag and restores it in close(), closing New Finding 4's visual-overlap half; deliberately not a refuse-to-open guard (would soft-lock a frozen player)
+- [Phase 21]: Plan 21-07: browser-boot.mjs generalized to all 4 levels via mechanic-drive.mjs's shared deriveEncounters/driveToXClimbing/resolveIfBoxed; warmupUntilFirstGap made geometry-derived (any encounter on the opening floor run) instead of index-derived, fixing a genuine ~1-in-4 flake found on level-03/04 during calibration
+- [Phase 21]: Plan 21-07: RED calibration substituted challenge.js's close() call for gates.js's player.paused=false (the plan's literal instruction produced zero observable effect, since close() runs before onSuccess) - still proved a genuine non-no-op check across all 4 levels
