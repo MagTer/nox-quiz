@@ -99,6 +99,42 @@ try {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(1500); // let game scene build the level
 
+    // level-01 only (VERIFY-03): hold real directional input to actually reach and
+    // fully resolve at least one boxed mechanic per run, not just "scene loaded, zero
+    // console errors." level-01 contains one of every mechanic type.
+    if (i === 0) {
+      // Hold ArrowRight to reach the collect zone at world x:300 (~236px from the
+      // default spawn x:64 at CONFIG.RUN_SPEED 240px/s ~= 983ms; rounded up with margin).
+      await page.keyboard.down("ArrowRight");
+      await page.waitForTimeout(1000);
+      await page.keyboard.up("ArrowRight");
+      const collectTriggered = await page.evaluate(() => get("challenge").length > 0);
+      if (!collectTriggered) {
+        errors.push({ type: "mechanic", message: "collect zone at x:300 never triggered a challenge on real movement" });
+      }
+
+      // Continue on to the math-gate at world x:600 (~300px further along the same
+      // floor run, no jump needed).
+      await page.keyboard.down("ArrowRight");
+      await page.waitForTimeout(1250);
+      await page.keyboard.up("ArrowRight");
+
+      // Cycle keys 1-4 to fully resolve the math-gate challenge via real key input.
+      let mathGateResolved = false;
+      for (const key of ["1", "2", "3", "4"]) {
+        await page.keyboard.press(key);
+        await page.waitForTimeout(200);
+        const remaining = await page.evaluate(() => get("challenge").length);
+        if (remaining === 0) {
+          mathGateResolved = true;
+          break;
+        }
+      }
+      if (!mathGateResolved) {
+        errors.push({ type: "mechanic", message: "math-gate at x:600 never resolved after cycling keys 1-4" });
+      }
+    }
+
     // Return to select so the next level can be chosen.
     if (i < levels.length - 1) {
       await page.keyboard.press("Escape");
