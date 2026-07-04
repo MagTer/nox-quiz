@@ -158,3 +158,13 @@ None - no external service configuration required.
 ---
 *Phase: 21-real-verification-pass-mechanics-sign-off-integrity-perform-*
 *Completed: 2026-07-04*
+
+## Self-Check: PASSED
+
+- FOUND: `scripts/audit-phase21-mechanics.mjs`
+- FOUND: `.planning/phases/21-real-verification-pass-mechanics-sign-off-integrity-perform-/21-FINDINGS.md`
+- FOUND: `.planning/phases/21-real-verification-pass-mechanics-sign-off-integrity-perform-/21-01-SUMMARY.md`
+- FOUND: 32 screenshot PNGs in `screenshots/`
+- FOUND: commit `dd037d3` (Task 1)
+- FOUND: commit `6cd9f96` (Task 2)
+- FOUND: commit `53f93c3` (this summary)
