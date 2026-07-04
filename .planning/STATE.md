@@ -6,14 +6,14 @@ current_phase: 21
 current_phase_name: Real Verification Pass — Mechanics & Sign-off Integrity
 status: executing
 stopped_at: Post-ship diagnostic + fix pass on v4.0 (all 7 phases were executed by a different AI runtime after this session lost continuity — see below). Found and fixed 5 real bugs via a headless-but-actually-interactive Playwright playtest; all static gates + the shipped `browser-boot.mjs` still pass.
-last_updated: "2026-07-04T09:47:34.026Z"
+last_updated: "2026-07-04T09:52:49.666Z"
 last_activity: 2026-07-04
 last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
   percent: 50
 ---
 
@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 ## Current Position
 
 Phase: 21 (Real Verification Pass — Mechanics & Sign-off Integrity) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-04 — Phase 21 execution started
 color() hypothesis via the vendored Kaplay source — text defaults to white, not
@@ -151,7 +151,7 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 **Resume file:** None
 
-**Last session:** 2026-07-04T09:46:58.508Z
+**Last session:** 2026-07-04T09:52:27.684Z
 
 **Context — how this diagnostic pass came about:**
 
@@ -293,6 +293,7 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 | Phase 16 P03 | 3 | 2 tasks | 1 files |
 | Phase 18 P01 | 12 | 3 tasks | 9 files |
 | Phase 21 P01 | ~25min | 2 tasks | 34 files |
+| Phase 21 P02 | ~8min | 2 tasks | 1 files |
 
 ## Operator Next Steps
 
@@ -311,3 +312,4 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 - [Phase 21]: Finding 2 (enemy.js prompt-override) CONFIRMED via direct code re-read; live screenshot not obtainable due to platform-jump traversal limit
 - [Phase 21]: Finding 3 (collect-zone dim-overlay contrast) REFUTED across 3 levels' screenshots
 - [Phase 21]: New Finding 4: simultaneous/overlapping openChallenge() sessions garble each other's UI and cross-destroy via shared challenge tag - deferred to Plan 21-04
+- [Phase 21]: Plan 02: browser-boot.mjs hardened to hold real ArrowRight input + resolve level-01 collect zone (x:300) and math-gate (x:600) via keys 1-4, feeding the existing errors array; RED/GREEN calibration confirmed genuine (non-no-op) via temporarily reintroducing collect.js's exact v4.0 player.paused soft-lock

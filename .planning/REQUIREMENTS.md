@@ -60,7 +60,7 @@ Playwright harness) shipped undetected until a real playtest.
       levels, with findings recorded the way the post-ship diagnostic recorded collect.js's bugs.
 
 - [ ] **VERIFY-02**: Any real bugs found while exercising VERIFY-01 are fixed and re-verified.
-- [ ] **VERIFY-03**: The automated boot check actually exercises movement and at least one full
+- [x] **VERIFY-03**: The automated boot check actually exercises movement and at least one full
       mechanic resolution per level — not just "scene loaded, zero console errors."
 
 - [ ] **VERIFY-04**: `v4.0-MILESTONE-AUDIT.md`'s unsupported "human sign-off recorded" claims
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROC-02 | Phase 20 | Complete |
 | VERIFY-01 | Phase 21 | Complete |
 | VERIFY-02 | Phase 21 | Pending |
-| VERIFY-03 | Phase 21 | Pending |
+| VERIFY-03 | Phase 21 | Complete |
 | VERIFY-04 | Phase 21 | Pending |
 
 **Coverage:**
