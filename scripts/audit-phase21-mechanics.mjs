@@ -20,6 +20,7 @@ import { createServer } from "http";
 import { readFile } from "fs/promises";
 import { extname, join, resolve, sep } from "path";
 import { getLevel, LEVEL_ORDER } from "../src/levels/index.js";
+import { CONFIG } from "../src/config.js";
 
 // WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
 // path. Tries (1) normal project-relative resolution (works once `playwright` is a real
@@ -134,6 +135,16 @@ async function driveToX(page, targetX, gapRanges) {
   // a challenge as newly triggered when the live count exceeds that baseline.
   const baseline = await page.evaluate(() => get("challenge").length);
 
+  // WR-03: the pre-gap detection window was a bare `24` literal — exactly one sample
+  // step's worth of movement at RUN_SPEED(240px/s) * POLL_MS(100ms), with zero margin for
+  // waitForTimeout's "at least N ms" semantics or evaluate() round-trip latency. A single
+  // slow tick could jump straight past the window and miss the trigger. Derive the window
+  // from RUN_SPEED * POLL_MS with an explicit 1.5x margin instead of a bare literal, so it
+  // scales with tuning and always covers more than one real sample step.
+  const POLL_MS = 100;
+  const perTickPx = CONFIG.RUN_SPEED * (POLL_MS / 1000);
+  const PRE_GAP_WINDOW = perTickPx * 1.5;
+
   await page.keyboard.down("ArrowRight");
   const jumped = new Set();
   let x = null;
@@ -143,7 +154,7 @@ async function driveToX(page, targetX, gapRanges) {
   try {
     for (let i = 0; i < 80; i++) {
       iterations = i + 1;
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(POLL_MS);
       x = await page.evaluate(() => {
         const p = get("player")[0];
         return p ? p.pos.x : null;
@@ -151,7 +162,7 @@ async function driveToX(page, targetX, gapRanges) {
 
       if (x !== null) {
         for (const gap of gapRanges) {
-          if (!jumped.has(gap.start) && x >= gap.start - 24 && x < gap.end) {
+          if (!jumped.has(gap.start) && x >= gap.start - PRE_GAP_WINDOW && x < gap.end) {
             // Playwright's key name is "Space" (capitalized) — matches every other
             // Space press already used in browser-boot.mjs/screenshot-phase20.mjs;
             // the lowercase "space" throws "Unknown key" (Rule 1 fix).
