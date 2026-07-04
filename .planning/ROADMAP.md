@@ -135,7 +135,7 @@ independent of Phase 20's art work
      corrected or annotated to reflect what verification actually happened, and the NAV-04
      traceability inconsistency is resolved.
 
-**Plans**: 4/4 plans complete
+**Plans**: 4/7 plans complete (3 gap-closure plans added 2026-07-04 after VERIFICATION.md scored 1/4 must-haves — see 21-05/21-06/21-07 below)
 
 Plans:
 **Wave 1**
@@ -147,6 +147,17 @@ Plans:
 **Wave 2** *(blocked on Wave 1 / 21-01 completion)*
 
 - [x] 21-04-PLAN.md — Apply confirmed fixes (enemy.js, challenge.js, build.js) and re-verify via a full post-fix audit re-run (VERIFY-02)
+
+**Gap closure (2026-07-04, after VERIFICATION.md scored 1/4 — door.js/enemy.js never reached, New Finding 4 half-fixed, browser-boot.mjs level-01-only)**
+
+**Wave 1**
+
+- [ ] 21-05-PLAN.md — Replace the single-jump-per-gap traversal model with a physics-informed, platform-aware jump-while-grounded model so door.js and enemy.js are genuinely reached across the 4 levels (VERIFY-01)
+
+**Wave 2** *(blocked on Wave 1 / 21-05 completion)*
+
+- [ ] 21-06-PLAN.md — Add a same-time-open hide/restore guard to openChallenge() so two challenge overlays can never visually overlap, closing New Finding 4's visual half (VERIFY-02)
+- [ ] 21-07-PLAN.md — Generalize browser-boot.mjs's hardened check to all 4 levels via the shared traversal helpers, RED/GREEN calibrated (VERIFY-03)
 
 **UI hint**: no
 
