@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 20 — Real CC0 Art Redo & Human Sign-off
+**Current Focus:** Phase 21 — Real Verification Pass — Mechanics & Sign-off Integrity (context + research done, ready for planning)
 
 **Tech Stack (v4.1):** Same as v4.0 — multi-file (no JS build step), HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded), static files served by a Docker (nginx) container via Dokploy, versioned localStorage persistence. Zero new runtime dependencies — this milestone only swaps asset *content* (PNGs + license docs), never code architecture.
 **Shipped State (v4.0):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics (locked doors, checkpoint gates, defeat-enemy, collect-the-answer) → persisted XP/leveling + per-level completion. All 22 v4.0 requirements satisfied, but the "art/animation/parallax pass" (Phase 18) shipped procedurally-generated placeholder noise instead of real curated art, and its human sign-off checkpoint was auto-approved without anyone actually looking at it. v4.1 redoes that asset output and closes the process gap.
@@ -36,9 +36,21 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 ## Current Position
 
 Phase: 21 — Real Verification Pass — Mechanics & Sign-off Integrity
-Plan: Not started
-Status: Executing Phase 20
-Last activity: 2026-07-04 — Phase 20 complete, transitioned to Phase 21
+Plan: Not started — CONTEXT.md and RESEARCH.md done, ready for `/gsd-plan-phase 21`
+Status: Ready to plan Phase 21
+Last activity: 2026-07-04 — Phase 21 research complete (falsified the challenge.js
+color() hypothesis via the vendored Kaplay source — text defaults to white, not
+invisible; confirmed the REAL bug instead: `enemy.js` passes a `prompt` string that
+REPLACES the arithmetic display rather than prefixing it, exactly matching the
+user's live report "gives me answers but no question"; also flagged a
+medium-confidence theory that the "no ID... greyed out" report is the
+collect-the-answer zone's contrast being washed out by challenge.js's full-screen
+dim overlay — needs live confirmation, not yet proven)
+
+### Resume here
+Everything is committed; working tree is clean. To continue:
+`/gsd-plan-phase 21` — plan Phase 21 from the existing CONTEXT.md + RESEARCH.md
+(both already written, so planning does not need to re-discuss or re-research).
 
 ## Deferred Verification
 
