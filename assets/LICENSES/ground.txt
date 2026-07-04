@@ -1,25 +1,39 @@
-Asset:        assets/tiles/ground.png  (solid dungeon brick / platform tile)
-Source pack:  "6 Color Dungeon 16x16"
-Author:       HorusKDI
-Source URL:   https://opengameart.org/content/6-color-dungeon-16x16
-Source file:  https://opengameart.org/sites/default/files/16x16%20dungeon%20tiles.png
-Tile:         column 2, row 2 of the 16x16 tile grid (solid textured brick)
+Asset:        assets/tiles/ground.png  (ground/platform tileset — 5x16x16 frames:
+              single/left/center/right/underside)
+Source pack:  "Pixel Platformer"
+Author:       Kenney (www.kenney.nl)
+Source URL:   https://kenney.nl/assets/pixel-platformer
+Source file:  https://kenney.nl/media/pages/assets/pixel-platformer/33bb4921eb-1696667883/kenney_pixel-platformer.zip
+Tiles used:   Tiles/tile_0000.png, tile_0001.png, tile_0002.png, tile_0003.png
+              (grass-over-dirt material-transition tiles), tile_0004.png (plain
+              dirt, no grass cap — used for the underside frame)
+              (resized to 16x16 with nearest-neighbor, palette-remapped — see
+              scripts/build-art-assets.py)
 License:      CC0 (Creative Commons Zero / Public Domain)
 
-Quoted license declaration from the asset's own OpenGameArt page:
-    "License(s): CC0"
-    (OpenGameArt's License(s) metadata field is the creator's authoritative
-     license declaration for the submission.)
+Quoted license declaration from the pack's own bundled License.txt:
+    "License: (Creative Commons Zero, CC0)
+     You can use this content for personal, educational, and commercial
+     purposes. Support by crediting 'Kenney' or 'www.kenney.nl' (this is not
+     a requirement)"
 
 CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
-    "The person who associated a work with this deed has dedicated the work
-     to the public domain by waiving all of his or her rights to the work
-     worldwide under copyright law... You can copy, modify, distribute and
-     perform the work, even for commercial purposes, all without asking
-     permission."
 
-Verification: License page opened and the License(s): CC0 line confirmed this
-session (2026-06-25). NOT merely "free" and NOT CC-BY. Attribution under CC0 is
-optional; author listed in CREDITS.md as good practice.
+Processing note: the 4 grass-over-dirt tiles (tile_0000-0003) are real,
+hand-drawn material-transition art — genuine variety across a tiled run, not
+per-pixel random noise standing in for texture. tile_0004 (plain dirt, no
+grass cap) is used for the underside/interior frame — a real, correct
+material-transition signal (interior dirt has no grass), not a fabricated
+edge shape. All 5 tiles are palette-remapped onto this project's locked dark
+environment token set (#0a0a0a/#0f0f0f/#111111/#151515/#1a1a1a/#2a2a2a/#0f0f1a)
+via a luminance-ramp quantization pass (see scripts/build-art-assets.py's
+`_remap_luminance`) that preserves the source tiles' real light/dark structure
+— raw RGB nearest-color matching against this narrow, near-black palette was
+tested and rejected: it collapsed all 5 tiles to a near-flat single color,
+destroying the material-transition detail. This is a derivative recolor of the
+same CC0 source art, not new artwork; CC0 permits modification.
 
-Vendor logo / brand art: none. Pure pixel-art game tile; no logo shipped.
+Verification: License page (kenney.nl/assets/pixel-platformer) and the pack's
+own bundled License.txt both confirmed CC0 this session (2026-07-03). NOT CC-BY.
+
+Vendor logo / brand art: none.

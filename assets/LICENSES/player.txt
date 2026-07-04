@@ -1,22 +1,33 @@
-Asset:        assets/player.png  (player character — standing hooded figure, 16x32)
-Source pack:  "6 Color Dungeon 16x16"
-Author:       HorusKDI
-Source URL:   https://opengameart.org/content/6-color-dungeon-16x16
-Source file:  https://opengameart.org/sites/default/files/16x16%20dungeon%20tiles.png
-Tile:         column 14, rows 5-6 of the 16x16 tile grid (16x32 standing figure)
+Asset:        assets/player.png  (player character — idle/stand/walk/jump pose sheet, 5x16x32)
+Source pack:  "Platformer Characters" (Adventurer)
+Author:       Kenney (Kenney Vleugels)
+Source URL:   https://kenney.nl/assets/platformer-characters
+Source file:  https://kenney.nl/media/pages/assets/platformer-characters/b85f388c42-1677693768/kenney_platformer-characters.zip
+Poses used:   PNG/Adventurer/Poses/adventurer_idle.png, adventurer_stand.png,
+              adventurer_walk1.png, adventurer_walk2.png, adventurer_jump.png
+              (cropped to content bbox, uniformly scaled with one shared factor,
+              palette-remapped — see scripts/build-art-assets.py)
 License:      CC0 (Creative Commons Zero / Public Domain)
 
-Quoted license declaration from the asset's own OpenGameArt page:
-    "License(s): CC0"
-    (OpenGameArt's License(s) metadata field is the creator's authoritative
-     license declaration for the submission.)
+Quoted license declaration from the pack's own bundled License.txt:
+    "License (Creative Commons Zero, CC0)
+     You may use these assets in personal and commercial projects.
+     Credit (Kenney or www.kenney.nl) would be nice but is not mandatory."
 
 CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
-    "...dedicated the work to the public domain... You can copy, modify,
-     distribute and perform the work, even for commercial purposes, all without
-     asking permission."
 
-Verification: License page opened and the License(s): CC0 line confirmed this
-session (2026-06-25). NOT merely "free" and NOT CC-BY.
+Processing note: source poses are higher-resolution pixel-art character
+illustrations than this project's tight 16x32 collider frame. Each pose is
+cropped to its content bounding box, then ALL 5 poses are scaled by ONE shared
+factor (derived from the tallest pose's content height) so the character does
+not visibly grow/shrink between idle/run/jump states, resized with
+nearest-neighbor only, bottom-aligned to the frame, and finally palette-remapped
+onto this project's locked player token set (#e8e8e8/#d8d8d8/#909090/#444444 on
+#0a0a0a) via a nearest-color quantization pass. This is a derivative crop/recolor
+of the same CC0 source art, not new artwork; CC0 permits modification.
+
+Verification: License page (kenney.nl/assets/platformer-characters) and the
+pack's own bundled License.txt both confirmed CC0 this session (2026-07-03).
+NOT CC-BY.
 
 Vendor logo / brand art: none.

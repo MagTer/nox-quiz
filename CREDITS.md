@@ -12,25 +12,32 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 
 | Asset | File | Author | Source | License | Used for |
 |-------|------|--------|--------|---------|----------|
-| 6 Color Dungeon 16x16 (brick tile) | `assets/tiles/ground.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Solid ground / platform tile |
+| Pixel Platformer (grass/dirt tiles) | `assets/tiles/ground.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/pixel-platformer | CC0 | Ground/platform tileset — left/center/right/underside frames |
 | 6 Color Dungeon 16x16 (spikes) | `assets/spike.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Static spike hazard (routes to respawn) |
 | 6 Color Dungeon 16x16 (skull flag) | `assets/goal.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Goal flag (fires `onReachGoal`) |
-| 6 Color Dungeon 16x16 (figure) | `assets/player.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Player character sprite (16x32) |
+| Platformer Characters (Adventurer) | `assets/player.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/platformer-characters | CC0 | Player character sprite sheet — idle/stand/walk/jump (5x16x32) |
 | Rotating Coin | `assets/coin.png` | PuddinThur | https://opengameart.org/content/rotating-coin | CC0 | Collectible spinning-coin spritesheet (8 frames) |
 
 ## Notes
 
 - **No vendor logos or brand art ship** in the asset subset. Each PNG is a single
   cropped pixel-art game tile/sprite — no company marks, watermarks, or splash logos.
-- `assets/tiles/ground.png`, `assets/spike.png`, `assets/goal.png`, and
-  `assets/player.png` are cropped from one tile sheet (`16x16 dungeon tiles.png`) of the
-  **6 Color Dungeon 16x16** pack — the exact tile coordinates are recorded in each
-  proof file under `assets/LICENSES/`.
+- `assets/spike.png` and `assets/goal.png` are cropped from one tile sheet
+  (`16x16 dungeon tiles.png`) of the **6 Color Dungeon 16x16** pack — the exact
+  tile coordinates are recorded in each proof file under `assets/LICENSES/`.
 - `assets/coin.png` re-lays out the original "Rotating Coin" frames into an evenly-gridded
   256x32 horizontal strip (8 uniform 32px cells) for `loadSprite(..., { sliceX: 8 })`.
   This is a mechanical re-grid of the same CC0 pixels — still CC0/public-domain.
 - A separate OpenGameArt page, `spinning-coin-0` (author *magdum*), was evaluated and
   **rejected**: it is CC-BY-SA 3.0, not CC0, and was **not** used.
+- **Phase 20 correction:** Phase 18 (v4.0) silently replaced the real, CC0-sourced
+  `player.png`/`ground.png` above with procedurally-generated placeholder art
+  (`scripts/generate-art-assets.py` drawing flat rectangles + random noise), while
+  this file kept crediting the original HorusKDI crops as if they were still the
+  shipped pixels. Phase 20 (v4.1) corrects the record: both assets are now real,
+  licensed CC0 art from Kenney (see rows above and `assets/LICENSES/player.txt` /
+  `ground.txt`), built through a reproducible pipeline
+  (`scripts/build-art-assets.py`) instead of drawn procedurally.
 
 ## License reference
 
