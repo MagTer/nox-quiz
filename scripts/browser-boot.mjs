@@ -6,7 +6,7 @@
 import { createRequire } from "module";
 import { createServer } from "http";
 import { readFile } from "fs/promises";
-import { extname, join, resolve } from "path";
+import { extname, join, resolve, sep } from "path";
 
 // WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
 // path. Tries (1) normal project-relative resolution (works once `playwright` is a real
@@ -72,9 +72,13 @@ const server = createServer(async (req, res) => {
   let reqPath = decodeURIComponent(url.pathname);
   if (reqPath === "/") reqPath = "/index.html";
   // CR-02: resolve + clamp to ROOT so `..` segments can't escape the served directory
-  // (path traversal), and bind to loopback only (not all interfaces) below.
+  // (path traversal), and bind to loopback only (not all interfaces) below. A bare
+  // `.startsWith(ROOT_ABS)` has no path-separator boundary, so a sibling directory whose
+  // name happens to start with ROOT_ABS's own name (e.g. "nox-quiz-evil" next to
+  // "nox-quiz") would incorrectly pass. Require an exact match OR a separator immediately
+  // after the root.
   const filePath = resolve(join(ROOT.pathname, reqPath));
-  if (!filePath.startsWith(ROOT_ABS)) {
+  if (filePath !== ROOT_ABS && !filePath.startsWith(ROOT_ABS + sep)) {
     res.writeHead(403);
     res.end("Forbidden");
     return;
