@@ -100,9 +100,23 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
   // Fire-once latch for onSuccess (a correct pick must fire EXACTLY once — Pitfall 5).
   let cleared = false;
 
+  // CR-01 fix (2nd review pass): every object below carries BOTH the generic "challenge"
+  // tag (kept so external callers/diagnostics like get("challenge").length can still detect
+  // "is ANY challenge open" across instances) AND a per-invocation instanceTag. close()
+  // destroys ONLY instanceTag-tagged objects, so a second, concurrently-open challenge
+  // (e.g. collect.js's renderChoices:false session left open by design while the player
+  // walks into a door/gate/enemy) can no longer have its overlay destroyed as collateral
+  // damage when a DIFFERENT challenge instance resolves and tears itself down. This closes
+  // the state-corruption half of CR-01/21-FINDINGS.md "New Finding 4" (destroyAll("challenge")
+  // wiping out an unrelated, still-open session). The visual-overlap half of that finding
+  // (two challenges' overlays rendering on screen at the same time) is a separate, larger
+  // same-time-open-guard change across the shared seam — still out of scope here, see
+  // 21-FINDINGS.md's own disposition (Rule 4 architectural sign-off, dedicated future plan).
+  const instanceTag = `challenge-${Math.random().toString(36).slice(2)}`;
+
   // --- In-world overlay (GATE-01): fixed() + high z() over the dimmed level ---
   // Root/parent carrying the cleanup tag; mirrors the game.js goal-banner fixed() idiom.
-  add([fixed(), z(9999), "challenge"]);
+  add([fixed(), z(9999), "challenge", instanceTag]);
 
   // Full-screen dim layer — the level stays VISIBLE but darkened behind the panel.
   add([
@@ -113,6 +127,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
     fixed(),
     z(9990),
     "challenge",
+    instanceTag,
   ]);
 
   // Centered dark-grunge panel — ONLY when rendering answer boxes. The panel exists to
@@ -133,6 +148,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
       fixed(),
       z(9991),
       "challenge",
+      instanceTag,
     ]);
   }
 
@@ -152,6 +168,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
       fixed(),
       z(9992),
       "challenge",
+      instanceTag,
     ]);
     add([
       text(arithmetic),
@@ -161,6 +178,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
       fixed(),
       z(9992),
       "challenge",
+      instanceTag,
     ]);
   } else {
     add([
@@ -171,6 +189,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
       fixed(),
       z(9992),
       "challenge",
+      instanceTag,
     ]);
   }
 
@@ -201,6 +220,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
         fixed(),
         z(9992),
         "challenge",
+        instanceTag,
         "answer",
         { idx: i },
       ]);
@@ -214,6 +234,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
         fixed(),
         z(9993),
         "challenge",
+        instanceTag,
       ]);
 
       // Mouse path: object-scoped, auto-cleaned when the box is destroyed (no leak).
@@ -259,7 +280,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
     // itself carries NO end-of-level vocabulary — any celebration UI is the caller's job.
     cleared = true;
 
-    close(); // cancel key controllers + destroyAll("challenge") interactive objects
+    close(); // cancel key controllers + destroyAll(instanceTag) this session's objects
 
     onSuccess?.({ table: q.a }); // carry the cleared table (q.a) so the caller reacts
   }
@@ -268,10 +289,15 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
    * Clean teardown: cancel every captured global key controller AND destroy every
    * tagged challenge object. BOTH are required — object-scoped click handlers die with their
    * boxes, but the global key controllers do not, so they must be cancelled explicitly.
+   *
+   * CR-01 fix: scoped to THIS instance's instanceTag, not the generic "challenge" tag, so
+   * closing this challenge cannot destroy a different, still-open challenge's overlay
+   * (e.g. a collect-zone session deliberately left open while the player reaches a second
+   * mechanic). destroyAll("challenge") would have swept every open instance's objects.
    */
   function close() {
     keyCtrls.forEach((c) => c.cancel());
-    destroyAll("challenge"); // tag-based bulk removal; destroy() only accepts a GameObj
+    destroyAll(instanceTag); // tag-based bulk removal scoped to THIS session only
   }
 
   return { close };
