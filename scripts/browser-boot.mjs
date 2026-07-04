@@ -151,8 +151,14 @@ try {
     // scripts/audit-phase21-mechanics.mjs (Plan 21-01/21-05), not here.
     const level = getLevel(LEVEL_ORDER[i]);
     const encounters = deriveEncounters(level.geometry);
-    for (const encounter of encounters) {
-      const { triggered } = await driveToXClimbing(page, encounter.x);
+    for (let e = 0; e < encounters.length; e++) {
+      const encounter = encounters[e];
+      // Rule 1 fix (mirrors scripts/audit-phase21-mechanics.mjs's own usage): only the
+      // level's FIRST encounter needs warmupUntilFirstGap — driveToXClimbing's own doc
+      // explains why constant-jump-when-grounded otherwise sails over a ground-level
+      // trigger (e.g. a collect zone) on the initial hazard-free stretch from spawn.
+      const driveOpts = e === 0 ? { warmupUntilFirstGap: true } : {};
+      const { triggered } = await driveToXClimbing(page, encounter.x, driveOpts);
       if (!triggered) {
         errors.push({
           type: "mechanic",
