@@ -5,15 +5,15 @@ milestone_name: Art Rework
 current_phase: 21
 current_phase_name: Real Verification Pass — Mechanics & Sign-off Integrity
 status: executing
-stopped_at: Post-ship diagnostic + fix pass on v4.0 (all 7 phases were executed by a different AI runtime after this session lost continuity — see below). Found and fixed 5 real bugs via a headless-but-actually-interactive Playwright playtest; all static gates + the shipped `browser-boot.mjs` still pass.
-last_updated: "2026-07-04T20:48:33.394Z"
+stopped_at: Completed 21-06-PLAN.md — New Finding 4 fully closed (both halves fixed)
+last_updated: "2026-07-04T21:01:33.596Z"
 last_activity: 2026-07-04
 last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 50
 ---
 
@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 ## Current Position
 
 Phase: 21 (Real Verification Pass — Mechanics & Sign-off Integrity) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-07-04 — Phase 21 execution started
 color() hypothesis via the vendored Kaplay source — text defaults to white, not
@@ -147,11 +147,11 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 ## Session Continuity
 
-**Stopped at:** Post-ship diagnostic + fix pass on v4.0 (all 7 phases were executed by a different AI runtime after this session lost continuity — see below). Found and fixed 5 real bugs via a headless-but-actually-interactive Playwright playtest; all static gates + the shipped `browser-boot.mjs` still pass.
+**Stopped at:** Completed 21-06-PLAN.md — New Finding 4 fully closed (both halves fixed)
 
 **Resume file:** None
 
-**Last session:** 2026-07-04T20:47:42.489Z
+**Last session:** 2026-07-04T21:01:33.586Z
 
 **Context — how this diagnostic pass came about:**
 
@@ -297,6 +297,7 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 | Phase 21 P03 | ~4min | 2 tasks | 2 files |
 | Phase 21 P04 | ~14min | 2 tasks | 6 files |
 | Phase 21 P05 | ~55min | 2 tasks | 3 files |
+| Phase 21 P06 | ~10min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 
@@ -321,3 +322,4 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 - [Phase 21]: Plan 04: Finding 3 (collect-zone dim contrast) REFUTED - no dim param added, collect.js left byte-identical; New Finding 4 (simultaneous-challenge overlap) remains open, explicitly out of this plan's scope
 - [Phase 21]: Plan 05: constant-jump-when-grounded traversal regressed level-01's collect zone (over-jumped it from spawn); fixed via opt-in warmupUntilFirstGap scoped to each level's first encounter only, after two broader reactive-jump alternatives were tried and empirically rejected (both caused worse spike-hazard regressions, one crashed the audit)
 - [Phase 21]: Plan 05: door.js (level-01 x:1400, level-04 x:900) and enemy.js (level-01 x:1000) now confirmed triggered+resolved via real keyboard movement in the committed audit script — VERIFICATION.md's PRIORITY gap closed; 6 of 16 encounters remain genuinely unreached due to spike-hazard timing resonance in denser floor runs, documented in 21-FINDINGS.md
+- [Phase ?]: Phase 21 Plan 06: openChallenge() hides an already-open earlier challenge's overlay via Kaplay's base hidden flag and restores it in close(), closing New Finding 4's visual-overlap half; deliberately not a refuse-to-open guard (would soft-lock a frozen player)

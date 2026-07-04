@@ -135,7 +135,7 @@ independent of Phase 20's art work
      corrected or annotated to reflect what verification actually happened, and the NAV-04
      traceability inconsistency is resolved.
 
-**Plans**: 5/7 plans executed
+**Plans**: 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -156,7 +156,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 / 21-05 completion)*
 
-- [ ] 21-06-PLAN.md — Add a same-time-open hide/restore guard to openChallenge() so two challenge overlays can never visually overlap, closing New Finding 4's visual half (VERIFY-02)
+- [x] 21-06-PLAN.md — Add a same-time-open hide/restore guard to openChallenge() so two challenge overlays can never visually overlap, closing New Finding 4's visual half (VERIFY-02)
 - [ ] 21-07-PLAN.md — Generalize browser-boot.mjs's hardened check to all 4 levels via the shared traversal helpers, RED/GREEN calibrated (VERIFY-03)
 
 **UI hint**: no
@@ -185,7 +185,7 @@ Plans:
 | 18. Art, Animation & Parallax | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | Complete    | 2026-07-04 |
-| 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 5/7 | In Progress|  |
+| 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 6/7 | In Progress|  |
 
 ## Coverage (v4.1)
 
