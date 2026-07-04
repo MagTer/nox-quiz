@@ -148,8 +148,13 @@ try {
     const level = getLevel(LEVEL_ORDER[i]);
     const encounters = deriveEncounters(level.geometry);
 
-    for (const encounter of encounters) {
-      const { reachedX, triggered } = await driveToXClimbing(page, encounter.x);
+    for (const [encounterIdx, encounter] of encounters.entries()) {
+      // Rule-1 fix (Plan 21-05 Task 2): only the level's FIRST encounter (lowest x —
+      // always this game's collect zone) gets the warmup-until-first-gap treatment.
+      // See scripts/lib/mechanic-drive.mjs's driveToXClimbing option doc for why this
+      // is scoped to the first encounter only, not applied to every encounter.
+      const driveOpts = encounterIdx === 0 ? { warmupUntilFirstGap: true } : {};
+      const { reachedX, triggered } = await driveToXClimbing(page, encounter.x, driveOpts);
 
       await page.screenshot({
         path: OUT(`${level.id}-${encounter.tag}-${encounter.x}-before.png`),

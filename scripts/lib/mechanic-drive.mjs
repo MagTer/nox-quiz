@@ -95,6 +95,14 @@ export async function resolveIfBoxed(page, renderChoices) {
  * if the net change is below `stuckDeltaPx`, this is logged as a genuine "cannot
  * progress further" finding (not a script bug) and the loop breaks early.
  *
+ * `opts.warmupUntilFirstGap` (default false, opt-in — Rule-1 fix, Plan 21-05 Task 2):
+ * when true, suppresses jumping until the first genuine ground-to-air transition (a
+ * real gap), so ground-level trigger zones on the initial gap-free stretch register
+ * normally instead of being sailed over by needless early jumps; the caller passes
+ * this only for each level's first encounter (this game's collect zones are always
+ * that first encounter, always preceded by a long hazard-free run from spawn). See the
+ * inline comment at its destructuring default for the full empirical rationale.
+ *
  * Always releases ArrowRight in a `finally`, whether by normal exit, stall break, or
  * exhausting `maxIterations`. Returns { reachedX, triggered } — the same shape the
  * retired driveToX returned, so callers barely change.
@@ -106,6 +114,39 @@ export async function driveToXClimbing(page, targetX, opts = {}) {
     jumpHoldMs = 450,
     stuckTicks = 25,
     stuckDeltaPx = 2,
+    // Rule-1 fix (Plan 21-05 Task 2, found via actually running this script for the
+    // first time against all 4 levels — mirroring Plan 21-01's own precedent of
+    // iterative empirical fixes): pressing Space on EVERY grounded tick from the very
+    // start of an approach over-jumps past ground-level trigger zones placed on solid,
+    // gap-free ground well before any real edge — e.g. level-01's collect zone at
+    // x:300 was sailed over mid-arc by two needless jumps fired from spawn before the
+    // player ever walked there, a genuine regression against the retired single-jump
+    // model (which never jumped at all until a real gap was detected).
+    //
+    // Two general (not per-level-tuned) alternatives were tried and empirically
+    // REJECTED because they widened the blast radius past the one collect-zone case:
+    // (1) a PURE reactive model (jump only on isGrounded() true->false, for the whole
+    // approach) fixed the over-jump but then ran the player straight into floor-level
+    // hazards (spikes) the original constant-jump model had been incidentally hopping
+    // over, causing repeated death/respawn loops and, once, an uncaught exception that
+    // crashed the whole audit before finishing all 4 levels; (2) applying that same
+    // reactive "warmup" at the START OF EVERY encounter (not just the level's first)
+    // reintroduced the identical hazard-collision risk at each subsequent encounter's
+    // resume point too (often already mid-hazard-field, unlike a fresh spawn) —
+    // observed empirically to regress MORE encounters than it fixed, twice.
+    //
+    // Final fix: `warmupUntilFirstGap` is OPT-IN (default false = original, fully
+    // proven Task-1 behavior, unchanged). The caller (scripts/audit-phase21-mechanics.mjs)
+    // passes `true` ONLY for the very first encounter of each level — the one case
+    // this game's own level design guarantees starts on a long, hazard-free, gap-free
+    // stretch of solid ground right off spawn (every collectZone in this game is its
+    // level's lowest-x encounter). When true: stay in reactive "jump only on the
+    // true->false transition" mode until the FIRST genuine ground-to-air transition
+    // fires (a real gap), then permanently revert to the original always-jump-when-
+    // grounded model for the remainder of this approach — the same model already
+    // proven to bunny-hop over hazards and chain compound gap crossings for every
+    // encounter beyond the first.
+    warmupUntilFirstGap = false,
   } = opts;
 
   // Bug fix (carried forward from the retired driveToX): a prior encounter's
@@ -125,6 +166,9 @@ export async function driveToXClimbing(page, targetX, opts = {}) {
   let exhausted = true; // set false below whenever the loop exits via break
   const xHistory = []; // recent x samples, for the stuckTicks stall guard
 
+  let warmedUp = !warmupUntilFirstGap; // if warmup isn't requested, start "warmed up"
+  let prevGrounded = true; // assume the approach starts grounded (the typical case)
+
   try {
     for (let i = 0; i < maxIterations; i++) {
       const state = await page.evaluate(() => {
@@ -133,19 +177,35 @@ export async function driveToXClimbing(page, targetX, opts = {}) {
       });
       x = state.x;
 
-      if (state.grounded) {
-        // Held past ~371ms time-to-apex (JUMP_FORCE/GRAVITY): release always happens
-        // at or past the apex (vel.y >= 0), so CONFIG.JUMP_CUT never applies — the
-        // same already-proven fix as the retired driveToX's gap-tap press. A press
-        // while airborne is harmless (src/player.js's buffer/coyote logic just queues
-        // it), so pressing whenever grounded is a safe, general substitute for a
-        // precomputed gap model.
+      if (!warmedUp) {
+        if (!state.grounded && prevGrounded) {
+          // First genuine ground-to-air transition — a real gap. Jump reactively to
+          // catch the coyote/buffer window, then permanently exit warmup: everything
+          // from here on reverts to the original always-jump-when-grounded model.
+          await page.keyboard.press("Space", { delay: jumpHoldMs });
+          warmedUp = true;
+        } else {
+          // Still on solid, gap-free ground (or already airborne from the reactive jump
+          // just above, on a previous iteration) — no need to jump; let ground-level
+          // triggers register normally.
+          await page.waitForTimeout(pollMs);
+        }
+      } else if (state.grounded) {
+        // Original Task-1 model: press Space whenever grounded. Held past ~371ms
+        // time-to-apex (JUMP_FORCE/GRAVITY): release always happens at or past the
+        // apex (vel.y >= 0), so CONFIG.JUMP_CUT never applies — the same already-
+        // proven fix as the retired driveToX's gap-tap press. A press while airborne
+        // is harmless (src/player.js's buffer/coyote logic just queues it), so
+        // pressing whenever grounded is a safe, general substitute for a precomputed
+        // gap model — its incidental constant-hopping is also what clears floor-level
+        // hazards (spikes) a purely reactive model would otherwise run straight into.
         await page.keyboard.press("Space", { delay: jumpHoldMs });
       } else {
         // Not grounded — wait one poll tick instead of needlessly re-queuing while
         // still rising/falling; keeps the loop responsive to becoming grounded again.
         await page.waitForTimeout(pollMs);
       }
+      prevGrounded = state.grounded;
 
       triggered = (await page.evaluate(() => get("challenge").length)) > baseline;
 
