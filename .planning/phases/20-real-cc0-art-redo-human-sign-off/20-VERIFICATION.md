@@ -1,6 +1,6 @@
 ---
 phase: 20-real-cc0-art-redo-human-sign-off
-status: human_needed
+status: passed
 verified: 2026-07-04
 human_sign_off: "ROUND 1 (2026-07-04): a real, blocking AskUserQuestion call
   was made presenting descriptions of all 5 screenshots. Response: 'Has real
@@ -20,13 +20,29 @@ human_sign_off: "ROUND 1 (2026-07-04): a real, blocking AskUserQuestion call
   glyphs from Phases 15/16, not ART-05..08 assets; carried forward as a real
   observation for Phase 21's mechanics audit, not fixed here.)
   ROUND 2 (2026-07-04): re-presented the fixed screenshots via a second
-  blocking AskUserQuestion call. No response after 60s — the user may be away
-  from keyboard. NOT YET RE-CONFIRMED. Per PROC-02, status stays human_needed
-  until a literal round-2 human response is recorded here. Do NOT interpret
-  automated-suite-green or this agent's own visual inspection as a substitute
-  for that response — see 20-RESEARCH.md's Pitfall 7 and the round-1 outcome
-  above, which is direct proof that this agent's own visual judgment already
-  missed a real, human-confirmed defect once in this same phase."
+  blocking AskUserQuestion call. First attempt: no response after 60s. The
+  human then returned unprompted with live-gameplay feedback: 'I get a
+  question just after the first coin that is not possible to answer. No ID
+  on the options. the boxes are visible in the background but no ID and they
+  are greyed out. Next issue, Answer to defeat the guard, gives me answers
+  but no question. There are boxes with question marks and exclamation marks
+  that I am not what sure what they are. The background is however now
+  visible, so it is a good step in the right direction.' This confirms the
+  round-1 fix worked (background/ledges now visible) but surfaces THREE
+  NEW real gameplay-mechanics bugs — unanswerable/unlabeled math-gate
+  options, a defeat-enemy gate showing answers with no question text, and
+  unclear door('?')/enemy('!') glyphs. These are door.js/gates.js/enemy.js/
+  mathGate.js LOGIC bugs from Phases 15/16, entirely outside this phase's
+  ART-05..08/PROC-01/02 scope (asset content + license process only) — NOT
+  fixed here, explicitly carried forward to Phase 21 ('Real Verification
+  Pass — Mechanics & Sign-off Integrity'), whose whole mandate is giving
+  these exact four files real interactive scrutiny. To close THIS phase's
+  actual scope cleanly, asked a final scoped confirmation: 'Just to close
+  out Phase 20's specific scope (player sprite, ground tiles, parallax
+  background, title/select screens) ... are those 4 art areas good?' Literal
+  human response: 'Yes, the art itself is good now.' This is the real,
+  recorded, non-fabricated human sign-off PROC-02 requires. status flips to
+  passed in this same edit."
 ---
 
 # Phase 20: Real CC0 Art Redo & Human Sign-off — Verification
@@ -49,27 +65,37 @@ human_sign_off: "ROUND 1 (2026-07-04): a real, blocking AskUserQuestion call
 
 | # | Success Criterion | Status | Evidence |
 |---|---|---|---|
-| 1 | Player idle/run/jump animations render as real, distinct pixel-art character, silhouette clearly visible against `#0a0a0a` | Automated: pass. Human: **confirmed clearly visible in round 1** (not flagged as an issue). Round-2 re-confirmation: pending. | `phase20-level-anim.png` — light-grey humanoid figure (Kenney "Platformer Characters" Adventurer), clearly visible against the near-black background. |
-| 2 | Ground/platform tiles show real designed edge/seam frames depicting an actual material transition, tile seamlessly, no visible flat-noise blocks | Automated: pass. **Human round 1 found a real defect** ("ledges are invisible/also black") — FIXED (ENVIRONMENT_PALETTE widened 10-42 → 10-136). Round-2 re-confirmation: pending. | Pre-fix vs post-fix `phase20-level-anim.png` — ground/platforms now render as solid, clearly-visible grey material with edges, not near-invisible near-black. |
-| 3 | Parallax layers depict composed scenery with deliberate horizon rhythm, camera-driven only, non-strobing | Automated: pass. **Human round 1 found a real defect** ("background is all black") — FIXED (same palette widening applied to far/mid/near). Round-2 re-confirmation: pending. | Post-fix `phase20-parallax-a.png` vs `phase20-parallax-b.png` — hill/structure silhouette now clearly visible and shifted between camera positions. |
-| 4 | Title/select screens show real panel framing/texture and clear visual hierarchy, dark-grunge, no pink | Automated: pass. Human round 1: implicitly covered by the same "all black" complaint — FIXED (title-bg palette widened too). Round-2 re-confirmation: pending. | Post-fix `phase20-title.png`/`phase20-select.png` — castle+clouds+trees silhouette now clearly visible, no pink. |
-| 5 | Every new/replaced asset has CC0 license proof in CREDITS.md + assets/LICENSES/*.txt | Automated: pass. | `grep -qi CC0 assets/LICENSES/player.txt assets/LICENSES/ground.txt assets/LICENSES/parallax.txt assets/LICENSES/title-bg.txt` all pass; `CREDITS.md` has matching rows for all 6 assets (see `20-01-SUMMARY.md`, `20-02-SUMMARY.md`). |
-| 6 | Phase cannot be marked verified until a real human has looked at actual screenshots/live page and given explicit sign-off | **PARTIALLY EXERCISED, NOT YET SATISFIED** | Round 1 genuinely worked as designed — a real human caught a real defect (validating PROC-02's whole premise). Round 2 (re-confirmation of the fix) has not yet received a response. This criterion remains open until a literal round-2 response is recorded. |
+| 1 | Player idle/run/jump animations render as real, distinct pixel-art character, silhouette clearly visible against `#0a0a0a` | **PASS — human-confirmed** | Never flagged as an issue across both rounds; explicitly included in "the art itself is good now." |
+| 2 | Ground/platform tiles show real designed edge/seam frames depicting an actual material transition, tile seamlessly, no visible flat-noise blocks | **PASS — human-confirmed after a real fix** | Round 1 found a real defect ("ledges are invisible/also black"); fixed (ENVIRONMENT_PALETTE widened 10-42 → 10-136); round 2 explicitly confirmed "background is however now visible." |
+| 3 | Parallax layers depict composed scenery with deliberate horizon rhythm, camera-driven only, non-strobing | **PASS — human-confirmed after a real fix** | Same round-1 defect/fix/round-2 confirmation as #2 — parallax uses the same palette family. |
+| 4 | Title/select screens show real panel framing/texture and clear visual hierarchy, dark-grunge, no pink | **PASS — human-confirmed** | Covered by the scoped round-2 confirmation ("the art itself is good now" explicitly listed title/select among the 4 confirmed areas). |
+| 5 | Every new/replaced asset has CC0 license proof in CREDITS.md + assets/LICENSES/*.txt | **PASS — automated** | `grep -qi CC0 assets/LICENSES/player.txt assets/LICENSES/ground.txt assets/LICENSES/parallax.txt assets/LICENSES/title-bg.txt` all pass; `CREDITS.md` has matching rows for all 6 assets. |
+| 6 | Phase cannot be marked verified until a real human has looked at actual screenshots/live page and given explicit sign-off | **PASS — satisfied for real** | Two full rounds of genuine, blocking `AskUserQuestion` interaction; round 1 caught and drove the fix of a real defect; round 2's literal, scoped response was "Yes, the art itself is good now." |
 
 ## Status
 
-**`human_needed`.** Round 1 of human sign-off happened for real and caught a
-genuine defect (ground/parallax/title-bg were quantized to a luminance range
-effectively invisible against the stage background) that neither the
-automated suite nor this agent's own visual inspection of a magnified preview
-had caught. The defect is fixed and re-verified automatically, but the
-**round-2 re-confirmation from a human has not yet been obtained** — status
-stays `human_needed` until that literal response is recorded here, replacing
-this note. This is not a formality: round 1 is direct proof in this same
-phase that automated-green + agent-eyeballing is not equivalent to a real
-human looking at the actual result.
+**`passed`.** Both rounds of human sign-off happened for real, not on paper.
+Round 1 caught a genuine defect (ground/parallax/title-bg quantized to a
+luminance range effectively invisible against the stage background) that
+neither the automated suite nor this agent's own visual inspection had
+caught — direct, in-phase proof of why PROC-02 exists. The defect was fixed
+and re-verified. Round 2 surfaced real gameplay-mechanics bugs (unanswerable/
+unlabeled math-gate options, a defeat-enemy gate with no question text,
+unclear door/enemy glyphs) that are explicitly out of this phase's
+asset-only scope — not fixed here, carried forward verbatim to Phase 21
+("Real Verification Pass — Mechanics & Sign-off Integrity"), whose mandate
+is exactly those four files. A final scoped question isolated Phase 20's own
+4 art areas, and the human's literal response was "Yes, the art itself is
+good now." All 6 ROADMAP success criteria are satisfied.
 
-**To complete sign-off:** re-run `/gsd-verify-work 20` (or otherwise prompt for
-a fresh `AskUserQuestion` response) when a human is available to look at the
-current screenshots in `.planning/phases/20-real-cc0-art-redo-human-sign-off/`
-and confirm the fix, or flag further issues.
+## Carried Forward to Phase 21 (out of this phase's scope, not fixed here)
+
+- Immediately-after-first-coin math question has answer-option boxes with
+  no visible ID/number, greyed out.
+- "Defeat the guard" enemy gate shows answer options but no question text.
+- Door and enemy sprites render as generic `?`/`!` glyph boxes with unclear
+  meaning to a player.
+
+These are real, human-reported defects in `door.js`/`gates.js`/`enemy.js`/
+`mathGate.js` — exactly the four files Phase 21 already names as needing
+"the same real interactive scrutiny `collect.js` got."
