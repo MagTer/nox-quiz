@@ -171,6 +171,50 @@ conditional Finding 3 fix; New Finding 4 is a distinct, larger architectural cha
 same-time-open guard across the shared seam) that would require Rule 4 (architectural-change)
 sign-off in its own dedicated plan. It remains an open, documented, real bug for a future plan.
 
+**Disposition after Plan 21-06 (2026-07-04) — BOTH HALVES NOW FIXED:** the visual-overlap half
+is closed. `openChallenge()` (`src/ui/challenge.js`) now captures `const priorChallengeObjs =
+get("challenge")` at the very top of its body — before creating any of its own objects — and,
+when non-empty, hides every one of them (`o.hidden = true`) using Kaplay's base `GameObj.hidden`
+flag (confirmed via the vendored engine source: `draw(){ if (this.hidden) return; ... }`,
+present on every entity regardless of which components it carries). `close()` restores exactly
+that same snapshot (`o.hidden = false`) after its existing `destroyAll(instanceTag)` teardown.
+This keeps an older, non-freezing challenge (e.g. collect.js's zone) fully alive and
+independently resolvable underneath — only its rendering is suppressed while a newer overlay is
+on top — and deliberately does NOT refuse to open a second challenge (which would strand a
+frozen player with nothing to answer, a worse regression, since door/gates/enemy set
+`player.paused = true` before calling `openChallenge()`).
+
+Confirmed via three independent pieces of evidence:
+
+1. **Re-run of the committed `scripts/audit-phase21-mechanics.mjs`:** the regenerated
+   `screenshots/level-01-math-gate-600-before.png` (the exact scenario this finding
+   originally reported — collect-zone at x:300 walked into math-gate at x:600 without
+   resolving the first) now shows a single, clean overlay: `"6 × 10"` and its own 4 answer
+   boxes, with NO ghosted/overlapping second prompt bleeding through. The pre-fix version of
+   this same file showed the collect zone's `"Collect the answer to 8 × 2"` overlapping the
+   math-gate's own prompt. Full 16-row results are byte-identical to Plan 21-05's baseline
+   (10/16 triggered+resolved, the same 6 rows unreached due to the pre-existing spike-timing
+   traversal limitation documented in the Methodology Note below) — zero regressions.
+2. **A throwaway supplementary Playwright script** (not committed, mirrors Plan 21-04's own
+   precedent) walked the collect zone (x:300, left unresolved by design) into the math-gate
+   (x:600), resolved the math-gate via a real 1-4 key cycle, and inspected live scene state:
+   before resolving, `get("challenge")` returned 15 objects with 3 marked `hidden` (the
+   collect zone's own dim/prompt objects, hidden by this fix); immediately after the
+   math-gate's `close()` ran, `get("challenge")` returned exactly the 3 collect-zone objects,
+   all with `hidden === false` again, and all 4 of its pickups (`42`/`49`/`28`/`35`) still
+   present with defined values (uncollected). Screenshots
+   `screenshots/level-01-overlap-mathgate-open-verify.png` (single clean math-gate overlay,
+   pickup numbers dimly visible in the background, unobstructed) and
+   `screenshots/level-01-overlap-collectzone-restored-verify.png` (the collect zone's
+   `"Collect the answer to 7 × 6"` prompt fully visible again, pickups intact) provide direct
+   visual confirmation of both halves — hide, then restore.
+3. **Full static gate suite** (`check-gate.sh`, `check-import-safety.sh`, `check-safety.sh`,
+   `smoke-progress.mjs`) all print PASS with zero regressions.
+
+New Finding 4 is now fully closed — both the state-corruption half (Plan 21-04, `instanceTag`
+scoping) and the visual-overlap half (Plan 21-06, hide/restore via `hidden`) are fixed and
+re-verified with concrete, real-interactive evidence.
+
 ---
 
 ## Post-Fix Verification (Plan 21-04, Task 2)
