@@ -63,7 +63,7 @@ Playwright harness) shipped undetected until a real playtest.
 - [x] **VERIFY-03**: The automated boot check actually exercises movement and at least one full
       mechanic resolution per level — not just "scene loaded, zero console errors."
 
-- [ ] **VERIFY-04**: `v4.0-MILESTONE-AUDIT.md`'s unsupported "human sign-off recorded" claims
+- [x] **VERIFY-04**: `v4.0-MILESTONE-AUDIT.md`'s unsupported "human sign-off recorded" claims
       (Phases 15–18) are corrected or annotated to reflect what verification actually happened,
       and the NAV-04 traceability inconsistency (flagged by `14-VERIFICATION.md`, never corrected)
       is resolved.
@@ -102,7 +102,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VERIFY-01 | Phase 21 | Complete |
 | VERIFY-02 | Phase 21 | Pending |
 | VERIFY-03 | Phase 21 | Complete |
-| VERIFY-04 | Phase 21 | Pending |
+| VERIFY-04 | Phase 21 | Complete |
 
 **Coverage:**
 

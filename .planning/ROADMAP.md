@@ -135,14 +135,14 @@ independent of Phase 20's art work
      corrected or annotated to reflect what verification actually happened, and the NAV-04
      traceability inconsistency is resolved.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 21-01-PLAN.md — Build the interactive 4-level audit script, run it pre-fix, and record collect.js-style findings (VERIFY-01)
 - [x] 21-02-PLAN.md — Harden browser-boot.mjs to exercise real movement + full mechanic resolution, RED/GREEN calibrated (VERIFY-03)
-- [ ] 21-03-PLAN.md — Annotate v4.0-MILESTONE-AUDIT.md's Phase 14 row + NAV-04 traceability inconsistency (VERIFY-04)
+- [x] 21-03-PLAN.md — Annotate v4.0-MILESTONE-AUDIT.md's Phase 14 row + NAV-04 traceability inconsistency (VERIFY-04)
 
 **Wave 2** *(blocked on Wave 1 / 21-01 completion)*
 
@@ -174,7 +174,7 @@ Plans:
 | 18. Art, Animation & Parallax | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | Complete    | 2026-07-04 |
-| 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 2/4 | In Progress|  |
+| 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 3/4 | In Progress|  |
 
 ## Coverage (v4.1)
 
