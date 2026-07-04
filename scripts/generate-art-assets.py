@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Generate Phase 18 placeholder pixel-art assets for Math Lab.
 
+SUPERSEDED (Phase 20): the shipped pipeline is now `scripts/build-art-assets.py`,
+which sources real, licensed CC0 art instead of drawing procedural rectangles
+and noise. This script is retained only as a labeled dev/prototyping tool, not
+the shipped source of `assets/`.
+
 Outputs dark-grunge PNGs matching the 18-UI-SPEC.md dimensions:
 - assets/player.png          80x32  (5 frames of 16x32)
 - assets/tiles/ground.png    80x16  (5 frames of 16x16)
