@@ -10,28 +10,13 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 
 She opens it because she *wants* to, not because she has to.
 
-## Current State (shipped v4.0 — Content & Challenge, 2026-07-03)
+## Current State (shipped v4.1 — Art Rework, 2026-07-04)
 
-Math Lab is now a replayable 2D platformer she controls with the keyboard, served as static files over HTTP. The full loop is live: title screen → level-select with locked / unlocked / cleared marks → four hand-built dark-grunge levels → four forgiving, no-timer, multiple-choice math mechanics (locked doors, checkpoint gates, defeat-enemy, collect-the-answer) woven throughout the levels → correct answers clear gates and award XP/leveling on the v1/v2 curve → per-level completion/unlock, XP/level, and per-table practice history persist in a fresh versioned localStorage save and resume on revisit. Table difficulty ramps from easier pools to the 6–9 weak spots; platforming difficulty ramps gently across levels. Animated player (idle/run/jump + facing), real tileset, camera-tied parallax, styled title/select screens. Built on vendored Kaplay with no build step; static files in an nginx container. All 22 v4.0 requirements satisfied (21 verified + automated browser boot; SAFE-05 kid-UAT live sign-off deferred and tracked in `19-UAT.md`).
+Math Lab is a replayable 2D platformer she controls with the keyboard, served as static files over HTTP. The full loop is live: title screen → level-select with locked / unlocked / cleared marks → four hand-built dark-grunge levels → four forgiving, no-timer, multiple-choice math mechanics (locked doors, checkpoint gates, defeat-enemy, collect-the-answer) woven throughout the levels → correct answers clear gates and award XP/leveling on the v1/v2 curve → per-level completion/unlock, XP/level, and per-table practice history persist in a fresh versioned localStorage save and resume on revisit. Table difficulty ramps from easier pools to the 6–9 weak spots; platforming difficulty ramps gently across levels. This milestone replaced Phase 18's procedurally-generated placeholder art with real curated CC0 pixel art (animated player, tileset, parallax, title/select screens), all under genuine human visual sign-off — and separately closed a verification-integrity gap: `door.js`, `gates.js`, `enemy.js`, and `mathGate.js` now each have real interactive audit coverage (not just code review), the automated boot gate genuinely exercises movement + mechanic resolution on all 4 levels, and several real bugs were found and fixed along the way (an enemy-challenge display bug, a simultaneous-challenge UI/state-corruption bug, a jump-over exploit on math-gates/enemies, and a path-traversal/bind-all-interfaces issue in the local test scripts). Built on vendored Kaplay with no build step; static files in an nginx container. All 10 v4.1 requirements satisfied.
 
-**Validated this milestone:** the *game* works as a real, replayable multi-level experience. **What it isn't yet:** audio/SFX + music, more worlds/level packs, and live deployment confirmation remain for future milestones.
+**Validated this milestone:** the game's art now matches the intended dark-grunge aesthetic under real human sign-off, and this project's own verification claims are now held to the same interactive-proof standard the process gap had let slip. **What it isn't yet:** audio/SFX + music, more worlds/level packs, and live deployment confirmation remain for future milestones. Also carried forward as known, intentionally-scoped gaps: New Finding 4's visual-overlap half is fixed but 6/16 mechanic encounters across the 4 levels remain out of the audit script's reach (documented technical reason: spike-hazard timing resonance in the traversal model) — not a game bug, a test-tooling limitation.
 
-## Current Milestone: v4.1 Art Rework
-
-**Goal:** Redo Phase 18's art deliverables with real curated CC0 pixel art in place of the
-procedurally-generated placeholder noise that shipped, and close the process gap that let it
-ship ungraded.
-
-**Target features:**
-- Animated player sprite (idle/run/jump + facing) sourced from real pixel art, silhouette-tested
-  against the actual `#0a0a0a` game background
-- Dark-grunge tileset with designed edge/seam frames (not random noise)
-- Camera-tied parallax background depicting composed scenery
-- Styled title/select screens with real panel framing/texture, not flat rectangles
-- Mandatory human visual sign-off before the phase can be marked verified
-
-Not in scope: audio/SFX, more worlds, deployment hardening (still deferred to v5.0), any gameplay/
-logic changes — this is an asset-and-process redo of Phase 18 only.
+## Next Milestone: v5.0 (not yet started)
 
 ## Next Milestone Goals
 
@@ -66,6 +51,8 @@ A fresh `REQUIREMENTS.md` will be created when the next milestone is opened.
 - ✓ Mid-game math mechanics: locked doors/keys, collect-the-answer, multiple checkpoint gates, defeat-enemy-with-answer — v4.0
 - ✓ Art/presentation pass: animated player, real tileset, background/parallax, title screen — v4.0
 - ✓ Per-level completion/unlock state persisted alongside XP/level/practice-history — v4.0
+- ✓ Real curated CC0 pixel art (player, tileset, parallax, title/select) replacing v4.0's placeholder art, under mandatory human visual sign-off (ART-05..08, PROC-01/02) — v4.1
+- ✓ Interactive verification integrity: door/gates/enemy/mathGate mechanics driven with real movement across all 4 levels, hardened boot gate, corrected milestone-audit sign-off claims (VERIFY-01..04) — v4.1
 
 ### Active
 
@@ -89,7 +76,7 @@ A fresh `REQUIREMENTS.md` will be created when the next milestone is opened.
 - **Focus**: 6–9 times tables are the weak spot, but mixing in 1–5 keeps it fun
 - **Platform**: Played in any browser by visiting a **web URL**. v3.0 relaxes the single-file rule — multi-file project (HTML + JS modules + vendored Kaplay + assets folder) served as static files from a Docker container (nginx) deployed via Dokploy. Hosting the files over HTTP also sidesteps the `file://` module/asset-loading block — no local server needed for her. A local dev server (`python3 -m http.server`) is used only during development.
 - **Reference**: Her school has a Mario-style 2D platformer that gives math questions at the end of each stage. "I want something like this" is the north star — the v1/v2 quiz was a misread of that intent.
-- **Current state (v4.0 shipped)**: a real 2D Kaplay platformer (~3,456 LOC across `src/`, excl. vendored Kaplay), no build step, served over HTTP — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion/unlock. Automated browser-boot regression green; kid-UAT live sign-off for SAFE-05 deferred and tracked. The v1/v2 quiz and v3.0 single-level slice are archived. Next: v5.0 (audio, more worlds, or deployment hardening).
+- **Current state (v4.1 shipped)**: a real 2D Kaplay platformer, no build step, served over HTTP — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion/unlock, now with real curated CC0 art under human sign-off and interactively-audited mechanics (not just code review). Automated browser-boot regression green across all 4 levels; kid-UAT live sign-off for SAFE-05 deferred and tracked. The v1/v2 quiz and v3.0 single-level slice are archived. Next: v5.0 (audio, more worlds, or deployment hardening).
 - **Math integration roadmap**: Start with end-of-stage gate (v3.0). Add locked doors/bridges, collect-the-answer, and defeat-the-enemy (reusing v2's 👺💀🐉) as staged additions in later milestones.
 - **Art**: Pixel-art sprites from free CC0 packs (Kenney.nl / itch.io), styled to the dark/grunge palette. Pack chosen early in the milestone.
 - **User feedback**: Not yet collected post-v2.0 — the platformer is the response to the core feedback that v1/v2 weren't an actual game.
@@ -126,6 +113,8 @@ A fresh `REQUIREMENTS.md` will be created when the next milestone is opened.
 | **v3.0: Static hosting, not a backend** | nginx serves files; no DB/accounts/server logic — privacy intact, complexity low | ✓ Good |
 | **v3.0: Persist XP/level/practice in localStorage** | Matches her school game ("stores progress in browser cache"); client-side, no backend | ✓ Good — round-trip + weak-spot resume verified |
 | **v3.0: Display-only +50% window scale (post-close)** | Native 640×360 canvas looked tiny on a real monitor; scale display, keep internal res | ✓ Good — zero gameplay change (quick task 260628-c6e) |
+| **v4.1: Redo art with real CC0 packs + mandatory human sign-off** | v4.0's Phase 18 art was procedurally-generated placeholder noise, auto-approved without a real human sign-off checkpoint | ✓ Good — real curated art shipped, sign-off actually happened this time |
+| **v4.1: Independent interactive audit before trusting "passed"** | v4.0's later phases (15–18) had "human sign-off recorded" claims with no real session evidence, which let a total soft-lock and 5 other real bugs ship in collect.js undetected until a from-scratch playtest | ✓ Good — door/gates/enemy/mathGate now interactively audited, found + fixed 4 more real bugs, hardened the automated gate, corrected the audit record |
 
 ## Evolution
 
@@ -145,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-03 — v4.0 Content & Challenge milestone shipped*
+*Last updated: 2026-07-04 — v4.1 Art Rework milestone shipped (Phase 21 complete)*
