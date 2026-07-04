@@ -55,7 +55,7 @@ certified the whole milestone PASSED on the strength of those claims, which is h
 soft-lock and 5 other real bugs (found and fixed in `collect.js` via a from-scratch interactive
 Playwright harness) shipped undetected until a real playtest.
 
-- [ ] **VERIFY-01**: `door.js`, `gates.js`, `enemy.js`, and `mathGate.js` have each been driven
+- [x] **VERIFY-01**: `door.js`, `gates.js`, `enemy.js`, and `mathGate.js` have each been driven
       interactively (real player movement + real answer input, not teleport-only) across all 4
       levels, with findings recorded the way the post-ship diagnostic recorded collect.js's bugs.
 
@@ -99,7 +99,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ART-08 | Phase 20 | Complete |
 | PROC-01 | Phase 20 | Complete |
 | PROC-02 | Phase 20 | Complete |
-| VERIFY-01 | Phase 21 | Pending |
+| VERIFY-01 | Phase 21 | Complete |
 | VERIFY-02 | Phase 21 | Pending |
 | VERIFY-03 | Phase 21 | Pending |
 | VERIFY-04 | Phase 21 | Pending |

@@ -6,14 +6,14 @@ current_phase: 21
 current_phase_name: Real Verification Pass — Mechanics & Sign-off Integrity
 status: executing
 stopped_at: Post-ship diagnostic + fix pass on v4.0 (all 7 phases were executed by a different AI runtime after this session lost continuity — see below). Found and fixed 5 real bugs via a headless-but-actually-interactive Playwright playtest; all static gates + the shipped `browser-boot.mjs` still pass.
-last_updated: "2026-07-04T07:44:16.208Z"
+last_updated: "2026-07-04T09:47:34.026Z"
 last_activity: 2026-07-04
-last_activity_desc: Phase 20 complete, transitioned to Phase 21
+last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
   percent: 50
 ---
 
@@ -28,17 +28,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 21 — Real Verification Pass — Mechanics & Sign-off Integrity (context + research done, ready for planning)
+**Current Focus:** Phase 21 — Real Verification Pass — Mechanics & Sign-off Integrity
 
 **Tech Stack (v4.1):** Same as v4.0 — multi-file (no JS build step), HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned, sha256-recorded), static files served by a Docker (nginx) container via Dokploy, versioned localStorage persistence. Zero new runtime dependencies — this milestone only swaps asset *content* (PNGs + license docs), never code architecture.
 **Shipped State (v4.0):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics (locked doors, checkpoint gates, defeat-enemy, collect-the-answer) → persisted XP/leveling + per-level completion. All 22 v4.0 requirements satisfied, but the "art/animation/parallax pass" (Phase 18) shipped procedurally-generated placeholder noise instead of real curated art, and its human sign-off checkpoint was auto-approved without anyone actually looking at it. v4.1 redoes that asset output and closes the process gap.
 
 ## Current Position
 
-Phase: 21 — Real Verification Pass — Mechanics & Sign-off Integrity
-Plan: Not started — CONTEXT.md and RESEARCH.md done, ready for `/gsd-plan-phase 21`
-Status: Ready to plan Phase 21
-Last activity: 2026-07-04 — Phase 21 research complete (falsified the challenge.js
+Phase: 21 (Real Verification Pass — Mechanics & Sign-off Integrity) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-07-04 — Phase 21 execution started
 color() hypothesis via the vendored Kaplay source — text defaults to white, not
 invisible; confirmed the REAL bug instead: `enemy.js` passes a `prompt` string that
 REPLACES the arithmetic display rather than prefixing it, exactly matching the
@@ -48,6 +48,7 @@ collect-the-answer zone's contrast being washed out by challenge.js's full-scree
 dim overlay — needs live confirmation, not yet proven)
 
 ### Resume here
+
 Everything is committed; working tree is clean. To continue:
 `/gsd-plan-phase 21` — plan Phase 21 from the existing CONTEXT.md + RESEARCH.md
 (both already written, so planning does not need to re-discuss or re-research).
@@ -150,7 +151,7 @@ These are low-risk and independently actionable. See `.planning/milestones/v3.0-
 
 **Resume file:** None
 
-**Last session:** 2026-07-03T18:30:00.000Z
+**Last session:** 2026-07-04T09:46:58.508Z
 
 **Context — how this diagnostic pass came about:**
 
@@ -291,6 +292,7 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 | Phase 16 P02 | 11 | 8 tasks | 8 files |
 | Phase 16 P03 | 3 | 2 tasks | 1 files |
 | Phase 18 P01 | 12 | 3 tasks | 9 files |
+| Phase 21 P01 | ~25min | 2 tasks | 34 files |
 
 ## Operator Next Steps
 
@@ -305,3 +307,7 @@ All fixes verified via: full static gate suite (`check-gate.sh`, `check-import-s
 - [Phase ?]: [Phase 14] 14-01: check-import-safety.sh negative grep is ANCHORED to module-top-level forms and SCOPED to title.js/select.js only (game.js/main.js excluded); calibrated RED on scripts/fixtures/bad-scene.js, GREEN on shipped game.js
 - [Phase ?]: [Phase 14] 14-01: titleScene + selectScene are pure-canvas closure factories (engine globals body-only, a727c13); select derives unlock via isUnlocked + reads createProgress(loadSave()) fresh every entry — one source of truth, never stores its own unlocked flag
 - [Phase 14]: 14-03: static gate suite (import-safety+progress+safety) re-run GREEN; real-browser NAV-01..04 boot recorded PENDING as a blocking human-verify (autonomous:false) — NAV reqs close at runtime sign-off, not on greps
+- [Phase 21]: Finding 1 (challenge.js color() hypothesis) REFUTED by real screenshot, not just code
+- [Phase 21]: Finding 2 (enemy.js prompt-override) CONFIRMED via direct code re-read; live screenshot not obtainable due to platform-jump traversal limit
+- [Phase 21]: Finding 3 (collect-zone dim-overlay contrast) REFUTED across 3 levels' screenshots
+- [Phase 21]: New Finding 4: simultaneous/overlapping openChallenge() sessions garble each other's UI and cross-destroy via shared challenge tag - deferred to Plan 21-04
