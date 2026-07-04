@@ -49,17 +49,27 @@ PLAYER_PALETTE = [
     (0x00, 0xFF, 0x88),  # neon-green accent (project's XP/highlight accent)
 ]
 
-# Environment palette (dark-grunge only, background/tileset assets) — the
-# exact locked hex tokens already established in scripts/generate-art-assets.py's
-# BLACK/NEAR_BLACK/DEEP_GREY/DARK_GREY/MID_GREY/EDGE_GREY/BLUE_TINT constants.
+# Environment palette (dark-grunge, background/tileset assets).
+#
+# REVISED after real human sign-off feedback (2026-07-04): the original
+# BLACK..EDGE_GREY ramp (0x0a-0x2a, luminance 10-42) was confirmed live-in-game
+# to be effectively invisible against the #0a0a0a stage background — "ledges
+# are invisible/also black", "background is all black". Cross-checked against
+# this project's own known-good, never-touched assets (spike.png/goal.png,
+# real CC0 art shipped since v3.0): those reach luminance up to 245 — a wide,
+# clearly-visible range, not a razor-thin near-black band. This revised
+# palette keeps the dark-grunge MOOD (no bright saturated hues, matches the
+# locked #0a0a0a/#333333/#444444 border tokens from CLAUDE.md/PROJECT.md) but
+# widens the actual luminance ramp so ground/parallax/title-bg genuinely read
+# as distinct from the void, the same way spike/goal always have.
 ENVIRONMENT_PALETTE = [
-    (0x0A, 0x0A, 0x0A),  # BLACK
-    (0x0F, 0x0F, 0x0F),  # NEAR_BLACK
-    (0x11, 0x11, 0x11),  # DEEP_GREY
-    (0x15, 0x15, 0x15),  # DARK_GREY
-    (0x1A, 0x1A, 0x1A),  # MID_GREY
-    (0x2A, 0x2A, 0x2A),  # EDGE_GREY
-    (0x0F, 0x0F, 0x1A),  # BLUE_TINT
+    (0x0A, 0x0A, 0x0A),  # BLACK — matches stage bg, used for true voids/outlines only
+    (0x22, 0x22, 0x22),  # low-visibility dark grey
+    (0x33, 0x33, 0x33),  # locked "borders/dividers" token (CLAUDE.md)
+    (0x44, 0x44, 0x44),  # locked "borders/dividers" token (CLAUDE.md)
+    (0x66, 0x66, 0x66),  # mid grey — clearly visible material highlight
+    (0x88, 0x88, 0x88),  # light grey — strong edge/seam highlight
+    (0x0F, 0x0F, 0x1A),  # BLUE_TINT — cool-mood accent, kept for far-layer atmosphere
 ]
 
 
@@ -212,25 +222,29 @@ def build_ground():
 
 
 # Per-layer environment sub-palettes — all reused from ENVIRONMENT_PALETTE's
-# existing tokens (never invented), matching 18-UI-SPEC.md's stated per-layer
-# color-mood tokens (far #151515/#0f0f1a, mid #111111/#1a1a20, near #0f0f0f/
-# #141414 — each already present or a near-duplicate of an ENVIRONMENT_PALETTE
-# entry). Kept narrow/dark on purpose (calm, non-strobing parallax); the
-# luminance-ramp remap (not raw nearest-RGB) is what makes that narrowness
-# still preserve real silhouette structure (see _remap_luminance docstring).
+# existing tokens (never invented). REVISED after real human sign-off feedback
+# (2026-07-04, see ENVIRONMENT_PALETTE's comment above): each layer now spans
+# a genuinely visible luminance range rather than a razor-thin near-black
+# band, while far < near-mid < mid still preserves relative depth-ordering
+# (far stays faintest/most-distant-reading, mid is the brightest/most
+# structurally readable layer since it carries the temple/castle/tower
+# "horizon rhythm" ART-07 requires). The luminance-ramp remap (not raw
+# nearest-RGB) is what makes even a modest palette size preserve real
+# silhouette structure (see _remap_luminance docstring).
 ENVIRONMENT_PALETTE_FAR = [ENVIRONMENT_PALETTE[0], ENVIRONMENT_PALETTE[6], ENVIRONMENT_PALETTE[3]]
 ENVIRONMENT_PALETTE_MID = [
     ENVIRONMENT_PALETTE[0],
     ENVIRONMENT_PALETTE[1],
-    ENVIRONMENT_PALETTE[2],
+    ENVIRONMENT_PALETTE[3],
     ENVIRONMENT_PALETTE[4],
     ENVIRONMENT_PALETTE[5],
 ]
-ENVIRONMENT_PALETTE_NEAR = [ENVIRONMENT_PALETTE[0], ENVIRONMENT_PALETTE[1], ENVIRONMENT_PALETTE[2]]
+ENVIRONMENT_PALETTE_NEAR = [ENVIRONMENT_PALETTE[0], ENVIRONMENT_PALETTE[1], ENVIRONMENT_PALETTE[2], ENVIRONMENT_PALETTE[4]]
 ENVIRONMENT_PALETTE_TITLE = [
     ENVIRONMENT_PALETTE[0],
     ENVIRONMENT_PALETTE[1],
-    ENVIRONMENT_PALETTE[2],
+    ENVIRONMENT_PALETTE[3],
+    ENVIRONMENT_PALETTE[5],
     ENVIRONMENT_PALETTE[6],
 ]
 
