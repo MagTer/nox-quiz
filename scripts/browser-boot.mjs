@@ -153,9 +153,12 @@ try {
       }
 
       // Continue on to the math-gate at world x:600 (~300px further along the same
-      // floor run, no jump needed).
+      // floor run, no jump needed). WR-01: 300px / RUN_SPEED(240px/s) = 1250ms exactly —
+      // add the same margin the collect-zone hold above already uses (rounded up from its
+      // own exact value) so accumulated timing error (keyboard dispatch latency, frame-rate
+      // variance, imprecise post-first-hold position) can't leave the player short of x:600.
       await page.keyboard.down("ArrowRight");
-      await page.waitForTimeout(1250);
+      await page.waitForTimeout(1250 + 150);
       await page.keyboard.up("ArrowRight");
 
       // Cycle keys 1-4 to fully resolve the math-gate challenge via real key input.
