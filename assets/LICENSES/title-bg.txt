@@ -1,0 +1,30 @@
+Asset:        assets/tiles/title-bg.png  (title/select screen backdrop, 640x360)
+Source pack:  "Background Elements"
+Author:       Kenney (Kenney Vleugels)
+Source URL:   https://kenney.nl/assets/background-elements
+Source file:  https://kenney.nl/media/pages/assets/background-elements/b66a1ddec7-1677670395/kenney_background-elements.zip
+Elements used: PNG/Flat/castle.png, PNG/Flat/hills1.png, PNG/Flat/cloud1.png
+              (composited onto a blank 640x360 canvas, then palette-remapped —
+              see scripts/build-art-assets.py)
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own bundled License.txt:
+    "License (Creative Commons Zero, CC0)
+     http://creativecommons.org/publicdomain/zero/1.0/"
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+
+Processing note: composites a castle silhouette, a hills horizon strip, and
+two cloud instances onto a blank 640x360 canvas, then palette-remaps the
+result onto this project's locked dark environment tokens via a
+luminance-ramp quantization pass (see `_remap_luminance` in
+scripts/build-art-assets.py), matching 18-UI-SPEC.md's "dark-grunge texture,
+very low contrast, no animation" art direction for this element. This is a
+derivative composite/recolor of the same CC0 source elements, not new
+artwork; CC0 permits modification.
+
+Verification: License page (kenney.nl/assets/background-elements) and the
+pack's own bundled License.txt both confirmed CC0 this session (2026-07-04).
+NOT CC-BY.
+
+Vendor logo / brand art: none.

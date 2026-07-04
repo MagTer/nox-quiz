@@ -17,6 +17,10 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 | 6 Color Dungeon 16x16 (skull flag) | `assets/goal.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Goal flag (fires `onReachGoal`) |
 | Platformer Characters (Adventurer) | `assets/player.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/platformer-characters | CC0 | Player character sprite sheet — idle/stand/walk/jump (5x16x32) |
 | Rotating Coin | `assets/coin.png` | PuddinThur | https://opengameart.org/content/rotating-coin | CC0 | Collectible spinning-coin spritesheet (8 frames) |
+| Background Elements (composited) | `assets/parallax/far.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Parallax far layer — distant mountain silhouette |
+| Background Elements (composited) | `assets/parallax/mid.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Parallax mid layer — temple/castle/tower + hills horizon rhythm |
+| Background Elements (composited) | `assets/parallax/near.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Parallax near layer — subtle hills texture |
+| Background Elements (composited) | `assets/tiles/title-bg.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Title/select screen backdrop — castle + hills + clouds |
 
 ## Notes
 

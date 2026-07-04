@@ -1,0 +1,34 @@
+Asset:        assets/parallax/far.png, assets/parallax/mid.png, assets/parallax/near.png
+              (camera-driven parallax background layers, 640x120/144/90)
+Source pack:  "Background Elements"
+Author:       Kenney (Kenney Vleugels)
+Source URL:   https://kenney.nl/assets/background-elements
+Source file:  https://kenney.nl/media/pages/assets/background-elements/b66a1ddec7-1677670395/kenney_background-elements.zip
+Elements used: PNG/Flat/pointy_mountains.png (far), PNG/Flat/hills1.png (mid base),
+              PNG/Flat/temple.png, PNG/Flat/castle.png, PNG/Flat/tower.png (mid
+              structures — horizon rhythm), PNG/Flat/hills2.png (near)
+              (each composited onto a blank canvas at the locked layer
+              dimensions, then palette-remapped — see scripts/build-art-assets.py)
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own bundled License.txt:
+    "License (Creative Commons Zero, CC0)
+     http://creativecommons.org/publicdomain/zero/1.0/"
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+
+Processing note: each layer composites one or more real Kenney silhouette
+elements onto a blank canvas at its exact locked dimensions (far 640x120, mid
+640x144, near 640x90), then palette-remaps the result onto this project's
+locked dark environment tokens via a luminance-ramp quantization pass (see
+`_remap_luminance` in scripts/build-art-assets.py) using a narrow per-layer
+sub-palette drawn from ENVIRONMENT_PALETTE. This is a derivative composite/
+recolor of the same CC0 source elements, not new artwork; CC0 permits
+modification. This one combined proof file covers all three layers since they
+share a single source pack/page (per this phase's CONTEXT.md discretion).
+
+Verification: License page (kenney.nl/assets/background-elements) and the
+pack's own bundled License.txt both confirmed CC0 this session (2026-07-04).
+NOT CC-BY.
+
+Vendor logo / brand art: none.
