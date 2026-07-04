@@ -185,7 +185,7 @@ Plans:
 | 18. Art, Animation & Parallax | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | Complete    | 2026-07-04 |
-| 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | Complete   | 2026-07-04 |
+| 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | Complete    | 2026-07-04 |
 
 ## Coverage (v4.1)
 
