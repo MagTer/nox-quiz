@@ -40,7 +40,9 @@ export function wireEnemy({ player, brain }) {
 
     openChallenge({
       brain,
-      prompt: "Answer to defeat the guard:",
+      label: "Answer to defeat the guard:", // PREFIXES the arithmetic display rather than
+      // replacing it (21-FINDINGS.md Finding 2 fix) — the player must still see the actual
+      // "6 × 7" problem the four answer boxes are answering, not just the guard framing.
       onSuccess() {
         defeated.add(enemyObj);
 

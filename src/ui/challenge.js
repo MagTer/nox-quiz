@@ -44,6 +44,10 @@ const PANEL_BORDER = [0x33, 0x33, 0x33];
 const BOX_BG = [30, 30, 30];
 const BOX_BORDER = [0x44, 0x44, 0x44];
 const ACCENT_RED = [0xff, 0x44, 0x33]; // wrong nudge
+const LABEL_FG = [0xe8, 0xe8, 0xe8]; // question-prompt + answer-box text (#e8e8e8, ~18:1) —
+// matches src/scenes/select.js's own LABEL_FG exactly (21-RESEARCH.md Finding 1 convention;
+// Finding 1 was REFUTED as the live bug's cause — uncolored text() already defaults to opaque
+// white — but explicit color() is still applied here as defensive codebase-convention cleanup)
 
 /**
  * Open the shared in-world challenge overlay over the (already paused) level.
@@ -58,8 +62,14 @@ const ACCENT_RED = [0xff, 0x44, 0x33]; // wrong nudge
  *   a door, etc. The challenge awards NOTHING itself; it only fires the hook and closes
  *   cleanly.
  * @param {string} [args.prompt]
- *   Optional plain-string prompt override. If omitted, the default `${q.a} × ${q.b}`
- *   expression is rendered.
+ *   Optional plain-string prompt override. If present, it REPLACES the default
+ *   `${q.a} × ${q.b}` expression entirely (wins outright over `label`).
+ * @param {string} [args.label]
+ *   Optional plain-string label PREFIXED before the default `${q.a} × ${q.b}` expression
+ *   (e.g. "Answer to defeat the guard:" + "6 × 7"), so the caller can add mechanic-specific
+ *   framing without hiding the arithmetic the answer boxes are actually answering (21-04
+ *   fix for the enemy.js prompt-override bug — 21-FINDINGS.md Finding 2). Ignored when
+ *   `prompt` is also supplied.
  * @param {{ a: number, b: number, answer: number, choices: number[] }} [args.question]
  *   Optional caller-supplied question object. When provided, it is used instead of calling
  *   `brain.nextQuestion()`, so the overlay prompt can match spawned pickups (MECH-03).
@@ -67,7 +77,7 @@ const ACCENT_RED = [0xff, 0x44, 0x33]; // wrong nudge
  *   When false, the answer-box grid and 1-4 key handlers are omitted. The caller provides
  *   its own input path (e.g. collect-the-answer pickups). close() remains safe either way.
  */
-export function openChallenge({ brain, onSuccess, prompt, question, renderChoices = true } = {}) {
+export function openChallenge({ brain, onSuccess, prompt, label, question, renderChoices = true } = {}) {
   // Self-standing fallback so the challenge never throws if the caller forgets a brain.
   if (!brain) brain = createBrain();
 
@@ -75,7 +85,12 @@ export function openChallenge({ brain, onSuccess, prompt, question, renderChoice
   // forgiving re-ask reuses it, so a wrong pick re-presents the identical question (GATE-04).
   // Callers may pass their own question (e.g. collect.js) so the overlay matches spawned pickups.
   const q = question ?? brain.nextQuestion();
-  const display = prompt ?? `${q.a} × ${q.b}`; // U+00D7 multiplication glyph; fall back to 'x' if tofu.
+  // `prompt`, when present, REPLACES the arithmetic display entirely (unchanged behavior —
+  // collect.js's existing caller relies on this). `label`, when present (and `prompt` is
+  // absent), PREFIXES the arithmetic display rather than replacing it, so the player always
+  // sees what the answer boxes are answering (21-FINDINGS.md Finding 2 fix). Otherwise fall
+  // back to the bare arithmetic expression.
+  const display = prompt ?? (label ? `${label} ${q.a} × ${q.b}` : `${q.a} × ${q.b}`); // U+00D7 multiplication glyph; fall back to 'x' if tofu.
 
   // Fire-once latch for onSuccess (a correct pick must fire EXACTLY once — Pitfall 5).
   let cleared = false;
@@ -122,6 +137,7 @@ export function openChallenge({ brain, onSuccess, prompt, question, renderChoice
     text(display),
     anchor("center"),
     pos(center().x, center().y - 60),
+    color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
     fixed(),
     z(9992),
     "challenge",
@@ -163,6 +179,7 @@ export function openChallenge({ brain, onSuccess, prompt, question, renderChoice
         text(i + 1 + ") " + choice, { size: 22 }),
         anchor("center"),
         pos(bx, rowY),
+        color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
         fixed(),
         z(9993),
         "challenge",
