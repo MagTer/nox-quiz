@@ -31,8 +31,14 @@ export function wireEnemy({ player, brain }) {
   // so it is garbage-collected with the scene and cannot leak across replays.
   const defeated = new Set();
 
+  // WR-03: guard against onCollide re-firing for the SAME not-yet-defeated enemy (or a
+  // DIFFERENT enemy) while a challenge for this wiring is already open. Closure-local
+  // (never module-level) for the same GC-with-the-scene reason as `defeated` above.
+  let busy = false;
+
   player.onCollide("enemy", (enemyObj) => {
-    if (defeated.has(enemyObj)) return; // belt-and-braces: ignore an already-defeated enemy
+    if (defeated.has(enemyObj) || busy) return; // belt-and-braces + re-entrancy guard
+    busy = true;
 
     // Freeze the player exactly like the door mechanic does.
     player.vel = vec2(0);
@@ -45,6 +51,7 @@ export function wireEnemy({ player, brain }) {
       // "6 × 7" problem the four answer boxes are answering, not just the guard framing.
       onSuccess() {
         defeated.add(enemyObj);
+        busy = false;
 
         fx.clearBurst();
 
