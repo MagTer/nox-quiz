@@ -65,11 +65,12 @@ const LABEL_FG = [0xe8, 0xe8, 0xe8]; // question-prompt + answer-box text (#e8e8
  *   Optional plain-string prompt override. If present, it REPLACES the default
  *   `${q.a} × ${q.b}` expression entirely (wins outright over `label`).
  * @param {string} [args.label]
- *   Optional plain-string label PREFIXED before the default `${q.a} × ${q.b}` expression
- *   (e.g. "Answer to defeat the guard:" + "6 × 7"), so the caller can add mechanic-specific
- *   framing without hiding the arithmetic the answer boxes are actually answering (21-04
- *   fix for the enemy.js prompt-override bug — 21-FINDINGS.md Finding 2). Ignored when
- *   `prompt` is also supplied.
+ *   Optional plain-string label rendered on its OWN line ABOVE the default `${q.a} × ${q.b}`
+ *   expression (e.g. "Answer to defeat the guard:" over "6 × 7"), so the caller can add
+ *   mechanic-specific framing without hiding the arithmetic the answer boxes are actually
+ *   answering (21-04 fix for the enemy.js prompt-override bug — 21-FINDINGS.md Finding 2).
+ *   Rendered as two stacked lines (not one concatenated line) so longer labels never
+ *   overflow the canvas width. Ignored when `prompt` is also supplied.
  * @param {{ a: number, b: number, answer: number, choices: number[] }} [args.question]
  *   Optional caller-supplied question object. When provided, it is used instead of calling
  *   `brain.nextQuestion()`, so the overlay prompt can match spawned pickups (MECH-03).
@@ -86,11 +87,15 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
   // Callers may pass their own question (e.g. collect.js) so the overlay matches spawned pickups.
   const q = question ?? brain.nextQuestion();
   // `prompt`, when present, REPLACES the arithmetic display entirely (unchanged behavior —
-  // collect.js's existing caller relies on this). `label`, when present (and `prompt` is
-  // absent), PREFIXES the arithmetic display rather than replacing it, so the player always
-  // sees what the answer boxes are answering (21-FINDINGS.md Finding 2 fix). Otherwise fall
-  // back to the bare arithmetic expression.
-  const display = prompt ?? (label ? `${label} ${q.a} × ${q.b}` : `${q.a} × ${q.b}`); // U+00D7 multiplication glyph; fall back to 'x' if tofu.
+  // collect.js's existing caller relies on this) and is rendered as a SINGLE line.
+  // `label`, when present (and `prompt` is absent), is rendered on its OWN line ABOVE a
+  // second line holding the bare arithmetic expression (21-FINDINGS.md Finding 2 fix) — a
+  // single concatenated line was tried first but overflowed the 640px internal canvas width
+  // for the enemy encounter's longer label (found via manual visual verification this task;
+  // Rule 1 auto-fix, since a cut-off-at-both-edges prompt is exactly the legibility bug this
+  // phase exists to catch). Otherwise fall back to the bare arithmetic expression alone.
+  const arithmetic = `${q.a} × ${q.b}`; // U+00D7 multiplication glyph; fall back to 'x' if tofu.
+  const display = prompt ?? arithmetic;
 
   // Fire-once latch for onSuccess (a correct pick must fire EXACTLY once — Pitfall 5).
   let cleared = false;
@@ -133,15 +138,41 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
 
   // Big question expression near the top of the panel (built here — the brain dropped its
   // display field). Pure canvas text(), never a markup sink.
-  add([
-    text(display),
-    anchor("center"),
-    pos(center().x, center().y - 60),
-    color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
-    fixed(),
-    z(9992),
-    "challenge",
-  ]);
+  //
+  // `label` (no `prompt`): TWO stacked lines — a smaller label line above the full-size
+  // arithmetic line below it — so a longer caller-supplied label (e.g. enemy.js's "Answer
+  // to defeat the guard:") never overflows the canvas the way a single concatenated line
+  // did (found + fixed this task via manual visual verification).
+  if (!prompt && label) {
+    add([
+      text(label, { size: 22 }),
+      anchor("center"),
+      pos(center().x, center().y - 82),
+      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      fixed(),
+      z(9992),
+      "challenge",
+    ]);
+    add([
+      text(arithmetic),
+      anchor("center"),
+      pos(center().x, center().y - 44),
+      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      fixed(),
+      z(9992),
+      "challenge",
+    ]);
+  } else {
+    add([
+      text(display),
+      anchor("center"),
+      pos(center().x, center().y - 60),
+      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      fixed(),
+      z(9992),
+      "challenge",
+    ]);
+  }
 
   // --- Four answer boxes from q.choices, dual-input (mouse-click + keys 1-4) ---
   // Callers can suppress the answer boxes (e.g. collect.js spawns pickups instead).

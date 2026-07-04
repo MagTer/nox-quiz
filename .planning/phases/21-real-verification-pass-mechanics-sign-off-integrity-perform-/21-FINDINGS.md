@@ -149,6 +149,124 @@ alone would not fix the visual overlap — a same-time-open guard is the more co
 **Files touched (for the fix plan):** `src/ui/challenge.js` (the shared seam all 4+1 mechanics
 call through).
 
+**Disposition after Plan 21-04:** NOT fixed — out of this plan's scope. This plan's `<objective>`
+scopes it strictly to the Finding 2 enemy.js fix + defensive `color()` consistency +
+conditional Finding 3 fix; New Finding 4 is a distinct, larger architectural change (a
+same-time-open guard across the shared seam) that would require Rule 4 (architectural-change)
+sign-off in its own dedicated plan. It remains an open, documented, real bug for a future plan.
+
+---
+
+## Post-Fix Verification (Plan 21-04, Task 2)
+
+**Gating recap (Task 1 applied only what Task 1's own gating allowed):**
+
+- Finding 1 (challenge.js `color()`) — REFUTED as the live bug's cause, but the DEFENSIVE
+  consistency edit was still applied regardless (per Task 1's own instruction) — `LABEL_FG`
+  added to `challenge.js` and `build.js`, applied to all 5 previously-uncolored `text()` calls
+  (2 in challenge.js, 3 in build.js).
+- Finding 2 (enemy.js prompt-override) — CONFIRMED — fixed via the additive `label` param.
+- Finding 3 (collect-zone dim-overlay contrast) — REFUTED — **no code change applied**;
+  `collect.js`'s `openChallenge()` call is byte-identical to pre-fix (confirmed via `git diff`
+  showing zero changes to `src/mechanics/collect.js` in this plan's commits). No `dim` param was
+  added to `challenge.js`.
+
+**Enemy.js fix — visually confirmed (with a mid-task correction):**
+
+The shared `scripts/audit-phase21-mechanics.mjs` re-run (unchanged from Plan 21-01) still cannot
+reach level-01's enemy encounter (x:1000) — same pre-existing traversal-model limitation
+documented in this file's own Methodology Note (the gap at x:560-720 needs two sequential
+stepping-stone jumps the script's generic single-jump-per-gap model does not attempt). This is
+the SAME evidence caveat Finding 2 already recorded honestly at CONFIRMED time — re-confirmed,
+not new.
+
+To still obtain REAL, interactive visual proof (not just a code read) that the `label` fix
+actually renders correctly, a supplementary one-off Playwright script
+(`/tmp/.../scratchpad/verify-enemy-visual.mjs` — throwaway, not committed to the repo, does not
+modify or replace the shared audit script) teleported the player adjacent to the enemy collider
+on its own flat floor run (no gap between the teleport point and the enemy — it does not fake
+the collision/resolution, only skips the unrelated gap-traversal the shared script cannot yet
+cross) and walked it into the REAL `onCollide("enemy", ...)` handler, which opened a REAL
+`openChallenge()` overlay through the exact same code path every other mechanic uses.
+
+- **First attempt** (single concatenated `${label} ${q.a} × ${q.b}` line, the initial Task 1
+  implementation): screenshot showed `"...swer to defeat the guard: 9 ×"` — the combined string
+  overflowed the 640px internal canvas width and was cut off at BOTH edges. This is a genuine,
+  newly-introduced legibility bug (Rule 1 auto-fix — the very category of bug this phase exists
+  to catch), not present before (the old buggy behavior showed a short label alone with no
+  overflow; the fix's naive single-line concatenation was long enough to overflow for this
+  specific label).
+- **Fix applied in this same task** (Rule 1): `challenge.js`'s display block now renders `label`
+  (when present, `prompt` absent) as its OWN smaller line ABOVE a second full-size line holding
+  the bare `${q.a} × ${q.b}` arithmetic, instead of one concatenated string. Re-ran the same
+  manual verification script after the fix.
+- **Final screenshot** (`screenshots/level-01-enemy-1000-manual-verify.png`, regenerated after
+  the two-line fix): shows, fully legible and fully within the panel bounds, two clean lines —
+  `"Answer to defeat the guard:"` on line 1, `"8 × 1"` on line 2 — with all four answer boxes
+  (`16`, `6`, `8`, `24`) rendered normally below. This is the exact fix the live-reported bug
+  needed: the player now sees BOTH the guard framing AND the actual arithmetic problem the
+  four answer boxes are answering, with neither cut off.
+- The unmodified `screenshots/level-01-enemy-1000-before.png`/`-after.png` (from the shared
+  script's own run) still show the un-triggered world state, since the shared script's
+  traversal model still cannot reach x:1000 — this is the same known limitation, not a
+  regression from this plan's edits.
+
+**Regression check — zero regressions confirmed:**
+
+Re-ran `node scripts/audit-phase21-mechanics.mjs` twice this task (once immediately after Task
+1's edits, once again after the label-overflow fix above) and diffed every encounter's
+`triggered`/`resolved` outcome against Plan 21-01's pre-fix baseline table below — **every value
+is identical** (only `reachedX` float values differ, an expected side effect of frame-timing
+jitter across separate real-browser runs, not a resolution-outcome change):
+
+| Level | Mechanic | x | Triggered | Resolved |
+|-------|----------|---|-----------|----------|
+| level-01 | answer-zone | 300 | true | null (by design) |
+| level-01 | math-gate | 600 | true | true |
+| level-01 | enemy | 1000 | false | false (unreached — script limitation, unchanged) |
+| level-01 | math-gate | 1300 | false | false (unreached — script limitation, unchanged) |
+| level-01 | door | 1400 | false | false (unreached — script limitation, unchanged) |
+| level-02 | math-gate | 420 | true | true |
+| level-02 | math-gate | 1100 | false | false (unreached — script limitation, unchanged) |
+| level-02 | door | 1540 | false | false (unreached — script limitation, unchanged) |
+| level-03 | answer-zone | 200 | true | null (by design) |
+| level-03 | math-gate | 420 | true | true |
+| level-03 | enemy | 2400 | false | false (unreached — script limitation, unchanged) |
+| level-04 | answer-zone | 160 | true | null (by design) |
+| level-04 | math-gate | 320 | true | true |
+| level-04 | door | 900 | false | false (unreached — script limitation, unchanged) |
+| level-04 | math-gate | 1800 | false | false (unreached — script limitation, unchanged) |
+| level-04 | enemy | 2400 | false | false (unreached — script limitation, unchanged) |
+
+Every encounter that WAS reached (7 of 16) still triggers and resolves correctly on a real 1-4
+key cycle, exactly as pre-fix — the additive `label`/color() edits did not break door.js/
+gates.js/mathGate.js/collect.js. The script's own final line is still `AUDIT: FAILURES DETECTED`
+(same as it would have been pre-fix, for the identical 9 unreached-by-design-limitation rows —
+this is the SAME pre-existing script-traversal-model gap documented in this file's own
+Methodology Note, not a new regression introduced by this plan; a platform-aware traversal
+model remains explicitly out of this plan's scope).
+
+**Defensive `color()` consistency — visually confirmed, no regression:**
+`screenshots/level-02-math-gate-420-before.png` (regenerated) still shows a clean, fully
+legible math-gate prompt (`"7 × 10"`) and all four answer boxes in crisp white text — identical
+in appearance to the pre-fix baseline (Finding 1 was already REFUTED — text was already white by
+default), confirming the added explicit `color(LABEL_FG...)` calls are a no-op visually, as
+expected. `screenshots/level-04-answer-zone-160-before.png` (regenerated) shows the math-gate's
+`"?"` glyph and all door/enemy glyphs rendering with the same explicit color, no visual change
+from before (per the Observation note, this glyph already read as plain white pre-fix; the
+explicit `color()` is defensive-only, per Task 1's own framing).
+
+**Finding 3's final disposition:** REFUTED, and per Task 1's own conditional gating, **not
+fixed** — no `dim` param was added to `challenge.js`, and `src/mechanics/collect.js` is
+byte-identical to its pre-fix state (zero diff across this plan's 2 commits).
+
+**Static gate suite (full re-run, all 4 files touched + the whole tree):** `bash
+scripts/check-gate.sh && bash scripts/check-import-safety.sh && bash scripts/check-safety.sh &&
+node scripts/smoke-progress.mjs` — all four print their PASS/PASS/PASS/PASS lines, confirming
+the additive `label` param and the two-line display change did not regress the structural gate,
+the import-safety negative greps, the forgiving/no-DOM/no-timer safety greps, or the progress
+persistence round-trip.
+
 ---
 
 ## Full Mechanic Sweep
