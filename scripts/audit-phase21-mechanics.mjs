@@ -65,17 +65,17 @@ const MIME = {
 };
 
 const SAVE_KEY = "mathlab_platformer_v2";
+// WR-02: derive the unlocked-levels blob from the live LEVEL_ORDER import instead of a
+// hardcoded 3-level literal, so it can never silently drift out of sync with the real
+// level roster if a level is added or removed (unlock is derived: clearing level-N
+// unlocks N+1, so marking every level except the last "cleared" unlocks all of them).
 const SAVE_BLOB = {
   version: 2,
   xp: 0,
   level: 1,
   accuracy: {},
   history: {},
-  levels: {
-    "level-01": { cleared: true },
-    "level-02": { cleared: true },
-    "level-03": { cleared: true },
-  },
+  levels: Object.fromEntries(LEVEL_ORDER.slice(0, -1).map((id) => [id, { cleared: true }])),
 };
 
 const OUT = (name) =>
