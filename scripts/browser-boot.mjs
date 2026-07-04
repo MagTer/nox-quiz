@@ -7,7 +7,8 @@ import { createRequire } from "module";
 import { createServer } from "http";
 import { readFile } from "fs/promises";
 import { extname, join, resolve, sep } from "path";
-import { LEVEL_ORDER } from "../src/levels/index.js";
+import { LEVEL_ORDER, getLevel } from "../src/levels/index.js";
+import { deriveEncounters, driveToXClimbing, resolveIfBoxed } from "./lib/mechanic-drive.mjs";
 
 // WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
 // path. Tries (1) normal project-relative resolution (works once `playwright` is a real
@@ -141,52 +142,36 @@ try {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(1500); // let game scene build the level
 
-    // level-01 only (VERIFY-03): hold real directional input to actually reach and
-    // fully resolve at least one boxed mechanic per run, not just "scene loaded, zero
-    // console errors." level-01 contains one of every mechanic type.
-    if (i === 0) {
-      // Hold ArrowRight to reach the collect zone at world x:300 (~236px from the
-      // default spawn x:64 at CONFIG.RUN_SPEED 240px/s ~= 983ms; rounded up with margin).
-      await page.keyboard.down("ArrowRight");
-      await page.waitForTimeout(1000);
-      await page.keyboard.up("ArrowRight");
-      const collectTriggered = await page.evaluate(() => get("challenge").length > 0);
-      if (!collectTriggered) {
-        errors.push({ type: "mechanic", message: "collect zone at x:300 never triggered a challenge on real movement" });
+    // VERIFY-03 (all 4 levels, generalized from the retired level-01-only special case):
+    // hold real directional input to actually reach and fully resolve at least one
+    // boxed mechanic per level, not just "scene loaded, zero console errors." This gate
+    // deliberately stops at each level's FIRST resolvable mechanic (not an exhaustive
+    // sweep of every encounter) to keep the fast per-commit boot check proportionate —
+    // the exhaustive full-level sweep across every encounter lives in
+    // scripts/audit-phase21-mechanics.mjs (Plan 21-01/21-05), not here.
+    const level = getLevel(LEVEL_ORDER[i]);
+    const encounters = deriveEncounters(level.geometry);
+    for (const encounter of encounters) {
+      const { triggered } = await driveToXClimbing(page, encounter.x);
+      if (!triggered) {
+        errors.push({
+          type: "mechanic",
+          message: `${level.id}: encounter ${encounter.tag} at x:${encounter.x} never triggered on real movement`,
+        });
+        break;
       }
-
-      // Continue on to the math-gate at world x:600 (~300px further along the same
-      // floor run, no jump needed). WR-01: 300px / RUN_SPEED(240px/s) = 1250ms exactly —
-      // add the same margin the collect-zone hold above already uses (rounded up from its
-      // own exact value) so accumulated timing error (keyboard dispatch latency, frame-rate
-      // variance, imprecise post-first-hold position) can't leave the player short of x:600.
-      await page.keyboard.down("ArrowRight");
-      await page.waitForTimeout(1250 + 150);
-      await page.keyboard.up("ArrowRight");
-
-      // Cycle keys 1-4 to fully resolve the math-gate challenge via real key input.
-      //
-      // CR-01 fix (2nd review pass): an absolute `remaining === 0` check is invalid here —
-      // the collect-zone challenge at x:300 is deliberately left open by collect.js
-      // (renderChoices:false; movement stays live by design, per src/ui/challenge.js's own
-      // comment), so the shared "challenge" tag count can never reach zero again even once
-      // the math-gate itself resolves correctly. Capture a baseline BEFORE cycling and
-      // check for a decrease instead, exactly mirroring audit-phase21-mechanics.mjs's
-      // driveToX/resolveIfBoxed pattern.
-      let mathGateResolved = false;
-      const initialChallengeCount = await page.evaluate(() => get("challenge").length);
-      for (const key of ["1", "2", "3", "4"]) {
-        await page.keyboard.press(key);
-        await page.waitForTimeout(200);
-        const remaining = await page.evaluate(() => get("challenge").length);
-        if (remaining < initialChallengeCount) {
-          mathGateResolved = true;
-          break;
-        }
+      if (!encounter.renderChoices) {
+        // Collect zone: no answer-box grid to resolve; keep walking to the next encounter.
+        continue;
       }
-      if (!mathGateResolved) {
-        errors.push({ type: "mechanic", message: "math-gate at x:600 never resolved after cycling keys 1-4" });
+      const { resolved } = await resolveIfBoxed(page, true);
+      if (!resolved) {
+        errors.push({
+          type: "mechanic",
+          message: `${level.id}: encounter ${encounter.tag} at x:${encounter.x} never resolved after cycling keys 1-4`,
+        });
       }
+      break;
     }
 
     // Return to select so the next level can be chosen.
