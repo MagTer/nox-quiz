@@ -1,6 +1,6 @@
 ---
 phase: 21-real-verification-pass-mechanics-sign-off-integrity-perform-
-reviewed: 2026-07-04T14:38:14Z
+reviewed: 2026-07-04T00:00:00Z
 depth: standard
 files_reviewed: 5
 files_reviewed_list:
@@ -12,280 +12,279 @@ files_reviewed_list:
 findings:
   critical: 2
   warning: 4
-  info: 2
-  total: 8
+  info: 4
+  total: 10
 status: issues_found
 ---
 
 # Phase 21: Code Review Report
 
-**Reviewed:** 2026-07-04T14:38:14Z
+**Reviewed:** 2026-07-04T00:00:00Z
 **Depth:** standard
 **Files Reviewed:** 5
 **Status:** issues_found
 
-## Narrative Findings (AI reviewer)
+## Summary
 
-### Summary
+This is a re-review pass. A previous `21-REVIEW.md` already on disk at this path reported a
+shared-`"challenge"`-tag teardown bug and an incomplete path-traversal guard as its top
+Critical findings. I re-verified both directly against the current code rather than trusting
+the stale file: **both are now fixed**. `src/ui/challenge.js` now scopes every overlay object
+and `close()`'s `destroyAll(...)` call to a per-invocation `instanceTag` (lines 103-131,
+298-301), and both servers' path guards now require an exact match or a path-separator
+boundary (`filePath !== ROOT_ABS && !filePath.startsWith(ROOT_ABS + sep)`) rather than a bare
+`startsWith`. The prior review's other items (`browser-boot.mjs`'s zero-margin hold,
+`driveToX`'s bare `24` pre-gap window, `build.js`'s magic-number door-blocker height) are
+likewise fixed, each now derived from `CONFIG`/physics formulas with an explanatory comment.
+The prior review's `SAVE_BLOB`-drift finding was fixed **only** in
+`audit-phase21-mechanics.mjs` (now derives its unlock blob from live `LEVEL_ORDER`) — its
+sibling `browser-boot.mjs` still has the hardcoded version; see WR-02 below.
 
-Reviewed the two headless-Playwright verification scripts (`scripts/audit-phase21-mechanics.mjs`,
-`scripts/browser-boot.mjs`) and the three gameplay source modules they exercise
-(`src/levels/build.js`, `src/mechanics/enemy.js`, `src/ui/challenge.js`).
+This pass surfaced two new Critical findings that the prior pass missed, both confirmed by
+**actually running the scripts** (headless Chromium via the project's playwright fallback),
+not just by reading the code:
 
-The most significant finding is a real correctness bug in the shared challenge overlay
-(`src/ui/challenge.js`): every `openChallenge()` instance tears itself down with
-`destroyAll("challenge")`, a single global tag shared by ALL open challenge instances. The
-codebase's own design (confirmed in three places across the reviewed files) deliberately
-leaves a collect-zone challenge open while the player keeps moving toward the next mechanic.
-If that next mechanic (door/math-gate/enemy) opens its own challenge and the player resolves
-it, that instance's `close()` destroys every "challenge"-tagged object in the scene —
-including the still-pending, unrelated collect-zone overlay. This is a directly reachable
-bug given the documented level-01 layout (one of every mechanic type, visited in x-order).
+- `node scripts/browser-boot.mjs` — **exits 1** (its own header calls this the project's
+  pass/fail commit gate) with `{"type":"mechanic","message":"math-gate at x:600 never
+  resolved after cycling keys 1-4"}`, despite cycling all 4 answer keys being guaranteed
+  (per `src/math/brain.js`) to include the correct one.
+- `node scripts/audit-phase21-mechanics.mjs` — reports `AUDIT: FAILURES DETECTED`, 11 of 16
+  encounters across all 4 levels failing `triggered`/`resolved`.
 
-The two verification scripts also both run a local static file server with unsanitized path
-handling (directory traversal) and no explicit bind address (defaults to all interfaces),
-and both hardcode an absolute, machine-specific path to a Playwright install for their only
-import.
+See CR-01 for the root cause (an absolute-zero challenge-count check that is invalid whenever
+a prior challenge is deliberately left open, which is a documented, by-design behavior of
+`collect.js`) and CR-02 for a second, independent, code-level finding in `build.js` (math
+gates and enemies can be jumped clean over, unlike doors).
 
-### Critical Issues
+## Critical Issues
 
-### CR-01: Shared "challenge" tag lets one resolved challenge destroy a different, still-open challenge
+### CR-01: "Challenge resolved" detection is an absolute zero-count, broken whenever a prior challenge is deliberately left open
 
-**File:** `src/ui/challenge.js:272-275` (also see corroborating design comments at `src/ui/challenge.js:89-91,118-125` and `scripts/audit-phase21-mechanics.mjs:101-106`)
-**Issue:**
-Every call to `openChallenge()` creates its overlay objects tagged only `"challenge"`
-(the root marker, dim layer, panel, text, boxes — see lines 105, 108-116, 127-136, 147-174,
-194-206) and tears down with the tag-wide bulk remover:
+**File:** `scripts/browser-boot.mjs:164-177`, `scripts/audit-phase21-mechanics.mjs:209-235`
 
+**Issue:** Both scripts detect "challenge resolved" via an absolute-zero read of the shared,
+cross-instance `"challenge"` tag:
 ```js
-function close() {
-  keyCtrls.forEach((c) => c.cancel());
-  destroyAll("challenge"); // tag-based bulk removal; destroy() only accepts a GameObj
+const remaining = await page.evaluate(() => get("challenge").length);
+if (remaining === 0) { /* treated as resolved */ }
+```
+`src/ui/challenge.js` documents (lines 103-114) that the generic `"challenge"` tag is
+intentionally shared across every currently-open instance ("kept so external
+callers/diagnostics like `get(\"challenge\").length` can still detect 'is ANY challenge open'
+across instances"), and `src/mechanics/collect.js` deliberately leaves its collect-zone
+challenge open — undestroyed — until the player touches the correct pickup, by design
+("movement stays live... Movement and collision stay fully live through this challenge").
+
+Every level with a `collectZones` entry (level-01, level-03, level-04) places that zone before
+any other mechanic on the path. If the player has not resolved it by the time they reach the
+next boxed mechanic, its leftover tagged objects keep `get("challenge").length` above zero
+forever — so `=== 0` can never fire true for that mechanic, or any later one in the same
+level, regardless of whether the player answered correctly.
+
+Empirically confirmed by running both scripts:
+- `browser-boot.mjs` exits 1 every run with `"math-gate at x:600 never resolved after
+  cycling keys 1-4"` — level-01 has a collect zone at x:300 before the gate at x:600, and
+  `q.choices` always contains the answer (`src/math/brain.js`), so the in-game challenge
+  almost certainly *did* resolve; the detection is what's wrong.
+- `audit-phase21-mechanics.mjs`'s own JSON output: `level-01 math-gate x:600 →
+  triggered:true, resolved:false` and `level-04 math-gate x:320 → triggered:true,
+  resolved:false`, while the structurally identical `level-02 math-gate x:420` (level-02 has
+  no `collectZones`) correctly reports `resolved:true` — isolating the cause to "a
+  collect-zone challenge was left open earlier in this level."
+
+The irony: `driveToX`, a few dozen lines above `resolveIfBoxed` in the same file, already
+solved this exact class of bug for *trigger* detection with a `baseline`/`>` comparison
+(lines 130-136) instead of an absolute count — but `resolveIfBoxed` was never given the
+equivalent fix.
+
+Because `browser-boot.mjs` is the actual commit gate (unlike the diagnostic-only
+`audit-phase21-mechanics.mjs`), this is a live, reproducible false-negative that will block
+legitimate commits, or, if "fixed" by simply loosening the check, could mask real
+regressions.
+
+**Fix:** Capture a baseline immediately before pressing 1-4 and check for a decrease, exactly
+mirroring `driveToX`'s own pattern:
+```js
+const initial = await page.evaluate(() => get("challenge").length);
+if (initial === 0) return { resolved: false };
+for (const k of ["1", "2", "3", "4"]) {
+  await page.keyboard.press(k);
+  await page.waitForTimeout(200);
+  const left = await page.evaluate(() => get("challenge").length);
+  if (left < initial) return { resolved: true }; // was: left === 0
 }
+return { resolved: false };
 ```
+Apply the same `< initial` fix to `browser-boot.mjs`'s math-gate loop.
 
-There is no per-instance tag/id, so `destroyAll("challenge")` removes objects belonging to
-*every* currently-open challenge, not just the one being closed.
+### CR-02: Checkpoint math-gates and enemy encounters have no anti-jump-over blocker — a player can clear them without answering
 
-The codebase's own comments confirm concurrent challenges are an expected, designed-for
-scenario: `collect.js`'s zone challenge is opened with `renderChoices:false` and is
-*deliberately* left open while the player keeps moving (`scripts/audit-phase21-mechanics.mjs:101-106`:
-"a prior encounter's collect-zone challenge ... is deliberately left OPEN ... movement stays
-live, per collect.js's design"). `src/ui/challenge.js:89-91` and `:118-125` further confirm
-`collect.js` is a caller of this exact `openChallenge()` function and shares its tag
-namespace.
+**File:** `src/levels/build.js:143-227`
 
-Given level-01 is documented to contain "one of every mechanic type" visited in ascending-x
-order (`scripts/audit-phase21-mechanics.mjs` header comment), the reachable sequence is:
-1. Player enters the collect-zone → `openChallenge({ renderChoices:false, ... })` opens
-   (dim layer + prompt text tagged `"challenge"`), and is left open by design.
-2. Player continues moving (movement stays live per the collect design) and reaches the next
-   mechanic (e.g. a math-gate or enemy) → a *second* `openChallenge()` call adds its own
-   panel/boxes/text, all also tagged `"challenge"`.
-3. Player answers the second challenge correctly → `choose()` → `close()` →
-   `destroyAll("challenge")` — this wipes out the first (still-unresolved) collect-zone
-   overlay's dim layer and prompt text as collateral damage, even though the player never
-   answered/collected it.
+**Issue:** The locked-door build code (lines 143-182) deliberately constructs a *separate*,
+apex-derived tall invisible collider (`blockerH`, ~161px) specifically so "a future retune of
+`CONFIG.JUMP_FORCE`/`CONFIG.GRAVITY` can't silently shrink real coverage below the actual jump
+arc and let the player jump over a locked door" (lines 148-150). The checkpoint math-gate code
+(lines 184-205) and the enemy-encounter code (lines 207-227), built in the same function
+immediately afterward, use *only* their own cosmetic-height box (`CONFIG.MATH_GATE.H` = 64px,
+`CONFIG.ENEMY.H` = 32px) as their sole solid collider — no equivalent tall blocker.
 
-Result: the collect-zone's dim overlay and question prompt vanish without ever being
-resolved through its own logic path, the world silently un-dims, and the player loses the
-visual reminder of what they were collecting for — while the collect-zone's own state
-(zone/slots, tagged separately in `src/levels/build.js:226-251`) is left dangling with no
-overlay to signal it's still active.
-**Fix:** Give each `openChallenge()` invocation its own unique cleanup tag, and only destroy
-that instance's objects:
+`CONFIG.JUMP_FORCE` (520) and `CONFIG.GRAVITY` (1400) give a jump apex of
+`520² / (2·1400) ≈ 96.6px` (matching config.js's own comment: "~3-tile (~96px) jump"). Since
+`96.6px > MATH_GATE.H (64px) > ENEMY.H (32px)`, a normal running jump clears either obstacle
+with margin to spare — the player can jump straight over a checkpoint gate or enemy without
+ever colliding with it, entirely skipping the required math-answer interaction these
+mechanics exist to enforce.
 
+`build.js`'s own comment for `MATH_GATE` states intent to match `DOOR`'s blocking behavior
+("Mirrors DOOR dimensions/palette so the locked checkpoint reads as a related barrier") — the
+palette was mirrored, but the anti-jump-over collider construction (the actual behavioral
+parity that matters) was not. This directly undermines the app's core purpose (forcing
+multiplication practice at these checkpoints); level-02's math-gate at x:420, for example,
+sits on a long uninterrupted floor run with plenty of runway to build a full jump.
+
+**Fix:** Give math-gates the same apex-derived tall blocker pattern already used for doors
+(and reconsider whether enemies should be mandatory or intentionally avoidable):
 ```js
-export function openChallenge({ brain, onSuccess, prompt, label, question, renderChoices = true } = {}) {
-  const instanceTag = `challenge-${Math.random().toString(36).slice(2)}`;
-  // tag every add([...]) call below with instanceTag in addition to "challenge"
-  // e.g. add([fixed(), z(9999), "challenge", instanceTag]);
-  ...
-  function close() {
-    keyCtrls.forEach((c) => c.cancel());
-    destroyAll(instanceTag); // only this instance's objects
-  }
-  ...
+for (const mg of g.mathGates ?? []) {
+  const blockerH = Math.ceil((CONFIG.JUMP_FORCE ** 2) / (2 * CONFIG.GRAVITY)) + 64;
+  const blocker = add([
+    rect(CONFIG.MATH_GATE.W, blockerH),
+    pos(mg.x, mg.y + CONFIG.MATH_GATE.H - blockerH),
+    opacity(0),
+    area(),
+    body({ isStatic: true }),
+    "math-gate",
+  ]);
+  // visible panel + glyph stay separate, non-colliding cosmetic objects, same as doors
 }
-```
-`"challenge"` can remain as a generic marker tag for any code that needs to detect "is any
-challenge open" (e.g. `get("challenge").length`), but teardown must be scoped per-instance.
-
----
-
-### CR-02: Path traversal + all-interfaces bind in local verification servers
-
-**File:** `scripts/audit-phase21-mechanics.mjs:198-214`, `scripts/browser-boot.mjs:42-58`
-**Issue:** Both scripts implement an identical static file server:
-
-```js
-const server = createServer(async (req, res) => {
-  const url = new URL(req.url, `http://localhost:${PORT}`);
-  let path = decodeURIComponent(url.pathname);
-  if (path === "/") path = "/index.html";
-  const filePath = join(ROOT.pathname, path);
-  try {
-    const data = await readFile(filePath);
-    ...
-```
-`path.join(ROOT, userSuppliedPath)` does not clamp traversal: a request for
-`/../../../../etc/passwd` resolves outside `ROOT` (Node's `join` normalizes `..` segments
-but does not prevent escaping the base directory), so any file readable by the process user
-can be read back over HTTP. Additionally, `server.listen(PORT, res)` passes the resolve
-callback as the second positional argument, not a hostname, so Node defaults to binding all
-interfaces (`0.0.0.0`) — meaning any device on the LAN can reach this server (and exploit the
-traversal) for the duration of the script's run.
-**Fix:**
-```js
-import { resolve } from "path";
-const ROOT_ABS = resolve(ROOT.pathname);
-
-const server = createServer(async (req, res) => {
-  const url = new URL(req.url, `http://localhost:${PORT}`);
-  let reqPath = decodeURIComponent(url.pathname);
-  if (reqPath === "/") reqPath = "/index.html";
-  const filePath = resolve(join(ROOT.pathname, reqPath));
-  if (!filePath.startsWith(ROOT_ABS)) {
-    res.writeHead(403);
-    res.end("Forbidden");
-    return;
-  }
-  ...
-});
-
-await new Promise((res) => server.listen(PORT, "127.0.0.1", res));
 ```
 
 ## Warnings
 
-### WR-01: Dead code with a broken field reference in the audit summary logic
+### WR-01: ~100 lines of server/MIME/playwright-resolution boilerplate duplicated verbatim between the two scripts
 
-**File:** `scripts/audit-phase21-mechanics.mjs:281-283`
-**Issue:**
-```js
-const allGood = results.every(
-  (r) => r.triggered === true && (r.renderChoices === false || r.resolved !== false)
-);
-```
-`allGood` is computed but never read anywhere afterward (the script actually reports via
-`allResolvedOrCollect`/`failing` on lines 284-298). Worse, the expression itself is broken:
-result objects pushed at lines 264-271 only carry `{ level, tag, x, reachedX, triggered,
-resolved }` — there is no `renderChoices` field on them, so `r.renderChoices === false` is
-always `false` and this branch of the `||` never fires. This is leftover/incomplete
-refactor debris that could mislead a future maintainer into thinking it drives the pass/fail
-outcome.
-**Fix:** Delete the unused `allGood` computation, or if a second summary metric is actually
-wanted, key it off `r.tag === "answer-zone"` (as `allResolvedOrCollect` correctly does) rather
-than a non-existent field.
+**File:** `scripts/browser-boot.mjs:1-95`, `scripts/audit-phase21-mechanics.mjs:1-262`
 
-### WR-02: Hardcoded, machine-specific absolute path to Playwright
+**Issue:** The playwright dynamic-resolution function, the `MIME` table, and the
+path-traversal-guarded static file server are copy-pasted near-identically between both
+scripts. A fix applied to one has to be manually re-applied to the other to stay in sync —
+and that has already failed to happen for the `SAVE_BLOB` derivation (WR-02) and the `MIME`
+table itself (IN-02).
 
-**File:** `scripts/audit-phase21-mechanics.mjs:18`, `scripts/browser-boot.mjs:6`
-**Issue:**
-```js
-import { chromium } from "/home/magnus/.nvm/versions/node/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs";
-```
-This hardcodes one specific user's home directory, one specific `nvm` Node version, and one
-specific globally-installed package's location. Both scripts will fail immediately (module
-not found) on any other machine, in CI, after an `nvm` version bump, or if the global package
-is reinstalled/relocated.
-**Fix:** Add `playwright` as a real project dependency and import it normally
-(`import { chromium } from "playwright";`), or resolve it dynamically via
-`createRequire(import.meta.url).resolve("playwright")` with a documented fallback.
+**Fix:** Extract the shared server/MIME/playwright-resolution logic into a
+`scripts/lib/serve.mjs` (or similar) module imported by both scripts.
 
-### WR-03: No guard against re-entrant/duplicate challenge opens in `wireEnemy`
+### WR-02: `browser-boot.mjs`'s save blob is still hardcoded, unlike its sibling script's fixed version
 
-**File:** `src/mechanics/enemy.js:34-58`
-**Issue:**
-```js
-player.onCollide("enemy", (enemyObj) => {
-  if (defeated.has(enemyObj)) return; // belt-and-braces: ignore an already-defeated enemy
-  player.vel = vec2(0);
-  player.paused = true;
-  openChallenge({ ... });
-});
-```
-The only guard is against an enemy that has *already been defeated* (`defeated` Set). There
-is no guard against `onCollide` firing again for the *same, not-yet-defeated* enemy while a
-challenge for it is already open (the very existence of a "belt-and-braces" guard for the
-post-defeat case implies the author expects this collision handler can re-fire while still
-overlapping). Nor is there a guard against a second, different enemy's collision opening a
-second concurrent challenge while the first is still unresolved. Given CR-01, concurrent
-`openChallenge()` calls are actively harmful (they clobber each other's UI on close), so this
-gap compounds that bug.
-**Fix:** Track a local busy flag and skip re-entry while a challenge for this wiring is open:
-```js
-let busy = false;
-player.onCollide("enemy", (enemyObj) => {
-  if (defeated.has(enemyObj) || busy) return;
-  busy = true;
-  player.vel = vec2(0);
-  player.paused = true;
-  openChallenge({
-    ...,
-    onSuccess() {
-      defeated.add(enemyObj);
-      busy = false;
-      ...
-    },
-  });
-});
-```
+**File:** `scripts/browser-boot.mjs:57-68,129`
 
-### WR-04: Door blocker height is an undocumented magic number, not derived from jump physics
+**Issue:** `audit-phase21-mechanics.mjs` now derives its unlock blob from the live
+`LEVEL_ORDER` import (its own comment: "so it can never silently drift out of sync with the
+real level roster if a level is added or removed"). `browser-boot.mjs` still hardcodes three
+literal level ids in `SAVE_BLOB.levels` and a fourth literal array
+`["level-01", "level-02", "level-03", "level-04"]` at line 129 — exactly the drift risk the
+sibling script already fixed. If a 5th level is added, this script will silently fail to
+unlock/visit it, with `driveToX`-equivalent logic here (the fixed-timeout holds) producing no
+clear error, just an incomplete/misleading pass.
 
-**File:** `src/levels/build.js:147`
-**Issue:**
-```js
-const blockerH = 160; // tall enough to cover the player's max jump arc above the door
-```
-This value is asserted by comment to be tied to the player's maximum jump height, but it is
-a bare literal, not derived from `CONFIG` (contrast with `scripts/audit-phase21-mechanics.mjs:135`,
-which *does* compute its hold-time from `CONFIG.JUMP_FORCE`/`CONFIG.GRAVITY`). If jump
-physics tuning (`CONFIG.JUMP_FORCE`, `CONFIG.GRAVITY`) changes in a future phase, this
-constant will silently stop covering the jump arc, allowing the player to jump over a locked
-door and bypass the mechanic entirely, with no test or type system to catch the drift.
-**Fix:** Compute it from config, or at minimum promote it to a named `CONFIG.DOOR.BLOCKER_H`
-constant with a comment cross-referencing the physics constants it must stay larger than:
-```js
-const blockerH = Math.ceil((CONFIG.JUMP_FORCE ** 2) / (2 * CONFIG.GRAVITY)) + 20; // apex height + margin
-```
+**Fix:** Import `LEVEL_ORDER` from `../src/levels/index.js` here too and derive both the save
+blob and the `levels` loop array from it, matching `audit-phase21-mechanics.mjs`.
+
+### WR-03: `browser-boot.mjs`'s movement still relies on fixed timeouts, not live position polling
+
+**File:** `scripts/browser-boot.mjs:141-177`
+
+**Issue:** Unlike `audit-phase21-mechanics.mjs`'s `driveToX`, which polls `player.pos.x` every
+100ms and reacts to real state, this script holds `ArrowRight` for durations computed by hand
+from `CONFIG.RUN_SPEED` and assumed distances (`1000ms`, then `1250+150ms` — the margin was
+already added per the fixed prior-review item, but the underlying approach is still
+timing-based, not state-based). Any timing jitter, frame drops, or a future
+`CONFIG.RUN_SPEED` retune (explicitly flagged elsewhere as a Phase-12 tuning target) can
+desync these literals from the actual required travel time, causing the commit gate to fail
+(or pass) for reasons unrelated to real regressions.
+
+**Fix:** Reuse (or extract, per WR-01) `driveToX`'s poll-based approach here instead of fixed
+waits.
+
+### WR-04: `driveToX`'s per-gap jump model presses Space at most once per floor-to-floor gap, with no documented margin or assertion
+
+**File:** `scripts/audit-phase21-mechanics.mjs:93-201`
+
+**Issue:** `deriveGapRanges` produces exactly one gap entry per floor-to-floor transition, and
+`driveToX`'s `jumped` Set (keyed by `gap.start`) permits only one `Space` press per gap for the
+entire approach. This currently works only because every authored gap's width is narrower
+than one full jump's horizontal travel distance (`RUN_SPEED × jump hangtime ≈ 178px`, versus
+the levels' widest floor-to-floor gaps at ~180px or less) — a coincidence of the current
+tuning that the code neither checks nor asserts. If a future level widens a gap, or
+`CONFIG.RUN_SPEED`/`JUMP_FORCE`/`GRAVITY` are retuned (all three are explicitly called out
+elsewhere as Phase-12 targets), this script would silently start reporting "mechanic
+unreachable" for every encounter past that gap, with nothing connecting the failure to this
+assumption.
+
+**Fix:** Add an assertion/comment cross-checking `gap width < RUN_SPEED * jump hangtime` per
+level at script startup so a future gap/tuning change fails loudly here instead of producing
+a confusing "unreachable" diagnostic; consider supporting multiple jumps per gap.
 
 ## Info
 
-### IN-01: Brittle hardcoded timing assumptions in `browser-boot.mjs`'s mechanic checks
+### IN-01: Hardcoded, machine-specific Playwright fallback path duplicated verbatim in two files
 
-**File:** `scripts/browser-boot.mjs:102-135`
-**Issue:** The level-01 mechanic checks hold `ArrowRight` for fixed durations derived from a
-comment-only calculation ("~236px from spawn at RUN_SPEED 240px/s ~= 983ms; rounded up with
-margin") rather than polling the live player position. If `CONFIG.RUN_SPEED` or the level-01
-geometry coordinates change, this test will silently start failing (or worse, silently pass
-for the wrong reason) without any code-level connection to the values it assumes.
-`scripts/audit-phase21-mechanics.mjs`'s `driveToX` (added later in this same phase) already
-solves this correctly by polling `player.pos.x` live.
-**Fix:** Port `driveToX`'s polling approach into `browser-boot.mjs`, or have it read the same
-level geometry (`getLevel`) to derive target x-coordinates instead of hardcoded ms waits.
+**File:** `scripts/audit-phase21-mechanics.mjs:30-47`, `scripts/browser-boot.mjs:17-34`
 
-### IN-02: Visual floor/platform tiling can overflow past the collider bounds for non-multiple-of-tile widths
+**Issue:** Both scripts attempt normal dependency resolution first and accept a
+`PLAYWRIGHT_MJS_PATH` override, but the final fallback is one specific developer's absolute
+home directory / `nvm` Node version / global package location, copy-pasted identically into
+both files. Breaks silently on any other machine/CI without the override set.
 
-**File:** `src/levels/build.js:93-95, 110-112`
+**Fix:** Add `playwright` as a real devDependency once this project has a `package.json`;
+until then, extract the shared `resolvePlaywright()` helper into one module both scripts
+import instead of duplicating it.
+
+### IN-02: MIME type table drift between the two near-identical local servers
+
+**File:** `scripts/audit-phase21-mechanics.mjs:56-66`, `scripts/browser-boot.mjs:42-54`
+
+**Issue:** `browser-boot.mjs`'s `MIME` map includes `.wav`/`.mp3` entries; the otherwise
+line-for-line-identical server in `audit-phase21-mechanics.mjs` does not. Any audio asset
+loaded during the mechanics audit run would be served with the generic
+`application/octet-stream` fallback instead of the correct audio MIME type.
+
+**Fix:** Extract one shared `MIME` map (per WR-01) so the two copies cannot drift.
+
+### IN-03: Answer-box layout constants in `challenge.js` are inline magic numbers, unlike sibling `CONFIG.GATE.*` constants
+
+**File:** `src/ui/challenge.js:203-205`
+
 **Issue:**
 ```js
-for (let tx = run.x; tx < run.x + run.w; tx += T) {
-  add([sprite("ground", { frame: pickTopFrame(tx, run.x, run.w) }), pos(tx, FLOOR_Y)]);
-}
+const BOX_W = 84;
+const BOX_H = 44;
+const GAP = 16;
 ```
-If `run.w` (or a platform's `p.w`) is not an exact multiple of `CONFIG.TILE_SIZE`, the last
-visual tile is placed starting at an x still `< run.x + run.w`, but its full `T`-wide sprite
-extends past the collider's actual right edge — a visual overhang beyond the physical solid
-region. This only manifests if a level descriptor's authored width isn't tile-aligned, but
-there's no assertion guarding that invariant here.
-**Fix:** Add a dev-time assertion (e.g. `if (run.w % T !== 0) console.warn(...)`) in
-`buildLevel`, or document the tile-alignment requirement directly on the level descriptor
-schema.
+Every other layout dimension this file draws on (`CONFIG.GATE.PANEL_W`, `PANEL_H`,
+`DIM_OPACITY`) is centralized in `CONFIG`, but these three are local literals, inconsistent
+with the established convention and harder to retune alongside the panel size they must fit
+inside.
+
+**Fix:** Move `BOX_W`/`BOX_H`/`GAP` into `CONFIG.GATE` alongside `PANEL_W`/`PANEL_H`.
+
+### IN-04: Visual floor/platform tiling can overhang the collider for non-tile-aligned widths
+
+**File:** `src/levels/build.js:93-95, 110-112`
+
+**Issue:** `for (let tx = run.x; tx < run.x + run.w; tx += T)` places a full `T`-wide visual
+tile as long as its start x is `< run.x + run.w`. If `run.w` (or a platform's `p.w`) is ever
+not an exact multiple of `CONFIG.TILE_SIZE`, the final tile's sprite extends past the
+collider's actual right edge — a purely visual overhang beyond the physical solid region.
+Every current level's runs/platforms happen to be tile-aligned, so this is currently latent,
+not manifesting.
+
+**Fix:** Add a dev-time assertion (`if (run.w % T !== 0) console.warn(...)`) in `buildLevel`,
+or document the tile-alignment requirement on the level descriptor schema.
 
 ---
 
-_Reviewed: 2026-07-04T14:38:14Z_
+_Reviewed: 2026-07-04T00:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
