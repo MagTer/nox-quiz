@@ -55,8 +55,12 @@ export function wireEnemy({ player, brain }) {
 
         fx.clearBurst();
 
-        // Destroy the touched collider and its glyph BEFORE unfreezing.
+        // Destroy the touched collider, its visible panel, and its glyph BEFORE unfreezing.
+        // CR-02: enemyObj is now the invisible tall anti-jump-over blocker (mirrors
+        // door.js); the visible panel is a separate, non-colliding cosmetic object that
+        // must be destroyed alongside it or a panel-with-no-collider would be left behind.
         destroy(enemyObj);
+        if (enemyObj.panelObj) destroy(enemyObj.panelObj);
         if (enemyObj.glyphObj) destroy(enemyObj.glyphObj);
 
         player.paused = false;

@@ -183,14 +183,28 @@ export function buildLevel(levelData) {
 
   // --- Checkpoint math gates (MECH-04) ---
   for (const mg of g.mathGates ?? []) {
+    // CR-02: same apex-derived tall invisible blocker as the door pattern above — the
+    // cosmetic MATH_GATE.H (64px) box alone is well under the ~97px jump apex, so a
+    // normal running jump cleared the checkpoint entirely, skipping the required
+    // math-answer interaction. Solid collider lives on this tall blocker (tagged
+    // "math-gate", the tag gates.js listens for); the visible panel below is purely
+    // cosmetic with no area()/body(), same split the door uses.
+    const blockerH = Math.ceil((CONFIG.JUMP_FORCE ** 2) / (2 * CONFIG.GRAVITY)) + 64; // apex + margin
     const gateObj = add([
-      rect(CONFIG.MATH_GATE.W, CONFIG.MATH_GATE.H),
-      pos(mg.x, mg.y),
+      rect(CONFIG.MATH_GATE.W, blockerH),
+      pos(mg.x, mg.y + CONFIG.MATH_GATE.H - blockerH),
+      opacity(0), // invisible — the visible panel below provides the art
       area(),
       body({ isStatic: true }),
+      "math-gate",
+    ]);
+
+    const panel = add([
+      rect(CONFIG.MATH_GATE.W, CONFIG.MATH_GATE.H),
+      pos(mg.x, mg.y),
       color(...CONFIG.MATH_GATE.LOCKED_GREY),
       outline(2, rgb(...CONFIG.MATH_GATE.LOCKED_BORDER)),
-      "math-gate",
+      "math-gate-panel",
     ]);
 
     const glyph = add([
@@ -201,18 +215,33 @@ export function buildLevel(levelData) {
       "math-gate-glyph",
     ]);
 
+    gateObj.panelObj = panel;
     gateObj.glyphObj = glyph;
   }
 
   // --- Defeat-enemy encounters (MECH-05) ---
   for (const e of g.enemies ?? []) {
+    // CR-02: same apex-derived tall invisible blocker as doors/math-gates above — the
+    // cosmetic ENEMY.H (32px) box alone is well under the ~97px jump apex, so a normal
+    // running jump cleared the encounter entirely, skipping the required math-answer
+    // interaction. Solid collider lives on this tall blocker (tagged "enemy", the tag
+    // enemy.js listens for); the visible panel below is purely cosmetic with no
+    // area()/body(), same split the door/math-gate use.
+    const blockerH = Math.ceil((CONFIG.JUMP_FORCE ** 2) / (2 * CONFIG.GRAVITY)) + 64; // apex + margin
     const enemyObj = add([
-      rect(CONFIG.ENEMY.W, CONFIG.ENEMY.H),
-      pos(e.x, e.y),
+      rect(CONFIG.ENEMY.W, blockerH),
+      pos(e.x, e.y + CONFIG.ENEMY.H - blockerH),
+      opacity(0), // invisible — the visible panel below provides the art
       area(),
       body({ isStatic: true }),
-      color(...CONFIG.ENEMY.COLOR),
       "enemy",
+    ]);
+
+    const panel = add([
+      rect(CONFIG.ENEMY.W, CONFIG.ENEMY.H),
+      pos(e.x, e.y),
+      color(...CONFIG.ENEMY.COLOR),
+      "enemy-panel",
     ]);
 
     const glyph = add([
@@ -223,6 +252,7 @@ export function buildLevel(levelData) {
       "enemy-glyph",
     ]);
 
+    enemyObj.panelObj = panel;
     enemyObj.glyphObj = glyph;
   }
 
