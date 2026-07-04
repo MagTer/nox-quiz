@@ -98,6 +98,14 @@ function deriveEncounters(geometry) {
  * iteration cap. Returns { reachedX, triggered }.
  */
 async function driveToX(page, targetX, gapRanges) {
+  // Bug fix (Rule 1): a prior encounter's collect-zone challenge (renderChoices:false)
+  // is deliberately left OPEN by resolveIfBoxed (movement stays live, per collect.js's
+  // design) — so a bare `get("challenge").length > 0` check here would report the very
+  // NEXT mechanic as instantly "triggered" from a stale, unrelated challenge that never
+  // closed, before the player has moved at all. Capture a baseline count and only treat
+  // a challenge as newly triggered when the live count exceeds that baseline.
+  const baseline = await page.evaluate(() => get("challenge").length);
+
   await page.keyboard.down("ArrowRight");
   const jumped = new Set();
   let x = null;
@@ -116,13 +124,25 @@ async function driveToX(page, targetX, gapRanges) {
       if (x !== null) {
         for (const gap of gapRanges) {
           if (!jumped.has(gap.start) && x >= gap.start - 24 && x < gap.end) {
-            await page.keyboard.press("space");
+            // Playwright's key name is "Space" (capitalized) — matches every other
+            // Space press already used in browser-boot.mjs/screenshot-phase20.mjs;
+            // the lowercase "space" throws "Unknown key" (Rule 1 fix).
+            //
+            // Bug fix (Rule 1): a bare press() sends keydown+keyup back-to-back, which
+            // src/player.js's onKeyRelease(JUMP_KEYS) reads as an EARLY release while
+            // still rising (vel.y < 0) and applies CONFIG.JUMP_CUT (0.45x), truncating
+            // the jump to a fraction of its range — nowhere near enough to clear an
+            // authored gap. Holding through delay:450ms (> JUMP_FORCE/GRAVITY = 371ms
+            // time-to-apex) means release always happens at or past the apex (vel.y >=
+            // 0), so the cut never applies and the jump covers its full, intended arc.
+            await page.keyboard.press("Space", { delay: 450 });
             jumped.add(gap.start);
           }
         }
       }
 
-      triggered = await page.evaluate(() => get("challenge").length > 0);
+      const challengeCount = await page.evaluate(() => get("challenge").length);
+      triggered = challengeCount > baseline;
 
       if ((x !== null && x >= targetX - 16) || triggered) {
         break;
@@ -150,6 +170,17 @@ async function driveToX(page, targetX, gapRanges) {
 async function resolveIfBoxed(page, renderChoices) {
   if (!renderChoices) {
     return { resolved: null };
+  }
+
+  // Bug fix (Rule 1): if driveToX never actually reached this mechanic (80-iteration
+  // cap hit, no challenge ever opened), get("challenge").length is already 0 here. The
+  // original cycle pressed 1-4 anyway and read `left === 0` as "resolved" on the very
+  // first check — vacuously true, since there was nothing open to resolve in the first
+  // place. Guard against that false positive: only attempt resolution if a challenge is
+  // actually open; otherwise report resolved:false (nothing to resolve == not resolved).
+  const initial = await page.evaluate(() => get("challenge").length);
+  if (initial === 0) {
+    return { resolved: false };
   }
 
   for (const k of ["1", "2", "3", "4"]) {
