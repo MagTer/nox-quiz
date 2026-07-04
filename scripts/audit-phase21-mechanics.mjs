@@ -104,6 +104,46 @@ function deriveGapRanges(geometry) {
 }
 
 /**
+ * WR-04: driveToX's `jumped` Set (keyed by gap.start) permits at most ONE Space press
+ * per gap for the entire approach — this currently works only because every authored
+ * gap is (assumed to be) narrower than a single jump's full horizontal travel distance,
+ * a coincidence of tuning that was previously neither checked nor asserted anywhere. If
+ * a level's gap is at or beyond that distance, or RUN_SPEED/JUMP_FORCE/GRAVITY are
+ * retuned (all three are explicitly called out elsewhere as Phase-12 targets), driveToX
+ * silently starts reporting "mechanic unreachable" for every encounter past that gap,
+ * with nothing connecting the failure to this assumption. Surface it loudly, per level,
+ * BEFORE any driving happens, so the assumption's violation is immediately attributable
+ * instead of surfacing only as a confusing downstream "reachedX far short of targetX"
+ * symptom buried in the results.
+ *
+ * Deliberately NON-FATAL (console.error, not throw): this script's own header states it
+ * "always exits 0 — it is a diagnostic tool," and empirically (this task) at least one
+ * shipped level's gap already sits right at this boundary — a hard throw here would
+ * crash the whole diagnostic run and produce LESS signal than the "mechanic unreachable"
+ * message driveToX already logs per-encounter, not more. A future fix for the underlying
+ * one-jump-per-gap limitation is tracked as WR-04's "consider supporting multiple jumps
+ * per gap"; this check's job is only to make the assumption's violation loud and
+ * attributable, not to change driveToX's jump behavior.
+ */
+function assertGapsAreSingleJumpable(levelId, gapRanges) {
+  const jumpHangtimeS = (2 * CONFIG.JUMP_FORCE) / CONFIG.GRAVITY; // full up+down arc, symmetric
+  const maxJumpDistance = CONFIG.RUN_SPEED * jumpHangtimeS;
+  for (const gap of gapRanges) {
+    const width = gap.end - gap.start;
+    if (width >= maxJumpDistance) {
+      console.error(
+        `WR-04 WARNING: ${levelId}: gap [${gap.start}, ${gap.end}) is ${width}px wide — at or ` +
+          `beyond the ~${maxJumpDistance.toFixed(1)}px single-jump travel distance current ` +
+          `RUN_SPEED(${CONFIG.RUN_SPEED})/JUMP_FORCE(${CONFIG.JUMP_FORCE})/GRAVITY(${CONFIG.GRAVITY}) ` +
+          `tuning allows. driveToX's one-Space-press-per-gap model cannot reliably clear this — ` +
+          `expect "mechanic unreachable" for encounters past this gap below. Update driveToX to ` +
+          `support multiple jumps per gap, or retune the level/physics.`
+      );
+    }
+  }
+}
+
+/**
  * Merge every mechanic type present in geometry into one ascending-x-sorted list,
  * each tagged with its Kaplay collision tag and whether challenge.js renders an
  * answer-box grid for it (door/mathGate/enemy: true; collect zone: false).
@@ -266,6 +306,13 @@ const server = createServer(async (req, res) => {
     res.end("Not found");
   }
 });
+
+// WR-04: run the single-jump-per-gap assertion for every level's geometry BEFORE
+// launching the browser at all ("at script startup", per the fix) — this is pure data
+// derived from level.geometry, no page/browser dependency required.
+for (const id of LEVEL_ORDER) {
+  assertGapsAreSingleJumpable(id, deriveGapRanges(getLevel(id).geometry));
+}
 
 await new Promise((res) => server.listen(PORT, "127.0.0.1", res));
 
