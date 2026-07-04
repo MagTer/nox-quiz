@@ -15,13 +15,41 @@
 // results array + the final AUDIT: line) is interpreted by Task 2, not a pass/fail
 // commit gate like browser-boot.mjs.
 
-import { chromium } from "/home/magnus/.nvm/versions/node/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs";
+import { createRequire } from "module";
 import { createServer } from "http";
 import { readFile } from "fs/promises";
-import { extname, join } from "path";
+import { extname, join, resolve } from "path";
 import { getLevel, LEVEL_ORDER } from "../src/levels/index.js";
 
+// WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
+// path. Tries (1) normal project-relative resolution (works once `playwright` is a real
+// devDependency), then (2) an explicit override via PLAYWRIGHT_MJS_PATH (for CI/other
+// machines), then (3) this machine's known global install location as a last-resort
+// fallback so the script keeps working here without requiring a package.json/npm install
+// in this zero-dependency, no-build-step project (see CLAUDE.md).
+const FALLBACK_PLAYWRIGHT_PATH =
+  "/home/magnus/.nvm/versions/node/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs";
+
+async function resolvePlaywright() {
+  const require = createRequire(import.meta.url);
+  try {
+    return await import(require.resolve("playwright"));
+  } catch {
+    // not resolvable as a normal project dependency — fall through
+  }
+  const overridePath = process.env.PLAYWRIGHT_MJS_PATH;
+  if (overridePath) return await import(overridePath);
+  console.warn(
+    `playwright not resolvable as a project dependency; falling back to ${FALLBACK_PLAYWRIGHT_PATH}. ` +
+      "Set PLAYWRIGHT_MJS_PATH to override on other machines."
+  );
+  return await import(FALLBACK_PLAYWRIGHT_PATH);
+}
+
+const { chromium } = await resolvePlaywright();
+
 const ROOT = new URL("../", import.meta.url);
+const ROOT_ABS = resolve(ROOT.pathname);
 const PORT = 8768;
 
 const MIME = {
@@ -197,9 +225,16 @@ async function resolveIfBoxed(page, renderChoices) {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
-  let path = decodeURIComponent(url.pathname);
-  if (path === "/") path = "/index.html";
-  const filePath = join(ROOT.pathname, path);
+  let reqPath = decodeURIComponent(url.pathname);
+  if (reqPath === "/") reqPath = "/index.html";
+  // CR-02: resolve + clamp to ROOT so `..` segments can't escape the served directory
+  // (path traversal), and bind to loopback only (not all interfaces) below.
+  const filePath = resolve(join(ROOT.pathname, reqPath));
+  if (!filePath.startsWith(ROOT_ABS)) {
+    res.writeHead(403);
+    res.end("Forbidden");
+    return;
+  }
   try {
     const data = await readFile(filePath);
     const mime = MIME[extname(filePath)] || "application/octet-stream";
@@ -211,7 +246,7 @@ const server = createServer(async (req, res) => {
   }
 });
 
-await new Promise((res) => server.listen(PORT, res));
+await new Promise((res) => server.listen(PORT, "127.0.0.1", res));
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
@@ -278,9 +313,9 @@ try {
 
   console.log(JSON.stringify(results, null, 2));
 
-  const allGood = results.every(
-    (r) => r.triggered === true && (r.renderChoices === false || r.resolved !== false)
-  );
+  // WR-01: the previous `allGood` computation here was dead (never read) and referenced a
+  // non-existent `r.renderChoices` field on the pushed result objects — removed. Pass/fail
+  // is driven entirely by `allResolvedOrCollect`/`failing` below, keyed off `r.tag`.
   const allResolvedOrCollect = results.every((r) => {
     if (r.tag === "answer-zone") return r.triggered === true;
     return r.triggered === true && r.resolved === true;
