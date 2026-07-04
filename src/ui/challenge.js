@@ -100,6 +100,24 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
   // Fire-once latch for onSuccess (a correct pick must fire EXACTLY once — Pitfall 5).
   let cleared = false;
 
+  // 21-06 fix — New Finding 4's VISUAL-overlap half (the state-corruption half was already
+  // closed above via instanceTag scoping). Snapshot every already-open earlier challenge's
+  // objects BEFORE this instance creates any of its own — at this point in openChallenge(),
+  // none of THIS instance's own add([...]) calls have run yet, so get("challenge") returns
+  // exactly (and only) whichever OTHER, earlier-opened instance's objects are still live (at
+  // most one, per this file's own interfaces note: door/gates/enemy all freeze the player via
+  // player.paused = true before calling openChallenge(), so a frozen player cannot physically
+  // trigger a THIRD mechanic — max concurrent-open depth is always exactly 2). Hide (not
+  // destroy) them for the duration: this keeps an older, non-freezing challenge (e.g.
+  // collect.js's zone) fully alive and independently resolvable underneath, with only its
+  // rendering suppressed while the newer overlay is on top. Deliberately NOT a "refuse to open
+  // a second challenge" guard — that would strand a frozen player with no overlay to answer,
+  // a soft-lock strictly worse than the visual-overlap bug this closes.
+  const priorChallengeObjs = get("challenge");
+  if (priorChallengeObjs.length > 0) {
+    for (const o of priorChallengeObjs) o.hidden = true;
+  }
+
   // CR-01 fix (2nd review pass): every object below carries BOTH the generic "challenge"
   // tag (kept so external callers/diagnostics like get("challenge").length can still detect
   // "is ANY challenge open" across instances) AND a per-invocation instanceTag. close()
@@ -298,6 +316,13 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
   function close() {
     keyCtrls.forEach((c) => c.cancel());
     destroyAll(instanceTag); // tag-based bulk removal scoped to THIS session only
+
+    // 21-06 fix: restore visibility of whatever THIS instance hid on open (the
+    // priorChallengeObjs snapshot captured once, closure-local, above). Runs AFTER the
+    // destroyAll teardown so this instance's own objects are already gone; if the restored
+    // objects belong to a still-unresolved earlier challenge (e.g. collect.js's zone), that
+    // challenge's overlay reappears exactly as it was, still fully resolvable.
+    for (const o of priorChallengeObjs) o.hidden = false;
   }
 
   return { close };
