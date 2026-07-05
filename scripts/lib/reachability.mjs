@@ -210,6 +210,135 @@ export function bfsReachableSet(graph, startNodeId) {
   return visited;
 }
 
+/**
+ * BFS from `startNodeId` that additionally records, for the first-discovered path
+ * to each node, the MAX marginRatio seen along that path (the worst hop on the
+ * way) — a straightforward way to answer "is there a path, and how tight is its
+ * tightest hop" without solving a full shortest-path optimization (this is a pure
+ * connectivity question per 23-RESEARCH.md Pattern 2, not a weighted-shortest-path
+ * one). Returns Map<nodeId, maxMarginRatioAlongFirstFoundPath>; startNodeId maps
+ * to 0 (no hop needed to reach itself).
+ */
+function bfsWithPathMargin(graph, startNodeId) {
+  const visited = new Map();
+  if (!graph.has(startNodeId)) return visited;
+  visited.set(startNodeId, 0);
+  const queue = [startNodeId];
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    const curMax = visited.get(cur);
+    for (const edge of graph.get(cur) ?? []) {
+      if (!visited.has(edge.to)) {
+        visited.set(edge.to, Math.max(curMax, edge.marginRatio));
+        queue.push(edge.to);
+      }
+    }
+  }
+  return visited;
+}
+
+// Barrier footprint widths, mirroring over-hole-check.mjs's convention — used only
+// to make mechanic-reachability descriptors name the offending entity's full
+// footprint (per CONTEXT's "offending descriptor" output-format decision), not for
+// any reachability arithmetic.
+const BARRIER_WIDTH = {
+  doors: CONFIG.DOOR.W,
+  mathGates: CONFIG.MATH_GATE.W,
+  enemies: CONFIG.ENEMY.W,
+  collectZones: CONFIG.COLLECT.ZONE_W,
+};
+
+/**
+ * Compose buildNodes/buildGraph/bfsReachableSet into the three ROADMAP-named
+ * checks: spawn-goal, gap-width, mechanic-reachability. Returns
+ * { rows: [{check, status, descriptor}], hardFailCount }.
+ *
+ * HARD-FAIL: exact graph-connectivity fact (no path exists) or a barrier/goal not
+ * on any floor run. WARN: a path exists but its tightest hop used
+ * >= WARN_MARGIN_RATIO of the calibrated envelope. PASS: otherwise. WARN rows
+ * never increment hardFailCount.
+ */
+export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
+  const nodes = buildNodes(geometry);
+  const graph = buildGraph(nodes, envelope);
+  const rows = [];
+
+  const floorNodes = nodes.filter((n) => n.id.startsWith("floor-"));
+  const spawnNode = nodeContaining(nodes, SPAWN_X);
+  const spawnPaths = spawnNode ? bfsWithPathMargin(graph, spawnNode.id) : new Map();
+
+  // --- spawn-goal ---
+  const goalX = geometry.goal?.x;
+  const goalNode = goalX !== undefined ? nodeContaining(nodes, goalX) : undefined;
+  if (!goalNode || !spawnPaths.has(goalNode.id)) {
+    rows.push({
+      check: "spawn-goal",
+      status: "HARD-FAIL",
+      descriptor: `goal x:${goalX ?? "undefined"} unreachable from spawn`,
+    });
+  } else {
+    const margin = spawnPaths.get(goalNode.id);
+    rows.push({
+      check: "spawn-goal",
+      status: margin >= WARN_MARGIN_RATIO ? "WARN" : "PASS",
+      descriptor: `goal x:${goalX} reached via ${goalNode.id} (marginRatio=${margin.toFixed(3)})`,
+    });
+  }
+
+  // --- gap-width: every pair of x-adjacent floor runs ---
+  const sortedFloors = [...floorNodes].sort((a, b) => a.xStart - b.xStart);
+  for (let i = 0; i < sortedFloors.length - 1; i++) {
+    const a = sortedFloors[i];
+    const b = sortedFloors[i + 1];
+    const pathsFromA = bfsWithPathMargin(graph, a.id);
+    const pathsFromB = bfsWithPathMargin(graph, b.id);
+    const candidates = [pathsFromA.get(b.id), pathsFromB.get(a.id)].filter(
+      (m) => m !== undefined
+    );
+    if (candidates.length === 0) {
+      rows.push({
+        check: "gap-width",
+        status: "HARD-FAIL",
+        descriptor: `gap ${a.xEnd}..${b.xStart} between ${a.id} and ${b.id} unreachable`,
+      });
+    } else {
+      const best = Math.min(...candidates);
+      rows.push({
+        check: "gap-width",
+        status: best >= WARN_MARGIN_RATIO ? "WARN" : "PASS",
+        descriptor: `gap ${a.xEnd}..${b.xStart} between ${a.id} and ${b.id} (marginRatio=${best.toFixed(3)})`,
+      });
+    }
+  }
+
+  // --- mechanic-reachability: doors / mathGates / enemies / collectZones ---
+  for (const kind of ["doors", "mathGates", "enemies", "collectZones"]) {
+    for (const e of geometry[kind] ?? []) {
+      const w = BARRIER_WIDTH[kind];
+      const node = nodeContaining(floorNodes, e.x);
+      if (!node) {
+        rows.push({
+          check: "mechanic-reachability",
+          status: "HARD-FAIL",
+          descriptor: `${kind} x:${e.x}..${e.x + w} not on any floor run`,
+        });
+        continue;
+      }
+      const reachable = spawnPaths.has(node.id);
+      rows.push({
+        check: "mechanic-reachability",
+        status: reachable ? "PASS" : "HARD-FAIL",
+        descriptor: reachable
+          ? `${kind} x:${e.x}..${e.x + w} on ${node.id} reachable from spawn`
+          : `${kind} x:${e.x}..${e.x + w} on ${node.id} not reachable from spawn`,
+      });
+    }
+  }
+
+  const hardFailCount = rows.filter((r) => r.status === "HARD-FAIL").length;
+  return { rows, hardFailCount };
+}
+
 // --- Self-test (runs only when this module is executed directly) ---
 // Mirrors scripts/smoke-progress.mjs's check(cond, msg)/failures-counter/
 // process.exit(1) idiom — this project's no-framework unit-test layer. Uses small
@@ -224,6 +353,8 @@ if (isMain) {
   };
 
   const testEnvelope = { maxRise: 88.331, runSpeed: 218.043 };
+
+  // --- Task 1 behavior cases ---
 
   // Case 1: same-y (Δy=0) floor nodes 150px apart — canReach returns non-null.
   {
@@ -289,6 +420,102 @@ if (isMain) {
     }
     check(!threw, "buildNodes must never throw on an omitted platforms array");
     check(Array.isArray(nodes) && nodes.length === 1, `expected 1 node for a single floor with no platforms, got ${JSON.stringify(nodes)}`);
+  }
+
+  // --- Task 2 behavior cases ---
+
+  // Case A: no path at all from spawn to goal -> spawn-goal HARD-FAIL, hardFailCount >= 1.
+  {
+    const geometry = {
+      floors: [
+        { x: 0, w: 100 }, // spawn (x:64) sits here
+        { x: 900, w: 100 }, // isolated — far beyond any hop from floor-0
+      ],
+      goal: { x: 950, y: 320 },
+    };
+    const { rows, hardFailCount } = checkLevelReachability(geometry, testEnvelope);
+    const spawnGoalRow = rows.find((r) => r.check === "spawn-goal");
+    check(spawnGoalRow?.status === "HARD-FAIL", `expected spawn-goal HARD-FAIL for an unreachable goal, got ${JSON.stringify(spawnGoalRow)}`);
+    check(hardFailCount >= 1, `expected hardFailCount >= 1, got ${hardFailCount}`);
+  }
+
+  // Case B: spawn CAN reach goal but only via a hop whose marginRatio >= WARN_MARGIN_RATIO
+  // -> spawn-goal WARN, does NOT increment hardFailCount.
+  {
+    // A same-y gap sized so the only candidate reach sits just under the envelope's
+    // full flat-Δy reach, giving marginRatio close to (but below) 1 and >= 0.9.
+    const flatT = 2 * CONFIG.JUMP_FORCE / CONFIG.GRAVITY;
+    const maxFlatReach = testEnvelope.runSpeed * flatT;
+    const tightGapWidth = Math.floor(maxFlatReach * 0.95); // >=90% of full envelope reach
+    const geometry = {
+      floors: [
+        { x: 0, w: 100 }, // spawn sits here
+        { x: 100 + tightGapWidth, w: 200 },
+      ],
+      goal: { x: 100 + tightGapWidth + 50, y: 320 },
+    };
+    const { rows, hardFailCount: hfBefore } = checkLevelReachability(geometry, testEnvelope);
+    const spawnGoalRow = rows.find((r) => r.check === "spawn-goal");
+    check(spawnGoalRow?.status === "WARN", `expected spawn-goal WARN for a tight-margin hop, got ${JSON.stringify(spawnGoalRow)}`);
+    const hardFailFromSpawnGoal = spawnGoalRow?.status === "HARD-FAIL" ? 1 : 0;
+    check(hardFailFromSpawnGoal === 0, "a WARN spawn-goal row must never count toward hardFailCount");
+    check(hfBefore === 0, `expected hardFailCount === 0 for an otherwise-clean tight-but-passable level, got ${hfBefore}`);
+  }
+
+  // Case C: a mathGate whose x is not contained by any floor-run node's span ->
+  // mechanic-reachability HARD-FAIL.
+  {
+    const geometry = {
+      floors: [{ x: 0, w: 200 }],
+      mathGates: [{ x: 500, y: 256 }], // 500 is nowhere near the single 0..200 floor run
+      goal: { x: 150, y: 320 },
+    };
+    const { rows } = checkLevelReachability(geometry, testEnvelope);
+    const gateRow = rows.find((r) => r.check === "mechanic-reachability");
+    check(gateRow?.status === "HARD-FAIL", `expected mechanic-reachability HARD-FAIL for a mathGate off any floor run, got ${JSON.stringify(gateRow)}`);
+  }
+
+  // Case D: a fully-connected, well-supported synthetic level -> rows span exactly
+  // the three check names, hardFailCount === 0.
+  {
+    const geometry = {
+      floors: [
+        { x: 0, w: 200 }, // spawn sits here
+        { x: 300, w: 200 }, // 100px gap, well within the envelope
+      ],
+      mathGates: [{ x: 350, y: 256 }],
+      goal: { x: 450, y: 320 },
+    };
+    const { rows, hardFailCount } = checkLevelReachability(geometry, testEnvelope);
+    const checkNames = new Set(rows.map((r) => r.check));
+    check(
+      checkNames.size === 3 &&
+        checkNames.has("spawn-goal") &&
+        checkNames.has("gap-width") &&
+        checkNames.has("mechanic-reachability"),
+      `expected exactly the 3 check names, got ${JSON.stringify([...checkNames])}`
+    );
+    check(hardFailCount === 0, `expected hardFailCount === 0 for a fully-connected well-supported level, got ${hardFailCount}`);
+    check(
+      rows.every((r) => typeof r.descriptor === "string" && r.descriptor.length > 0),
+      "every row must carry a non-empty descriptor string"
+    );
+  }
+
+  // Additional Task 2 acceptance check: mechanic-reachability loop is ?? []-guarded
+  // — an omitted doors/mathGates/enemies/collectZones array produces zero rows, no throw.
+  {
+    const geometry = { floors: [{ x: 0, w: 200 }], goal: { x: 100, y: 320 } };
+    let threw = false;
+    let result;
+    try {
+      result = checkLevelReachability(geometry, testEnvelope);
+    } catch {
+      threw = true;
+    }
+    check(!threw, "checkLevelReachability must never throw when doors/mathGates/enemies/collectZones are all omitted");
+    const mechRows = result?.rows.filter((r) => r.check === "mechanic-reachability") ?? [];
+    check(mechRows.length === 0, `expected zero mechanic-reachability rows when all barrier arrays are omitted, got ${mechRows.length}`);
   }
 
   if (failures > 0) {
