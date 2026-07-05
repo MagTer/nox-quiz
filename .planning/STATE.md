@@ -5,7 +5,7 @@ milestone_name: Nox Run — Real Levels
 current_phase: 23
 current_phase_name: Level Validation Harness
 status: verifying
-stopped_at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
+stopped_at: Phase 22 complete (verification passed 14/14), ready to plan Phase 23
 last_updated: "2026-07-05T20:16:17.201Z"
 last_activity: 2026-07-05
 last_activity_desc: Phase 22 complete, transitioned to Phase 23
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-05)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 22 — implementation-review-auto-fix
+**Current Focus:** Phase 23 — Level Validation Harness
 
 **Shipped State (v4.1):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion — with real curated CC0 art under human sign-off and interactively-audited mechanics. All prior milestone requirements satisfied.
 
@@ -38,12 +38,12 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 Phase: 23 — Level Validation Harness
 Plan: Not started
-Status: Phase 22 complete — ready for verification
+Status: Phase 22 complete — verification passed (14/14 must-haves) — ready to plan Phase 23
 Last activity: 2026-07-05 — Phase 22 complete, transitioned to Phase 23
 
 Progress: [█░░░░░░░░░] 14% (1/7 phases)
 
-**Next:** `/gsd-verify-work 22`
+**Next:** `/gsd-discuss-phase 23` (optional: `/gsd-verify-work 22` for human UAT pass, `/gsd-secure-phase 22` for security enforcement)
 
 ## v5.0 Roadmap Summary
 
@@ -104,6 +104,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 
 - **Research flags:** Phase 23 (validator) — hop-envelope edge cases + one-time empirical calibration against the real engine; Phase 27 (audio) — re-verify exact Kaplay 3001 `play()` handle/volume/autoplay semantics against `lib/kaplay.mjs` before implementing
 - **Audit blind spot:** 6/16 mechanic encounters unreachable by the v4.1 harness (spike-timing resonance, documented in 21-FINDINGS.md) — must shrink in Phase 23 and close or except in Phase 28 (VALID-03)
+- **[Phase 22] 22-REVIEW.md latent warnings (advisory, none live on shipped content):** collect.js zone→slots→choices contract unvalidated — becomes live with Phase 25 multi-zone content; check-gate.sh comment stripper misses block comments (false-GREEN path) and the no-timer pattern misses column-0 `wait(` — both matter for Phase 23's validator/gate work
 
 ## Deferred Items
 
@@ -129,11 +130,11 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-05T19:51:12.893Z
-Stopped at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
+Last session: 2026-07-05T20:20:00Z
+Stopped at: Phase 22 complete (verification passed 14/14), ready to plan Phase 23
 Resume file: None
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-07-05 (v5.0 roadmap created)
+**Last updated:** 2026-07-05 (Phase 22 complete, transitioned to Phase 23)
