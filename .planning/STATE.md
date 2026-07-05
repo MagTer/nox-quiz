@@ -6,7 +6,7 @@ current_phase: 22
 current_phase_name: Implementation Review & Auto-Fix
 status: executing
 stopped_at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
-last_updated: "2026-07-05T15:20:20.541Z"
+last_updated: "2026-07-05T15:21:25.026Z"
 last_activity: 2026-07-05
 last_activity_desc: Phase 22 execution started
 progress:
@@ -76,6 +76,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - **Zero new runtime dependencies** — no Howler.js, no npm, no Kaplay upgrade; use vendored Kaplay's audio API (`setVolume`, not deprecated `volume()`)
 - **Validator trusted only after catching the known live bugs** (door-over-hole, unreachable areas) — Phase 22 inventories them but leaves them in place for Phase 23's RED calibration; Phase 24 fixes them
 - **v4.1 verification standard holds** — no phase closes on greps/automation alone; interactive proof + human sign-off where claimed
+- [Phase 22-01]: Audit baseline nondeterministic on 3 rows (L1 mg1300, L1 door1400, L3 mg420); Plan 22-05 must diff against stable cores (5 always-unreached, 8 always-reached), not the naive 6-unreached shape — Two identical-code audit runs produced different unreached sets; recorded in 22-FINDINGS.md Baseline
+- [Phase 22-01]: check-gate.sh assertions converted to read-to-EOF grep count form (pipefail-safe); patterns, fail messages, and assertion order byte-preserved — Fixes ~30% SIGPIPE flake diagnosed in Phase 21 deferred-items.md
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -103,6 +105,7 @@ Carried forward from previous milestone closes:
 | deploy | SETUP-02 live Dokploy URL playthrough confirmation (container curl-proven locally) | pending (DEPLOY-FUT-01) | v3.0 |
 | uat | MOVE-05 throttled/non-60Hz empirical feel check (code verified dt-correct) | pending, low-risk | v3.0 |
 | test-tooling | 6/16 encounter audit blind spot | actively addressed in v5.0 (VALID-03) | v4.1 |
+| Phase 22 P01 | 15min | 2 tasks | 2 files |
 
 ## Quick Tasks Completed
 
