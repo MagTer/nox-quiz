@@ -107,3 +107,11 @@ None - no external service configuration required.
 ---
 *Phase: 23-level-validation-harness*
 *Completed: 2026-07-05*
+
+## Self-Check: PASSED
+
+- FOUND: scripts/calibrate-jump-envelope.mjs
+- FOUND: scripts/lib/jump-envelope.mjs
+- FOUND: 228a0ff (Task 1 commit)
+- FOUND: f239ee9 (Task 2 commit)
+- FOUND: d2a9ad0 (Summary commit)
