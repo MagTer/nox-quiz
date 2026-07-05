@@ -120,3 +120,191 @@ a design change outside this plan's `must_haves`).
 both files remain byte-identical to their pre-plan state. The retry upgrade is isolated to
 the new `scripts/lib/audit-retry.mjs` module and the caller script
 `scripts/audit-phase21-mechanics.mjs`.
+
+## RED-First Proof (VALID-02)
+
+**Requirement:** VALID-02 — the real `scripts/validate-levels.mjs` gate (composing
+`over-hole-check.mjs` + `reachability.mjs`, promoted in Waves 1-2 and orchestrated in
+Plan 23-05, Task 1) must be run, unmodified, against the untouched levels 1-4 and shown
+to non-zero-exit while specifically naming the three known live over-hole defects
+(level-01 mathGate x600, level-01 mathGate x1300, level-04 mathGate x1800) inventoried in
+`22-FINDINGS.md`'s Structural Defect Inventory. This is the phase's capstone proof — the
+validator is only trusted as a gate once this section exists.
+
+### (a) Zero level-descriptor edits confirmed against the Phase 22 baseline
+
+Baseline commit (from `22-FINDINGS.md`): `5eedee870d314307a846bae254f61e7d1e0ef5f4`.
+
+```
+$ git diff --quiet 5eedee870d314307a846bae254f61e7d1e0ef5f4 -- src/levels/level-01.js src/levels/level-02.js src/levels/level-03.js src/levels/level-04.js
+$ echo $?
+0
+```
+
+Exit code `0` proves `src/levels/level-01.js` through `level-04.js` are byte-identical to
+the Phase 22 baseline right now, at the moment this RED-first proof was captured — this
+phase made ZERO level-descriptor edits anywhere, exactly as `23-CONTEXT.md` locks
+("Zero level-descriptor fixes in this phase... Phase 24 fixes them").
+
+### (b) Observed exit code
+
+```
+$ node scripts/validate-levels.mjs
+... (full output below)
+$ echo $?
+1
+```
+
+**Non-zero exit confirmed** — the validator FAILs against the real, untouched registry.
+
+### (c) Verbatim over-hole HARD-FAIL rows — all 3 known defects named
+
+Quoted directly from this run's own stdout (`node scripts/validate-levels.mjs`, no flag,
+2026-07-05):
+
+```
+level-01 | over-hole | HARD-FAIL | mathGates footprint 600..632
+level-01 | over-hole | HARD-FAIL | mathGates footprint 1300..1332
+level-04 | over-hole | HARD-FAIL | mathGates footprint 1800..1832
+```
+
+This independently and exactly names all three roadmap-named known live defects:
+**level-01 mathGate x600** (footprint `600..632`), **level-01 mathGate x1300** (footprint
+`1300..1332`), and **level-04 mathGate x1800** (footprint `1800..1832`) — matching
+`22-FINDINGS.md`'s Structural Defect Inventory rows verbatim (`600..632 OVER HOLE`,
+`1300..1332 OVER HOLE`, `1800..1832 OVER HOLE`). The over-hole check is exact interval
+arithmetic (not a margin call) — these three rows are unconditional HARD-FAILs.
+
+### (d) Full validator output against the real, untouched registry (verbatim)
+
+```
+level-01 | over-hole | HARD-FAIL | mathGates footprint 600..632
+level-01 | over-hole | HARD-FAIL | mathGates footprint 1300..1332
+level-01 | spawn-goal | WARN | goal x:2160 reached via floor-2 (marginRatio=1.000)
+level-01 | gap-width | WARN | gap 560..720 between floor-0 and floor-1 (marginRatio=1.000)
+level-01 | gap-width | WARN | gap 1200..1360 between floor-1 and floor-2 (marginRatio=1.000)
+level-01 | mechanic-reachability | PASS | doors x:1400..1432 on floor-2 reachable from spawn
+level-01 | mechanic-reachability | HARD-FAIL | mathGates x:600..632 not on any floor run
+level-01 | mechanic-reachability | HARD-FAIL | mathGates x:1300..1332 not on any floor run
+level-01 | mechanic-reachability | PASS | enemies x:1000..1032 on floor-1 reachable from spawn
+level-01 | mechanic-reachability | PASS | collectZones x:300..364 on floor-0 reachable from spawn
+level-02 | over-hole | PASS | (no floating barriers)
+level-02 | spawn-goal | HARD-FAIL | goal x:2720 unreachable from spawn
+level-02 | gap-width | HARD-FAIL | gap 520..700 between floor-0 and floor-1 unreachable
+level-02 | gap-width | WARN | gap 1260..1420 between floor-1 and floor-2 (marginRatio=1.000)
+level-02 | gap-width | WARN | gap 2020..2180 between floor-2 and floor-3 (marginRatio=1.000)
+level-02 | mechanic-reachability | HARD-FAIL | doors x:1540..1572 on floor-2 not reachable from spawn
+level-02 | mechanic-reachability | PASS | mathGates x:420..452 on floor-0 reachable from spawn
+level-02 | mechanic-reachability | HARD-FAIL | mathGates x:1100..1132 on floor-1 not reachable from spawn
+level-03 | over-hole | PASS | (no floating barriers)
+level-03 | spawn-goal | WARN | goal x:3320 reached via floor-4 (marginRatio=1.000)
+level-03 | gap-width | WARN | gap 480..640 between floor-0 and floor-1 (marginRatio=1.000)
+level-03 | gap-width | WARN | gap 1200..1320 between floor-1 and floor-2 (marginRatio=1.000)
+level-03 | gap-width | WARN | gap 1920..2040 between floor-2 and floor-3 (marginRatio=1.000)
+level-03 | gap-width | WARN | gap 2680..2840 between floor-3 and floor-4 (marginRatio=1.000)
+level-03 | mechanic-reachability | PASS | mathGates x:420..452 on floor-0 reachable from spawn
+level-03 | mechanic-reachability | PASS | enemies x:2400..2432 on floor-3 reachable from spawn
+level-03 | mechanic-reachability | PASS | collectZones x:200..264 on floor-0 reachable from spawn
+level-04 | over-hole | HARD-FAIL | mathGates footprint 1800..1832
+level-04 | spawn-goal | HARD-FAIL | goal x:3920 unreachable from spawn
+level-04 | gap-width | WARN | gap 440..600 between floor-0 and floor-1 (marginRatio=1.000)
+level-04 | gap-width | WARN | gap 1080..1240 between floor-1 and floor-2 (marginRatio=1.000)
+level-04 | gap-width | HARD-FAIL | gap 1760..1960 between floor-2 and floor-3 unreachable
+level-04 | gap-width | WARN | gap 2520..2680 between floor-3 and floor-4 (marginRatio=1.000)
+level-04 | gap-width | WARN | gap 3240..3400 between floor-4 and floor-5 (marginRatio=1.000)
+level-04 | mechanic-reachability | PASS | doors x:900..932 on floor-1 reachable from spawn
+level-04 | mechanic-reachability | PASS | mathGates x:320..352 on floor-0 reachable from spawn
+level-04 | mechanic-reachability | HARD-FAIL | mathGates x:1800..1832 not on any floor run
+level-04 | mechanic-reachability | HARD-FAIL | enemies x:2400..2432 on floor-3 not reachable from spawn
+level-04 | mechanic-reachability | PASS | collectZones x:160..224 on floor-0 reachable from spawn
+validate-levels: FAIL — 13 hard-failure(s) across 4 level(s)
+```
+
+**Known WARN-tier limitation (not a validator bug, documented and out of scope for this
+plan):** every WARN row above prints `marginRatio=1.000`. This is a mathematically-pinned
+consequence of `reachability.mjs`'s `canReach` denominator: for any hop that lands at the
+same height or lower (`dy >= 0`), the best matching candidate's `reach` is computed from
+the SAME full-jump-force root used as `theoreticalMaxReach`, so `marginRatio` is
+identically `1.0` for every flat-or-lower gap that the graph finds feasible at all — there
+is no graduated PASS for these cases, only WARN or no-edge. This was already recorded as
+an open limitation in `23-04-SUMMARY.md`/`23-RESEARCH.md` and is explicitly out of scope
+to fix in this plan; it does not affect the over-hole HARD-FAIL rows above (exact interval
+arithmetic, unaffected by this limitation) nor the spawn-goal/gap-width/mechanic-
+reachability HARD-FAIL rows (exact BFS-disconnection facts, also unaffected).
+
+### (e) The 8 heuristic-candidate platforms, individually arbitrated
+
+`validate-levels.mjs`'s own three per-check rows (spawn-goal, gap-width,
+mechanic-reachability) report floor-to-floor gaps and floor-mounted barriers, not
+individual platform nodes — none of `22-FINDINGS.md`'s 8 heuristic-candidate platforms are
+floor-mounted barriers, so they do not appear as named rows in section (d) above. To
+arbitrate each of the 8 individually (as `23-CONTEXT.md` requires — "distinguishes
+HARD-FAIL rows from WARN rows for the 8 heuristic-candidate platforms individually, never
+collapsing the two tiers into one verdict"), this evidence run queries
+`reachability.mjs`'s own exported `buildNodes`/`buildGraph`/`nodeContaining` primitives
+directly (the same functions `checkLevelReachability` composes internally) against the
+live, untouched `src/levels/level-03.js`/`level-04.js` geometry and the frozen
+`JUMP_ENVELOPE` constant — this is evidence-gathering in the same spirit as
+`22-FINDINGS.md`'s own scratchpad `interval-check-22-04.mjs` tool, not a second validator.
+
+Verbatim output:
+
+```
+level-03 platform x:1880 y:184 (platform-4, requires 136px rise) | HARD-FAIL | not reachable from spawn (rise exceeds calibrated maxRise=88.331px)
+level-03 platform x:2640 y:192 (platform-6, requires 128px rise) | HARD-FAIL | not reachable from spawn (rise exceeds calibrated maxRise=88.331px)
+level-04 platform x:1080 y:200 (platform-2, requires 120px rise) | HARD-FAIL | not reachable from spawn (rise exceeds calibrated maxRise=88.331px)
+level-04 platform x:1400 y:216 (platform-3, requires 104px rise) | HARD-FAIL | not reachable from spawn (rise exceeds calibrated maxRise=88.331px)
+level-04 platform x:1760 y:176 (platform-4, requires 144px rise) | HARD-FAIL | not reachable from spawn (rise exceeds calibrated maxRise=88.331px)
+level-04 platform x:2140 y:216 (platform-5, requires 104px rise) | HARD-FAIL | not reachable from spawn (rise exceeds calibrated maxRise=88.331px)
+level-04 platform x:2520 y:192 (platform-6, requires 128px rise) | HARD-FAIL | not reachable from spawn (rise exceeds calibrated maxRise=88.331px)
+level-04 platform x:3240 y:184 (platform-8, requires 136px rise) | HARD-FAIL | not reachable from spawn (rise exceeds calibrated maxRise=88.331px)
+```
+
+| Level | Platform (x, y) | Required rise | Verdict |
+|-------|------------------|----------------|---------|
+| level-03 | x:1880 y:184 | 136px | **HARD-FAIL** — no incoming edge in the BFS graph from any node |
+| level-03 | x:2640 y:192 | 128px | **HARD-FAIL** — no incoming edge in the BFS graph from any node |
+| level-04 | x:1080 y:200 | 120px | **HARD-FAIL** — no incoming edge in the BFS graph from any node |
+| level-04 | x:1400 y:216 | 104px | **HARD-FAIL** — no incoming edge in the BFS graph from any node |
+| level-04 | x:1760 y:176 | 144px | **HARD-FAIL** — no incoming edge in the BFS graph from any node |
+| level-04 | x:2140 y:216 | 104px | **HARD-FAIL** — no incoming edge in the BFS graph from any node |
+| level-04 | x:2520 y:192 | 128px | **HARD-FAIL** — no incoming edge in the BFS graph from any node |
+| level-04 | x:3240 y:184 | 136px | **HARD-FAIL** — no incoming edge in the BFS graph from any node |
+
+**Arbiter verdict:** all 8 previously-ambiguous "heuristic candidate" platforms
+(`22-FINDINGS.md`: "may well be reachable in practice — Phase 23's calibrated envelope is
+the arbiter") resolve unanimously to HARD-FAIL, not WARN and not PASS — every one requires
+104-144px of rise from floor level, which exceeds BOTH the calibrated `maxRise` (88.331px)
+and even the uncalibrated theoretical closed-form ceiling (`JUMP_FORCE**2/(2*GRAVITY)` ≈
+96.57px) by a wide margin. `buildGraph`'s directed adjacency confirms zero incoming edges
+reach any of these 8 platform nodes from any floor run or other platform in the level (spot
+-checked for `level-04 platform-2`: its only graph edges are OUTGOING, to `floor-1`/
+`floor-2`, both with `marginRatio≈0.446` — an easy downward drop, never an upward entry).
+This is a genuine, empirically-arbitrated verdict, not a false-positive from the WARN-tier
+`marginRatio=1.000` limitation noted in (d) above (that limitation only affects
+flat-or-lower `dy>=0` hops the graph finds feasible at all; these 8 platforms have no
+feasible incoming edge in the first place — the limitation and this verdict are unrelated
+mechanisms). These are new findings surfaced by Phase 23's calibrated model, distinct from
+the 3 confirmed over-hole defects in (c) — Phase 24 inherits both sets as fix targets.
+
+### (f) Interactive Audit Retry Harness section preserved
+
+The `## Interactive Audit Retry Harness (VALID-03 groundwork)` section written by Plan
+23-02 in Wave 1 (above this section) is unmodified — this section was appended via `Edit`,
+never `Write`, confirming no clobbering occurred.
+
+### Summary
+
+- `node scripts/validate-levels.mjs` exits **non-zero (1)** against the real, untouched
+  `src/levels/level-01.js` through `level-04.js`.
+- All **3 known live over-hole defects** are named exactly by footprint: level-01 x600
+  (`600..632`), level-01 x1300 (`1300..1332`), level-04 x1800 (`1800..1832`).
+- All **8 heuristic-candidate platforms** are individually arbitrated to **HARD-FAIL**
+  (not collapsed into a single verdict with the over-hole rows or with each other).
+- **Zero level-descriptor edits** landed anywhere in Phase 23, confirmed by an exit-0
+  `git diff` against the Phase 22 baseline commit `5eedee870d314307a846bae254f61e7d1e0ef5f4`.
+- VALID-01 and VALID-02 are both satisfied: a standalone validator checks all 4
+  roadmap-named properties on every registered level and exits non-zero on any HARD-FAIL,
+  and it is now PROVEN (not merely asserted) to independently catch both known live bug
+  classes — door/mathGate-over-hole and unreachable areas — before Phase 24 is allowed to
+  trust it as a gate.
