@@ -549,4 +549,76 @@ Decision: APPROVED — 2026-07-05 — implement per recommendation: lift BOX_W 8
 
 ## Post-Fix Regression
 
-*(Placeholder — filled by Plan 22-05.)* Baseline vs post-fix comparison: verbatim gate suite outputs + row-by-row 16-encounter audit diff against the canonical Run 1 table above, honoring the timing-sensitive-rows rule in the Baseline deviation note. Zero-regression definition: every currently-green assertion stays green; the stable-core reached rows stay triggered/resolved; the stable-core unreached rows stay unreached.
+Final full-suite run on phase-end HEAD `2d3ca1e` (`2d3ca1ea1f1e1ceb6a2a0ca6121bed0c425d390d`), 2026-07-05 (Plan 22-05, Task 3). Baseline anchor `5eedee870d314307a846bae254f61e7d1e0ef5f4`. All commands run in the plan's stated order; outputs below are THIS run's, not baseline copies. Zero-regression definition applied: every currently-green assertion stays green; the stable-core reached rows stay triggered/resolved; the stable-core unreached rows stay unreached (timing-sensitive-rows rule from the Baseline deviation note honored).
+
+### Static gates + smoke (verbatim final output lines, all exit 0)
+
+- `bash scripts/check-gate.sh` → `gate checks: PASS` (exit 0)
+- `bash scripts/check-import-safety.sh` → `import-safety checks: PASS` (exit 0)
+- `bash scripts/check-safety.sh` → `safety checks: PASS` (exit 0)
+- `bash scripts/check-progress.sh` → `smoke-progress: PASS` then `progress checks: PASS` (exit 0)
+- `node scripts/smoke-progress.mjs` → `smoke-progress: PASS` (exit 0)
+
+All five green lines identical to the Baseline section's recorded shapes. ✓
+
+### Browser boot (`node scripts/browser-boot.mjs`)
+
+Exited 0. Verbatim result line (the playwright fallback-path warning line is environmental, not a result line — same as baseline):
+
+```
+Browser boot: PASS — title -> select -> all levels loaded with no runtime errors.
+```
+
+Identical to the baseline aggregate PASS shape (single aggregate line asserting title → select → all 4 levels with zero uncaught errors; per-level checks internal — recorded as observed per the Baseline note). ✓
+
+### 16-encounter interactive audit (`node scripts/audit-phase21-mechanics.mjs`)
+
+Two consecutive runs on final HEAD, both exit 0 (diagnostic — rows compared, not exit code), both printing `AUDIT: FAILURES DETECTED` for exactly their unreached rows, as expected. Table below is the second (captured) run, sourced directly from that run's printed JSON `results` array (row-provenance convention); Run 1's unreached set is quoted from its own printed failures array.
+
+**Final Run 1 unreached set (6 rows, verbatim from failures JSON):** level-02 math-gate x1100 (reachedX 633.0), level-02 door x1540 (674.8), level-03 math-gate x420 (449.2 — passed the gate's x without trigger), level-03 enemy x2400 (1117.4), level-04 math-gate x1800 (1062.7), level-04 enemy x2400 (1064.6). L1 math-gate x1300 and L1 door x1400 both reached/resolved in Run 1.
+
+**Final Run 2 (captured) full table:**
+
+| Level | Mechanic | x | Triggered | Resolved | reachedX |
+|-------|----------|---|-----------|----------|----------|
+| level-01 | answer-zone | 300 | true | null (by design) | 264.6 |
+| level-01 | math-gate | 600 | true | true | 552.6 |
+| level-01 | enemy | 1000 | true | true | 974.1 |
+| level-01 | math-gate | 1300 | false | false (unreached) | 1292.5 |
+| level-01 | door | 1400 | true | true | 1280.5 |
+| level-02 | math-gate | 420 | true | true | 388.4 |
+| level-02 | math-gate | 1100 | false | false (unreached) | 632.7 |
+| level-02 | door | 1540 | false | false (unreached) | 662.0 |
+| level-03 | answer-zone | 200 | true | null (by design) | 170.8 |
+| level-03 | math-gate | 420 | true | true | 355.6 |
+| level-03 | enemy | 2400 | false | false (unreached) | 398.7 |
+| level-04 | answer-zone | 160 | true | null (by design) | 140.2 |
+| level-04 | math-gate | 320 | true | true | 284.2 |
+| level-04 | door | 900 | true | true | 884.0 |
+| level-04 | math-gate | 1800 | false | false (unreached) | 1064.0 |
+| level-04 | enemy | 2400 | false | false (unreached) | 1064.0 |
+
+### Row-by-row diff vs the canonical baseline (Run 1 table in the Baseline section), honoring the stable-core rule
+
+- **Stable core — always-unreached (5 rows):** level-02 math-gate x1100, level-02 door x1540, level-03 enemy x2400, level-04 math-gate x1800, level-04 enemy x2400 — **all still unreached in BOTH final-HEAD runs.** Identical to baseline; improving them remains Phase 23 scope. ✓
+- **Stable core — always-reached (8 rows):** level-01 answer-zone x300 / math-gate x600 / enemy x1000, level-02 math-gate x420, level-03 answer-zone x200, level-04 answer-zone x160 / math-gate x320 / door x900 — **all triggered, resolved true (or null-by-design for the 3 answer-zones) in BOTH final-HEAD runs**, byte-identical Triggered/Resolved to baseline (reachedX float jitter excepted). ✓
+- **Timing-sensitive rows (3):** every deviation from the canonical baseline Run 1 table falls on exactly these documented rows, flipping within their known run-to-run envelope: level-01 math-gate x1300 (baseline Run 1 true/true → final Run 1 true/true, final Run 2 false/unreached — the same flip baseline Run 2 itself exhibited), level-01 door x1400 (baseline Run 1 true/true → reached in both final runs; baseline Run 2 had missed it), level-03 math-gate x420 (baseline Run 1 false/unreached → final Run 1 false/unreached, final Run 2 true/true — matching baseline Run 2). Per the Baseline ground-truth rule these flips are neither regressions nor improvement claims: **no timing-sensitive row failed while triggered, and none went unreached across BOTH final runs while reached in repeated baseline runs.** ✓
+- **No newly-reached stable-unreached row, no newly-unreached stable-reached row.** The phase's five src/ fix commits (`c9953a4`, `51d2653`, `0aa65a9`, `06c86c3`, `e4e0d2e`) are behaviorally invisible to the audit, exactly as their zero-behavior-change arguments predicted (guards that cannot trip on shipped content, per-key defaulting inert on full-bounds descriptors, dead-token removal, byte-identical constant lift).
+- **Script assumptions:** `scripts/lib/mechanic-drive.mjs` was never extended this phase — no documented script-extension explanation is needed; nothing deviates outside the timing-sensitive envelope.
+
+### LOCKED-surface proof (git diff vs baseline `5eedee870d314307a846bae254f61e7d1e0ef5f4`, each run individually, all exit 0)
+
+- `git diff --quiet 5eedee8..HEAD -- src/math` → exit 0 (Brain LOCKED, untouched)
+- `git diff --quiet 5eedee8..HEAD -- lib/kaplay.mjs` → exit 0 (vendored engine untouched)
+- `git diff --quiet 5eedee8..HEAD -- src/levels/level-01.js` → exit 0
+- `git diff --quiet 5eedee8..HEAD -- src/levels/level-02.js` → exit 0
+- `git diff --quiet 5eedee8..HEAD -- src/levels/level-03.js` → exit 0
+- `git diff --quiet 5eedee8..HEAD -- src/levels/level-04.js` → exit 0 (all four Phase 23 calibration targets byte-identical to baseline)
+
+### Close-out confirmation
+
+- Per-Entity Verdict Table: all 24 rows carry final verdicts from the CONTEXT-locked set (17 clean, 6 fixed, 4 deferred-to-phase-24 across rows 21–24, with row 5 fixed via the FIX-02-approved e4e0d2e; zero initialized-state cells).
+- All 16 numbered findings dispositioned: fixed findings (4, 5, 12, 14) carry explicit dated FIXED dispositions with commit SHAs; clean/refuted findings (1–3, 6–11, 13, 15, 16) carry their clean/no-fix dispositions recorded 2026-07-05 in their reviewing plans.
+- All 3 escalation candidates decided 2026-07-05 (2 REJECTED with rationale, 1 APPROVED and implemented post-approval — decisions commit `45edda5` precedes fix commit `e4e0d2e` in git log, FIX-02 ordering verified). Zero undecided escalations.
+
+FINAL regression: PASS
