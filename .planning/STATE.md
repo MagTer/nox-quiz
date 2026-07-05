@@ -5,15 +5,15 @@ milestone_name: Nox Run — Real Levels
 current_phase: 23
 current_phase_name: Level Validation Harness
 status: executing
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-07-05T21:42:08.414Z"
+stopped_at: Completed 23-04-PLAN.md
+last_updated: "2026-07-05T21:54:31.977Z"
 last_activity: 2026-07-05
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 14
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 ## Current Position
 
 Phase: 23 (Level Validation Harness) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-05 — Phase 23 execution started
 
@@ -91,6 +91,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 23]: marginPct floored at 5% (larger computed relative spread of 3.75% rounds up to 4%, still below the 5% floor) — the margin must never be zero per the exact flaw 22-FINDINGS.md documented in the closed-form CONFIG heuristic
 - [Phase 23-02]: Interactive audit retry harness (auditLevelWithRetries, maxAttempts=5) closes the previously-documented 6/16 blind spot completely on levels 1-4 (16/16 triggered, every previously-flaky row converged within 2 attempts) — mechanic-drive.mjs/browser-boot.mjs verified byte-identical to pre-plan state
 - [Phase 23-03]: over-hole-check.mjs promoted byte-for-byte from Phase 22's proven scratchpad — no platform-membership test added since every shipped barrier is floor-mounted
+- [Phase 23-04]: Δy-aware jump-edge BFS reachability graph built consuming Wave 1's calibrated JUMP_ENVELOPE (never a re-derived closed-form cutoff); proven multi-hop via a 3-node chain fixture a direct single-hop test cannot cross; checkLevelReachability composes spawn-goal/gap-width/mechanic-reachability rows with HARD-FAIL/WARN/PASS tiering, WARN never incrementing hardFailCount
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -127,6 +128,7 @@ Carried forward from previous milestone closes:
 | Phase 23 P01 | 12min | 2 tasks | 2 files |
 | Phase 23 P02 | 25min | 2 tasks | 3 files |
 | Phase 23 P03 | 13min | 2 tasks | 2 files |
+| Phase 23 P04 | 18min | 2 tasks | 1 files |
 
 ## Quick Tasks Completed
 
@@ -136,8 +138,8 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-05T21:41:50.283Z
-Stopped at: Completed 23-02-PLAN.md
+Last session: 2026-07-05T21:54:31.966Z
+Stopped at: Completed 23-04-PLAN.md
 Resume file: None
 
 ---

@@ -143,7 +143,7 @@ Plans:
   3. Run against the untouched levels 1–4, the validator flags both known live bugs (door-over-hole, unreachable areas) — proven RED before it is trusted as a gate
   4. The interactive mechanic-drive harness reaches encounters previously excluded on levels 1–4, shrinking the 6/16 blind spot, with every remaining exclusion individually documented (VALID-03 groundwork; that requirement closes across all 8 levels in Phase 28)
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 **Wave 1**
@@ -154,7 +154,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 23-04-PLAN.md — Δy-aware reachability module: jump-edge model + BFS (VALID-01)
+- [x] 23-04-PLAN.md — Δy-aware reachability module: jump-edge model + BFS (VALID-01)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -263,7 +263,7 @@ Plans:
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | ✅ Complete | 2026-07-04 |
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | ✅ Complete | 2026-07-04 |
 | 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete    | 2026-07-05 |
-| 23. Level Validation Harness | v5.0 | 3/5 | In Progress|  |
+| 23. Level Validation Harness | v5.0 | 4/5 | In Progress|  |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 0/TBD | Not started | - |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 0/TBD | Not started | - |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
