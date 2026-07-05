@@ -1,420 +1,227 @@
-# Architecture Research
+# Architecture Research — v5.0 "Nox Run" Feature Integration
 
-**Domain:** Kaplay 3001 single-page platformer (no build step), v4.0 "Content & Challenge" integration into a shipped v3.0 slice
-**Researched:** 2026-06-28
-**Confidence:** HIGH (grounded in the actual v3.0 source: `main.js`, `scenes/game.js`, `level.js`, `progress.js`, `ui/mathGate.js`, `config.js`, `fx.js`, `player.js`)
+**Domain:** No-build browser platformer (vendored Kaplay 3001.0.19, static nginx hosting)
+**Researched:** 2026-07-05
+**Confidence:** HIGH (every integration point below was read from the live source tree, not assumed)
+**Mode:** Subsequent-milestone integration research — how v5.0's features (audio/SFX, 8 levels, structural validation, palette expansion, rebrand, table-pool change) attach to the existing architecture. Supersedes the v4.0-era version of this file.
 
-> **Mode: subsequent-milestone integration.** This is NOT a greenfield design. Every recommendation below extends the shipped v3.0 architecture and is constrained by four invariants that already gate the repo: **no-build** (vendored `lib/kaplay.mjs`, ES modules served static), **a727c13** (no Kaplay global / `typeof <global>` reference at module top level — imports are hoisted before `kaplay()` installs globals), **anti-leak** (closure-local run state + tag/`destroy` cleanup across `go()`/respawn, global controllers `.cancel()`ed on `onSceneLeave`), and **no-timer** (`scripts/check-safety.sh` fails the commit on `setTimeout`/`setInterval`/`wait(`/`loop(`/`lifespan(` and on any punishment construct). Reuse, don't rebuild.
+## System Overview (as-built, v4.1)
+
+```
+index.html (file:// guard, <title>, canvas CSS)
+    │
+main.js ── kaplay({global:true}) init ── loadSprite(...) ── scene() registry ── go("title")
+    │
+    ├── scenes/title.js ──go("select")──▶ scenes/select.js ──go("game",{levelId})──▶ scenes/game.js
+    │                                          │                                        │
+    │                                          │ reads                                  │ closure-owns ALL run state
+    │                                          ▼                                        ▼
+    │                                   levels/index.js ◀──────────────── getLevel(id) / LEVEL_ORDER
+    │                                   (LEVELS[], BY_ID, isUnlocked)                  │
+    │                                          ▲                                        ├── levels/build.js  (geometry → entities)
+    │                                   level-01..04.js (pure data,                     ├── player.js        (jump/land seams)
+    │                                   node-importable, a727c13)                       ├── camera.js / parallax.js / fx.js
+    │                                                                                   ├── ui/hud.js  ui/mathGate.js
+    ├── config.js  (leaf constants — imports nothing)                                   ├── mechanics/{door,gates,enemy,collect}.js
+    ├── math/brain.js  (LOCKED, firewalled — imports only config)                       │        └──all──▶ ui/challenge.js (shared seam)
+    └── progress.js  (pure factory + guarded localStorage seam)                         └── progress.js (loadSave/writeSave)
+
+scripts/browser-boot.mjs + scripts/lib/mechanic-drive.mjs  (Playwright gate: drives all LEVEL_ORDER levels)
+docker/{Dockerfile,nginx.conf}  (static hosting; .mjs MIME fix)
+```
+
+Cross-cutting invariants that every v5.0 addition MUST respect (verified present in every current module):
+
+- **a727c13:** no Kaplay global referenced at module top level — engine globals only inside function bodies that run after `kaplay()` init. `main.js` is the single exception (it runs post-init by construction).
+- **Anti-leak:** no module-level mutable run state; scene state lives in scene-factory closures; app-global listeners (e.g. `onHide` in game.js) are explicitly cancelled on scene leave.
+- **SAFE-01 (enforced by `scripts/check-safety.sh`):** no `setTimeout`/`setInterval`/`wait(`/`loop(`/`lifespan(` **call forms** in src code (comment-stripped scan; `loop:` as an object *property* is explicitly allowed — this matters for looping music, see below).
+- **Brain firewall:** `src/math/brain.js` imports only `../config.js`; it is LOCKED — v5.0 changes must not touch its weighting math.
 
 ---
 
-## Standard Architecture
+## 1. Audio / SFX Integration
 
-### System Overview — target v4.0 module graph
+### Recommendation: new app-lifetime module `src/audio.js` + sound loads in `main.js` + one-line hooks at existing seams
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│  BOOT  (src/main.js)                                                   │
-│  kaplay({global:true}) → loadSprite(...×N) + loadSpriteAtlas(player)   │
-│  → registerScenes() → go("title")        [the ONLY top-level globals]  │
-├──────────────────────────────────────────────────────────────────────┤
-│  SCENE LAYER  (src/scenes/*)   — Kaplay scenes; globals used at run-time│
-│  ┌──────────┐   go("select")   ┌────────────┐  go("game",{levelId})    │
-│  │ title.js │ ───────────────► │ select.js  │ ───────────────────────┐ │
-│  └──────────┘                  │ (world-map)│ ◄── go("select",{from}) │ │
-│        ▲ go("title")           └────────────┘                        ▼ │
-│        └────────────────────────────  go("select",{from})  ┌───────────┐│
-│                                                            │  game.js  ││
-│                                                            │ (param by ││
-│                                                            │  levelId) ││
-│                                                            └─────┬─────┘│
-├──────────────────────────────────────────────────────────────────┼────┤
-│  CONTENT LAYER  (data + builders) — pure data; built at scene time │    │
-│  ┌────────────────┐   getLevel(id)   ┌────────────────────────────┐│    │
-│  │ levels/index.js│ ◄─────────────── │ buildLevel(levelData) emits ││    │
-│  │  LEVELS{} reg. │                  │ floors/platforms/coins/spike││    │
-│  │  + ORDER[]     │                  │ + math-mechanic entities    ││    │
-│  └────────────────┘                  └─────────────┬──────────────┘│    │
-├──────────────────────────────────────────────────┼────────────────┼────┤
-│  MATH-CHALLENGE SEAM  (src/ui/*) — one-way: ui → brain, never scenes│    │
-│  ┌──────────────────────────────────────────────────────────────┐ │    │
-│  │ ui/challenge.js  openChallenge({brain,onSolved,onWrong?,…})    │◄┘    │
-│  │   ← mathGate.js becomes the END-OF-LEVEL caller of this seam   │      │
-│  │   attached to: door · key-pickup · checkpoint · enemy          │      │
-│  └──────────────────────────────┬───────────────────────────────┘      │
-├─────────────────────────────────┼──────────────────────────────────────┤
-│  PURE FACTORY LAYER (firewall — ZERO Kaplay imports, node-testable)     │
-│  ┌──────────────┐  ┌──────────────────────────────────────────────┐    │
-│  │ math/brain.js│  │ progress.js  createProgress + loadSave/writeSave│   │
-│  │ createBrain()│  │   serialize() v2 blob {version,xp,level,        │    │
-│  └──────────────┘  │   accuracy,history, levels:{}}  + migrate(v1→v2)│   │
-│                    └──────────────────────────────────────────────┘    │
-├────────────────────────────────────────────────────────────────────────┤
-│  PRESENTATION HELPERS  player.js · camera.js · fx.js · ui/hud.js        │
-│  parallax.js (NEW) — all engine-globals-inside-functions (a727c13)      │
-├────────────────────────────────────────────────────────────────────────┤
-│  CONFIG  (src/config.js) — every tunable; imports nothing (leaf)        │
-└────────────────────────────────────────────────────────────────────────┘
-```
+**Where it lives:** `src/audio.js` at src/ root, sibling of `fx.js`, modeled directly on fx.js's discipline (fx.js's header comments are effectively the house style guide for exactly this kind of module):
 
-### Component Responsibilities
+- Only import: `./config.js` (new `CONFIG.AUDIO` namespace: `MUSIC_VOL` ~0.25, `SFX_VOL` ~0.5, `KEY: "noxrun_audio_v1"`).
+- Every engine call (`play`, `setVolume`) only inside exported function bodies → a727c13 satisfied. The vendored Kaplay 3001 build exposes `loadSound`, `loadMusic`, `setVolume`, `audioCtx` and the `play()` global (verified by grep of `lib/kaplay.mjs`).
+- **Singleton vs per-scene: app-lifetime singleton, deliberately.** Ambient music must survive `go("title") → go("select") → go("game")`; Kaplay audio handles are not scene objects and are NOT torn down by `go()`. A per-scene audio instance would restart the music on every scene change. This is the same documented app-global exception game.js already makes for `onHide` (its WR-02 comment). Concretely: `audio.js` holds a small module-scoped state object (`{ muted, musicHandle }`) that is **plain data at import time** (no engine call at top level) and is only mutated through exported functions called after init. Document it in the header as an intentional app-lifetime exception to the anti-leak rule — that rule targets *run* state leaking across replays; mute/music are *app* state by design.
+- Suggested surface: `initAudio()` (reads persisted mute, applies volume), `startMusic()` (idempotent — no-op if already playing; `play("ambient", { loop: true, volume: CONFIG.AUDIO.MUSIC_VOL })`), `toggleMute()`, `isMuted()`, and one tiny function per cue: `sfxJump() / sfxLand() / sfxCoin() / sfxCorrect() / sfxWrong() / sfxClear() / sfxLevelUp()`. Each cue is a one-shot `play("sfx-x", { volume })` — one-shots need no cleanup, so no anti-leak surface.
 
-| Component | Responsibility | New / Modified / Reused |
-|-----------|----------------|-------------------------|
-| `main.js` | Boot: `kaplay()`, register **all** sprite assets (incl. atlas + tiles + bg), `registerScenes()`, `go("title")` | **Modified** — more `loadSprite`/`loadSpriteAtlas`, register N scenes, boot title not game |
-| `scenes/title.js` | Title screen: art + "press any key / click PLAY" → `go("select")` | **New** |
-| `scenes/select.js` | World-map / level-select: read progress, render node per level (locked/unlocked/cleared), `go("game",{levelId})` | **New** |
-| `scenes/game.js` | The play scene, **parametrized by `data.levelId`**. Loads that level's data, builds it, wires mechanics, on clear persists per-level completion + returns to select | **Modified** (heavily, but spine preserved) |
-| `levels/index.js` | Level **registry**: `LEVELS` map keyed by id + ordered `LEVEL_ORDER`; `getLevel(id)`, `nextLevelId(id)` | **New** |
-| `levels/<id>.js` | One level's authored data object (the v3.0 `LEVEL` shape, extended with mechanic arrays) | **New** (3–5 of them) — `level.js`'s `LEVEL` becomes the first one |
-| `level.js` → `levels/build.js` | `buildLevel(levelData)` — pure builder; emits colliders + tagged entities incl. the four mechanic entity types | **Modified** (rename + extend; keep merged-floor/tight-spike idioms verbatim) |
-| `ui/challenge.js` | The shared **math-challenge seam**: `openChallenge(...)` generalizing `mathGate.js` | **New** (extracted from mathGate) |
-| `ui/mathGate.js` | Thin end-of-level caller of `openChallenge` (back-compat alias) | **Modified** (or kept as a 1-line wrapper) |
-| `math/brain.js` | Weighted 6–9 selection + EWMA. **Unchanged** (locked, out of scope) | **Reused verbatim** |
-| `progress.js` | XP/level + save seam, **extended** with `levels:{}` completion map + a real v1→v2 migration | **Modified** (additive + migration) |
-| `parallax.js` | Multi-layer scrolling background bound to camera pos | **New** |
-| `player.js` | Player entity + game-feel; swap static sprite for an **animated atlas** (idle/run/jump) | **Modified** (sprite + `play()` calls) |
-| `fx.js`, `camera.js`, `ui/hud.js`, `config.js` | Juice / camera / HUD / tunables | **Reused** (config grows new namespaces) |
+**SAFE-01 note (verified against check-safety.sh):** the scan bans the *call form* `loop(` but explicitly allows the `loop:` object-property form — `play("ambient", { loop: true })` passes the gate as written. Do not use Kaplay's `loop()` scheduler for anything audio-related.
+
+**Sound loading:** `loadSound("sfx-jump", "../assets/audio/jump.ogg")` etc. in `main.js`, right beside the existing `loadSprite` block — same `../assets/...` path convention (main.js's own "CRITICAL PATH RULE" comment: wrong path = silent 404). Assets go in `assets/audio/` (CC0, e.g. Kenney audio packs) with per-file license notes in `assets/LICENSES/` matching the existing convention. **nginx MIME is a non-issue:** Kaplay fetches audio as bytes and runs `decodeAudioData` (MIME-agnostic), unlike ES modules — the existing `types {}` block needs no change, though adding ogg/mp3 mappings is harmless belt-and-braces. Add `.ogg` to `scripts/browser-boot.mjs`'s MIME map (it already has `.wav`/`.mp3`).
+
+**Autoplay policy / where music starts:** browsers suspend AudioContext until a user gesture. The title scene's `start()` handler (`title.js:69` — Enter/Space/click) is a guaranteed gesture: call `audio.startMusic()` there before `go("select")`. Do NOT start music at boot in main.js.
+
+**Mute state persistence — separate localStorage key, NOT the existing save.** Opinionated call, three reasons grounded in the code:
+
+1. `progress.js`'s `validate()`/`serialize()` chain is a hardened, progression-only contract (explicit-field copy, prototype-pollution guards, version gate). Threading a `settings.muted` field through it means touching the most security-audited module in the tree for a cosmetic toggle.
+2. Mute can be toggled on title/select screens where **no `progress` instance exists** (select.js builds one transiently; title.js builds none). Writing mute through `progress.serialize()` would force loading + serializing the whole save on every toggle from every scene.
+3. A one-key blob (`{"muted":true}`) under `CONFIG.AUDIO.KEY` with its own ~10-line guarded read/write inside audio.js (mirroring progress.js's `storageAvailable()` try-catch idiom — copy the pattern, don't import the module; progress.js stays progression-only) is simpler and keeps module responsibilities clean.
+
+**Mute toggle input:** register `onKeyPress("m", ...)` once in `main.js` after init (app-lifetime, like the display-scale block). Keys 1–4 are reserved by challenge.js (its WR-03 comment); M is free. Add a small mute indicator to `ui/hud.js` and an "M mute" mention in the controls hint string.
+
+**SFX hook points (exact seams, all verified):**
+
+| Cue | File / seam | Why here |
+|-----|-------------|----------|
+| correct answer | `ui/challenge.js` `choose()` correct branch (just before `onSuccess?.()`, ~line 303) | ONE call site covers door, math-gate, enemy AND the end-of-level mathGate — they all route through openChallenge |
+| wrong answer (soft, non-punishing) | `ui/challenge.js` `choose()` wrong branch (beside `shake(6)`, ~line 293) | same single-seam argument |
+| collect: correct pickup | `mechanics/collect.js` correct branch (~line 106, beside `challenge.close()`) | collect bypasses challenge's `choose()` (renderChoices:false) — needs its own hook |
+| collect: wrong pickup (soft) | `mechanics/collect.js` wrong branch (~line 114, beside `fx.pop`) | same |
+| jump | `player.js` beside `fx.stretch(player)` (~line 73, the buffered-jump consume — the file's ONE jump path) | existing juice seam |
+| land | `player.js` `player.onGround()` beside `fx.squash/fx.dust` (~line 41) | existing land seam |
+| coin | `scenes/game.js` `player.onCollide("coin", ...)` beside `fx.pop` (~line 168) | existing seam |
+| level clear | `scenes/game.js` `onClear` beside `fx.clearBurst()` (~line 222) | existing seam |
+| level up | `scenes/game.js` beside `hud.flashLevelUp()` (~line 217) | existing seam |
+| barrier opened (door/gate/enemy) | already covered by "correct answer" — do NOT also hook the mechanics' `onSuccess` callbacks or every clear plays two sounds | anti-double-fire |
+
+**ADHD-safe audio contract (write into the phase's UAT criteria):** calm ambient loop at low volume; wrong-answer cue must be a soft neutral tick/thud, never a buzzer; no stinger louder than the music by more than ~2×; mute always one keypress away and persisted.
+
+**New files:** `src/audio.js`, `assets/audio/*` (+ LICENSES entries). **Modified:** `main.js` (loadSound block, M-key, `initAudio()`), `config.js` (CONFIG.AUDIO), `scenes/title.js` (startMusic on gesture), `ui/challenge.js` (2 lines), `mechanics/collect.js` (2 lines), `player.js` (2 lines), `scenes/game.js` (3 lines), `ui/hud.js` (mute indicator, optional), `scripts/browser-boot.mjs` (.ogg MIME).
 
 ---
 
-## Recommended Project Structure
+## 2. Eight Levels Through the Registry/Builder
 
-```
-src/
-├── index.html              # unchanged (file:// guard stays)
-├── main.js                 # MODIFIED — load all assets, registerScenes(), go("title")
-├── config.js               # MODIFIED — SAVE.VERSION=2 + ANIM, BG, MECHANIC, MAP namespaces
-├── scenes/
-│   ├── title.js            # NEW
-│   ├── select.js           # NEW — world-map / level-select
-│   └── game.js             # MODIFIED — parametrized by data.levelId
-├── levels/
-│   ├── index.js            # NEW — registry: LEVELS{}, LEVEL_ORDER[], getLevel(), nextLevelId()
-│   ├── build.js            # MODIFIED level.js — buildLevel(levelData) (mechanic-aware)
-│   ├── level-01.js         # NEW (the v3.0 LEVEL moves here, extended)
-│   ├── level-02.js … 05.js # NEW
-├── ui/
-│   ├── challenge.js        # NEW — openChallenge() shared math-challenge seam
-│   ├── mathGate.js         # MODIFIED — thin caller of challenge.js (end-of-level flavor)
-│   └── hud.js              # reused
-├── math/brain.js           # REUSED verbatim
-├── progress.js             # MODIFIED — levels{} + migrate v1→v2
-├── player.js               # MODIFIED — animated atlas
-├── camera.js               # reused (takes bounds as param)
-├── parallax.js             # NEW
-└── fx.js                   # reused
-assets/                     # sibling of src/ (web-root convention — `../assets/...`)
-├── player.png|json         # animated atlas (sliceX/atlas + anims)
-├── tiles/                  # tileset
-├── bg/                     # parallax layers
-├── key.png door.png enemy.png …  # mechanic sprites
-lib/kaplay.mjs              # vendored — unchanged
-scripts/check-safety.sh     # reused as-is — still gates the WHOLE src/ tree
-```
+The v4.0 data spine was built for exactly this and needs almost no structural change:
 
-### Structure Rationale
+- **New files:** `src/levels/level-05.js` … `level-08.js` — pure-data descriptors copying the level-02+ schema (id, displayName, allowedTables, explicit `bounds` — level-02/03/04 already carry `bounds` (2800/3400/4000 wide); game.js prefers `level.bounds`, else derives from geometry. Give every new/lengthened level explicit bounds).
+- **Modified:** `src/levels/index.js` — 4 new imports + append to the `LEVELS` array. That's it: `LEVEL_ORDER`, `BY_ID`, `isUnlocked` chain-unlock, select.js's tile list, and `scripts/browser-boot.mjs`'s seeded save blob (`LEVEL_ORDER.slice(0,-1)` — its WR-02 fix made it derivation-based) all **derive from LEVELS** and pick up new levels automatically.
+- **Unchanged:** `build.js` (fully descriptor-driven; all mechanic arrays already `?? []`-guarded), `game.js` (loads by id, derives bounds), `progress.js` (levels map is id-keyed, schema-free).
 
-- **`levels/` folder:** v3.0 had one `LEVEL` const + `buildLevel` in `level.js`. Many levels need a registry + per-level data files. Splitting `build.js` (logic) from `level-NN.js` (data) keeps the builder a single tested unit while data scales. `level.js`'s data lifts verbatim into `level-01.js`; its builder logic becomes `build.js`.
-- **`scenes/` grows from 1 → 4:** Kaplay's `scene(name, cb)` / `go(name, data)` is the *native, intended* multi-screen mechanism — no router library, no DOM. Each screen is one closure file, mirroring `game.js`.
-- **`ui/challenge.js` separate from `mathGate.js`:** the four mid-game mechanics + the end gate are five callers of one overlay+brain bridge. Extract the bridge once; `mathGate.js` becomes the "end of level" preset so its name/contract survive for existing wiring.
-- **Everything pure stays pure:** `math/`, `progress.js`, `levels/*.js` (data) import only `config.js` — node-testable, firewall intact. Only `build.js`, `scenes/*`, `ui/*`, `player/camera/fx/parallax` touch Kaplay globals, and only **inside function bodies**.
+**Lengthening the existing 4:** pure data edits in level-01..04.js (more floor runs, platforms, mechanics; extend `bounds.right`). Traps: (a) level-01 has **no explicit `bounds`** — derivation covers it, but add explicit bounds while touching it; (b) level-01's header says a Wave-0 smoke deep-equals its geometry against v3.0 values — that fixture/check must be updated or retired when the geometry changes.
+
+**select.js at 8 tiles — must change.** `config.js`'s own IN-03 OVERFLOW FLAG documents it: one row of 96px tiles + 24px gaps from START_X 120 overflows the 640px canvas at ~5 tiles. Recommended fix: **2×4 grid**, keeping current tile size (4 tiles/row = 4×96 + 3×24 = 456px, fits centered in 640):
+
+- `config.js` SELECT: add `COLS: 4`, `ROW_GAP: 24`; retune `ROW_Y` → first-row center ~140, second row at `ROW_Y + TILE_H + ROW_GAP` (~260; heading still clears at top; 360px canvas holds both rows).
+- `select.js` layout: `x = START_X + (t.i % COLS) * (TILE_W + GAP)`, `y = ROW_Y + Math.floor(t.i / COLS) * (TILE_H + ROW_GAP)`; glyph/label offsets already tile-relative, unchanged.
+- Keyboard cursor: keep left/right cycling the `selectable` list (already linear + wrapping, still fully functional); optionally add up/down = jump to the selectable entry offset by COLS. Don't over-engineer.
+
+**Difficulty ramp data (allowedTables per level).** Current pools: L1 `[6,7,8,9]`, L2 `[1..7]`, L3 `[3..9]`, L4 `[6,7,8,9]`. Two stale things to fix while re-ramping: (a) level-01's "stays on the v3.0 hard pool — do not soften" comment is superseded by an 8-level ramp — remove it; (b) table 1 dropped everywhere (see §5). Suggested ramp (data only; roadmap can retune):
+
+| Level | Pool | Rationale |
+|-------|------|-----------|
+| 01 | [2,3,4,5] | confidence on-ramp |
+| 02 | [3,4,5,6] | first hard table |
+| 03 | [4,5,6,7] | |
+| 04 | [5,6,7,8] | |
+| 05 | [6,7,8,9] | full hard pool |
+| 06 | [6,7,8,9] | |
+| 07 | [2..9] | mixed review (brain's own 6–9 bias does the weighting) |
+| 08 | [6,7,8,9] | finale |
+
+Platforming ramp stays authored-in-geometry (gap widths, platform chains, mechanic density) — enforced by the linter in §3.
 
 ---
 
-## Architectural Patterns
+## 3. Structural Validation — new static linter FIRST, existing Playwright drive as the dynamic backstop
 
-### Pattern 1 — Level registry + `go("game",{levelId})` parametrization (Question 1)
+**Recommendation: BOTH layers, with a new static linter carrying the primary load.**
 
-**What:** Replace the single imported `LEVEL` with a keyed registry. The `game` scene reads `data.levelId` from the `go()` payload (the *same* CONTEXT-locked seam already used for `startX/startY`) and looks up its data — never imports a specific level.
+**New file: `scripts/validate-levels.mjs` — a pure-node static geometry linter over the descriptors.** This is the payoff of a727c13: level descriptors import only `config.js` and are **already node-importable with zero browser** (levels/index.js's header states this; browser-boot.mjs already imports them in node today). The linter imports `LEVELS` + `CONFIG` and checks each level deterministically in milliseconds. All jump-envelope numbers derive from CONFIG (single source — the same derivation build.js's blocker heights and mechanic-drive.mjs's header already use):
 
-**Why this shape:** `game.js` already proves the pattern — it reads `data?.startX ?? 64`. Extending the payload with `levelId` is zero new mechanism and preserves anti-leak (no module-level "current level" `let`; the level identity lives in the call, recreated each `go()`).
+- apex rise = `JUMP_FORCE² / (2·GRAVITY)` ≈ 96.6px; flat-gap airtime = `2·JUMP_FORCE/GRAVITY` ≈ 0.743s; max flat-gap horizontal = `RUN_SPEED · airtime` ≈ 178px. Apply a conservative factor (~0.85) so JUMP_CUT/edge-pixel effects can't make a "valid" level marginal.
 
-**Registry (`levels/index.js`) — pure, imports only data files:**
-```js
-import { LEVEL_01 } from "./level-01.js";
-import { LEVEL_02 } from "./level-02.js";
-// …
-export const LEVELS = { "01": LEVEL_01, "02": LEVEL_02, /* … */ };
-export const LEVEL_ORDER = ["01", "02", "03", "04", "05"];
-export const getLevel = (id) => LEVELS[id] ?? LEVELS[LEVEL_ORDER[0]]; // forgiving fallback
-export const nextLevelId = (id) => {
-  const i = LEVEL_ORDER.indexOf(id);
-  return i >= 0 && i + 1 < LEVEL_ORDER.length ? LEVEL_ORDER[i + 1] : null; // null = last
-};
-```
+Checks (each maps to a known v4.x bug class or a v5.0 requirement):
 
-**Level data shape** — superset of today's `LEVEL` (floors/platforms/coins/spikes/goal/checkpoints) plus per-level identity, difficulty, bounds, and mechanic arrays:
-```js
-export const LEVEL_02 = {
-  id: "02",
-  name: "The Drop",
-  bounds: { left: 0, right: 2560, top: 0, bottom: 360 },  // was global CONFIG.LEVEL_*; now per-level
-  start: { x: 64, y: 64 },                                 // spawn (replaces go() literals)
-  tables: [6, 7],                                          // difficulty knob (selection scope)
-  floors: [...], platforms: [...], coins: [...], spikes: [...],
-  checkpoints: [...], goal: { x, y },
-  // NEW mechanic arrays (any may be empty → mechanic absent for this level):
-  doors: [{ x, y, w, h, keyId: "k1" }],
-  keys:  [{ x, y, id: "k1" }],
-  collectibles: [{ x, y }],                  // collect-the-answer pickups
-  mathGates: [{ x, y, kind: "checkpoint" }], // multiple mid-level gates
-  enemies: [{ x, y, patrol: 80 }],
-};
-```
+1. **Reachability graph:** nodes = standable surfaces (floor runs + platforms); edge A→B iff horizontal separation and rise fit the hop envelope. Assert spawn-surface → goal-surface path exists ("unreachable areas" requirement).
+2. **Gap width vs jump reach:** every floor-run gap crossable directly or via a platform chain (subsumed by 1, but report per-gap for authoring feedback).
+3. **Door/gate/enemy-over-hole:** each door/mathGate/enemy x-footprint (and every checkpoint x) lies fully within some floor run — the exact known "door placed over floor hole" defect class.
+4. **Mechanic reachability + bypass geometry:** every mechanic sits on a surface reachable in the graph; no adjacent platform is high enough to path *around* an apex-derived blocker (the v4.1 jump-over exploit class, now checked geometrically).
+5. **Placement sanity:** a checkpoint before every spike (level-01's authored policy, now enforced); pickup slots within reach of their collect zone; goal/entities within `bounds`; goal on the final run.
 
-**`game.js` change (spine preserved):**
-```js
-export function gameScene(data) {
-  const levelId = data?.levelId ?? LEVEL_ORDER[0];   // NEW — read from payload
-  const level = getLevel(levelId);                   // NEW — registry lookup
-  const startX = data?.startX ?? level.start.x;       // start now comes from level data
-  // … buildLevel(level) instead of buildLevel(LEVEL) …
-  // bounds: read level.bounds.* instead of CONFIG.LEVEL_* in camera clamp + fall check
-}
-```
+Wire it beside `check-safety.sh` as a per-commit/phase gate. Because it runs on all `LEVELS`, the 4 new + 4 lengthened levels are validated *as they are authored* — which is why the linter must be built **before** the level-content phases.
 
-**Trade-off:** `bounds` move from global `CONFIG.LEVEL_*` to per-level data — required for differently-sized levels. `camera.js`/`followCamera` and the fall-threshold check must take bounds as a parameter rather than reading `CONFIG` directly. Small, mechanical edit; keep `CONFIG.LEVEL_*` as defaults for safety.
+**Existing dynamic layer — extend, don't rewrite.** `scripts/browser-boot.mjs` + `scripts/lib/mechanic-drive.mjs` already iterate `LEVEL_ORDER` (auto-covers 8 levels) and drive real keyboard traversal (`driveToXClimbing`) + challenge resolution (`resolveIfBoxed`). Keep it as the integration gate: boots, plays, resolves mechanics with real input. Its documented limitation (6/16 encounters unreachable via spike-timing resonance in the traversal model) is precisely what the static linter does NOT suffer from — the layers are complementary. Don't try to turn the Playwright driver into a completeness proof; the linter is the completeness proof, the driver is the "it actually plays" proof.
 
-### Pattern 2 — Multi-scene navigation (Question 2)
-
-**What:** Three new screens are three `scene()` registrations. Navigation is `go(name, data)`; data flows one-way through the payload, exactly like `game.js` today.
-
-```
-title ──any key/PLAY──► select ──node click──► game(levelId)
-  ▲                        ▲                        │
-  └────(optional)──────────┴────on clear / on back─┘  go("select", { lastCleared: levelId })
-```
-
-**`registerScenes()` in `main.js`** keeps all `scene(...)` calls in one place (run-time globals, after `kaplay()`):
-```js
-function registerScenes() {
-  scene("title",  titleScene);
-  scene("select", selectScene);
-  scene("game",   gameScene);
-}
-// … registerScenes(); go("title");
-```
-
-**Anti-leak across scenes (CRITICAL):** every new scene must honor the same teardown `game.js` already does — any **global** controller (`onKeyPress`, `onHide`, app-global `onClick`) must be `.cancel()`ed in `onSceneLeave`. Tagged objects are wiped by Kaplay on scene change, but global event controllers are not. The title screen's "press any key" `onKeyPress` and the select screen's node hotkeys are the new leak risks — cancel them on leave. (`mathGate.js` already models this with `keyCtrls.forEach(c => c.cancel())`.)
-
-**`go()` data flow:** `select` reads progress on entry to decide locked/unlocked/cleared (see Pattern 4); on clearing a level, `game.js` does `go("select", { lastCleared: levelId })` so the map can highlight/scroll to the freshly unlocked node. No shared module state — the payload is the channel.
-
-**Trade-off:** `go()` rebuilds the destination scene fresh each time (good for leak hygiene, costs a re-mount). For these tiny scenes that's negligible and is the engine's intended model.
-
-### Pattern 3 — One shared math-challenge seam for four mechanics (Question 3)
-
-**What:** Generalize `mathGate.js` into `ui/challenge.js`. The current `openMathGate({brain,onClear})` already *is* 90% of the abstraction — it renders an in-world `fixed()/z()` overlay, pulls `q = brain.nextQuestion()`, runs the dual-input `choose(i)`, calls `brain.reportResult(q.a, correct)`, and fires a one-shot callback on correct. The four mechanics differ only in **what the correct answer does** and **how a wrong answer behaves**, not in the question UI.
-
-**The seam:**
-```js
-// ui/challenge.js
-export function openChallenge({
-  brain,                 // injected (one-way: challenge → brain, never → scenes)
-  onSolved,              // fired exactly once on correct  (was onClear)
-  flavor = "gate",       // "gate" | "door" | "key" | "checkpoint" | "enemy" — picks copy/skin only
-  dismissable = false,   // collectible/door may allow walking away; gate does not
-}) { /* same overlay + choose(i) machinery as today */ }
-```
-
-**Mechanic = (entity tag) + (collision wiring) + (one `openChallenge` call).** All four live in `game.js` (or a small `mechanics.js` helper invoked by `game.js`), each following the *exact* `onReachGoal` idiom already in the code (freeze interaction → open challenge → on solved, mutate world):
-
-| Mechanic | Entity (built by `build.js`, tagged) | `onSolved` action | Wrong-answer behavior |
-|----------|--------------------------------------|-------------------|-----------------------|
-| Locked door / key | `"door"` (+ required `keyId`) | `destroy(door)` (or open anim) → passage clears | forgiving: re-ask same q (today's default) |
-| Collect-the-answer | `"collectible"` | award coin/XP, `destroy(pickup)` | forgiving |
-| Mid-level checkpoint gate | `"mathgate"` marker | promote checkpoint + open path | forgiving |
-| Defeat enemy | `"enemy"` (👺💀🐉 reuse) | `destroy(enemy)` + `fx.pop` | forgiving — enemy never "wins"; ADHD-safe, never game-over |
-
-**Why one seam, not four:** the brain firewall must have exactly one consumer pattern (`brain.nextQuestion`/`reportResult`); four hand-rolled overlays would (a) risk four anti-leak bugs (global key controllers), (b) duplicate the dual-input + dim/panel draw, (c) drift the dark-grunge look. The existing `check-gate.sh` structural firewall (fixed overlay, BOTH `cancel()`+`destroy`, no-DOM, no-timer, no-scenes import) should be **re-pointed at `challenge.js`** so all five callers inherit one verified bridge.
-
-**Key engine wiring (matches `onReachGoal` exactly):** open on collision (door/enemy) or on overlap (gate marker) or on `onCollide` pickup; freeze the relevant interaction; the challenge's own fire-once latch guarantees a single `onSolved`. `mathGate.js` becomes:
-```js
-export const openMathGate = ({ brain, onClear }) =>
-  openChallenge({ brain, flavor: "gate", onSolved: onClear });
-```
-so all current `game.js` wiring keeps working unchanged.
-
-**Trade-off:** a `dismissable` surface adds a little config breadth. Keep wrong-answer **forgiving by default** (no penalty) per the no-timer/forgiving mandate — `check-safety.sh` will reject any punishment construct anyway, which is a useful guardrail on this seam.
-
-### Pattern 4 — Additive save migration v1 → v2 (Question 4)
-
-**What:** Extend the persisted blob with a `levels` completion/unlock map *without* discarding existing v1 XP/level. Today `progress.js` does **NO migration** — a version mismatch returns `defaults()` (a wipe). That was correct for v3.0 (deliberately ignoring the school game's keys), but v4.0 must **not** wipe the kid's real XP. Introduce a real migration step.
-
-**New blob shape (v2):**
-```js
-{ version: 2, xp, level, accuracy, history,
-  levels: { "01": { cleared: true, bestCoins: 8 }, "02": { cleared: false } } }
-```
-
-**Migration in `loadSave()` — change the one branch that currently wipes:**
-```js
-if (data.version === 1) data = migrateV1toV2(data);   // NEW — additive, not a wipe
-if (!data || data.version !== CONFIG.SAVE.VERSION) return defaults();
-return validate(data);
-
-function migrateV1toV2(v1) {
-  return { ...v1, version: 2, levels: {} };  // keep xp/level/accuracy/history; add empty levels
-}
-```
-…and `validate()` gains a whitelisted, range-checked `levels` copier (same explicit-field discipline already used for `accuracy`/`history` — never spread the untrusted blob; this is the prototype-pollution mitigation T-01-01 already in the file). Bump `CONFIG.SAVE.VERSION = 2`.
-
-**Unlock logic = derived, not stored separately:** a level is *unlocked* iff it's the first level OR the previous level (`LEVEL_ORDER`) is `cleared`. Store only `cleared` (a fact); compute `unlocked` from order. This avoids a second source of truth that could desync.
-
-**`progress.js` additions (pure, still node-testable):**
-```js
-markCleared(levelId, { coins })   // set levels[id].cleared = true; track bestCoins
-isCleared(levelId)                // read
-isUnlocked(levelId, order)        // first || isCleared(order[i-1])
-serialize(brainSnapshot)          // now includes `levels`
-```
-
-**Trade-off:** versioned migration is a forward-only chain (`v1→v2`, future `v2→v3`). That's the standard localStorage game-save pattern and keeps each step small. The firewall holds — `progress.js` still imports only `config.js` and stays runnable under node (test the migration headlessly, like the existing smoke).
-
-### Pattern 5 — Animated player + parallax under the a727c13 rule (Question 5)
-
-**What:** Animated player and parallax are pure presentation; both must keep **every Kaplay reference inside function bodies**, never at module top level (the exact bug that bit `level.js` and is documented across `fx.js`/`player.js`).
-
-**Animated player (`player.js` modified):** asset registration is a **boot-time** concern → in `main.js` (after `kaplay()`), swap `loadSprite("player", …)` for an atlas/sliced sheet with named anims (Kaplay 3001 `loadSprite(name, png, { sliceX, sliceY, anims:{ idle, run, jump } })` — the same `anims` mechanism already used for the coin's `spin`). In `player.js`, call `player.play("run"|"idle"|"jump")` from the **existing** `onUpdate`/`onGround`/jump handlers (all already run after init). No new top-level globals; just more `play()` calls inside the factory body where Kaplay is guaranteed installed.
-
-**Parallax (`parallax.js` NEW):** a factory `mountParallax(layers)` called from inside `gameScene`. Each layer is a background sprite offset by a fraction of `camPos()` each frame in an `onUpdate`. Critically: `import { CONFIG } from "./config.js"` is the **only** top-level statement; `add/sprite/pos/onUpdate/camPos/width/height` are used **only inside `mountParallax`** — copy `fx.js`'s header discipline verbatim. Background layers draw at the lowest `z()` so they sit behind the level; the HUD/gate `z()` ceilings (9990+) already sit above everything.
-
-**Why it can't violate a727c13:** the rule only bites top-level evaluation. Both changes add engine calls strictly inside `makePlayer()` / `mountParallax()` / scene callbacks, which run at scene-construction time — long after `kaplay({global:true})`. `node --check` (step 0 of `check-safety.sh`) plus a "no bare engine token at module scope" review keep it honest.
-
-**Trade-off:** parallax adds per-frame draws; at 640×360 with a handful of layers this is well within the 60 FPS target. Keep layer count small (2–3) and `crisp:true` upscaling unchanged.
+**Anti-pattern to avoid:** putting validation *inside* src/ (e.g. build.js asserting geometry at runtime). Validation is authoring tooling; the runtime stays forgiving by design (getLevel falls back rather than crashes) and the shipped game stays lean.
 
 ---
 
-## Data Flow
+## 4. Rebrand Touchpoints — Math Lab → Nox Run
 
-### Navigation + play flow
+Complete grep-verified inventory (`grep -rni "math lab\|mathlab"` over src/, docker/, docs/, scripts/, README, CREDITS):
 
-```
-boot → go("title")
-title:  press key / click PLAY → go("select")
-select: loadSave() → render node[i] = cleared? unlocked? locked
-        click unlocked node → go("game", { levelId })
-game:   getLevel(levelId) → buildLevel(level) → makePlayer(level.start)
-        play … reach mechanic → openChallenge({brain, onSolved})
-        reach goal → openChallenge(flavor:"gate") → onSolved:
-            progress.addXp(table); progress.markCleared(levelId,{coins})
-            writeSave(progress.serialize(brain.snapshot()))   // includes levels{}
-            go("select", { lastCleared: levelId })            // unlocks next via derived rule
-```
+| File | What | Change |
+|------|------|--------|
+| `src/index.html:6` | `<title>Math Lab — loading</title>` | rename |
+| `src/index.html:37` | file:// guard page `<title>` | rename |
+| `src/scenes/title.js:45` | `text("Math Lab", ...)` wordmark | **replace with logo sprite** (below) |
+| `src/config.js` TITLE | wordmark size constants + comments | retune for logo (logo scale, PROMPT_DY) |
+| `src/config.js:157` | `SAVE.KEY: "mathlab_platformer_v2"` | **DO NOT RENAME** — internal, invisible to the player; renaming the key (or bumping VERSION) silently wipes her XP/levels/unlocks (loadSave: unknown key/version → defaults, NO migration). Add a comment recording this decision |
+| `src/progress.js:280–312` | `console.warn("[MathLab] ...")` ×5 | cosmetic rename to `[NoxRun]` |
+| `src/main.js:1` | header comment | rename |
+| `docker/Dockerfile:1` | comment | rename |
+| `README.md`, `docs/DEPLOY.md`, `CREDITS.md` | prose + `mathlab:phase7` image-tag examples | rename |
+| `scripts/browser-boot.mjs` `SAVE_KEY` | mirrors SAVE.KEY literal | unchanged iff SAVE.KEY unchanged (they must stay in sync — note it) |
+| `scripts/*.py`, `scripts/check-progress.sh`, `scripts/audit-phase21-mechanics.mjs` | comments/prose | low-priority rename |
 
-### Persistence flow (v2)
+Non-touchpoints (verified clean): `ui/hud.js`, select.js heading ("Select a Level"), the controls hint, mathGate.js banner, `docker/nginx.conf` — none carry the product name.
 
-```
-on scene entry:  loadSave() ──(v1?)──► migrateV1toV2 ──► validate ──► {xp,level,accuracy,history,levels}
-                 createProgress(saved) + createBrain({seedAccuracy,seedHistory})
-on level clear:  progress.addXp → markCleared → writeSave(serialize(brain.snapshot()))
-on tab hide:     onHide(writeSave(...))   [controller .cancel()ed onSceneLeave — anti-leak, already present]
-```
+**Logo:** new `assets/logo.png` (dark green/black wordmark at pixel-art scale that reads on the 640×360 internal canvas; no pink), `loadSprite("logo", "../assets/logo.png")` in main.js, `sprite("logo")` replacing the `text()` wordmark in title.js (same fixed()/z/anchor idiom). Add a CREDITS.md note (sourced or in-house). Optionally echo a small logo on select.js.
 
-### Key data flows
-
-1. **Level identity:** travels *only* in the `go("game",{levelId})` payload → registry lookup → builder. Never a module-level `let`. (Same channel as v3.0's `startX/startY`.)
-2. **Unlock state:** stored as `cleared` facts in the save; `unlocked` is *derived* from `LEVEL_ORDER` at render time in `select.js`. One source of truth.
-3. **Math challenge:** scene/mechanic → `openChallenge({brain})` → `brain.nextQuestion/reportResult` → `onSolved` back into the scene. One-way `ui → brain`; the brain never imports a scene or the challenge.
+**Palette expansion (rides with the rebrand):** today the dark-grunge palette is **duplicated as module-local literals** in title.js, select.js, hud.js, fx.js, challenge.js, build.js (+ per-mechanic colors under CONFIG.DOOR/MATH_GATE/ENEMY/COLLECT). Recommended: add a `CONFIG.PALETTE` namespace (bg, surface, border dims, text, accent-green, the new Nox deep-green/moss tones, plus a rust/amber secondary accent — still dark, still no pink) and refactor the module-local literals to read it. Safe under a727c13 (config.js is a leaf; top-level CONFIG reads are the established pattern in every one of those files). This turns "richer grunge palette" into a one-file tuning surface plus a mechanical refactor. Also update `main.js` `background: "#0a0a0a"` and index.html's CSS/guard-page colors if the base tone shifts.
 
 ---
 
-## Scaling Considerations
+## 5. Dropping Tables 1 & 10 with a LOCKED Brain
 
-| Scale | Architecture adjustments |
-|-------|--------------------------|
-| 3–5 levels (this milestone) | Registry + data files is exactly right; hand-authored data objects. No tooling needed. |
-| ~10–20 levels | Same registry; consider extracting level data to JSON fetched at boot if files get unwieldy — but **only if** it stays no-build and same-origin. Probably unnecessary. |
-| Many mechanics per level | The `build.js` mechanic-array loops scale linearly; the single `openChallenge` seam means new mechanic = new tag + new `onSolved` action, not new UI. |
+The seam already exists and is already validated: `createBrain({ allowedTables })` (brain.js:60–71) sanitizes and applies a per-level pool; `calculateWeights`/`weightedRandom` respect it including the all-mastered fallback; and game.js already passes `level.allowedTables`. **Zero brain changes needed for table 1:** exclude 1 from every level's `allowedTables` pool (§2 ramp — no pool includes 1). Pure level-data edits.
 
-### Scaling priorities
+Two precision points the roadmap must record:
 
-1. **First "bottleneck" is authoring ergonomics, not runtime.** Keep `build.js` the single tested builder; keep level data declarative so adding level-06 is a data file + one registry line.
-2. **Anti-leak across many `go()`s is the real risk** — every new global controller in title/select/mechanics must be `.cancel()`ed on leave. Make this a review checklist item (and extend `check-safety.sh`/`check-gate.sh` coverage to the new files).
+1. **"Table 10" cannot be dropped from the rotation because it was never in it.** The brain selects tables 1–9 only (HARD_TABLES + EASY_TABLES; allowedTables validation clamps to 1..9). There is no table-10 selection to remove — this half of the todo is satisfied by documentation, not code.
+2. **However, ×10 *questions* still occur via the multiplicand:** `nextQuestion()` rolls `b = Math.floor(Math.random()*10)+1` (1..10), so e.g. `7 × 10` can appear on any table. If the actual intent is "no ×10 questions", that is a one-literal change (`*10` → `*9`) **inside the LOCKED brain** — a scoped, surgical unlock decision for the milestone owner. Recommended stance: treat the rotation interpretation as primary (nothing to do for 10), and raise the multiplicand question as an explicit yes/no requirement decision with the one-line change pre-identified, rather than silently interpreting either way.
+
+**Fallback-brain footnote:** challenge.js/mathGate.js construct a pool-less fallback `createBrain()` only if a caller forgets to pass one — game.js always passes the pooled brain, so table 1 can't leak in practice. Leave the fallback alone.
 
 ---
 
-## Anti-Patterns
+## Internal Boundaries (unchanged + new)
 
-### Anti-Pattern 1 — A module-level "current level" or "unlocked levels" `let`
+| Boundary | Direction | v5.0 impact |
+|----------|-----------|-------------|
+| brain.js → config.js only | LOCKED firewall | untouched (pool change is level data; multiplicand question escalated, not assumed) |
+| mechanics/* → ui/challenge.js | one-way | untouched; the main SFX hook lives inside challenge.js so mechanics don't change for audio |
+| progress.js ↔ localStorage (guarded seam) | today's only storage touchpoint | stays progression-only; audio.js gets its own parallel guarded seam + key |
+| levels/*.js → config.js only (pure data) | node-importable | exploited by the new static linter |
+| **audio.js → config.js only** (new) | app-lifetime singleton; engine calls inside functions only | mirrors fx.js discipline; documented anti-leak exception like game.js's onHide |
+| scripts/ → src/levels, src/config (node imports) | tooling reads game data | validate-levels.mjs joins browser-boot.mjs on this side |
 
-**What people do:** stash `let currentLevelId` / `let unlocked = []` at module top in `level.js`/`select.js`.
-**Why it's wrong:** survives `go()` and respawn → state leaks across plays (the exact failure `game.js` warns against), and duplicates the save as a second source of truth.
-**Do this instead:** pass `levelId` through `go()` data; derive `unlocked` from the save's `cleared` facts + `LEVEL_ORDER` each render.
+## Anti-Patterns (specific to this integration)
 
-### Anti-Pattern 2 — Four bespoke math overlays for the four mechanics
+1. **Per-scene audio ownership** — restarts music on every `go()`; music/mute are app state, not scene state.
+2. **Persisting mute through `progress.serialize()`** — couples a cosmetic toggle to the hardened save-validation chain and to scenes that hold no progress instance.
+3. **Renaming `SAVE.KEY` during the rebrand** — wipes her progress for zero user-visible benefit.
+4. **Double SFX on barrier clear** — hook challenge.js's correct branch OR the mechanics' onSuccess, never both.
+5. **Runtime geometry asserts in src/** — validation is authoring tooling (scripts/); the runtime stays forgiving.
+6. **Making the Playwright driver the reachability proof** — its traversal model has documented blind spots (spike-timing resonance); the static linter is the completeness check.
+7. **Top-level `typeof play` / engine guards in audio.js** — the exact a727c13 bug class fx.js's and build.js's headers document; keep every engine reference inside function bodies.
+8. **Single-row select layout patched by shrinking tiles** — 8 × anything readable doesn't fit 640px in one row; go to the 2×4 grid, don't fight the flagged overflow with tiny tiles.
 
-**What people do:** copy `mathGate.js` four times with small tweaks.
-**Why it's wrong:** four anti-leak surfaces (global key controllers), four chances to drift the dark-grunge look, four brain consumers to keep firewalled.
-**Do this instead:** one `openChallenge` seam; mechanics differ only in `onSolved` + a `flavor` skin. Re-point the structural firewall script at it.
+## Suggested Build Order (dependency-driven)
 
-### Anti-Pattern 3 — Touching Kaplay at module top level for the new files
+1. **Implementation review + auto-fix pass** — clean base before building on it (milestone feature; touches everything, so it goes before content multiplies).
+2. **Static level validator** (`scripts/validate-levels.mjs`) — built against the existing 4 levels; immediately surfaces the known structural defects (door-over-hole, unreachable spots). Must exist **before** level authoring so all new content is validated as written.
+3. **Fix + lengthen the existing 4 levels** — data edits until the validator is green; add explicit bounds to level-01; update/retire the geometry-pinning smoke fixture.
+4. **Add levels 05–08 + registry append + select.js 2×4 grid + difficulty ramp + drop table 1 from all pools** — the registry append auto-propagates to select, unlock chain, and browser-boot; record the table-10/multiplicand decision in requirements.
+5. **Palette expansion** (`CONFIG.PALETTE` + module-literal refactor) — before the logo so the logo is designed against the final palette.
+6. **Rebrand** (index.html titles, logo asset + title.js, console prefixes, docs/docker comments; SAVE.KEY explicitly kept).
+7. **Audio** (`src/audio.js`, CONFIG.AUDIO, loadSound block in main.js, M-key, seam hooks, mute persistence, assets + licenses) — last feature phase so SFX hooks land on the final mechanics/level set; independent enough to move earlier if parallelizing.
+8. **Full verification pass** — browser-boot across all 8 levels (automatic via LEVEL_ORDER), validator green, check-safety green, human sign-off on art/audio (v4.1 lesson: interactive proof, not code review).
 
-**What people do:** in `parallax.js`/`select.js`, write `const W = width()` or `typeof add === "undefined"` guards at module scope.
-**Why it's wrong:** imports are hoisted before `kaplay()` installs globals → throws at import time → blank game (a727c13, the `level.js` bug).
-**Do this instead:** only `import { CONFIG }` at top; all engine calls inside the exported function/scene bodies. Mirror the `fx.js` header discipline.
-
-### Anti-Pattern 4 — Wiping the save on version bump
-
-**What people do:** keep `progress.js`'s current "version mismatch → defaults()" for the v2 change.
-**Why it's wrong:** erases the kid's real XP/level — a regression and a trust break.
-**Do this instead:** `migrateV1toV2` (additive: keep xp/level/accuracy/history, add `levels:{}`); only fall to defaults for truly unknown/corrupt versions.
-
-### Anti-Pattern 5 — A countdown or "enemy defeats you" failure for the enemy mechanic
-
-**What people do:** make the enemy damage the player / time the answer.
-**Why it's wrong:** violates no-timer + forgiving mandates; `check-safety.sh` fails the commit on `gameOver`/`loseLife`/`countdown`.
-**Do this instead:** enemy is just another `openChallenge` host; wrong answers re-ask (forgiving); correct destroys it. No HP, no timer.
-
----
-
-## Integration Points
-
-### External services
-
-| Service | Integration pattern | Notes |
-|---------|---------------------|-------|
-| None | — | Static hosting only; no backend, no CDN. All assets vendored under `assets/`/`lib/` (web-root `../` convention — a wrong path is a SILENT 404, per `main.js` Pitfall 1). |
-
-### Internal boundaries
-
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| `main.js` ↔ scenes | `scene()` register + `go(name,data)` | The only top-level globals live in `main.js` (after `kaplay()`). |
-| scene ↔ scene | `go(name, data)` payload, one-way | No shared module state; payload is the channel (extends v3.0's `startX/startY` seam). |
-| `game.js` ↔ `levels/index.js` | `getLevel(id)` / `nextLevelId(id)` | Pure lookup; level identity from `go()` data only. |
-| mechanics ↔ `ui/challenge.js` | `openChallenge({brain,onSolved,flavor})` | One bridge for all five callers (4 mechanics + end gate). |
-| `ui/challenge.js` ↔ `math/brain.js` | `nextQuestion`/`reportResult` | One-way `ui → brain`; firewall enforced by re-pointed `check-gate.sh`. |
-| `scenes/select.js` ↔ `progress.js` | `loadSave`, `isCleared`, `isUnlocked` | `select` reads progress one-way (like HUD reads progress); writes happen only in `game.js` on clear. |
-| any module ↔ `config.js` | import leaf constants | `config.js` imports nothing; grows `SAVE.VERSION=2`, `ANIM`, `BG`, `MECHANIC`, `MAP` namespaces. |
-
----
-
-## Suggested Build Order (dependency-respecting)
-
-> Ordered so each step lands on a green tree, reuses prior seams, and never blocks on art. Persistence-migration and the level-registry are the spine everything else hangs on, so they come early but **additively**.
-
-1. **Save v2 + migration (`progress.js`, `config.js`).** Additive `levels:{}`, `migrateV1toV2`, `validate` extension, `markCleared/isCleared/isUnlocked`, `SAVE.VERSION=2`. Pure + node-testable; no UI dependency. *Why first:* every later screen/level reads/writes this; doing it additively up front avoids a wipe regression and unblocks select + per-level clear. **No engine, no a727c13 risk.**
-2. **Level registry + builder refactor (`levels/index.js`, `levels/build.js`, `level-01.js`).** Lift the v3.0 `LEVEL` into `level-01.js`; move builder logic into `build.js`; add `getLevel/nextLevelId`. Parametrize `game.js` by `data.levelId` + per-level `bounds/start` (camera + fall-check take bounds as params). *Why second:* turns one level into "many" with the existing single level still playable end-to-end — proves the parametrization before authoring more content.
-3. **Multi-scene shell (`scenes/title.js`, `scenes/select.js`, `main.js registerScenes`, boot `go("title")`).** Wire title→select→game→select navigation with `go()` payloads; `select` reads progress for locked/unlocked/cleared; `game.js` on-clear does `markCleared` + `go("select")`. Anti-leak: cancel new global controllers on leave. *Why third:* needs the registry (2) and save (1); delivers the "sense of progression" loop with placeholder art.
-4. **Shared math-challenge seam (`ui/challenge.js`; refactor `mathGate.js` to a thin caller; re-point `check-gate.sh`).** Extract the overlay+brain bridge; keep end-of-level behavior byte-for-byte via the `gate` flavor. *Why fourth:* end-gate keeps working throughout; this is a refactor that *enables* step 5 without changing current behavior.
-5. **The four mid-game mechanics** (door/key, collectible, mid-level checkpoint gate, enemy) — each = a tagged entity in `build.js` + a collision wiring in `game.js` + one `openChallenge` call with its `onSolved`. Author into level-02…05 data. *Why fifth:* depends on the seam (4), the registry/builder (2), and multiple levels (3). Add mechanics incrementally; each is independent.
-6. **Difficulty curve.** Tune per-level `tables` (6–9 weighting scope) + platforming density across `level-02…05`. Pure data; depends on the levels existing (2/3/5). No code.
-7. **Art pass — animated player + tileset + parallax + title art (`player.js`, `parallax.js`, `main.js` asset loads, `config.js ANIM/BG`).** *Why near-last:* presentation overlays a working game; deferring art means steps 1–6 validate with placeholders and the a727c13-sensitive parallax lands once the scene graph is stable.
-8. **Polish + UAT.** Juice on mechanics (reuse `fx.js`), HUD tweaks, kid playtest of difficulty/feel. Extend `check-safety.sh`/`check-gate.sh` coverage to all new files.
-
-**Dependency summary:** 1 (save) and 2 (registry) are the spine → enable 3 (scenes). 4 (seam) is a no-behavior-change refactor that unblocks 5 (mechanics). 6 (difficulty) and 7 (art) are data/presentation layered on a working game; 8 polishes. Steps 1, 2, 6 carry **zero a727c13 risk** (pure/data); steps 3, 4, 5, 7 add engine calls and must keep them **inside function bodies** and **cancel global controllers on leave**.
-
----
+Phases likely needing deeper per-phase research flags: **audio** (exact Kaplay 3001 `play()` handle semantics, volume model, and autoplay-resume behavior of this specific vendored build — verify against `lib/kaplay.mjs` before implementing) and **validator** (hop-envelope edge cases: diagonal platform-to-platform hops, blocker-bypass geometry). Level authoring, palette, and rebrand are pure applications of existing patterns — no research flag needed.
 
 ## Sources
 
-- v3.0 source (authoritative, read directly): `src/main.js`, `src/scenes/game.js`, `src/level.js`, `src/progress.js`, `src/ui/mathGate.js`, `src/math/brain.js`, `src/config.js`, `src/player.js`, `src/fx.js`, `src/index.html`, `scripts/check-safety.sh` — HIGH confidence (the architecture being extended).
-- `.planning/PROJECT.md` (v4.0 milestone goals + carried-forward constraints) — HIGH.
-- `.planning/milestones/v3.0-phases/10-…/10-02-SUMMARY.md` (mathGate bridge contract, one-way firewall, `check-gate.sh`) — HIGH.
-- `.planning/milestones/v3.0-phases/11-…/11-01-SUMMARY.md` (progress.js save shape, versioning, "NO migration" decision now revisited for v2) — HIGH.
-- Kaplay 3001 multi-scene model (`scene`/`go`) and `loadSprite` `anims`/`sliceX` — confirmed in repo usage (coin `spin` anim in `main.js`; `scene`/`go` in `main.js`+`game.js`) — HIGH.
+- Read directly from the live tree (HIGH confidence): `src/main.js`, `src/config.js`, `src/progress.js`, `src/levels/{index,build,level-01}.js` (+grep of level-02..04 pools/bounds), `src/scenes/{title,select,game}.js`, `src/ui/{challenge,hud,mathGate}.js`, `src/mechanics/{door,collect}.js` (+grep of gates/enemy onSuccess seams), `src/math/brain.js`, `src/player.js`, `src/fx.js`, `src/index.html`, `scripts/check-safety.sh`, `scripts/browser-boot.mjs`, `scripts/lib/mechanic-drive.mjs`, `docker/{Dockerfile,nginx.conf}`, `.planning/PROJECT.md`.
+- Kaplay 3001 audio API presence (`loadSound`/`loadMusic`/`setVolume`/`audioCtx`) verified by grep of the vendored `lib/kaplay.mjs` (HIGH for presence; MEDIUM for exact handle semantics — verify during the audio phase).
+- Browser AudioContext autoplay-gesture requirement: standard web platform behavior (HIGH — mitigated structurally by starting music in the title gesture handler).
 
 ---
-*Architecture research for: Kaplay no-build platformer — v4.0 content/challenge integration*
-*Researched: 2026-06-28*
+*Architecture research for: Nox Run v5.0 feature integration*
+*Researched: 2026-07-05*

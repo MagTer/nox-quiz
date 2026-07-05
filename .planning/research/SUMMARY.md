@@ -1,143 +1,166 @@
 # Project Research Summary
 
-**Project:** Math Lab
-**Domain:** Kid's educational 2D platformer (vendored Kaplay 3001, no build step, ADHD-safe)
-**Researched:** 2026-06-28
+**Project:** Nox Run (formerly Math Lab) — v5.0 "Nox Run — Real Levels"
+**Domain:** No-build browser 2D platformer (vendored Kaplay 3001.0.19) — subsequent-milestone integration research
+**Researched:** 2026-07-05
 **Confidence:** HIGH
 
 ## Executive Summary
 
-v4.0 "Content & Challenge" grows the shipped single-level slice into a real, replayable game: 3–5 hand-built levels + a title/level-select shell, math woven *through* each level via four mechanics, a difficulty curve, an art/animation pass, and per-level persistence. The standout research result is **convergence**: four independent researchers (stack, features, architecture, pitfalls) all landed on the same shape — almost nothing here needs new technology, and the four "new" math mechanics are really one mechanic wearing four skins.
+v5.0 adds audio/SFX + ambient music, scales 4 levels to 8 longer guaranteed-playable levels, expands the dark-grunge palette, rebrands Math Lab → Nox Run with a dark-green/black logo, and drops tables 1 & 10 from the practice rotation — all on a working, kid-validated game. The headline stack finding: **zero new runtime dependencies are needed.** The vendored Kaplay 3001.0.19 already ships the full audio surface (`loadSound` buffer SFX, `loadMusic` streaming, `play()` options, `setVolume`/`getVolume`, `audioCtx`) — verified by direct source inspection of the minified build. New level validation is a pure-Node static analyzer over the already-node-importable level descriptors; logo and palette are extensions of the existing Pillow art pipeline. The only new files are CC0 audio assets (Kenney SFX, OpenGameArt ambient loops, OGG format) and one build-time-only CC0 pixel font.
 
-The recommended approach is therefore **reuse-first**: every v4.0 capability (animated sprites, multiple scenes, parallax) is native to the already-vendored Kaplay 3001.0.19; the only true additions are static CC0 art files and new plain-JS data modules. Levels stay as parameterized JS data feeding the validated `buildLevel` (NOT Kaplay `addLevel`, which would undo the merged-floor anti-seam-stick colliders, and NOT Tiled, which needs an external editor/parser). The four math mechanics get one shared `ui/challenge.js` extracted from today's `ui/mathGate.js` (a no-behavior-change refactor), differing only in their `onSolved` world-mutation.
+The dominant risk is **not** "can we build these features" — it's regression and false confidence on a shipped product. Four risks tower over everything: (1) audio leaking or stacking across the strictly anti-leak scene system (Kaplay sound handles survive `go()`), (2) the rebrand renaming the `mathlab_platformer_v2` localStorage key and wiping the one save that matters, (3) new levels shipping below the v4.1 interactive-audit bar (the Playwright driver already can't reach 6/16 encounters — doubling content grows that blind spot), and (4) a static validator that models physics the engine doesn't have, green-stamping unwinnable geometry. All four have concrete, cheap preventions identified in PITFALLS.md.
 
-The two load-bearing risks are both already-burned lessons: the **a727c13 import-time trap** (this milestone adds the most new modules ever — each a fresh chance to blank the game by touching a Kaplay global at module top level) and **save-migration bricking the one returning player** (today's `progress.js` *wipes* on a version bump by design; v4.0 must replace that with an additive migration preserving XP/level/accuracy/history). Both are prevented with established repo patterns (factory functions, function-body-only globals, an import-safety grep, a human-tested migration against a real v3.0 save) plus a mandatory per-phase browser boot.
+The recommended approach is dependency-driven ordering: implementation review + auto-fix first (clean base), then the static level validator (`scripts/validate-levels.mjs`) **before any level authoring** so all 8 levels are validated as written, then fix/lengthen the existing 4, then author 5–8 with the new difficulty ramp, then palette centralization + expansion, then rebrand (save key explicitly untouched), then audio last so SFX hooks land on the final mechanics set, closing with a full verification pass and human sign-off (v4.1 lesson: interactive proof, not code review).
 
 ## Key Findings
 
 ### Recommended Stack
 
-Zero new runtime dependencies. Everything ships inside `lib/kaplay.mjs` @ 3001.0.19. "Stack" work is art-vendoring (CC0 sourcing + provenance via the established LICENSES/CREDITS workflow) plus code that consumes already-present engine APIs. Detail in [STACK.md](STACK.md).
+Nothing new at runtime. Everything v5.0 needs is served by the vendored engine, static assets, and existing build/audit tooling. Do not add Howler.js, npm/package.json, or upgrade Kaplay to 4000-series.
 
-**Core technologies (all native, verified against the vendored bundle + kaplayjs.com):**
-- `loadSprite(name, src, { sliceX, sliceY, anims })` + `.play()/animSpeed/onAnimEnd/flipX` — animated player (idle/run/jump). `loadSpriteSheet` does NOT exist in 3001 (old Kaboom name) — `loadSprite({sliceX,…})` is correct and already used in `main.js`.
-- `scene(name, fn)` / `go(name, data)` / `onSceneLeave` — title + level-select + per-level scenes; the level payload rides the exact `go()` data seam v3.0 already uses for `startX/startY`.
-- `setLayers` / camera (`getCamPos`/`setCamPos`) — parallax/layered background.
-- Plain JS data modules + parameterized `buildLevel` — multi-level authoring with no build step.
+**Core technologies:**
+- **Kaplay 3001.0.19 audio API (vendored):** `loadSound` for all SFX (zero-latency buffer replay), `loadMusic` for streaming ambient tracks (doesn't block boot loading), `setVolume`/`getVolume` for master mute. **`volume(n)` is deprecated in this exact build — use `setVolume`.** Music-handle `detune` is a no-op. No audio buses exist — music/SFX balance lives in a ~60-line `src/audio.js` wrapper.
+- **OGG Vorbis** for all audio: MP3's encoder padding makes gapless ambient loops impossible; OGG loops sample-accurately. Target is Chrome/Edge/Firefox on Windows — Safari's OGG gap is irrelevant. Sources: Kenney CC0 packs (SFX/jingles), OpenGameArt CC0 calm/ambient collection (music), vendored with the existing license-proof discipline.
+- **Node ≥18 static analyzer** (`scripts/validate-levels.mjs`, zero deps): imports the pure-data level modules directly, builds a reachability graph from the CONFIG-derived jump envelope (rise ≈96.6px, flat-gap ≈178px, with ~0.85 safety factor), asserts spawn→goal path, doors-not-over-holes, mechanic reachability. Exits non-zero — a real gate (unlike the always-exit-0 `audit-phase21` pattern).
+- **Pillow 10.2.0 (existing)** renders the Nox Run logo as pre-baked PNG(s) via a CC0 pixel TTF (monogram, first choice) — reject runtime Kaplay text styling for the wordmark. Palette expansion is named tokens in the existing remap pipeline; per-theme sub-palettes give the 8 levels visual identity.
 
-**Do NOT add:** bundler, sprite-packer build tool, Tiled, or any external runtime lib. **Pin held at 3001.0.19** — do not upgrade during v4.0 (the `Rect`-class guard and `setCamPos`-not-`camPos` calls are version-coupled).
+**Critical verified gotcha:** this Kaplay build has **no gesture unlock hook** — `audioCtx` stays suspended until code resumes it. Start music + `audioCtx.resume()` inside the title screen's existing press-to-start handler; never at module load.
 
 ### Expected Features
 
-Detail in [FEATURES.md](FEATURES.md).
+**Must have (table stakes) — v5.0 launch set:**
+- Core SFX (jump, land, pickup, shared correct, **soft neutral wrong — never a buzzer**, door/gate, level-clear fanfare) wired once into the shared challenge-resolution path so all mechanics sound identical
+- 2–3 calm ambient OGG loops (1–2 min, seamless), gesture-gated start, music mixed clearly below SFX
+- Mute toggle (M key), persisted — in a **separate localStorage key**, not the progress save
+- 8 levels: 1–4 lengthened (append, don't edit kid-validated sections), 5–8 new; checkpoint respawns scale with length; teach-test-twist pacing; rest beats; tables 1 & 10 dropped via per-level pools
+- Structural validator with all 8 levels passing + interactive start→goal runs
+- Level select scaled to 8: 2×4 grid on one screen (single row overflows the 640px canvas per the existing IN-03 flag), existing lock/unlock/cleared semantics, next-level glow ≤500 ms
+- Nox Run dark-green/black wordmark + full string sweep; save data intact; logo human-signed-off with a light/neon separation element (dark-green-on-black is a contrast trap by spec)
+- Per-level background/accent tinting with contrast re-checked per theme
 
-**Must have (table stakes):**
-- 3–5 traversable levels selectable from a level-select screen with locked/unlocked + completion marks + resume
-- Math woven mid-level (not only at the goal), always forgiving + no-timer
-- Per-level completion persisted; returning resumes unlocks and XP/level
+**Should have (differentiators, mostly v5.x):** ADHD-safe audio mix as a designed feature (music ~0.3–0.4 of SFX), verticality segments in late levels, one secret XP alcove per level, logo reveal animation.
 
-**Should have (differentiators):**
-- Four math-mechanic skins (door/keys, defeat-enemy, multiple gates, collect-the-answer) over one shared challenge
-- A gentle difficulty curve (easy table pools early → 6–9 deeper; longer/precise platforming later)
-- Animated player, real tileset, parallax background, title screen
-
-**Anti-features (deliberately NOT built — load-bearing for this user):**
-- No timers/countdowns, no lives/game-over, no wrong-answer penalty, no contact-damage enemies, no losable stars/streaks, no leaderboards, no pink.
+**Defer / anti-features:** worlds map (earns keep at ~12+ levels), star ratings (shame-spiral risk), danger-reactive music (audio version of the banned timer), full audio options menu, maze/branching levels, recoloring the signed-off v4.1 sprites, renaming the localStorage key.
 
 ### Architecture Approach
 
-Reuse the single-scene spine; add scenes and data, not new mechanisms. Detail in [ARCHITECTURE.md](ARCHITECTURE.md).
+Every feature attaches to a verified existing seam; the v4.0 data spine was built for exactly this scaling. New app-lifetime singleton `src/audio.js` (imports only config.js, engine calls inside function bodies per a727c13, documented anti-leak exception like game.js's `onHide`); `playMusic()` must be **idempotent** — the single contract that kills both music-stacking-on-death and cross-scene leaks. SFX hook points are exact and enumerated (challenge.js `choose()` branches cover door/gate/enemy/mathGate in one seam; collect.js needs its own; player.js jump/land seams; game.js coin/clear/level-up seams — never also hook mechanics' `onSuccess` or clears double-fire). Levels 05–08 are pure-data descriptors + a registry append; `LEVEL_ORDER`, unlock chain, select tiles, and the boot-gate save blob all derive automatically. `play("ambient", { loop: true })` passes the SAFE-01 gate (property form allowed; call form banned).
 
 **Major components:**
-1. **Save migration (additive v1→v2)** in `progress.js` — preserve xp/level/accuracy/history, add a `levels:{}` cleared-map; *derive* unlocked from `LEVEL_ORDER`. Pure module, no a727c13 risk.
-2. **Level registry + data format** — `levels/index.js` (`LEVEL_ORDER`), `levels/level-0N.js` (plain data), `levels/build.js` (parameterized builder extending `level.js`). Pure.
-3. **Multi-scene shell** — `scenes/title.js`, `scenes/select.js`; `game.js` parametrized by `levelId` via `go(name,data)`. Engine-touching → cancel controllers on `onSceneLeave`.
-4. **Shared challenge seam** — extract `ui/challenge.js` from `mathGate.js`; `mathGate.js` becomes a one-line caller; re-point `check-gate.sh`. No-behavior-change refactor that MUST precede the mechanics.
-5. **Four mechanics** as level-data fields the builder emits, each a forgiving `onSolved` world-mutation. Door first (proves seam); defeat-enemy is the same impl with art; multiple-gates generalizes the `goalReached` latch; collect-the-answer renders `q.choices` in world-space.
-6. **Difficulty** — per-level `allowedTables` pool passed into `createBrain(...)`; never touch the LOCKED weighting. Platforming knobs in level data.
-7. **Art/animation + parallax** — presentation, deferrable to near-last so the game validates on placeholders; keep all Kaplay refs in function bodies (a727c13).
+1. `src/audio.js` (NEW) — app-lifetime audio manager: idempotent music, per-cue SFX functions, mute persisted under its own key (`CONFIG.AUDIO.KEY`), mirroring progress.js's guarded-storage idiom without importing it
+2. `scripts/validate-levels.mjs` (NEW) — static geometry linter over LEVELS; primary structural gate; complements (not replaces) the Playwright dynamic drive
+3. `src/levels/level-05..08.js` (NEW) + lengthened 01–04 — pure data; explicit `bounds` on every level; ramp table [2,3,4,5]→[6,7,8,9] with a mixed-review level 07
+4. `CONFIG.PALETTE` + `CONFIG.AUDIO` — centralize today's module-local color literals before expanding; single tuning surface shared with the Python pipeline
+5. `assets/logo.png` + rebrand sweep — grep-verified touchpoint inventory exists in ARCHITECTURE.md; `SAVE.KEY` explicitly excluded
 
-`math/brain.js` stays LOCKED and untouched.
+**Tables 1 & 10 precision (must be recorded in requirements):** table 1 is dropped purely via level `allowedTables` pools — zero brain changes. Table 10 **was never in the rotation** (brain clamps to 1..9) — that half is satisfied by documentation. However, ×10 *questions* still occur via the multiplicand roll (`b = 1..10`); if the intent is "no ×10 questions," that's a one-literal change inside the LOCKED brain — escalate as an explicit yes/no decision, don't silently interpret.
 
 ### Critical Pitfalls
 
-Top items from [PITFALLS.md](PITFALLS.md):
+1. **Autoplay-suspended AudioContext** — music started before first gesture silently no-ops; works in dev, fails on her machine. Start music inside the press-to-start handler; assert `audioCtx.state === "running"` in the boot gate; test once in fresh incognito.
+2. **Music stacking / scene leaks** — Kaplay handles outlive `go()`; death-restart stacks loops. Idempotent `playMusic()` manager; verification: "die twice, listen" + "exit to select, listen" + handle-count boot-gate assertion.
+3. **Save wiped by the rebrand** — find/replace on "mathlab" catches `mathlab_platformer_v2`. The storage key is not part of the brand; keep it with a comment; verify a pre-rebrand blob resumes post-rename. Allowlist the school-game key-avoidance comments in progress.js.
+4. **Audit coverage silently degrading** — the driver's 6/16 unreachable-encounter blind spot grows with 8 longer levels. Upgrade the harness before/alongside level authoring; explicit coverage bar: every encounter driven or individually excepted.
+5. **Validator false confidence** — theoretical jump envelope ≠ real clearable gap. Derive from CONFIG, calibrate empirically against the running engine once, keep the interactive start→goal run as the gate (static pass alone ≠ done), and require the validator to catch the two *known* live bugs (door-over-hole, unreachable areas) before it's trusted.
 
-1. **a727c13 recurrence (#1 risk)** — most new modules ever; each can blank the game via a top-level Kaplay global. Prevent with factory functions, function-body-only globals, a `check-import-safety.sh` grep, and a mandatory per-phase browser boot.
-2. **Multi-scene state/controller/tween leaks** — invisible in v3.0's single scene; with title→select→level→gate transitions they surface as double-input, pre-solved levels, calls on destroyed objects. Cancel controllers on `onSceneLeave`; factory closures, not module-level `let`.
-3. **Math mechanics drifting into punishment** — every "natural" default (keys consumed on wrong, wrong pickup damages, enemy deals damage) violates the mandate. Route all four through ONE shared forgiving (re-ask only, no timer, no losing branch) contract; grep- + UAT-enforced per mechanic.
-4. **Save migration bricking the returning player** — additive, versioned migration; human-test against a real v3.0 save fixture.
-5. **Over-stimulation creep** from richer art + parallax + enemies + difficulty — keep the ≤400–500ms flash cap, slow/muted camera-tied (non-timer) parallax, gentle difficulty ramp via table pools only.
+Also high-salience: ADHD-safe audio criteria written into the plan before picking sounds (no buzzers, no startle stingers); palette centralization before expansion with a recorded contrast-ratio role table and an explicit banned-hue band around magenta/pink; level-01's geometry-pinning smoke fixture must be consciously re-baselined (not deleted) when lengthened.
 
 ## Implications for Roadmap
 
-Suggested phase structure (the convergent build-order spine):
+Based on research, suggested phase structure (mirrors ARCHITECTURE.md's dependency-driven build order):
 
-### Phase 1: Save migration + level registry/data format
-**Rationale:** The two highest-leverage, lowest-risk, *pure* (no a727c13) pieces; the spine everything else consumes.
-**Delivers:** additive v1→v2 save migration (XP/level/history preserved + `levels:{}` map) and the level-registry + parameterized builder.
-**Avoids:** save-bricking pitfall; sets the data shape before any scene work.
+### Phase 1: Implementation Review + Auto-Fix
+**Rationale:** Milestone feature; touches everything, so it precedes content multiplication — a clean base before building on it.
+**Delivers:** Reviewed/fixed codebase; known defects (door-over-hole, unreachable areas) inventoried.
+**Avoids:** Compounding existing bugs into 2× the level content.
 
-### Phase 2: Multi-scene shell (title + level-select) + game.js parametrized by levelId
-**Rationale:** Establishes the factory + closure-state + controller-cancel + import-safety contracts everything inherits once there are multiple scenes.
-**Delivers:** title screen, level-select (locked/unlocked/complete/resume), `go("game",{levelId})`.
-**Avoids:** multi-scene leak pitfalls; first place the a727c13 trap can resurface.
+### Phase 2: Validation Harness (Static Linter + Dynamic Upgrade)
+**Rationale:** Highest-leverage ordering decision in the milestone (Pitfalls 6–7). Must exist before any level authoring; built against the existing 4 levels it must immediately flag the known live bugs.
+**Delivers:** `scripts/validate-levels.mjs` (reachability graph, gap-width, door-over-hole, checkpoint-density, mechanic-on-floor checks; non-zero exit; envelope calibrated empirically); mechanic-drive spike-awareness or teleport-near fallback; explicit encounter-coverage bar.
+**Avoids:** Validator false confidence; audit blind-spot growth; the v4.0 soft-lock pattern repeating.
 
-### Phase 3: Shared challenge-seam extraction + the door mechanic (P1)
-**Rationale:** A no-behavior-change refactor that MUST precede the other mechanics; door proves the seam end-to-end.
-**Delivers:** `ui/challenge.js` (with `mathGate.js` as a caller), `check-gate.sh` re-pointed, one mid-level locked-door gate.
+### Phase 3: Fix + Lengthen Levels 1–4
+**Rationale:** Data-only edits gated by the new validator; establishes authoring conventions before new levels.
+**Delivers:** 4 lengthened levels green on both layers; explicit bounds on level-01; smoke fixture deliberately re-baselined; append-don't-edit for kid-validated sections; checkpoint density scaled.
+**Avoids:** Copy-paste drift, fixture trap, checkpoint-density violation.
 
-### Phase 4: Remaining three mechanics + difficulty curve
-**Rationale:** Once the seam is proven, defeat-enemy (same impl + art), multiple-gates (per-gate latch), and collect-the-answer (world-space choices) are additive; difficulty via per-level `allowedTables`.
-**Delivers:** all four mechanics usable as level-data fields; easy-pool early levels → 6–9 deeper.
+### Phase 4: Levels 5–8 + Select Grid + Difficulty Ramp + Table Drop
+**Rationale:** Registry append auto-propagates everywhere; ramp and pools designed as one reviewed table.
+**Delivers:** 4 new pure-data levels (one twist each, verticality, rest beats); select.js 2×4 grid; ramp [2,3,4,5]→[6,7,8,9]; table 1 out of all pools; table-10/multiplicand decision recorded; save extension for levels 5–8 locked-by-default.
+**Avoids:** Difficulty spikes, question fatigue (hold encounter budget ~constant), brain.js edits (LOCKED — verify zero diff in `src/math/`).
 
-### Phase 5: Build out the 3–5 levels
-**Rationale:** With mechanics + builder ready, author the actual content on the validated movement/collider spine.
-**Delivers:** 3–5 polished, completable levels with a difficulty ramp, wired into the registry/select.
+### Phase 5: Palette Centralization + Expansion
+**Rationale:** Centralize duplicated module-local color literals into `CONFIG.PALETTE` first, then expand once; must precede the logo so the logo is designed against the final palette.
+**Delivers:** Named-role palette table with recorded contrast ratios; per-theme sub-palettes in the Python pipeline; hue-tinted darks (moss green, blue-grey, rust) within the sign-off-validated luminance band; no-pink guardrail.
+**Avoids:** Contrast regressions, hazard/decor semantic confusion, palette drift.
 
-### Phase 6: Art/animation + parallax pass
-**Rationale:** Presentation deferred to near-last so gameplay validates on placeholders first; pure-ish but engine-touching (a727c13 discipline).
-**Delivers:** animated player (idle/run/jump), real tileset, parallax background, title art.
+### Phase 6: Rebrand (Nox Run)
+**Rationale:** After palette (logo on final tokens); the one dangerous interaction with persistence handled as a stated non-goal.
+**Delivers:** Pillow-rendered logo PNG (CC0 pixel font, light/neon separation element), title.js sprite swap, grep-driven string sweep with allowlist (save key + school-game comments), README/docs/docker rename, permanent negative grep gate.
+**Avoids:** Save-key wipe (pre-rebrand blob resume check), stale-brand scatter, invisible dark-green-on-black logo (human sign-off at real sizes in the running game).
 
-### Phase 7: Polish + consolidated kid-UAT
-**Rationale:** Re-run the full ADHD-safety audit across all new mechanics + art; feel/contrast validated only with the kid.
-**Delivers:** extended `check-safety.sh`/`check-import-safety.sh` green, kid sign-off.
+### Phase 7: Audio
+**Rationale:** Last feature phase so SFX hooks land on the final mechanics/level set (independent enough to move earlier if parallelizing).
+**Delivers:** `src/audio.js` singleton, CONFIG.AUDIO, loadSound block in main.js, gesture-gated music start in title.js, exact seam hooks (challenge/collect/player/game), M-key mute persisted under its own key, CC0 OGG assets with license proofs, .ogg MIME in script servers, boot-gate audio assertions (ctx running, single music handle after die/leave).
+**Avoids:** Autoplay silence, stacking/leaks, MP3 loop seam, save-schema coupling, ADHD-unsafe mix (written criteria + human/kid sign-off).
+
+### Phase 8: Full Verification Pass
+**Rationale:** v4.0's lesson never expires — checks that don't play the game lie.
+**Delivers:** browser-boot across all 8 levels, validator green, check-safety green, encounter-coverage report, fresh-incognito audio check, pre-rebrand save resume check, human interactive sign-off on levels/art/audio.
 
 ### Phase Ordering Rationale
-- Pure/low-risk spine (migration, registry) first; refactor (challenge seam) before the features that depend on it; content after mechanics; art near-last so logic validates on placeholders; UAT last (feel is user-validated).
-- Each phase ends with a real browser boot, not just greps (the a727c13 lesson).
+
+- **Validator before content:** without it every level edit means another hand audit ×8; with it structural correctness is free on every change (all three research files independently converge on this).
+- **Checkpoints ship with lengthening:** longer levels without respawn anchors would reduce ADHD-safety relative to v4.1 — one feature from the player's perspective.
+- **Palette before logo; audio last:** the logo is designed against final tokens; SFX hooks against final seams.
+- **Rebrand isolated:** its only dangerous coupling (save key/origin) is neutralized by stating it as a non-goal with a resume-check.
 
 ### Research Flags
-- **Art/animation phase:** exact `sliceX/sliceY/anims` frame layout unknown until the CC0 pack is picked — resolve at sourcing time; per-asset license must be re-verified at download (a CC-BY-SA coin was caught mislabeled in v3.0).
-- **Save-migration phase:** capture or hand-construct a representative real v3.0 localStorage save fixture for the human test.
-- Standard patterns (lighter research): level-data authoring, multi-scene navigation — both extend verified v3.0 seams.
+
+Phases likely needing deeper research during planning:
+- **Phase 7 (Audio):** exact Kaplay 3001 `play()` handle semantics, volume model, and autoplay-resume behavior of this specific vendored build — re-verify against `lib/kaplay.mjs` before implementing.
+- **Phase 2 (Validator):** hop-envelope edge cases — diagonal platform-to-platform hops, blocker-bypass geometry, and the one-time empirical calibration run against the real engine.
+
+Phases with standard patterns (skip research-phase):
+- **Phases 3–4 (level authoring), 5 (palette), 6 (rebrand):** pure applications of existing, verified repo patterns — descriptor schema, remap pipeline, grep sweep. No external unknowns.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All APIs verified against the vendored 3001.0.19 bundle + kaplayjs.com; zero new deps |
-| Features | HIGH | Mechanics map to one proven gate; anti-features grounded in explicit constraints |
-| Architecture | HIGH | Extends verified v3.0 seams (`go()` data, mathGate, progress versioning) |
-| Pitfalls | HIGH (MEDIUM for over-stimulation) | From this repo's burned-in lessons; ADHD response varies — verify in kid-UAT |
+| Stack | HIGH | Kaplay audio API verified by direct inspection of the vendored minified build (not docs); tooling claims verified against the live repo. Asset-source/format claims MEDIUM (web-cross-checked). |
+| Features | MEDIUM | Web-sourced genre conventions cross-checked; ADHD-safe audio principles established but individual response varies — validate in kid-UAT. |
+| Architecture | HIGH | Every integration point read from the live source tree; exact file/line seams enumerated. |
+| Pitfalls | HIGH | Grounded in this repo's own v4.0/v4.1 scar tissue plus direct engine-source inspection; web findings MEDIUM. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
-- Exact sprite-sheet frame layouts: resolve when the art pack is chosen early in the art phase.
-- Real v3.0 save fixture for migration testing: capture from the live game or hand-construct.
-- Star/completion third criterion: must be non-punishing (recommend all-coins, never "no respawns") — decide in requirements.
+
+- **×10 multiplicand decision:** "drop table 10" is ambiguous — rotation (already impossible) vs. no ×10 questions at all (one-literal change inside the LOCKED brain). Escalate as an explicit requirements decision; do not interpret silently.
+- **Jump-envelope calibration:** the ≈96px/≈178px numbers are closed-form theory; the validator must use an empirically measured envelope minus margin (one-time Playwright measurement task in Phase 2).
+- **ADHD-safe audio in practice:** mix-hierarchy guidance is directional, not spec; the real gate is human/kid sign-off on the assembled sound set.
+- **Kaplay music-handle edge semantics:** presence verified HIGH; exact streaming-handle behavior (seek/onEnd under loop) MEDIUM — verify during the audio phase.
+- **Title-screen convention evidence is thin** (pattern databases, no formal literature) — low risk; sign-off covers it.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Vendored `lib/kaplay.mjs` @ 3001.0.19 — animation/scene/layer/camera API verified directly
-- kaplayjs.com — loadSprite, SpriteComp, addLevel, setLayers docs
+- `lib/kaplay.mjs` @ 3001.0.19 — direct source inspection: full audio API surface, `volume()` deprecation, no gesture-unlock hook, tab-hide suspend
+- Live repo tree — `src/config.js`, `progress.js`, `levels/*`, `scenes/*`, `ui/challenge.js`, `mechanics/*`, `player.js`, `fx.js`, `scripts/check-safety.sh`, `browser-boot.mjs`, `mechanic-drive.mjs`, docker config, PROJECT.md v4.x history
 
 ### Secondary (MEDIUM confidence)
-- OpenGameArt CC0 listings — animated character, parallax backgrounds, enemies (licenses re-verify per asset)
-- Game UI Database / level-select design references; ADHD-friendly math-game guidance (Monster Math, ADDitude)
+- MDN/Chrome autoplay + Web Audio best practices — gesture requirement, user audio controls
+- Kenney CC0 audio packs; OpenGameArt CC0 calm/ambient collections; monogram/Public Pixel CC0 fonts — asset sourcing
+- caniuse OGG Vorbis; gapless-loop community sources — MP3 loop-gap, OGG choice
+- Platformer level-design literature (RetroStyleGames, gamedesignskills, UCSC framework) — pacing, checkpoints, teach-test-twist
+- Sensory-safe/ADHD audio design sources (Springer, BOIA, kid-UX guides) — gentle-error convention, no-startle mix
+- Dark-mode contrast guidance (BOIA, DubBot) — WCAG on dark themes, desaturate-and-lighten accents
+
+### Tertiary (LOW confidence)
+- Game UI Database title-screen conventions — pattern evidence only; validated by sign-off, not research
 
 ---
-*Research completed: 2026-06-28*
+*Research completed: 2026-07-05*
 *Ready for roadmap: yes*
