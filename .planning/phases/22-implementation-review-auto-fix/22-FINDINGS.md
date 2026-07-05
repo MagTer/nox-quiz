@@ -456,7 +456,7 @@ Clusters: **A** = challenge seam + mechanics (4 mechanics + challenge.js + mathG
 | 2 | src/mechanics/door.js | A | fixed | Finding 4 | commit `c9953a4` — WR-03 busy guard (engine-proven same-frame window) |
 | 3 | src/mechanics/enemy.js | A | clean | Finding 3 | WR-03 + 21-04 fixes verified at HEAD; busy-reset invariant noted |
 | 4 | src/mechanics/gates.js | A | fixed | Finding 4 | commit `c9953a4` — WR-03 busy guard (engine-proven same-frame window) |
-| 5 | src/ui/challenge.js | A | escalated | Finding 1; Candidates 2, 3 | no defect (close() hazard REFUTED); same-time-open + answer-box constants go to the FIX-02 round |
+| 5 | src/ui/challenge.js | A | escalated | Finding 1; Candidates 2, 3 | no defect (close() hazard REFUTED); FIX-02 round decided 2026-07-05: Candidate 2 REJECTED (hide/restore kept by design — prevention is a soft-lock hazard), Candidate 3 APPROVED (CONFIG.GATE token lift — implementation pending, lands post-decision) |
 | 6 | src/ui/mathGate.js | A | clean | Finding 2 | banner teardown safe on every scene-exit path (source tier) |
 | 7 | src/ui/hud.js | B | clean | Finding 9 | one-way contract source-verified + assertion-8 oracle; flash tween triple-covered on scene exit |
 | 8 | src/scenes/game.js | B | clean | Finding 6 | full controller/tween inventory: zero uncovered handles; both onSceneLeave sweeps engine-proven to fire |
@@ -522,14 +522,14 @@ heuristic-candidate rows: 8
 
 ## Escalation Candidates (FIX-02 batch)
 
-Entry format — each candidate gets a numbered entry with: **Summary**, **Why-escalated** (which CONTEXT escalation criterion it trips), **Recommendation**, and a status line reading `Status: PENDING-DECISION`. After the Plan 22-05 batched decision round, each status line becomes `Decision: APPROVED — <date>` or `Decision: REJECTED — <date>` with rationale. Later plans append candidates 3+ as the review finds them. No escalated change is implemented before its APPROVED line exists.
+Entry format — each candidate gets a numbered entry with: **Summary**, **Why-escalated** (which CONTEXT escalation criterion it trips), **Recommendation**, and a pending-status line while undecided. After the Plan 22-05 batched decision round (held 2026-07-05 — all 3 candidates decided below), each status line becomes `Decision: APPROVED — <date>` or `Decision: REJECTED — <date>` with rationale. No escalated change is implemented before its APPROVED line exists.
 
 ### Candidate 1: Door/gate/enemy glyph clarity
 
 **Summary:** The "X" / "?" / "!" glyphs on doors, gates, and enemies are not self-evident — live kid report from v4.1 UAT: "boxes with question marks and exclamation marks I'm not sure what they are" (recorded as a non-blocking observation in 21-FINDINGS).
 **Why-escalated:** Any fix (on-touch hint text, a legend, glyph redesign) changes UX/visual identity — CONTEXT escalation criterion: "anything changing ... visual identity"; Phase 26 also owns visual-identity work.
 **Recommendation:** Present options in the FIX-02 round (minimal on-touch hint using existing config tokens vs defer entirely to Phase 26's rebrand pass).
-Status: PENDING-DECISION
+Decision: REJECTED — 2026-07-05 — deferred to Phase 26 (visual identity owner); kid-UAT glyph-confusion evidence carries forward. Rationale: user chose "Defer to Phase 26" in the Plan 22-05 batched round — visual-identity work stays consolidated in the palette/rebrand phase rather than landing a one-off hint mid-review. The live kid report ("boxes with question marks and exclamation marks I'm not sure what they are") is real evidence and MUST be picked up by Phase 26 planning; pointer recorded in this phase's deferred-items.md.
 
 ### Candidate 2: Challenge same-time-open prevention
 
@@ -537,14 +537,14 @@ Status: PENDING-DECISION
 **Why-escalated:** Prevention is a mechanic-semantics change — CONTEXT criterion: "anything changing game feel ... mechanic semantics". The f58f3fb commit message is itself the argument for leave-as-designed: refusing to open a second challenge would strand a frozen player — a soft-lock strictly worse than the visual-overlap bug it closed.
 **Recommendation:** Leave as designed (reject prevention); keep the hide/restore compromise. Present for confirmation in the FIX-02 round.
 **Evidence added 2026-07-05 (Plan 22-02, Finding 1):** the behavioral probe confirmed both that the hide/restore compromise works exactly as designed (prior objects hidden while stacked — `{total:15, hidden:3}` — and restored un-hidden after the outer challenge resolves, zero uncaught errors) AND that the stack is not even reachable by natural rightward movement on level-01 (the player auto-resolves the collect session by walking through its pickups before reaching the gate; reproducing the stack required a teleport-adjacent hop past the pickup cluster). The f58f3fb commit-message reasoning stands: refusing a second open would strand a frozen player — a soft-lock strictly worse than a visual-overlap bug that is already fixed and hard to even reach.
-Status: PENDING-DECISION
+Decision: REJECTED — 2026-07-05 — hide/restore compromise kept by design; prevention rejected as soft-lock hazard. Rationale: user confirmed the recommendation in the Plan 22-05 batched round — prevention would trade a hard-to-reach cosmetic non-issue (already mitigated by f58f3fb hide/restore, behaviorally proven above) for a soft-lock hazard (refusing to open a second challenge strands a frozen player with nothing to answer). Left as designed.
 
 ### Candidate 3: challenge.js answer-box layout magic numbers (BOX_W 84, BOX_H 44, GAP 16)
 
 **Summary:** The answer-box grid's layout constants are inline literals in `src/ui/challenge.js` (~lines 221–223), unlike the sibling `CONFIG.GATE.*` tokens (PANEL_W/PANEL_H/DIM_OPACITY) that the same function already consumes — flagged IN-03 in 21-REVIEW, never fixed.
 **Why-escalated:** Extraction creates NEW config tokens; the CONTEXT polish rule permits auto-fix polish "ONLY with existing config tokens." 22-RESEARCH Open Question 2 notes the rule's intent targets new visual *systems* and the extraction is cheap and zero-behavior-change — but by the locked "when genuinely ambiguous, escalate" rule this goes to the FIX-02 round, not auto-fix.
 **Recommendation:** Approve the extraction (three `CONFIG.GATE.BOX_W/BOX_H/BOX_GAP` tokens, values byte-identical, `844cd08` convention-citing comment style) — zero behavior change, closes IN-03, and Phase 25's difficulty/content work touches this UI anyway. Implement only after an APPROVED line exists (Plan 22-05 batch).
-Status: PENDING-DECISION
+Decision: APPROVED — 2026-07-05 — implement per recommendation: lift BOX_W 84 / BOX_H 44 / GAP 16 from `src/ui/challenge.js` (~lines 221–223) into `CONFIG.GATE.BOX_W` / `BOX_H` / `BOX_GAP` in `src/config.js`, values byte-identical, following the 844cd08 constant-lift convention. Rationale: zero behavior change, closes IN-03 from 21-REVIEW, and Phase 25's content work touches this UI anyway. Implementation lands as its own atomic fix(22-05) commit AFTER this decisions commit (FIX-02 ordering).
 
 ## Post-Fix Regression
 
