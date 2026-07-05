@@ -10,7 +10,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Review & Fixes
 
-- [ ] **FIX-01**: Implementation review across all game entities (player, monsters, doors, gates, collect zones, math gate, scenes, HUD) with bugs and obvious UX issues fixed autonomously
+- [x] **FIX-01**: Implementation review across all game entities (player, monsters, doors, gates, collect zones, math gate, scenes, HUD) with bugs and obvious UX issues fixed autonomously
 - [ ] **FIX-02**: Bigger design changes surfaced from the review are presented for user approval before implementation
 
 ### Structural Validity
@@ -98,7 +98,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Phase 22 | Pending |
+| FIX-01 | Phase 22 | Complete |
 | FIX-02 | Phase 22 | Pending |
 | VALID-01 | Phase 23 | Pending |
 | VALID-02 | Phase 23 | Pending |
@@ -124,6 +124,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUD-04 | Phase 27 | Pending |
 
 **Coverage:**
+
 - v5.0 requirements: 24 total (note: previously miscounted as 23 — the ID list FIX-01..02, VALID-01..04, LVL-01..06, MATH-01..02, VIS-01..03, BRAND-01..03, AUD-01..04 sums to 24)
 - Mapped to phases: 24 ✓
 - Unmapped: 0

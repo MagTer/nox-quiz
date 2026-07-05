@@ -6,14 +6,14 @@ current_phase: 22
 current_phase_name: Implementation Review & Auto-Fix
 status: executing
 stopped_at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
-last_updated: "2026-07-05T16:03:23.528Z"
+last_updated: "2026-07-05T16:20:33.873Z"
 last_activity: 2026-07-05
 last_activity_desc: Phase 22 execution started
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 ## Current Position
 
 Phase: 22 (Implementation Review & Auto-Fix) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-05 — Phase 22 execution started
 
@@ -83,6 +83,9 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 22-02]: challenge.js close() dead-object hazard REFUTED behaviorally; no liveness guard added — .hidden is a plain data property so the restore write on a destroyed object is benign, and gameplay cannot destroy a hidden prior object while a stacked challenge is open
 - [Phase 22-03]: Kaplay 3001.0.19 go() teardown engine-verified: app.events.clear() + root.clearEvents() auto-clean app-bus controllers and global tweens — manual onSceneLeave cancels are belt-and-braces, kept per no-speculative-refactor rule (Finding 6)
 - [Phase 22-03]: Cluster B reviewed entirely clean (zero fix commits): 6 verdict rows final; IN-03 select overflow deferred-to-phase-25; main.js scale transform documented load-bearing, untouched
+- [Phase 22-04]: parallax.js latent partial-bounds NaN fixed as zero-behavior-change per-key defaulting (camera.js idiom) — Silent-invisibility auto-fix class at the descriptor trust boundary; control probe byte-identical pre/post, inert on shipped descriptors
+- [Phase 22-04]: Dead COLLECT.CORRECT_GLOW/WRONG_GLOW tokens removed; PROGRESS.EASY_TABLES kept as documented decision token — Sweep-proven zero consumers with stale usage comments; the verbatim-port block records the BRAIN/PROGRESS duplication as intentional (T-22-07 guard)
+- [Phase 22-04]: Structural defect inventory delivered (3 over-hole gates exact, 8 platform heuristic candidates), ALL deferred-to-phase-24; descriptors diff-proven byte-identical to baseline 5eedee8 — Preserves Phase 23's validator RED-first proof per the binding roadmap sequencing decision
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -113,6 +116,7 @@ Carried forward from previous milestone closes:
 | Phase 22 P01 | 15min | 2 tasks | 2 files |
 | Phase 22 P02 | 24min | 3 tasks | 4 files |
 | Phase 22 P03 | 18min | 2 tasks | 1 files |
+| Phase 22 P04 | 13min | 3 tasks | 3 files |
 
 ## Quick Tasks Completed
 
@@ -122,7 +126,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-05T16:02:50.360Z
+Last session: 2026-07-05T16:19:37.541Z
 Stopped at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
 Resume file: None
 
