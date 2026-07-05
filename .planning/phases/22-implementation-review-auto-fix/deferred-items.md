@@ -18,3 +18,21 @@ recreates the directory and leaves ~32 PNGs untracked at the stale path.
   upgraded; then delete the stale directory.
 - Until then: leave untracked; do NOT commit them (Plan 22-01 made the same call
   implicitly by leaving them out of the baseline commit).
+
+## From Plan 22-05 (2026-07-05) — FIX-02 decision round
+
+### Door/gate/enemy glyph clarity → Phase 26 (visual identity owner)
+
+Escalation Candidate 1 was REJECTED for Phase 22 and explicitly deferred to
+Phase 26 (user verdict, 2026-07-05 batched FIX-02 round — see 22-FINDINGS.md
+Escalation Candidates, Candidate 1).
+
+- **Evidence that carries forward:** live kid report from v4.1 UAT — "boxes with
+  question marks and exclamation marks I'm not sure what they are" (recorded as
+  a non-blocking observation in 21-FINDINGS; glyphs are the "X" / "?" / "!"
+  labels drawn in `src/levels/build.js` lines ~175/214/251).
+- **Why deferred:** any fix (on-touch hint, legend, glyph redesign) changes
+  UX/visual identity; the user chose to keep visual-identity work consolidated
+  in Phase 26's palette/rebrand pass rather than land a one-off hint mid-review.
+- **Action for Phase 26 planning:** pick this up as an input — the glyph-confusion
+  evidence is first-party UAT data, not speculation.
