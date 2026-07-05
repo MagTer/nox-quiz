@@ -6,14 +6,14 @@ current_phase: 22
 current_phase_name: Implementation Review & Auto-Fix
 status: executing
 stopped_at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
-last_updated: "2026-07-05T15:21:25.026Z"
+last_updated: "2026-07-05T15:49:02.552Z"
 last_activity: 2026-07-05
 last_activity_desc: Phase 22 execution started
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 ## Current Position
 
 Phase: 22 (Implementation Review & Auto-Fix) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-05 — Phase 22 execution started
 
@@ -78,6 +78,9 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - **v4.1 verification standard holds** — no phase closes on greps/automation alone; interactive proof + human sign-off where claimed
 - [Phase 22-01]: Audit baseline nondeterministic on 3 rows (L1 mg1300, L1 door1400, L3 mg420); Plan 22-05 must diff against stable cores (5 always-unreached, 8 always-reached), not the naive 6-unreached shape — Two identical-code audit runs produced different unreached sets; recorded in 22-FINDINGS.md Baseline
 - [Phase 22-01]: check-gate.sh assertions converted to read-to-EOF grep count form (pipefail-safe); patterns, fail messages, and assertion order byte-preserved — Fixes ~30% SIGPIPE flake diagnosed in Phase 21 deferred-items.md
+- [Phase 22-02]: door/gates got the WR-03 busy guard (not a why-unneeded comment) — Engine source proves the same-frame double-fire window: the collision pass re-checks only the partner's paused flag per pair, and the player is traversed after buildLevel's barriers
+- [Phase 22-02]: collect.js multi-zone corruption fixed as zero-behavior-change hardening (zone re-entrancy + pickup-ownership guards), not escalated — Provably inert on single-zone shipped levels; confirmed by the Cluster A audit row diff
+- [Phase 22-02]: challenge.js close() dead-object hazard REFUTED behaviorally; no liveness guard added — .hidden is a plain data property so the restore write on a destroyed object is benign, and gameplay cannot destroy a hidden prior object while a stacked challenge is open
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -106,6 +109,7 @@ Carried forward from previous milestone closes:
 | uat | MOVE-05 throttled/non-60Hz empirical feel check (code verified dt-correct) | pending, low-risk | v3.0 |
 | test-tooling | 6/16 encounter audit blind spot | actively addressed in v5.0 (VALID-03) | v4.1 |
 | Phase 22 P01 | 15min | 2 tasks | 2 files |
+| Phase 22 P02 | 24min | 3 tasks | 4 files |
 
 ## Quick Tasks Completed
 
@@ -115,7 +119,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-05T15:20:20.532Z
+Last session: 2026-07-05T15:48:12.326Z
 Stopped at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
 Resume file: None
 
