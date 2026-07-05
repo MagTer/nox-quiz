@@ -218,9 +218,13 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
   let keyCtrls = [];
 
   if (renderChoices) {
-    const BOX_W = 84;
-    const BOX_H = 44;
-    const GAP = 16;
+    // 22-05 Candidate 3 (APPROVED 2026-07-05): layout constants lifted to CONFIG.GATE
+    // (21-REVIEW IN-03; 844cd08 constant-lift convention). Local aliases keep the grid
+    // math below unchanged — same idiom as the repo's CONFIG.FX aliasing. Values are
+    // byte-identical to the former inline literals (84 / 44 / 16) — zero behavior change.
+    const BOX_W = CONFIG.GATE.BOX_W;
+    const BOX_H = CONFIG.GATE.BOX_H;
+    const GAP = CONFIG.GATE.BOX_GAP;
     const totalW = q.choices.length * BOX_W + (q.choices.length - 1) * GAP;
     const startX = center().x - totalW / 2 + BOX_W / 2;
     const rowY = center().y + 30;

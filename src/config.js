@@ -80,6 +80,12 @@ export const CONFIG = {
     DIM_OPACITY: 0.6, // full-screen dim layer opacity behind the panel
     PANEL_W: 420, // px — gate panel width
     PANEL_H: 220, // px — gate panel height
+    // Answer-box grid — lifted from src/ui/challenge.js inline literals (21-REVIEW IN-03;
+    // 22-05 Candidate 3, APPROVED 2026-07-05; 844cd08 constant-lift convention). Values
+    // byte-identical to the pre-lift literals — zero behavior change.
+    BOX_W: 84, // px — answer box width
+    BOX_H: 44, // px — answer box height
+    BOX_GAP: 16, // px — horizontal gap between adjacent answer boxes
   },
 
   // --- Locked door (mid-level challenge seam; Plan 15-03) ---
