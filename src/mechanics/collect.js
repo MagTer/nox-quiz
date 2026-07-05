@@ -48,7 +48,16 @@ export function wireCollect({ player, brain }) {
 
   player.onCollide("answer-zone", (zoneObj) => {
     if (cleared.has(zoneObj)) return;
-    if (active && active.zoneObj === zoneObj) return; // already open for this zone
+    // 22-FINDINGS.md Finding 5: while a slot is active, ignore entry into ANY zone —
+    // the same zone (already open, original guard) or a DIFFERENT one (re-entrancy
+    // guard, same idiom class as the WR-03 busy flags in door/gates/enemy). Without
+    // the different-zone leg, a second zone entered mid-session silently overwrites
+    // `active`, orphaning the first zone's still-open challenge (no reference left
+    // able to close it) and leaking its labelObj on re-trigger. Latent today — every
+    // shipped level has at most ONE answer-zone — so this guard can never fire on
+    // current content (zero behavior change, proven by the Cluster A audit row diff);
+    // it exists so Phase 25's multi-zone levels inherit correct semantics.
+    if (active) return;
 
     // CRITICAL: unlike door/gates/enemy, this mechanic's ONLY resolution path is walking
     // into the correct pickup — so the player must NOT be frozen. `player.paused = true`
@@ -98,6 +107,12 @@ export function wireCollect({ player, brain }) {
   // instead of a per-open closure, so no handler ever stacks across zone re-entries.
   player.onCollide("answer-pickup-slot", (slotObj) => {
     if (!active || slotObj.value === undefined) return;
+    // 22-FINDINGS.md Finding 5: the touched pickup must BELONG to the active zone —
+    // without this ownership check, a leftover pickup from a different zone would
+    // resolve against the active zone's question and mark the wrong zone cleared.
+    // Unreachable today (single zone per level spawns the only pickups), so zero
+    // behavior change on current content; load-bearing once levels carry 2+ zones.
+    if (!active.zoneObj.slots.includes(slotObj.slotIndex)) return;
 
     const { zoneObj, q, challenge } = active;
     const correct = slotObj.value === q.answer;
