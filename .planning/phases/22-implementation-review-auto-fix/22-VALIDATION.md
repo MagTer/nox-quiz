@@ -1,8 +1,8 @@
 ---
 phase: 22
 slug: implementation-review-auto-fix
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-05
 ---
@@ -36,12 +36,23 @@ created: 2026-07-05
 
 ## Per-Task Verification Map
 
-*To be filled from PLAN.md task IDs by the planner/executor. Baseline rule for every fix task in this phase:*
+*Filled from PLAN.md task IDs during planning (2026-07-05). Baseline rule for every fix task in this phase: quick command after every commit; browser-boot at cluster/wave boundaries; 16-encounter audit at mechanic-cluster and phase boundaries (diffed row-by-row vs the recorded baseline, never by exit code).*
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 22-XX-XX | — | — | FIX-01 | — | N/A | gate suite | quick command above | ✅ | ⬜ pending |
-| 22-XX-XX | — | — | FIX-01 | — | N/A | interactive | `node scripts/browser-boot.mjs` | ✅ | ⬜ pending |
+| 22-01-01 | 22-01 | 1 | FIX-01 | T-22-05 | gate assertions preserved byte-identical | gate determinism | 20-run loop of `bash scripts/check-gate.sh` + structural greps | ✅ | ⬜ pending |
+| 22-01-02 | 22-01 | 1 | FIX-01 | — | N/A | full-suite baseline | quick command + `node scripts/browser-boot.mjs` + `node scripts/audit-phase21-mechanics.mjs` | ✅ | ⬜ pending |
+| 22-02-01 | 22-02 | 2 | FIX-01 | T-22-03 | canvas-only rendering (no DOM sink) | gate suite | quick command | ✅ | ⬜ pending |
+| 22-02-02 | 22-02 | 2 | FIX-01 | T-22-06 | guards follow WR-03 reset-in-onSuccess shape | gate suite + greps | quick command + WR-03 presence greps | ✅ | ⬜ pending |
+| 22-02-03 | 22-02 | 2 | FIX-01 | — | N/A | interactive | `node scripts/browser-boot.mjs` + audit row-diff vs baseline | ✅ | ⬜ pending |
+| 22-03-01 | 22-03 | 3 | FIX-01 | — | N/A | gate suite | quick command | ✅ | ⬜ pending |
+| 22-03-02 | 22-03 | 3 | FIX-01 | T-22-01 | HUD/select one-way contract intact | interactive | `node scripts/browser-boot.mjs` + `bash scripts/check-progress.sh` | ✅ | ⬜ pending |
+| 22-04-01 | 22-04 | 4 | FIX-01 | — | N/A | gate suite | quick command | ✅ | ⬜ pending |
+| 22-04-02 | 22-04 | 4 | FIX-01 | T-22-01 | save-blob validation intact (version gate, field copy, finite guards, quota) | gate suite + smoke | quick command + `node scripts/smoke-progress.mjs` | ✅ | ⬜ pending |
+| 22-04-03 | 22-04 | 4 | FIX-01 | — | level descriptors byte-identical to baseline | interactive + git diff | `git diff --quiet <baseline>..HEAD -- <level descriptors>` + `node scripts/browser-boot.mjs` | ✅ | ⬜ pending |
+| 22-05-01 | 22-05 | 5 | FIX-02 | T-22-08 | decisions recorded before implementation | manual (checkpoint:decision) + grep | zero undecided entries + ≥3 Decision lines in 22-FINDINGS.md | ✅ | ⬜ pending |
+| 22-05-02 | 22-05 | 5 | FIX-02 | T-22-08 | no fix commit predates approval (git-log order) | gate suite | quick command | ✅ | ⬜ pending |
+| 22-05-03 | 22-05 | 5 | FIX-01 | T-22-01 | LOCKED surfaces diff-proven untouched | full suite | quick command + browser-boot + audit row-diff + LOCKED-surface `git diff --quiet` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

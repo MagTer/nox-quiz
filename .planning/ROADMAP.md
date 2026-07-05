@@ -104,7 +104,14 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
   2. The existing 4 levels still pass the full interactive audit and static gate suite after the fixes — zero regressions
   3. Bigger design changes surfaced by the review are presented to the user as explicit approve/reject decisions — none are implemented silently
   4. Known structural level defects (doors over floor holes, unreachable areas) are inventoried but deliberately left in place as Phase 23's validator calibration targets
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 22-01-PLAN.md — De-flake check-gate.sh + 22-FINDINGS.md skeleton + full-suite pre-fix baseline
+- [ ] 22-02-PLAN.md — Cluster A review: challenge seam + 4 mechanics (busy-guard, collect multi-zone, close() hazard) with behavioral evidence
+- [ ] 22-03-PLAN.md — Cluster B review: scenes & shell (game.js lifecycle sweeps, title/select/hud, boot shell) with boot screenshots
+- [ ] 22-04-PLAN.md — Cluster C review: engine glue + config/progress/builder + structural defect INVENTORY (deferred-to-phase-24)
+- [ ] 22-05-PLAN.md — FIX-02 batched approve/reject round + approved implementations + final full-suite zero-regression proof
 
 ### Phase 23: Level Validation Harness
 **Goal**: Structural level mistakes can't ship silently — every level edit is machine-gated from here on, before any new level is authored
@@ -204,7 +211,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | ✅ Complete | 2026-07-04 |
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | ✅ Complete | 2026-07-04 |
-| 22. Implementation Review & Auto-Fix | v5.0 | 0/TBD | Not started | - |
+| 22. Implementation Review & Auto-Fix | v5.0 | 0/5 | Planned | - |
 | 23. Level Validation Harness | v5.0 | 0/TBD | Not started | - |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 0/TBD | Not started | - |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 0/TBD | Not started | - |
