@@ -128,8 +128,19 @@ export function canReach(fromNode, toNode, envelope) {
 
   // Direction of travel: measure the target span's reach distance relative to
   // fromNode's near edge, handling both the "toNode is to the right" and "toNode
-  // is to the left" cases. Overlapping spans (e.g. a platform directly above/below
-  // a floor run) need zero horizontal travel.
+  // is to the left" cases. Overlapping spans (e.g. a platform positioned directly
+  // above/within a floor run's x-range — a common, intentional level-design
+  // pattern such as level-02's opening staircase) need spanMin = 0 (the player can
+  // take off from directly beneath/within toNode, requiring zero horizontal
+  // travel) through spanMax = the actual overlap width (the player can also take
+  // off from the OTHER end of the shared x-range and travel the full overlap
+  // before landing) — NOT spanMax = 0. Any real jump/fall candidate's `reach` is
+  // strictly > 0 (roots are filtered by `t > 0` in rootsAndReaches), so pinning
+  // spanMax to 0 here would require an impossible exact-zero reach and make every
+  // overlapping-span pair permanently unreachable regardless of Δy — this was a
+  // confirmed bug (fixed in a follow-up to Plan 23-04) that produced false
+  // spawn-goal/gap-width HARD-FAILs on level-02's real, shipped, already-
+  // interactively-audited-completable opening staircase.
   let spanMin;
   let spanMax;
   if (toNode.xStart >= fromNode.xEnd) {
@@ -140,7 +151,7 @@ export function canReach(fromNode, toNode, envelope) {
     spanMax = fromNode.xStart - toNode.xStart;
   } else {
     spanMin = 0;
-    spanMax = 0;
+    spanMax = Math.min(fromNode.xEnd, toNode.xEnd) - Math.max(fromNode.xStart, toNode.xStart);
   }
 
   // theoreticalMaxTAtThisDy: the larger of the two real jump-force roots at this
@@ -373,8 +384,11 @@ if (isMain) {
   }
 
   // Case 3: a platform requiring more rise than envelope.maxRise — jumpReach
-  // returns [] for that Δy, canReach returns null regardless of horizontal
-  // distance (even directly overlapping, reach=0 needed).
+  // returns [] for that Δy (no candidate reach at all, at any distance), so
+  // canReach returns null regardless of horizontal distance, even when the x
+  // spans overlap — this case never reaches the overlap-span arithmetic at all
+  // (jumpReach's maxRise guard short-circuits first), so it's independent of
+  // Case 3b below.
   {
     const dy = -(testEnvelope.maxRise + 50); // well beyond maxRise
     const reach = jumpReach(dy, testEnvelope);
@@ -384,6 +398,25 @@ if (isMain) {
     const to = { id: "platform-0", xStart: 40, xEnd: 60, y: 320 + dy }; // overlapping x, too high
     const result = canReach(from, to, testEnvelope);
     check(result === null, `expected null for an over-maxRise platform even with overlapping x, got ${JSON.stringify(result)}`);
+  }
+
+  // Case 3b (regression — fixed in a follow-up to Plan 23-04): two nodes with
+  // OVERLAPPING x-spans and a real, small, well-within-envelope dy — a floor run
+  // 0..520 at y:320 and a platform 280..440 at y:240 (dy=-80, comfortably within
+  // testEnvelope.maxRise=88.331) — mirrors level-02's real opening-staircase
+  // geometry (floor-0 -> platform-0). Before the fix, the overlap branch pinned
+  // spanMax to 0, requiring an impossible exact-zero reach, so this ALWAYS
+  // returned null regardless of dy — this is the regression case that was
+  // previously completely untested (no prior case here constructs two nodes whose
+  // x-spans actually overlap AND have a reachable dy). Must return non-null.
+  {
+    const floor0 = { id: "floor-0", xStart: 0, xEnd: 520, y: 320 };
+    const platform0 = { id: "platform-0", xStart: 280, xEnd: 440, y: 240 };
+    const result = canReach(floor0, platform0, testEnvelope);
+    check(
+      result !== null,
+      `expected non-null feasibility for an overlapping-x-span platform with dy=-80 (well within maxRise), got ${JSON.stringify(result)}`
+    );
   }
 
   // Case 4: multi-hop 3-node chain (floor A -> intermediate platform -> floor B)
