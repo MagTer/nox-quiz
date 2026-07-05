@@ -11,6 +11,15 @@
 // pattern verbatim. PORT 8768 (8765/6/7 already taken by browser-boot.mjs/
 // screenshot-phase18.mjs/screenshot-phase20.mjs).
 //
+// Phase 23 (VALID-03 groundwork) upgrade: each level is now driven through
+// scripts/lib/audit-retry.mjs's auditLevelWithRetries (maxAttempts: 5) instead of a
+// single pass — an encounter counts as reached if ANY attempt reaches it, per
+// 23-CONTEXT.md's "3-5 retries, OR-across-attempts" design. This script's own
+// select-screen navigation (Escape -> re-position cursor -> Enter) is the
+// `reloadLevel` callback the wrapper calls before each retry attempt.
+// scripts/lib/mechanic-drive.mjs and scripts/browser-boot.mjs remain byte-identical —
+// the retry upgrade is isolated to this caller script + the new wrapper module only.
+//
 // This script always exits 0 — it is a diagnostic tool whose console output (the JSON
 // results array + the final AUDIT: line) is interpreted by Task 2, not a pass/fail
 // commit gate like browser-boot.mjs.
@@ -20,7 +29,7 @@ import { createServer } from "http";
 import { readFile } from "fs/promises";
 import { extname, join, resolve, sep } from "path";
 import { getLevel, LEVEL_ORDER } from "../src/levels/index.js";
-import { deriveEncounters, driveToXClimbing, resolveIfBoxed } from "./lib/mechanic-drive.mjs";
+import { auditLevelWithRetries } from "./lib/audit-retry.mjs";
 
 // WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
 // path. Tries (1) normal project-relative resolution (works once `playwright` is a real
@@ -78,12 +87,6 @@ const SAVE_BLOB = {
   history: {},
   levels: Object.fromEntries(LEVEL_ORDER.slice(0, -1).map((id) => [id, { cleared: true }])),
 };
-
-const OUT = (name) =>
-  new URL(
-    `../.planning/phases/21-real-verification-pass-mechanics-sign-off-integrity-perform-/screenshots/${name}`,
-    import.meta.url
-  ).pathname;
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
@@ -146,33 +149,44 @@ try {
     await page.waitForTimeout(1500); // let the game scene build the level
 
     const level = getLevel(LEVEL_ORDER[i]);
-    const encounters = deriveEncounters(level.geometry);
 
-    for (const [encounterIdx, encounter] of encounters.entries()) {
-      // Rule-1 fix (Plan 21-05 Task 2): only the level's FIRST encounter (lowest x —
-      // always this game's collect zone) gets the warmup-until-first-gap treatment.
-      // See scripts/lib/mechanic-drive.mjs's driveToXClimbing option doc for why this
-      // is scoped to the first encounter only, not applied to every encounter.
-      const driveOpts = encounterIdx === 0 ? { warmupUntilFirstGap: true } : {};
-      const { reachedX, triggered } = await driveToXClimbing(page, encounter.x, driveOpts);
+    // Phase 23: reloadLevel is the retry wrapper's own navigation callback — it
+    // performs exactly the same re-entry the loop above already does for the FIRST
+    // entry into this level (Escape back to select, reposition the cursor on tile i,
+    // Enter, settle), so each retry attempt starts from a genuinely fresh level
+    // instance rather than the player's end-of-attempt state.
+    async function reloadLevel() {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(800);
+      for (let j = 0; j < i; j++) {
+        await page.keyboard.press("ArrowRight");
+        await page.waitForTimeout(150);
+      }
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(1500);
+    }
 
-      await page.screenshot({
-        path: OUT(`${level.id}-${encounter.tag}-${encounter.x}-before.png`),
-      });
+    const levelResults = await auditLevelWithRetries(page, level, {
+      maxAttempts: 5,
+      reloadLevel,
+    });
 
-      const { resolved } = await resolveIfBoxed(page, encounter.renderChoices);
-
-      await page.screenshot({
-        path: OUT(`${level.id}-${encounter.tag}-${encounter.x}-after.png`),
-      });
-
+    // Convert the wrapper's `${tag}@${x}` -> {triggered, resolved, attempts} Map into
+    // the same flat results array shape this script already builds and prints.
+    // `reachedX` is not tracked by the wrapper (only triggered/resolved feed the
+    // pass/fail logic below), so it is recorded as null. `attempts` is carried through
+    // as an extra field (beyond the pass/fail-relevant triggered/resolved/tag) so the
+    // 23-FINDINGS.md retry-harness table can cite this run's own printed JSON directly.
+    for (const [key, outcome] of levelResults) {
+      const atIdx = key.lastIndexOf("@");
       results.push({
         level: level.id,
-        tag: encounter.tag,
-        x: encounter.x,
-        reachedX,
-        triggered,
-        resolved,
+        tag: key.slice(0, atIdx),
+        x: Number(key.slice(atIdx + 1)),
+        reachedX: null,
+        triggered: outcome.triggered,
+        resolved: outcome.resolved,
+        attempts: outcome.attempts,
       });
     }
 
