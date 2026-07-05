@@ -110,3 +110,10 @@ None - no external service configuration required.
 ---
 *Phase: 23-level-validation-harness*
 *Completed: 2026-07-05*
+
+## Self-Check: PASSED
+
+- FOUND: scripts/lib/reachability.mjs
+- FOUND: 032ddbe (Task 1 commit)
+- FOUND: 92a9826 (Task 2 commit)
+- FOUND: fd8b1b8 (Summary commit)
