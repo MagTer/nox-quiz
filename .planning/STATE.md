@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Nox Run — Real Levels
 current_phase: 22
-current_phase_name: Implementation Review & Auto-Fix
+current_phase_name: implementation-review-auto-fix
 status: executing
 stopped_at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
-last_updated: "2026-07-05T16:20:33.873Z"
+last_updated: "2026-07-05T19:51:53.072Z"
 last_activity: 2026-07-05
 last_activity_desc: Phase 22 execution started
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 0
+  completed_plans: 5
+  percent: 14
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-05)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 22 — Implementation Review & Auto-Fix
+**Current Focus:** Phase 22 — implementation-review-auto-fix
 
 **Shipped State (v4.1):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion — with real curated CC0 art under human sign-off and interactively-audited mechanics. All prior milestone requirements satisfied.
 
@@ -36,14 +36,14 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 ## Current Position
 
-Phase: 22 (Implementation Review & Auto-Fix) — EXECUTING
+Phase: 22 (implementation-review-auto-fix) — COMPLETE (all 5 plans executed; FINAL regression: PASS)
 Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-07-05 — Phase 22 execution started
+Status: Phase 22 complete — ready for verification
+Last activity: 2026-07-05 — Plan 22-05 executed: FIX-02 decision round recorded, approved escalation landed, zero-regression close-out committed
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 14% (1/7 phases)
 
-**Next:** `/gsd-plan-phase 22`
+**Next:** `/gsd-verify-work 22`
 
 ## v5.0 Roadmap Summary
 
@@ -86,6 +86,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 22-04]: parallax.js latent partial-bounds NaN fixed as zero-behavior-change per-key defaulting (camera.js idiom) — Silent-invisibility auto-fix class at the descriptor trust boundary; control probe byte-identical pre/post, inert on shipped descriptors
 - [Phase 22-04]: Dead COLLECT.CORRECT_GLOW/WRONG_GLOW tokens removed; PROGRESS.EASY_TABLES kept as documented decision token — Sweep-proven zero consumers with stale usage comments; the verbatim-port block records the BRAIN/PROGRESS duplication as intentional (T-22-07 guard)
 - [Phase 22-04]: Structural defect inventory delivered (3 over-hole gates exact, 8 platform heuristic candidates), ALL deferred-to-phase-24; descriptors diff-proven byte-identical to baseline 5eedee8 — Preserves Phase 23's validator RED-first proof per the binding roadmap sequencing decision
+- [Phase 22-05]: FIX-02 round: glyph clarity REJECTED (deferred to Phase 26); same-time-open prevention REJECTED (hide/restore kept, prevention is a soft-lock hazard); answer-box constants APPROVED (CONFIG.GATE.BOX_W/BOX_H/BOX_GAP lift e4e0d2e, after decisions anchor 45edda5)
+- [Phase 22-05]: Phase 22 closed zero-regression: final audit diffed against stable cores per the 22-01 nondeterminism rule (only timing-sensitive rows flipped, within envelope); LOCKED surfaces diff-proven byte-identical to baseline 5eedee8
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -117,6 +119,7 @@ Carried forward from previous milestone closes:
 | Phase 22 P02 | 24min | 3 tasks | 4 files |
 | Phase 22 P03 | 18min | 2 tasks | 1 files |
 | Phase 22 P04 | 13min | 3 tasks | 3 files |
+| Phase 22 P05 | 35min | 3 tasks | 3 files |
 
 ## Quick Tasks Completed
 
@@ -126,7 +129,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-05T16:19:37.541Z
+Last session: 2026-07-05T19:51:12.893Z
 Stopped at: v5.0 roadmap created — ROADMAP.md (Phases 22–28), STATE.md initialized, REQUIREMENTS.md traceability mapped 24/24
 Resume file: None
 

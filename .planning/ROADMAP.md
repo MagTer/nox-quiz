@@ -84,7 +84,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 
 **Milestone Goal:** Take the working game from "functioning" to "next-level experience" — rebrand it as **Nox Run**, double and lengthen the level content with guaranteed-playable structure, enrich the grunge visuals, and add ADHD-safe audio.
 
-- [ ] **Phase 22: Implementation Review & Auto-Fix** - Review every game entity, fix bugs and obvious UX issues autonomously, escalate bigger design changes for approval
+- [x] **Phase 22: Implementation Review & Auto-Fix** - Review every game entity, fix bugs and obvious UX issues autonomously, escalate bigger design changes for approval (completed 2026-07-05)
 - [ ] **Phase 23: Level Validation Harness** - Static level validator calibrated against real engine physics + upgraded interactive audit, proven against the known live bugs before being trusted
 - [ ] **Phase 24: Fix & Lengthen Levels 1–4** - Fix the known structural defects and lengthen the four kid-validated levels with scaled checkpoint density, gated by the new validator
 - [ ] **Phase 25: Levels 5–8, Difficulty Ramp & Select Grid** - Four new pure-data levels with verticality and secret alcoves, gentle 8-level ramp, 2×4 select grid, tables 1 and ×10 dropped
@@ -108,7 +108,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
   3. Bigger design changes surfaced by the review are presented to the user as explicit approve/reject decisions — none are implemented silently
   4. Known structural level defects (doors over floor holes, unreachable areas) are inventoried but deliberately left in place as Phase 23's validator calibration targets
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -129,7 +129,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 22-05-PLAN.md — FIX-02 batched approve/reject round + approved implementations + final full-suite zero-regression proof
+- [x] 22-05-PLAN.md — FIX-02 batched approve/reject round + approved implementations + final full-suite zero-regression proof
 
 ### Phase 23: Level Validation Harness
 
@@ -247,7 +247,7 @@ Plans:
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | ✅ Complete | 2026-07-04 |
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | ✅ Complete | 2026-07-04 |
-| 22. Implementation Review & Auto-Fix | v5.0 | 4/5 | In Progress|  |
+| 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete   | 2026-07-05 |
 | 23. Level Validation Harness | v5.0 | 0/TBD | Not started | - |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 0/TBD | Not started | - |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 0/TBD | Not started | - |
