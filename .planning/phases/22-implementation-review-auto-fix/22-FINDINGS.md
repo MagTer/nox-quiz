@@ -97,7 +97,35 @@ A supplementary characterization run (Run 2, same session, same commit) confirme
 
 Numbered findings appended by Plans 22-02..22-05 in 21-FINDINGS format: what broke / why (root cause) / fix or disposition / file; CONFIRMED/REFUTED verdicts for hypotheses; visual claims carry a screenshot path; dispositions updated in place with dated lines. Include "reviewed, nothing found" verdicts explicitly — clean must be distinguishable from not-checked.
 
-*(No findings recorded yet.)*
+### Finding 1: challenge.js close() dead-object write hazard — **REFUTED as a defect** (behavioral, tier 3)
+
+**File:** `src/ui/challenge.js` (close() restore loop, lines ~316–326)
+**Hypothesis (22-RESEARCH ⚠):** close() un-hides the `priorChallengeObjs` snapshot taken at open; if a hidden prior object is destroyed in the interim, the `o.hidden = false` write hits a dead object — potential crash / bug-pattern #11 class.
+**Verdict: REFUTED.** Two-part evidence, throwaway Playwright script (scratchpad `evidence-22-02-challenge-close.mjs`, port 8770, CR-02 server skeleton copied verbatim; 2026-07-05):
+
+1. **The write is benign even when forced.** Stacked two challenges on level-01 (collect zone x300 open, then math-gate x600 on top — prior 3 objects correctly hidden: page-evaluated `{total:15, hidden:3}` while stacked, screenshot `22-02-A1-stacked.png`). Then destroyed ONE hidden prior object via page handle (the exact interim-destruction the hypothesis fears), resolved the outer gate with keys 1-4: **zero uncaught page errors**; the two surviving prior objects restored un-hidden (`{total:2, hidden:0, allExist:true}`, screenshot `22-02-A2-restored.png`). Root cause of benignity (engine source, `lib/kaplay.mjs` make()): `hidden` is a plain data property on the GameObj; `destroy()` only detaches the object from the scene tree — a later `o.hidden = false` on the orphan is a no-op property write, not a method call into freed engine state. No liveness guard needed; adding one would be speculative hardening against a non-defect.
+2. **The interim-destruction is not reachable by gameplay today.** The only prior challenge that can exist under a stacked one is collect.js's zone session (door/gates/enemy all freeze the player, so max stack depth is 2 — challenge.js's own interfaces note). While the outer challenge has the player frozen, the collect session cannot resolve (paused player is skipped in Kaplay's collision pass in both roles — see Finding 4 source extract), so its objects cannot be destroyed mid-stack. The scene-exit path (Escape → go("select")) destroys ALL scene objects without ever calling close() — verified behaviorally: challenge-tagged count is 0 in the select scene with zero uncaught errors (screenshot `22-02-B-select.png`).
+
+**Disposition:** no fix. Invariant recorded: close()'s restore loop is safe both because the write is benign and because gameplay cannot destroy a hidden prior object while a stacked challenge is open.
+
+**Empirical side-note (feeds Escalation Candidate 2):** run 1 of the evidence script proved the two-challenge stack is NOT reachable by pure rightward movement on level-01 — the player walks through the pickup cluster (x270–330) en route to the gate and auto-resolves the collect session before reaching x600 (observed: gate opened with `total:12` = the gate's own object count, prior objects already gone, zero errors). The stack needed a teleport-adjacent hop (21-04 precedent) past the pickups to reproduce at all. Concurrency is real but even harder to hit in practice than the tech-debt entry assumed.
+
+### Finding 2: mathGate.js gate-cleared banner teardown on scene exit — **CONFIRMED SAFE** (source tier)
+
+**File:** `src/ui/mathGate.js` (banner add), `src/scenes/game.js` (teardown)
+**Hypothesis:** the "LEVEL CLEAR" banner objects (tagged `gate-cleared`, deliberately NOT `challenge`-tagged so they survive close()) rely on the imminent go("select") for teardown; an Escape during the celebration window could leak them or double-fire the transition.
+**Verdict: CONFIRMED SAFE — unconditional semantics, source read sufficient (Finding 2 precedent, 21-FINDINGS):**
+- Banner objects are plain scene children (bare `add([...])` in mathGate.js onSuccess) — destroyed by ANY scene leave, whether the deferred tween's own go("select") or a player Escape.
+- The deferred transition (`clearTransitionTween`, game.js:240–244) is cancelled in the second onSceneLeave sweep (game.js:311) — an Escape during the CONFIG.FX.BURST_MS celebration window cancels the in-flight tween, so a dead scene can never fire a second go("select") (the exact bug-pattern #6 class this sweep was built for).
+**Disposition:** clean, no fix.
+
+### Finding 3: enemy.js WR-03 busy guard + 21-04 two-line label fix — **both present at HEAD** (source + baseline audit row)
+
+**File:** `src/mechanics/enemy.js`
+**Verified at HEAD (source read this session):** the WR-03 closure-local `busy` re-entrancy guard is present (lines 34–40: declared next to `defeated`, checked at handler entry, set before mutation) and reset ONLY in onSuccess (line 54). The 21-04 fix is present: `label: "Answer to defeat the guard:"` (line 49) prefixes the arithmetic on its own line rather than replacing it.
+**Behavioral confirmation:** the Plan 22-01 baseline audit row for level-01 enemy x1000 shows triggered:true / resolved:true (stable-core always-reached row).
+**Invariant note for future close paths:** `busy` is reset ONLY in onSuccess — currently correct because a correct answer is the challenge's sole close path (challenge.js keeps the overlay open on wrong answers; there is no cancel/timeout path by ADHD-safe design). If any future phase adds another close path (e.g. an escape-from-challenge affordance), door/gates/enemy `busy` flags must gain a matching reset or the mechanic soft-locks into permanent ignore. Recorded here so the invariant is findable.
+**Disposition:** clean, no fix.
 
 ## Per-Entity Verdict Table
 
@@ -150,6 +178,14 @@ Status: PENDING-DECISION
 **Summary:** Two challenges can still be open concurrently (residual New Finding 4 tech debt, recorded in the v4.1 milestone audit); the shipped hide/restore compromise (commit f58f3fb) fixes the visual overlap but deliberately does not prevent concurrency.
 **Why-escalated:** Prevention is a mechanic-semantics change — CONTEXT criterion: "anything changing game feel ... mechanic semantics". The f58f3fb commit message is itself the argument for leave-as-designed: refusing to open a second challenge would strand a frozen player — a soft-lock strictly worse than the visual-overlap bug it closed.
 **Recommendation:** Leave as designed (reject prevention); keep the hide/restore compromise. Present for confirmation in the FIX-02 round.
+**Evidence added 2026-07-05 (Plan 22-02, Finding 1):** the behavioral probe confirmed both that the hide/restore compromise works exactly as designed (prior objects hidden while stacked — `{total:15, hidden:3}` — and restored un-hidden after the outer challenge resolves, zero uncaught errors) AND that the stack is not even reachable by natural rightward movement on level-01 (the player auto-resolves the collect session by walking through its pickups before reaching the gate; reproducing the stack required a teleport-adjacent hop past the pickup cluster). The f58f3fb commit-message reasoning stands: refusing a second open would strand a frozen player — a soft-lock strictly worse than a visual-overlap bug that is already fixed and hard to even reach.
+Status: PENDING-DECISION
+
+### Candidate 3: challenge.js answer-box layout magic numbers (BOX_W 84, BOX_H 44, GAP 16)
+
+**Summary:** The answer-box grid's layout constants are inline literals in `src/ui/challenge.js` (~lines 221–223), unlike the sibling `CONFIG.GATE.*` tokens (PANEL_W/PANEL_H/DIM_OPACITY) that the same function already consumes — flagged IN-03 in 21-REVIEW, never fixed.
+**Why-escalated:** Extraction creates NEW config tokens; the CONTEXT polish rule permits auto-fix polish "ONLY with existing config tokens." 22-RESEARCH Open Question 2 notes the rule's intent targets new visual *systems* and the extraction is cheap and zero-behavior-change — but by the locked "when genuinely ambiguous, escalate" rule this goes to the FIX-02 round, not auto-fix.
+**Recommendation:** Approve the extraction (three `CONFIG.GATE.BOX_W/BOX_H/BOX_GAP` tokens, values byte-identical, `844cd08` convention-citing comment style) — zero behavior change, closes IN-03, and Phase 25's difficulty/content work touches this UI anyway. Implement only after an APPROVED line exists (Plan 22-05 batch).
 Status: PENDING-DECISION
 
 ## Post-Fix Regression
