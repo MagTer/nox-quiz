@@ -232,6 +232,52 @@ Three consequences, each verified against the extracted source: (a) `onSceneLeav
 
 **Disposition:** clean, no fix.
 
+### Finding 8: select.js 4-tile layout + three-state derivation — **CONFIRMED CLEAN at 4 tiles**; IN-03 single-row overflow **deferred-to-phase-25** (source + arithmetic + visual tier)
+
+**File:** `src/scenes/select.js`
+**Hypothesis (22-RESEARCH IN-03):** the single-row layout (`x = START_X + i * (TILE_W + GAP)` = 120 + i·120, `anchor("center")`) overflows the 640px canvas as the tile count grows.
+
+**Verdict at today's 4 tiles: CONFIRMED CLEAN — fully on-canvas.** Arithmetic: tile centers 120/240/360/480; half-width 48 → tile 1 left edge 72 ≥ 0, tile 4 right edge **528 < 640**; row spans y 132–228 on the 360px canvas. Confirmed from the LIVE scene this run (throwaway evidence script `evidence-22-03-cluster-b.mjs`, port 8771, CR-02 server skeleton copied verbatim; page-evaluated tile geometry):
+
+```json
+[{"idx":0,"centerX":120,"leftEdge":72,"rightEdge":168,"locked":false},
+ {"idx":1,"centerX":240,"leftEdge":192,"rightEdge":288,"locked":false},
+ {"idx":2,"centerX":360,"leftEdge":312,"rightEdge":408,"locked":true},
+ {"idx":3,"centerX":480,"leftEdge":432,"rightEdge":528,"locked":true}]
+```
+
+Visual evidence: screenshot `22-03-B2-select.png` (scratchpad, captured this run) — all 4 tiles fully on-canvas.
+
+**IN-03 (the overflow): verdict deferred-to-phase-25.** A 5th tile's right edge lands at 648 > 640 (center 600 + 48). NOT fixed here — the 2×4 grid restructure is LVL-04 scope (Phase 25 owns the 8-level select). No layout diff exists in this plan (`git diff 5eedee8..HEAD -- src/scenes/select.js` is empty).
+
+**Three-state derivation verified (source + behavioral):** states derive one-way from progress — `cleared = progress.isLevelCleared(id)` (strict === true), `unlocked = isUnlocked(id, progress)` (derived, never stored; ONE-SOURCE-OF-TRUTH per levels/index.js). Behavioral proof with a mixed-state save (level-01 cleared → level-02 unlock derived, 03/04 locked): the live scene reported `locked: [false, false, true, true]` (JSON above) and the screenshot shows all three states distinguishable — tile 1 cleared ("v" glyph; wearing the white IN-02 cursor border as the active tile), tile 2 accent-green selectable, tiles 3–4 dim grey + "X" with no click handler (locked tiles never get one, line 150). Lifecycle: all controllers are scene-body app-bus registrations (left/right/enter) or object-scoped `box.onClick` — both classes wiped at `go()` (Finding 6 engine extract); no tweens, no global handles, cursor index closure-local.
+
+**Disposition:** file clean, no fix; IN-03 recorded as inventory, deferred-to-phase-25.
+
+### Finding 9: hud.js one-way contract + flash self-clean — **CONFIRMED CLEAN** (source + gate-oracle + visual tier)
+
+**File:** `src/ui/hud.js`
+**Hypotheses:** (a) the HUD writes back to progress (one-way contract violation); (b) the level-up flash tween leaks across scene teardown.
+
+**Verdict: both REFUTED — clean.**
+- **(a) One-way contract:** source read — the factory reads only `getLevel()/getXp()/nextThreshold()`; no write-back call exists anywhere in the file. Oracle: check-progress.sh assertion 8 (HUD one-way) ran green in this cluster's regression (`progress checks: PASS` below). `refresh()` is division-guarded (`nextThreshold() || 1`, frac clamped to [0,1], fill width ≥ 1px).
+- **(b) Flash self-clean:** `flashLevelUp()`'s banner is a "hud-flash"-tagged scene object faded by a global tween whose `onEnd` destroys it (450 ms, no timer). Mid-flash scene exit is triple-covered per the Finding 6 engine extract: the banner is removed with the scene's children, the in-flight global tween dies at `root.clearEvents()`, and an orphaned `banner.opacity` write would be a benign plain-data-property no-op (Finding 1 precedent). `mountHud` is a factory (no module-level singleton) — replay mounts fresh, no stacking.
+
+Visual evidence: screenshot `22-03-B3-level-hud.png` (scratchpad, this run) — LVL badge top-left, XP bar with green fill (seeded xp:12 renders a small fill), persistent "← → move · SPACE jump" hint bottom-left, all fixed()/camera-immune.
+
+**Disposition:** clean, no fix.
+
+### Finding 10: main.js/index.html scale transform + file:// guard — **CONFIRMED UNREGRESSED; transform is load-bearing, do not "simplify"** (source + baseline-diff + boot tier)
+
+**Files:** `src/main.js`, `src/index.html`
+**Verified at HEAD (source read + `git diff 5eedee8..HEAD -- src/main.js src/index.html` EMPTY — byte-identical to shipped v4.1):**
+- **Scale transform (main.js 46–49):** display scaling is `canvas.style.transform = "scale(1.5)"` on the 640×360 internal buffer (kaplay init width/height unchanged) — displayed 960×540. **This approach is intentional and MUST NOT be replaced with width/height styling:** Kaplay's non-letterbox mouse handler reads `event.offsetX/offsetY` against the element's *untransformed* layout box; `transform: scale()` preserves that 640×360 assumption while `width`/`height` desyncs it, silently breaking every position-based `box.onClick()` (area()-gated hit-testing — e.g. the select tiles). Documented past bug, found via the Phase 14 browser-boot checkpoint. No "simplification" commit exists in this plan (diff empty).
+- **Centering dependency (index.html 23–25):** flex-centers the canvas on BOTH axes — required because `transform-origin` defaults to element center; the `margin:auto`-only version clipped ~90px off the top (documented in the style comment). Intact.
+- **file:// guard (index.html 34–53):** inline NON-module script in `<head>` — runs synchronously before the hoisted module import can load, replaces the document with a readable serve-over-HTTP message and calls `window.stop()`. Short-circuit order verified by construction (a guard inside main.js would run after its own hoisted imports — the comment at main.js 7–9 documents exactly why the guard lives in index.html). Intact.
+- Boot proof: this cluster's `browser-boot.mjs` run (below) exited 0 — boot shell title → select → all 4 levels, zero uncaught errors; title screenshot `22-03-B1-title.png` (scratchpad, this run).
+
+**Disposition:** both clean, no fix; transform-is-load-bearing rationale recorded so no future pass "cleans it up."
+
 ## Cluster A Regression (Plan 22-02, Task 3 — post-fix HEAD `030cbe5` + fixes `c9953a4`/`51d2653`)
 
 All 4 static gates green after every commit in this plan (verbatim final lines each run: `gate checks: PASS`, `import-safety checks: PASS`, `safety checks: PASS`, `smoke-progress: PASS` + `progress checks: PASS`).
@@ -271,6 +317,22 @@ Sourced directly from this run's own printed JSON `results` array (row-provenanc
 
 Cluster A regression: PASS
 
+## Cluster B Regression (Plan 22-03, Task 2 — zero src/ fix commits this plan; Cluster B files byte-identical to baseline `5eedee8`)
+
+No fix commits were needed in this cluster (Findings 6–10 all clean); `git diff 5eedee8..HEAD -- src/scenes/ src/ui/hud.js src/main.js src/index.html` is EMPTY, so the regression run doubles as confirmation that the review itself changed nothing.
+
+All 4 static gates green (verbatim final lines, each exit 0): `gate checks: PASS`, `import-safety checks: PASS`, `safety checks: PASS`, `smoke-progress: PASS` + `progress checks: PASS` (assertion 8 — the HUD one-way oracle for Finding 9 — included).
+
+`node scripts/browser-boot.mjs` exited 0 (2026-07-05, this session): `Browser boot: PASS — title -> select -> all levels loaded with no runtime errors.`
+
+Boot-path visual evidence captured THIS run (throwaway script `evidence-22-03-cluster-b.mjs`, port 8771, scratchpad `/tmp/claude-1000/-home-magnus-dev-nox-quiz/647e003d-fbd5-4263-92f9-77500e6c2420/scratchpad/`):
+
+- `22-03-B1-title.png` — title scene: wordmark + press-to-start prompt over the shared backdrop (Finding 10 boot shell)
+- `22-03-B2-select.png` — select scene, mixed-state save: 4 tiles fully on-canvas, cleared/unlocked/locked all distinguishable (Finding 8)
+- `22-03-B3-level-hud.png` — level-01 in-level: HUD badge + XP fill + persistent controls hint (Finding 9)
+
+Cluster B regression: PASS
+
 ## Per-Entity Verdict Table
 
 Clusters: **A** = challenge seam + mechanics (4 mechanics + challenge.js + mathGate.js), **B** = scenes & shell, **C** = world/engine + data. Allowed final Verdict values (CONTEXT-locked): clean / fixed / escalated / deferred-to-phase-N.
@@ -283,12 +345,12 @@ Clusters: **A** = challenge seam + mechanics (4 mechanics + challenge.js + mathG
 | 4 | src/mechanics/gates.js | A | fixed | Finding 4 | commit `c9953a4` — WR-03 busy guard (engine-proven same-frame window) |
 | 5 | src/ui/challenge.js | A | escalated | Finding 1; Candidates 2, 3 | no defect (close() hazard REFUTED); same-time-open + answer-box constants go to the FIX-02 round |
 | 6 | src/ui/mathGate.js | A | clean | Finding 2 | banner teardown safe on every scene-exit path (source tier) |
-| 7 | src/ui/hud.js | B | pending | | |
-| 8 | src/scenes/game.js | B | pending | | |
-| 9 | src/scenes/select.js | B | pending | | |
-| 10 | src/scenes/title.js | B | pending | | |
-| 11 | src/main.js | B | pending | | |
-| 12 | src/index.html | B | pending | | |
+| 7 | src/ui/hud.js | B | clean | Finding 9 | one-way contract source-verified + assertion-8 oracle; flash tween triple-covered on scene exit |
+| 8 | src/scenes/game.js | B | clean | Finding 6 | full controller/tween inventory: zero uncovered handles; both onSceneLeave sweeps engine-proven to fire |
+| 9 | src/scenes/select.js | B | clean | Finding 8 | 4-tile row fully on-canvas (live-evaluated + screenshot); IN-03 overflow deferred-to-phase-25 (LVL-04 owns the 2×4 grid) |
+| 10 | src/scenes/title.js | B | clean | Finding 7 | start controllers scene-body app-bus, wiped at go(); Space cannot leak into jump buffer (3 layers) |
+| 11 | src/main.js | B | clean | Finding 10 | scale(1.5) transform load-bearing for offsetX/Y hit-testing — intentional, unregressed, never width/height |
+| 12 | src/index.html | B | clean | Finding 10 | flex both-axis centering + pre-module file:// guard intact; byte-identical to baseline |
 | 13 | src/player.js | C | pending | | |
 | 14 | src/camera.js | C | pending | | |
 | 15 | src/parallax.js | C | pending | | |
