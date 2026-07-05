@@ -434,6 +434,18 @@ Boot-path visual evidence captured THIS run (throwaway script `evidence-22-03-cl
 
 Cluster B regression: PASS
 
+## Cluster C Regression (Plan 22-04, Task 3 — post-fix HEAD; fixes `0aa65a9` parallax + `06c86c3` config)
+
+All 4 static gates + smoke green after EVERY commit in this plan (verbatim final lines each run, all exit 0): `gate checks: PASS`, `import-safety checks: PASS`, `safety checks: PASS`, `smoke-progress: PASS` + `progress checks: PASS`, and `node scripts/smoke-progress.mjs` → `smoke-progress: PASS` after each commit touching progress-adjacent files (config.js removal commit re-ran the full chain).
+
+`node scripts/browser-boot.mjs` exited 0 on post-fix HEAD (2026-07-05, this session): `Browser boot: PASS — title -> select -> all levels loaded with no runtime errors.`
+
+Level-descriptor untouched proof (roadmap "inventoried but deliberately left in place" criterion, machine-checked this session): `git diff --quiet 5eedee870d314307a846bae254f61e7d1e0ef5f4..HEAD -- src/levels/level-01.js src/levels/level-02.js src/levels/level-03.js src/levels/level-04.js` exited 0 — all four level data files byte-identical to the baseline commit.
+
+Zero-behavior-change confirmation for the two Cluster C fix commits: the parallax fix's full-bounds control probe output is byte-identical pre/post (Finding 12) and the removed config tokens had zero consumers (Finding 14) — neither can alter any audit row, so the Plan 22-05 full-suite diff remains the phase-end arbiter as planned.
+
+Cluster C regression: PASS
+
 ## Per-Entity Verdict Table
 
 Clusters: **A** = challenge seam + mechanics (4 mechanics + challenge.js + mathGate.js), **B** = scenes & shell, **C** = world/engine + data. Allowed final Verdict values (CONTEXT-locked): clean / fixed / escalated / deferred-to-phase-N.
@@ -452,22 +464,61 @@ Clusters: **A** = challenge seam + mechanics (4 mechanics + challenge.js + mathG
 | 10 | src/scenes/title.js | B | clean | Finding 7 | start controllers scene-body app-bus, wiped at go(); Space cannot leak into jump buffer (3 layers) |
 | 11 | src/main.js | B | clean | Finding 10 | scale(1.5) transform load-bearing for offsetX/Y hit-testing — intentional, unregressed, never width/height |
 | 12 | src/index.html | B | clean | Finding 10 | flex both-axis centering + pre-module file:// guard intact; byte-identical to baseline |
-| 13 | src/player.js | C | pending | | |
-| 14 | src/camera.js | C | pending | | |
-| 15 | src/parallax.js | C | pending | | |
-| 16 | src/fx.js | C | pending | | |
-| 17 | src/progress.js | C | pending | | |
-| 18 | src/config.js | C | pending | | |
-| 19 | src/levels/build.js | C | pending | | |
-| 20 | src/levels/index.js | C | pending | | |
-| 21 | src/levels/level-01.js | C | pending | | |
-| 22 | src/levels/level-02.js | C | pending | | |
-| 23 | src/levels/level-03.js | C | pending | | |
-| 24 | src/levels/level-04.js | C | pending | | |
+| 13 | src/player.js | C | clean | Finding 11 | jump-cut release handler proven benign while frozen (vel-zero-before-pause chain); invariant recorded for future pause sites; anim guard self-heals |
+| 14 | src/camera.js | C | clean | Finding 12 | per-key bounds fallbacks probe-proven finite on every partial shape |
+| 15 | src/parallax.js | C | fixed | Finding 12 | commit `0aa65a9` — per-key bounds defaulting (latent NaN → zero-layer silent invisibility); inert on shipped descriptors |
+| 16 | src/fx.js | C | clean | Finding 13 | all 4 effects self-clean or swept; squash/stretch single-flight confirmed |
+| 17 | src/progress.js | C | clean | Finding 15 | version gate, explicit-field copy, finite guards, junk-id fallback, quota guard all verified intact by name; gates + smoke green |
+| 18 | src/config.js | C | fixed | Finding 14 | commit `06c86c3` — 2 dead COLLECT glow tokens removed (sweep-proven); PROGRESS.EASY_TABLES kept as documented decision token |
+| 19 | src/levels/build.js | C | clean | Finding 16 | apex-derived blockers at all 3 barrier types; loop hygiene + explicit glyph colors verified |
+| 20 | src/levels/index.js | C | clean | Finding 16 | registry order/lookup/unlock derivation verified; smoke-covered |
+| 21 | src/levels/level-01.js | C | deferred-to-phase-24 | Structural Defect Inventory | 2 over-hole math gates (x600, x1300) inventoried, NOT fixed (Phase 23 RED calibration targets); byte-identical to baseline `5eedee8` |
+| 22 | src/levels/level-02.js | C | deferred-to-phase-24 | Structural Defect Inventory | zero inventory rows (interval check clean) — grouped with the descriptor set held untouched for Phase 23 calibration; byte-identical to baseline |
+| 23 | src/levels/level-03.js | C | deferred-to-phase-24 | Structural Defect Inventory | 2 heuristic-candidate platforms (x1880, x2640) inventoried, NOT fixed; byte-identical to baseline |
+| 24 | src/levels/level-04.js | C | deferred-to-phase-24 | Structural Defect Inventory | 1 over-hole math gate (x1800) + 6 heuristic-candidate platforms inventoried, NOT fixed; byte-identical to baseline |
 
 ## Structural Defect Inventory (deferred-to-phase-24)
 
-*(Placeholder — filled by Plan 22-04.)* Inventory ONLY: these entries are Phase 23's validator calibration targets (roadmap-locked sequencing — inventory here, calibrate the validator RED-first in Phase 23, fix in Phase 24). Fixing any of them in this phase would destroy Phase 23's RED-first proof. Candidate rows come from 22-RESEARCH.md's structural interval check (over-hole math-gate placements: exact arithmetic; platform-reachability flags: crude heuristic — label as "candidate").
+Inventory ONLY (filled by Plan 22-04, Task 3): these entries are Phase 23's validator calibration targets (roadmap-locked sequencing — inventory here, calibrate the validator RED-first in Phase 23, fix in Phase 24). Fixing any of them in this phase would destroy Phase 23's RED-first proof; the descriptor-untouched diff proof against baseline `5eedee8` is recorded in the Cluster C regression section above.
+
+**Source: fresh computation this session** — scratchpad Node script `interval-check-22-04.mjs` (reproduces the 22-RESEARCH.md Code Examples interval test; imports the LIVE `src/levels/index.js` registry + `src/config.js`, no engine, no repo file; evidence tool, NOT Phase 23's VALID-01 validator). Raw output, quoted verbatim:
+
+```
+=== (1) Over-hole barriers (EXACT interval arithmetic) ===
+level-01 mathGates footprint 600..632 OVER HOLE / OFF FLOOR (spans gap 560..720)
+level-01 mathGates footprint 1300..1332 OVER HOLE / OFF FLOOR (spans gap 1200..1360)
+level-04 mathGates footprint 1800..1832 OVER HOLE / OFF FLOOR (spans gap 1760..1960)
+over-hole rows: 3
+
+=== (2) Platform-reachability heuristic (rise<=96.6px, run<=178.3px, no safety factor) ===
+level-03 platform x:1880 y:184 w:128 POSSIBLY-UNREACHABLE (heuristic candidate)
+level-03 platform x:2640 y:192 w:128 POSSIBLY-UNREACHABLE (heuristic candidate)
+level-04 platform x:1080 y:200 w:112 POSSIBLY-UNREACHABLE (heuristic candidate)
+level-04 platform x:1400 y:216 w:80 POSSIBLY-UNREACHABLE (heuristic candidate)
+level-04 platform x:1760 y:176 w:128 POSSIBLY-UNREACHABLE (heuristic candidate)
+level-04 platform x:2140 y:216 w:80 POSSIBLY-UNREACHABLE (heuristic candidate)
+level-04 platform x:2520 y:192 w:112 POSSIBLY-UNREACHABLE (heuristic candidate)
+level-04 platform x:3240 y:184 w:112 POSSIBLY-UNREACHABLE (heuristic candidate)
+heuristic-candidate rows: 8
+```
+
+**Heuristic disclosure (the platform rows are CANDIDATES, not confirmed defects — research risk A2):** envelope derived from CONFIG physics with NO safety factor — max rise = JUMP_FORCE²/(2·GRAVITY) ≈ 96.6px, max run = RUN_SPEED·(2·JUMP_FORCE/GRAVITY) ≈ 178.3px; naive adjacency (any floor run or other platform top within the envelope, edge-to-edge gap, ignoring landing precision, barrier blockers, spike interference, and multi-hop ordering). Several level-04 rows sit at gap edges and may well be reachable in practice — Phase 23's calibrated envelope is the arbiter.
+
+| Level | Entity | Position / Footprint | Check | Status | Disposition |
+|-------|--------|----------------------|-------|--------|-------------|
+| level-01 | math-gate | x600..632 spans gap 560..720 (stepping-stone platform 560..688 @ y192 overlaps it) | exact interval arithmetic | over-hole — audit DOES reach/resolve this one (stable-reached row) | deferred-to-phase-24 |
+| level-01 | math-gate | x1300..1332 spans gap 1200..1360 | exact interval arithmetic | over-hole — timing-sensitive audit row (reached in some runs) | deferred-to-phase-24 |
+| level-04 | math-gate | x1800..1832 spans gap 1760..1960 | exact interval arithmetic | over-hole — stable-unreached audit row | deferred-to-phase-24 |
+| level-03 | platform | x1880 y184 w128 | crude envelope heuristic | possibly-unreachable candidate | deferred-to-phase-24 |
+| level-03 | platform | x2640 y192 w128 | crude envelope heuristic | possibly-unreachable candidate | deferred-to-phase-24 |
+| level-04 | platform | x1080 y200 w112 | crude envelope heuristic | possibly-unreachable candidate | deferred-to-phase-24 |
+| level-04 | platform | x1400 y216 w80 | crude envelope heuristic | possibly-unreachable candidate | deferred-to-phase-24 |
+| level-04 | platform | x1760 y176 w128 | crude envelope heuristic | possibly-unreachable candidate | deferred-to-phase-24 |
+| level-04 | platform | x2140 y216 w80 | crude envelope heuristic | possibly-unreachable candidate | deferred-to-phase-24 |
+| level-04 | platform | x2520 y192 w112 | crude envelope heuristic | possibly-unreachable candidate | deferred-to-phase-24 |
+| level-04 | platform | x3240 y184 w112 | crude envelope heuristic | possibly-unreachable candidate | deferred-to-phase-24 |
+
+**Correlation note (audit ⇄ inventory):** the interactive audit's unreached encounters cluster on the over-hole math gates — of the 3 exact over-hole rows, level-04 x1800 is a stable-unreached audit row and level-01 x1300 is a timing-sensitive row (unreached in some identical-code runs); only level-01 x600, the one whose gap is bridged by an overlapping stepping-stone platform, is stably reached. Spike-timing resonance is the documented traversal cause (21-FINDINGS Methodology Note); gate-over-gap placement plausibly compounds it. Level-02's two stable-unreached rows (math-gate x1100, door x1540) have NO structural row here — the interval check finds level-02 clean, consistent with resonance alone explaining those.
 
 ## Escalation Candidates (FIX-02 batch)
 
