@@ -107,6 +107,37 @@ None - no external service configuration required.
 
 VALID-01 and VALID-02 are both fully satisfied: `scripts/validate-levels.mjs` is a real, standalone, non-zero-exiting gate covering all 4 roadmap-named checks, and it is now PROVEN (not merely asserted) against the untouched levels 1-4 to independently catch both known live bug classes (door-over-hole and unreachable areas) — including resolving all 8 previously-ambiguous heuristic-candidate platforms to a definitive HARD-FAIL verdict. Phase 24 (Fix & Lengthen Levels 1-4) can now trust this validator as its fix-verification gate: it inherits a concrete, machine-verified fix scope covering the 3 confirmed over-hole defects, the BFS-disconnected gaps (level-02 520..700, level-04 1760..1960), and all 8 unreachable platforms. No blockers.
 
+## Addendum: RED-First Proof Numbers Corrected (post-plan bug fix in Plan 23-04's deliverable)
+
+**Date:** 2026-07-06 (found and fixed after this plan closed, via additional post-plan
+verification beyond this plan's committed acceptance criteria).
+
+This plan's RED-first proof (the `13 hard-failure(s) across 4 level(s)` run quoted verbatim
+in `23-FINDINGS.md`) included 4 FALSE-POSITIVE HARD-FAIL rows, all on level-02 (spawn-goal,
+gap 520..700, door x:1540, mathGate x:1100). These were caused by a bug in
+`reachability.mjs`'s `canReach` overlap-span branch (Plan 23-04's deliverable, not this
+plan's `validate-levels.mjs` orchestrator) — see `23-04-SUMMARY.md`'s addendum and
+`23-FINDINGS.md`'s "Post-Plan Correction" section for the full root-cause and before/after
+evidence. Fixed in commit `de093aa`.
+
+**What is UNAFFECTED and remains accurate in this plan's own RED-first proof:**
+- The 3 known live over-hole defects (level-01 x600/x1300, level-04 x1800) — exact interval
+  arithmetic, a separate module (`over-hole-check.mjs`), untouched by this fix.
+- All 8 heuristic-candidate platform arbitrations (section (e)) — all 8 require 104-144px of
+  rise, exceeding `maxRise` before the overlap-span branch is ever reached; their verdicts
+  are identical before and after the fix.
+- The zero-level-descriptor-edit confirmation against the Phase 22 baseline.
+- `validate-levels.mjs`'s own code and design (the orchestrator this plan built) — the bug
+  lived entirely in the `reachability.mjs` module it composes, not in this plan's own
+  deliverable.
+
+**What changed:** the real-registry hard-failure count drops from **13 to 9** after the fix
+— level-02 now reports zero HARD-FAILs (its apparent disconnection was entirely a validator
+bug), and level-04's remaining HARD-FAILs (gap 1760..1960, enemy x:2400, spawn-goal) are
+confirmed genuine, downstream consequences of the separately-known x1800 over-hole defect,
+not artifacts of this bug. See `23-FINDINGS.md`'s "Corrected validator output" and
+"Before vs. after" tables for the full corrected evidence.
+
 ---
 *Phase: 23-level-validation-harness*
 *Completed: 2026-07-06*

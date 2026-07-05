@@ -107,6 +107,37 @@ None - no external service configuration required.
 - Flag for Wave 3 / Phase 24: real levels 1-4 currently produce WARN (not PASS) on nearly every legitimate flat/descending gap-width and spawn-goal row, per this plan's "Decisions Made" note on marginRatio's degenerate 1.0 case — this doesn't block the validator (WARN never HARD-FAILs), but the orchestrator's report formatting and Phase 24's retune pass should expect a WARN-heavy baseline on currently-shipped, working gaps, not treat it as a regression.
 - No blockers. HARD-FAIL rows already independently corroborate 3 of Phase 22's known structural defects (level-01 mathGates x600/x1300 over-hole, level-04 mathGate x1800 over-hole) plus flag 2 additional disconnected regions (level-02 goal, level-04 gap 1760..1960) for Wave 3's formal RED-first proof to confirm and document in `23-FINDINGS.md`.
 
+## Addendum: Post-Plan Bug Fix (`canReach` overlap-span branch)
+
+**Date:** 2026-07-06 (found and fixed after this plan and Plan 23-05 both closed, via
+additional post-plan verification beyond the plan's committed acceptance criteria).
+
+`canReach`'s branch handling OVERLAPPING x-spans (a platform positioned directly
+above/within a floor run's x-range — a common, intentional level-design pattern) pinned
+`spanMax = 0`, requiring an impossible exact-zero jump/fall reach (every real candidate's
+`reach` is strictly > 0, per `rootsAndReaches`'s `t > 0` root filter). This made any two
+x-overlapping nodes permanently mutually unreachable in the BFS graph regardless of Δy —
+none of this plan's 8 synthetic self-test cases constructed two nodes with genuinely
+overlapping x-spans AND a reachable dy, so the bug shipped undetected through both this
+plan's and Plan 23-05's acceptance criteria.
+
+**Real-world impact:** broke the graph edge for level-02's real, shipped opening staircase
+(floor-0 -> platform-0 -> platform-1 -> platform-2 -> floor-1), producing false spawn-goal
+and gap-width HARD-FAILs against a level Phase 21/22 had already confirmed
+goal-completable via real interactive traversal.
+
+**Fix:** `spanMax` is now the actual overlap width (`Math.min(fromNode.xEnd, toNode.xEnd) -
+Math.max(fromNode.xStart, toNode.xStart)`), keeping `spanMin = 0`. A new self-test case
+(Case 3b) covering this exact overlap scenario was added to `reachability.mjs`'s inline
+self-test block. Commit: `de093aa` (`fix(23-04): correct overlapping-x-span reach window in
+canReach`).
+
+**Verification:** `node scripts/lib/reachability.mjs` still prints
+`reachability-selftest: PASS`; the full static regression suite (`check-gate.sh`,
+`check-import-safety.sh`, `check-safety.sh`, `smoke-progress.mjs`) remains green; zero
+changes to `src/levels/*.js`. See `23-FINDINGS.md`'s "Post-Plan Correction" section for the
+full before/after validator evidence.
+
 ---
 *Phase: 23-level-validation-harness*
 *Completed: 2026-07-05*

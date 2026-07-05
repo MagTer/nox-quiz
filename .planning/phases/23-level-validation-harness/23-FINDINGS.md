@@ -308,3 +308,149 @@ never `Write`, confirming no clobbering occurred.
   and it is now PROVEN (not merely asserted) to independently catch both known live bug
   classes — door/mathGate-over-hole and unreachable areas — before Phase 24 is allowed to
   trust it as a gate.
+
+**IMPORTANT — see the "Post-Plan Correction" section immediately below.** The 13-hard-
+-failure run captured above included 4 FALSE-POSITIVE HARD-FAIL rows caused by a bug in
+`reachability.mjs`'s `canReach` overlap-span branch (introduced in Plan 23-04, discovered
+after this plan closed). Everything else in this section — the 3 over-hole defects, the 8
+platform arbitrations, the zero-level-descriptor-edit confirmation, and the overall
+RED-first-proof methodology — remains accurate and unaffected. Only the specific numeric
+claim "13 hard-failure(s) across 4 level(s)" and level-02's 4 HARD-FAIL rows in section (d)
+are superseded by the corrected run below.
+
+## Post-Plan Correction: `canReach` Overlap-Span Bug (found and fixed after Plan 23-05 closed)
+
+**What was wrong:** `canReach`'s branch handling OVERLAPPING x-spans (e.g. a platform
+positioned directly above/within a floor run's x-range — a common, intentional
+level-design pattern, such as level-02's opening staircase) set `spanMin = 0; spanMax = 0`,
+requiring the computed jump/fall `reach` (always strictly > 0 for any real candidate, since
+`rootsAndReaches` filters roots by `t > 0`) to equal EXACTLY 0 to be accepted. No real
+candidate ever computes to precisely 0, so this branch could never succeed — any two nodes
+overlapping in x-range were always reported as mutually unreachable in the BFS graph,
+regardless of how small the actual required height change was.
+
+**How it was found:** discovered by additional post-plan verification beyond this phase's
+committed acceptance criteria, run directly against `canReach` with level-02's real
+floor-0/platform-0 geometry:
+
+```
+$ node -e '
+import("./scripts/lib/reachability.mjs").then(({ canReach }) => {
+  import("./scripts/lib/jump-envelope.mjs").then(({ JUMP_ENVELOPE }) => {
+    const floor0 = { id: "floor-0", xStart: 0, xEnd: 520, y: 320 };
+    const platform0 = { id: "platform-0", xStart: 280, xEnd: 440, y: 240 };
+    console.log(canReach(floor0, platform0, JUMP_ENVELOPE));
+  });
+});
+'
+BEFORE FIX: null   (WRONG — dy=-80, well within maxRise=88.331)
+AFTER FIX:  { marginRatio: 0.41418367867502065 }
+```
+
+This broke the graph edge for level-02's opening staircase (floor-0 [0-520,y320] ->
+platform-0 [280-440,y240] -> platform-1 [500-628,y192] -> platform-2 [640-768,y232] ->
+floor-1 [700-1260,y320]) — how the level actually bridges its 520-700 gap in the real,
+shipped, already-interactively-audited game (Phase 21/22 confirmed all 4 levels
+goal-completable via real browser-driven traversal; level-02 was never flagged as broken).
+
+**The fix** (`scripts/lib/reachability.mjs`, commit `de093aa`): `spanMax` is now the actual
+overlap width (`Math.min(fromNode.xEnd, toNode.xEnd) - Math.max(fromNode.xStart,
+toNode.xStart)`), keeping `spanMin = 0` — the
+player can take off from anywhere within the shared x-range, so any candidate reach from 0
+up to the full overlap width lands somewhere within `toNode`. A new self-test case (Case 3b)
+covering exactly this overlap scenario was added to `reachability.mjs`'s inline self-test
+block; `node scripts/lib/reachability.mjs` still prints `reachability-selftest: PASS`.
+
+### Corrected validator output (after the fix, real untouched levels 1-4)
+
+```
+level-01 | over-hole | HARD-FAIL | mathGates footprint 600..632
+level-01 | over-hole | HARD-FAIL | mathGates footprint 1300..1332
+level-01 | spawn-goal | WARN | goal x:2160 reached via floor-2 (marginRatio=1.000)
+level-01 | gap-width | WARN | gap 560..720 between floor-0 and floor-1 (marginRatio=1.000)
+level-01 | gap-width | WARN | gap 1200..1360 between floor-1 and floor-2 (marginRatio=1.000)
+level-01 | mechanic-reachability | PASS | doors x:1400..1432 on floor-2 reachable from spawn
+level-01 | mechanic-reachability | HARD-FAIL | mathGates x:600..632 not on any floor run
+level-01 | mechanic-reachability | HARD-FAIL | mathGates x:1300..1332 not on any floor run
+level-01 | mechanic-reachability | PASS | enemies x:1000..1032 on floor-1 reachable from spawn
+level-01 | mechanic-reachability | PASS | collectZones x:300..364 on floor-0 reachable from spawn
+level-02 | over-hole | PASS | (no floating barriers)
+level-02 | spawn-goal | WARN | goal x:2720 reached via floor-3 (marginRatio=1.000)
+level-02 | gap-width | WARN | gap 520..700 between floor-0 and floor-1 (marginRatio=1.000)
+level-02 | gap-width | WARN | gap 1260..1420 between floor-1 and floor-2 (marginRatio=1.000)
+level-02 | gap-width | WARN | gap 2020..2180 between floor-2 and floor-3 (marginRatio=1.000)
+level-02 | mechanic-reachability | PASS | doors x:1540..1572 on floor-2 reachable from spawn
+level-02 | mechanic-reachability | PASS | mathGates x:420..452 on floor-0 reachable from spawn
+level-02 | mechanic-reachability | PASS | mathGates x:1100..1132 on floor-1 reachable from spawn
+level-03 | over-hole | PASS | (no floating barriers)
+level-03 | spawn-goal | WARN | goal x:3320 reached via floor-4 (marginRatio=1.000)
+level-03 | gap-width | WARN | gap 480..640 between floor-0 and floor-1 (marginRatio=1.000)
+level-03 | gap-width | WARN | gap 1200..1320 between floor-1 and floor-2 (marginRatio=1.000)
+level-03 | gap-width | WARN | gap 1920..2040 between floor-2 and floor-3 (marginRatio=1.000)
+level-03 | gap-width | WARN | gap 2680..2840 between floor-3 and floor-4 (marginRatio=1.000)
+level-03 | mechanic-reachability | PASS | mathGates x:420..452 on floor-0 reachable from spawn
+level-03 | mechanic-reachability | PASS | enemies x:2400..2432 on floor-3 reachable from spawn
+level-03 | mechanic-reachability | PASS | collectZones x:200..264 on floor-0 reachable from spawn
+level-04 | over-hole | HARD-FAIL | mathGates footprint 1800..1832
+level-04 | spawn-goal | HARD-FAIL | goal x:3920 unreachable from spawn
+level-04 | gap-width | WARN | gap 440..600 between floor-0 and floor-1 (marginRatio=1.000)
+level-04 | gap-width | WARN | gap 1080..1240 between floor-1 and floor-2 (marginRatio=1.000)
+level-04 | gap-width | HARD-FAIL | gap 1760..1960 between floor-2 and floor-3 unreachable
+level-04 | gap-width | WARN | gap 2520..2680 between floor-3 and floor-4 (marginRatio=1.000)
+level-04 | gap-width | WARN | gap 3240..3400 between floor-4 and floor-5 (marginRatio=1.000)
+level-04 | mechanic-reachability | PASS | doors x:900..932 on floor-1 reachable from spawn
+level-04 | mechanic-reachability | PASS | mathGates x:320..352 on floor-0 reachable from spawn
+level-04 | mechanic-reachability | HARD-FAIL | mathGates x:1800..1832 not on any floor run
+level-04 | mechanic-reachability | HARD-FAIL | enemies x:2400..2432 on floor-3 not reachable from spawn
+level-04 | mechanic-reachability | PASS | collectZones x:160..224 on floor-0 reachable from spawn
+validate-levels: FAIL — 9 hard-failure(s) across 4 level(s)
+```
+
+### Before vs. after: the 4 resolved false-positive rows
+
+| Row | Before (buggy) | After (fixed) |
+|-----|-----------------|----------------|
+| level-02 spawn-goal | HARD-FAIL — `goal x:2720 unreachable from spawn` | WARN — `goal x:2720 reached via floor-3 (marginRatio=1.000)` |
+| level-02 gap 520..700 (floor-0/floor-1) | HARD-FAIL — `unreachable` | WARN — `(marginRatio=1.000)` |
+| level-02 mechanic-reachability (door x:1540) | HARD-FAIL — `not reachable from spawn` | PASS — `reachable from spawn` |
+| level-02 mechanic-reachability (mathGate x:1100) | HARD-FAIL — `not reachable from spawn` | PASS — `reachable from spawn` |
+
+Total hard-failure count: **13 -> 9** (exactly the 4 level-02 false positives resolved,
+zero change to any other level or row).
+
+### Level-04's remaining HARD-FAILs re-examined: all genuine, none bug-caused
+
+Queried `buildNodes`/`buildGraph`/`bfsReachableSet` directly against level-04's live
+geometry with the FIXED `canReach`, to confirm which of its HARD-FAILs are downstream of
+the separate, already-confirmed x1800 over-hole defect versus artifacts of the overlap bug:
+
+```
+Reachable from spawn (post-fix): [ 'floor-0', 'floor-1', 'floor-2', 'platform-0', 'platform-1' ]
+```
+
+`floor-3`/`floor-4`/`floor-5` remain unreachable post-fix because `platform-4`
+(`x:1760-1888, y:176`, the only node whose x-span overlaps the 1760..1960 gap region)
+requires 144px of rise — exceeding the calibrated `maxRise` (88.331px) regardless of the
+overlap-span fix (this candidate never even reaches the overlap-span arithmetic; it's
+rejected earlier by `jumpReach`'s `dy < -envelope.maxRise` guard, same as self-test Case 3).
+level-04's HARD-FAIL count and every individual row are IDENTICAL before and after the fix
+— confirming the level-04 `gap-width` (1760..1960), `mechanic-reachability` (enemy x:2400),
+and `spawn-goal` HARD-FAILs are genuine consequences of the known, separately-confirmed
+x1800 over-hole defect, not artifacts of the overlap bug.
+
+### Regression suite re-confirmed green after the fix
+
+`bash scripts/check-gate.sh && bash scripts/check-import-safety.sh && bash
+scripts/check-safety.sh && node scripts/smoke-progress.mjs` — all four PASS. Zero changes to
+`src/levels/*.js` (confirmed via `git diff --quiet 5eedee87 -- src/levels/`, exit 0).
+
+### Corrected summary
+
+- `node scripts/validate-levels.mjs` now reports **9 hard-failure(s)** (down from 13),
+  exclusively removing the 4 false-positive rows caused by the `canReach` overlap-span bug.
+- The 3 known over-hole defects and all 8 heuristic-candidate platform arbitrations from the
+  original RED-first proof (above) are unaffected and remain accurate.
+- Phase 24's inherited fix scope is now: the 3 confirmed over-hole defects, the genuine
+  level-04 disconnection (gap 1760..1960 / enemy x:2400 / spawn-goal, all downstream of the
+  x1800 over-hole defect), and the 8 unreachable platforms — level-02 requires NO fixes; its
+  apparent disconnection was entirely a validator bug, now corrected.
