@@ -171,6 +171,67 @@ Three facts combine into the defect window:
 **Zero-behavior-change proof:** with at most one zone per level, `active` is only ever set from that zone, so the new zone guard can never trip; every spawned pickup belongs to the only active zone, so the ownership guard can never trip. Behaviorally inert on all 4 shipped levels — confirmed by the Task 3 audit row diff (collect rows stay triggered:true / resolved:null-by-design).
 **Disposition (2026-07-05):** FIXED — commit `51d2653` (`fix(22-02): collect.js multi-zone active-slot corruption hardening`).
 
+### Finding 6: game.js controller/tween lifecycle inventory — **CONFIRMED COMPLETE, zero uncovered handles** (source + engine-source tier; refines bug-pattern #5 canon)
+
+**File:** `src/scenes/game.js` (313 lines; two onSceneLeave sweeps at lines 295 and 307–312)
+**Hypothesis (22-RESEARCH Cluster B):** the two onSceneLeave sweeps may not cover every global controller and tween handle registered since they were written; confirm both registrations fire.
+
+**Verdict: CONFIRMED COMPLETE.** Both sweeps fire, and every handle created in the scene body maps to a named cancel path. Zero left unclassified, zero UNCOVERED.
+
+**Engine ground truth (extracted verbatim from vendored `lib/kaplay.mjs` this session — the `go()` teardown, function `ha`):**
+
+```js
+function ha(t,...e){if(!a.game.scenes[t])throw new Error(`Scene not found: ${t}`);
+a.game.events.onOnce("frameEnd",()=>{
+  a.game.events.trigger("sceneLeave",t),      // 1. ALL onSceneLeave handlers fire (scene objects still alive)
+  a.app.events.clear(),                        // 2. app bus wiped — onHide/onKeyPress/onKeyRelease/onClick
+  a.game.events.clear(),a.game.objEvents.clear(),
+  [...a.game.root.children].forEach(...),      // 3. scene objects removed (unless stay)
+  a.game.root.clearEvents(),                   // 4. kills in-flight GLOBAL tweens (tween() === game.root.tween.bind(root); timer-comp tween runs on this.onUpdate)
+  cr(), ...                                    // 5. cr() re-registers the engine's OWN app-bus internals (onHide→audio suspend etc.)
+}),a.game.currentScene=t}
+```
+
+Three consequences, each verified against the extracted source: (a) `onSceneLeave` is `a.game.events.on("sceneLeave",t)` — a plain multi-handler bus, so BOTH registrations (line 295 and line 307) fire, in order, before anything is cleared; (b) the sweeps run while scene objects still exist, so sweep 2's `player.exists()` guard is true at sweep time; (c) global tweens are root-`onUpdate`-driven, so `root.clearEvents()` terminates any in-flight global tween (including its pending `onEnd`) at scene switch.
+
+**Canon refinement (bug-pattern #5):** the checklist states app-bus controllers "are NOT auto-cleared by go()". In THIS vendored build (3001.0.19) they ARE — `a.app.events.clear()` wipes the same `e.events` bus that `onHide`/`onKeyPress` register on (app factory exposes `events: e.events`; `onHide` is `f => e.events.on("hide", f)`), and `cr()` exists precisely to restore the engine's own internals afterwards. The WR-02 hide-saver stacking is therefore unreachable via scene re-entry in this build. The manual `hideCtrl.cancel()` and tween cancels remain CORRECT as belt-and-braces (they also survive an engine upgrade that changes teardown semantics) — per the no-speculative-refactor rule they are kept, and this note records that they are defense-in-depth, not the sole defense.
+
+**Full handle inventory (every controller/tween created in the scene body → cancel path):**
+
+| # | Handle (line) | Kind | Cancel path |
+|---|---------------|------|-------------|
+| 1 | `hideCtrl = onHide(...)` (294) | app-bus controller | **sweep 1** (295: `hideCtrl.cancel()`) + engine backstop `app.events.clear()` |
+| 2 | `onKeyPress("escape", ...)` (263) | app-bus controller | engine auto-clear (`app.events.clear()` at go — the in-code "go() auto-clears" comment is now engine-verified) |
+| 3 | `onUpdate(...)` scene loop (266) | root-registered update | `root.clearEvents()` at go |
+| 4 | `clearTransitionTween` (240, nulled 242) | stored global tween handle | **sweep 2** (311) + engine backstop `root.clearEvents()` |
+| 5 | `player._fxScaleTween` (fx.js squash/stretch) | stored global tween handle | **sweep 2** (310, `player.exists()` true at sweep time per (b)) + engine backstop |
+| 6 | reset() opacity flash `tween(0.2,1,0.18,...)` (153) | unstored global tween | self-limiting (0.18 s, no onEnd) + `root.clearEvents()` at go; orphan write is a plain-data-property no-op (Finding 1 precedent). Overlapping double-respawn flashes both converge to opacity 1 — benign |
+| 7 | `player.onCollide` ×4 (checkpoint 139, coin 168, spike 179, goal 248) | object-attached | objEvents clear + object removal at go |
+| 8 | `wireDoor/wireGates/wireEnemy/wireCollect` (251–257) | object-attached (`player.onCollide`) + closure-local state | Cluster A verdicts (Findings 3–5); nothing global |
+| 9 | `openMathGate` key controllers | app-bus (challenge.js `keyCtrls`) | cancelled in challenge `close()` (Cluster A, Finding 2) + engine backstop at go |
+| 10 | `mountHud(progress)` (106) | fixed() scene objects (+ flash tween — see Finding 8) | object removal at go |
+| 11 | `makeParallaxLayers` (118) | "parallax"-tagged scene objects | **sweep 2** (308: `destroyAll("parallax")`) + object removal at go |
+| 12 | fx transients (pop/dust/clearBurst) | "fx"-tagged objects, self-clean via `tween().onEnd(destroy)` | **sweep 2** (309: `destroyAll("fx")`) + engine backstop |
+| 13 | player.js `onKeyPress(JUMP_KEYS)` / `onKeyRelease(JUMP_KEYS)` | app-bus controllers (registered during scene body via makePlayer) | engine auto-clear at go (full player.js verdict is Cluster C, Plan 22-04) |
+| 14 | `onSceneLeave` ×2 (295, 307) | game.events registrations | fire at teardown, then `game.events.clear()` |
+
+**Seam checks (same task):** goal fire-once latch verified (`goalReached` lines 185–186; latch is never reset, and player stays frozen after goal — respawn cannot re-fire it). Respawn seam verified: `reset()` (148–154) only repositions/zeroes velocity/flashes — it registers no controllers and duplicates nothing on repeated spike hits. Checkpoint promotion verified: `lastCheckpoint = c.pos.clone()` (140) — cloned, no live-position aliasing. NAV-03 verified unregressed: the clear transition is tween-deferred (240–244), no synchronous `go()` in the celebration tick (bug-pattern #9).
+
+**Disposition:** clean, no fix. Zero uncovered handles; both sweeps engine-proven to fire.
+
+### Finding 7: title.js Space-to-start input seam — **CONFIRMED CLEAN — cannot leak into jump buffering** (source + engine-source tier)
+
+**File:** `src/scenes/title.js` (start controllers, lines 69–72)
+**Hypothesis (22-RESEARCH Cluster B):** the Space press edge on the title screen could leak into game-scene jump buffering after `go()`.
+
+**Verdict: CONFIRMED CLEAN.** Registration form observed: `onKeyPress("enter", start)`, `onKeyPress("space", start)`, `onClick(start)` — all app-bus controllers registered inside the scene factory body (no module-level registration; module scope holds only CONFIG import + plain color literals, a727c13-conformant). Why it cannot leak, three independent layers:
+
+1. **Registration lifetime:** `go("select")` wipes the app bus (`app.events.clear()`, Finding 6 engine extract) — the title's Space controller is gone the moment the select scene exists. Title.js's own "auto-cleared by the app bus on go()" comment is engine-verified by the same extract.
+2. **No same-press path:** title → select — the game scene (and player.js's `JUMP_KEYS` handler) does not exist until a separate input on the select screen triggers `go("game")` at a later frame. A single Space press edge cannot span two scene transitions.
+3. **Consumer-side guard (defense-in-depth):** player.js's buffer write is `paused`-guarded (`if (player.paused) return;` line 85) — the documented WR-class guard against buffered-jump lurch, unchanged at HEAD.
+
+**Disposition:** clean, no fix.
+
 ## Cluster A Regression (Plan 22-02, Task 3 — post-fix HEAD `030cbe5` + fixes `c9953a4`/`51d2653`)
 
 All 4 static gates green after every commit in this plan (verbatim final lines each run: `gate checks: PASS`, `import-safety checks: PASS`, `safety checks: PASS`, `smoke-progress: PASS` + `progress checks: PASS`).
