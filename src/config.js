@@ -113,7 +113,9 @@ export const CONFIG = {
   },
 
   // --- Collect-the-answer zone + pickups (MECH-03) ---
-  // Invisible trigger zone, numeric pickup badges, and glow colors for feedback.
+  // Invisible trigger zone + numeric pickup badges. (CORRECT_GLOW/WRONG_GLOW were
+  // removed in 22-04: zero consumers — the shipped feedback is challenge-close on
+  // correct and a fx.pop nudge on wrong; any glow redesign is Phase 26 palette scope.)
   COLLECT: {
     ZONE_W: 64, // px — invisible answer-zone width
     ZONE_H: 64, // px — invisible answer-zone height
@@ -129,8 +131,6 @@ export const CONFIG = {
     PICKUP_BG: [30, 30, 30],
     PICKUP_BORDER: [0x44, 0x44, 0x44],
     PICKUP_FG: [0xe8, 0xe8, 0xe8],
-    CORRECT_GLOW: [0x00, 0xff, 0x88], // neon green — used when correct pickup is chosen
-    WRONG_GLOW: [0xff, 0x44, 0x33], // muted red — brief non-punishing nudge on wrong pickup
   },
 
   // --- Progression / XP (ported VERBATIM from archive/math-lab.html 604-619 — DO NOT re-tune) ---
