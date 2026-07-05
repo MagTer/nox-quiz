@@ -16,16 +16,18 @@ Math Lab is a replayable 2D platformer she controls with the keyboard, served as
 
 **Validated this milestone:** the game's art now matches the intended dark-grunge aesthetic under real human sign-off, and this project's own verification claims are now held to the same interactive-proof standard the process gap had let slip. **What it isn't yet:** audio/SFX + music, more worlds/level packs, and live deployment confirmation remain for future milestones. Also carried forward as known, intentionally-scoped gaps: New Finding 4's visual-overlap half is fixed but 6/16 mechanic encounters across the 4 levels remain out of the audit script's reach (documented technical reason: spike-hazard timing resonance in the traversal model) — not a game bug, a test-tooling limitation.
 
-## Next Milestone: v5.0 (not yet started)
+## Current Milestone: v5.0 Nox Run — Real Levels
 
-## Next Milestone Goals
+**Goal:** Take the working game from "functioning" to "next-level experience" — rebrand it as **Nox Run**, double and lengthen the level content with guaranteed-playable structure, enrich the grunge visuals, and add audio.
 
-**v5.0 — TBD.** Candidate directions:
-- Audio / SFX / calm ambient music (AUDIO-01, deferred since v3.0)
-- More worlds / level packs beyond the initial four levels (CONTENT-FUT-01)
-- Deployment hardening: live Dokploy URL playthrough confirmation (deferred from v3.0 SETUP-02)
-
-A fresh `REQUIREMENTS.md` will be created when the next milestone is opened.
+**Target features:**
+- Implementation review + auto-fix: audit the codebase and every game entity (monsters, doors, gates, collect zones, math gate); fix bugs, structural issues, and obvious UX wins autonomously, surfacing only bigger design changes for approval
+- Structural validity: fix known issues (doors placed over floor holes, unreachable areas) and validate every level is fully traversable start→goal with all mechanics reachable
+- More + longer levels: 8 levels total (lengthen the existing 4, add 4 new), keeping the gentle platforming + table difficulty ramp
+- Richer grunge visuals: expanded color palette — more colors, still dark/grunge, still no pink
+- Rebrand: Math Lab → **Nox Run**, with a fancy dark green/black themed logo on the title screen and throughout the UI
+- Audio / SFX: calm ambient music + sound effects, ADHD-safe (AUDIO-01, deferred since v3.0)
+- Drop tables 1 & 10 from the practice rotation (pending todo, 2026-07-04)
 
 ## Requirements
 
@@ -56,7 +58,7 @@ A fresh `REQUIREMENTS.md` will be created when the next milestone is opened.
 
 ### Active
 
-*(Next milestone — requirements to be defined when v5.0 is opened)*
+*(v5.0 — being defined in REQUIREMENTS.md: implementation audit + fixes, structural validity, 8 longer levels, richer grunge palette, Nox Run rebrand + logo, audio/SFX, drop tables 1 & 10)*
 
 
 ### Out of Scope
@@ -134,4 +136,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-04 — v4.1 Art Rework milestone shipped (Phase 21 complete)*
+*Last updated: 2026-07-05 — v5.0 Nox Run — Real Levels milestone started*
