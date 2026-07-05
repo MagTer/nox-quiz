@@ -2,6 +2,7 @@
 created: 2026-07-04T21:46:55.154Z
 title: Drop tables 1 and 10 from practice rotation
 area: gameplay
+resolves_phase: 25
 files:
   - src/math/brain.js:68-69
   - src/levels/level-02.js:15
