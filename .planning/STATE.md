@@ -4,17 +4,17 @@ milestone: v5.0
 milestone_name: Nox Run — Real Levels
 current_phase: 23
 current_phase_name: Level Validation Harness
-status: executing
+status: verifying
 stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-07-05T21:54:31.977Z"
+last_updated: "2026-07-05T22:04:29.126Z"
 last_activity: 2026-07-05
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
-  percent: 14
+  completed_plans: 10
+  percent: 29
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -38,7 +38,7 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 Phase: 23 (Level Validation Harness) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-05 — Phase 23 execution started
 
 Progress: [█░░░░░░░░░] 14% (1/7 phases)
@@ -92,6 +92,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 23-02]: Interactive audit retry harness (auditLevelWithRetries, maxAttempts=5) closes the previously-documented 6/16 blind spot completely on levels 1-4 (16/16 triggered, every previously-flaky row converged within 2 attempts) — mechanic-drive.mjs/browser-boot.mjs verified byte-identical to pre-plan state
 - [Phase 23-03]: over-hole-check.mjs promoted byte-for-byte from Phase 22's proven scratchpad — no platform-membership test added since every shipped barrier is floor-mounted
 - [Phase 23-04]: Δy-aware jump-edge BFS reachability graph built consuming Wave 1's calibrated JUMP_ENVELOPE (never a re-derived closed-form cutoff); proven multi-hop via a 3-node chain fixture a direct single-hop test cannot cross; checkLevelReachability composes spawn-goal/gap-width/mechanic-reachability rows with HARD-FAIL/WARN/PASS tiering, WARN never incrementing hardFailCount
+- [Phase 23-05]: scripts/validate-levels.mjs composes findOverHoleBarriers + checkLevelReachability into the real VALID-01 gate; RED-first proof against untouched levels 1-4 names all 3 known over-hole defects and individually arbitrates all 8 Phase-22 heuristic-candidate platforms to HARD-FAIL (each requires 104-144px rise vs the calibrated 88.331px maxRise) — zero level-descriptor edits landed anywhere in Phase 23
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -129,6 +130,7 @@ Carried forward from previous milestone closes:
 | Phase 23 P02 | 25min | 2 tasks | 3 files |
 | Phase 23 P03 | 13min | 2 tasks | 2 files |
 | Phase 23 P04 | 18min | 2 tasks | 1 files |
+| Phase 23 P05 | 8min | 2 tasks | 2 files |
 
 ## Quick Tasks Completed
 
@@ -138,7 +140,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-05T21:54:31.966Z
+Last session: 2026-07-05T22:03:38.576Z
 Stopped at: Completed 23-04-PLAN.md
 Resume file: None
 

@@ -110,3 +110,12 @@ VALID-01 and VALID-02 are both fully satisfied: `scripts/validate-levels.mjs` is
 ---
 *Phase: 23-level-validation-harness*
 *Completed: 2026-07-06*
+
+## Self-Check: PASSED
+
+- FOUND: scripts/validate-levels.mjs
+- FOUND: .planning/phases/23-level-validation-harness/23-FINDINGS.md
+- FOUND: .planning/phases/23-level-validation-harness/23-05-SUMMARY.md
+- FOUND commit: cea1b6a (Task 1)
+- FOUND commit: e8365c7 (Task 2)
+- FOUND commit: a50bf7a (plan summary)

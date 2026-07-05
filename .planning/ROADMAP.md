@@ -85,7 +85,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 **Milestone Goal:** Take the working game from "functioning" to "next-level experience" — rebrand it as **Nox Run**, double and lengthen the level content with guaranteed-playable structure, enrich the grunge visuals, and add ADHD-safe audio.
 
 - [x] **Phase 22: Implementation Review & Auto-Fix** - Review every game entity, fix bugs and obvious UX issues autonomously, escalate bigger design changes for approval (completed 2026-07-05)
-- [ ] **Phase 23: Level Validation Harness** - Static level validator calibrated against real engine physics + upgraded interactive audit, proven against the known live bugs before being trusted
+- [x] **Phase 23: Level Validation Harness** - Static level validator calibrated against real engine physics + upgraded interactive audit, proven against the known live bugs before being trusted (completed 2026-07-05)
 - [ ] **Phase 24: Fix & Lengthen Levels 1–4** - Fix the known structural defects and lengthen the four kid-validated levels with scaled checkpoint density, gated by the new validator
 - [ ] **Phase 25: Levels 5–8, Difficulty Ramp & Select Grid** - Four new pure-data levels with verticality and secret alcoves, gentle 8-level ramp, 2×4 select grid, tables 1 and ×10 dropped
 - [ ] **Phase 26: Grunge Palette & Nox Run Rebrand** - Centralized then expanded grunge palette with per-level themes, Nox Run logo and full string sweep with the save key untouched
@@ -143,7 +143,7 @@ Plans:
   3. Run against the untouched levels 1–4, the validator flags both known live bugs (door-over-hole, unreachable areas) — proven RED before it is trusted as a gate
   4. The interactive mechanic-drive harness reaches encounters previously excluded on levels 1–4, shrinking the 6/16 blind spot, with every remaining exclusion individually documented (VALID-03 groundwork; that requirement closes across all 8 levels in Phase 28)
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -158,7 +158,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 23-05-PLAN.md — validate-levels.mjs orchestrator + RED-first proof (VALID-01, VALID-02)
+- [x] 23-05-PLAN.md — validate-levels.mjs orchestrator + RED-first proof (VALID-01, VALID-02)
 
 ### Phase 24: Fix & Lengthen Levels 1–4
 
@@ -263,7 +263,7 @@ Plans:
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | ✅ Complete | 2026-07-04 |
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | ✅ Complete | 2026-07-04 |
 | 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete    | 2026-07-05 |
-| 23. Level Validation Harness | v5.0 | 4/5 | In Progress|  |
+| 23. Level Validation Harness | v5.0 | 5/5 | Complete   | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 0/TBD | Not started | - |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 0/TBD | Not started | - |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
