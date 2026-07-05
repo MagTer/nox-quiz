@@ -32,8 +32,22 @@ export function wireGates({ player, brain }) {
   // so it is garbage-collected with the scene and cannot leak across replays.
   const opened = new Set();
 
+  // WR-03 (applied here by 22-FINDINGS.md Finding 4): guard against onCollide re-firing
+  // for a SECOND gate while a challenge for this wiring is already open. Copied from the
+  // enemy.js WR-03 guard (commit 5d168dc). `player.paused = true` below is NOT sufficient
+  // on its own: the engine's collision pass dispatches pairs synchronously in one
+  // incremental traversal and only re-checks the grid-resident partner's paused flag per
+  // pair — the traversed object's own paused flag is read ONCE before its pair loop. The
+  // player is added AFTER buildLevel's barriers (game.js), so the player is the traversed
+  // object and a second overlapping gate pair can still dispatch in the same frame after
+  // the first handler pauses the player. Closure-local (never module-level) for the same
+  // GC-with-the-scene reason as `opened` above; reset ONLY in onSuccess — the challenge's
+  // sole close path (see Finding 3's invariant note).
+  let busy = false;
+
   player.onCollide("math-gate", (gateObj) => {
-    if (opened.has(gateObj)) return; // belt-and-braces: ignore an already-opened gate
+    if (opened.has(gateObj) || busy) return; // belt-and-braces + re-entrancy guard
+    busy = true;
 
     // Freeze the player exactly like the door mechanic does.
     player.vel = vec2(0);
@@ -43,6 +57,7 @@ export function wireGates({ player, brain }) {
       brain,
       onSuccess() {
         opened.add(gateObj);
+        busy = false;
 
         fx.clearBurst();
 
