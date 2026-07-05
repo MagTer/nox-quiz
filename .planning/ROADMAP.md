@@ -15,6 +15,7 @@
 ## Phases
 
 **Phase Numbering:**
+
 - Integer phases (22, 23, 24…): Planned milestone work (numbering continues across milestones)
 - Decimal phases (22.1, 22.2…): Urgent insertions (marked with INSERTED)
 
@@ -96,92 +97,127 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 ## Phase Details
 
 ### Phase 22: Implementation Review & Auto-Fix
+
 **Goal**: The shipped game runs on a clean, reviewed base — entity bugs and UX rough edges fixed before the content doubles on top of them
 **Depends on**: Nothing (first phase of v5.0; builds on shipped v4.1)
 **Requirements**: FIX-01, FIX-02
 **Success Criteria** (what must be TRUE):
+
   1. Every game entity and surface (player, monsters, doors, gates, collect zones, math gate, scenes, HUD) has been reviewed, with found bugs and obvious UX issues fixed autonomously
   2. The existing 4 levels still pass the full interactive audit and static gate suite after the fixes — zero regressions
   3. Bigger design changes surfaced by the review are presented to the user as explicit approve/reject decisions — none are implemented silently
   4. Known structural level defects (doors over floor holes, unreachable areas) are inventoried but deliberately left in place as Phase 23's validator calibration targets
+
 **Plans:** 5 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 22-01-PLAN.md — De-flake check-gate.sh + 22-FINDINGS.md skeleton + full-suite pre-fix baseline
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 22-02-PLAN.md — Cluster A review: challenge seam + 4 mechanics (busy-guard, collect multi-zone, close() hazard) with behavioral evidence
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 22-03-PLAN.md — Cluster B review: scenes & shell (game.js lifecycle sweeps, title/select/hud, boot shell) with boot screenshots
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 22-04-PLAN.md — Cluster C review: engine glue + config/progress/builder + structural defect INVENTORY (deferred-to-phase-24)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 22-05-PLAN.md — FIX-02 batched approve/reject round + approved implementations + final full-suite zero-regression proof
 
 ### Phase 23: Level Validation Harness
+
 **Goal**: Structural level mistakes can't ship silently — every level edit is machine-gated from here on, before any new level is authored
 **Depends on**: Phase 22
 **Requirements**: VALID-01, VALID-02
 **Success Criteria** (what must be TRUE):
+
   1. `node scripts/validate-levels.mjs` checks spawn→goal reachability, gap widths vs the jump envelope, door-over-hole placement, and mechanic reachability on every registered level, exiting non-zero on any failure
   2. The validator's jump envelope comes from a one-time empirical measurement against the running engine (not closed-form theory), with a recorded safety margin
   3. Run against the untouched levels 1–4, the validator flags both known live bugs (door-over-hole, unreachable areas) — proven RED before it is trusted as a gate
   4. The interactive mechanic-drive harness reaches encounters previously excluded on levels 1–4, shrinking the 6/16 blind spot, with every remaining exclusion individually documented (VALID-03 groundwork; that requirement closes across all 8 levels in Phase 28)
+
 **Plans**: TBD
 
 ### Phase 24: Fix & Lengthen Levels 1–4
+
 **Goal**: The four kid-validated levels are structurally sound and noticeably longer, with checkpoints that keep death forgiving at the new lengths
 **Depends on**: Phase 23
 **Requirements**: VALID-04, LVL-01
 **Success Criteria** (what must be TRUE):
+
   1. All known structural defects in levels 1–4 (doors over floor holes, unreachable areas) are fixed, and the static validator passes green on all four
   2. Each of levels 1–4 extends past its v4.1 length with new sections appended after — never edited inside — the kid-validated geometry
   3. Checkpoint density scales with the new lengths, so a respawn never sends her back more than one section
   4. The upgraded interactive audit drives each lengthened level start→goal with mechanic encounters resolved, and level-01's geometry-pinning smoke fixture is consciously re-baselined (not deleted)
+
 **Plans**: TBD
 
 ### Phase 25: Levels 5–8, Difficulty Ramp & Select Grid
+
 **Goal**: The game doubles to eight levels with a coherent gentle ramp, late-game verticality, hidden rewards, and a select screen that scales — with tables 1 and ×10 gone from the math
 **Depends on**: Phase 24
 **Requirements**: LVL-02, LVL-03, LVL-04, LVL-05, LVL-06, MATH-01, MATH-02
 **Success Criteria** (what must be TRUE):
+
   1. Levels 5–8 exist as pure-data descriptors through the existing registry/builder, and each plays start→goal green on both the static validator and the interactive audit
   2. Difficulty ramps gently across all 8 levels — platforming and per-level table pools ([2,3,4,5] → [6,7,8,9]) — including one mixed-review level, and no level's question pool contains table 1
   3. ×10 questions never appear: the second-factor roll is 1–9, and the `src/math/` diff shows exactly that one authorized literal change and nothing else (brain stays LOCKED)
   4. Level select shows all 8 levels in a 2×4 grid with locked/unlocked/cleared semantics preserved, and an existing pre-v5.0 save resumes with levels 5–8 locked by default
   5. Levels 5–8 include verticality segments, and every level hides one optional secret XP alcove — finding it rewards XP, missing it costs nothing
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 26: Grunge Palette & Nox Run Rebrand
+
 **Goal**: The game looks and reads as Nox Run — a richer dark-grunge identity with per-level themes and a signed-off logo — while her save survives untouched
 **Depends on**: Phase 25 (per-level themes need all 8 levels; internally, palette work precedes the logo so the wordmark is designed against final tokens)
 **Requirements**: VIS-01, VIS-02, VIS-03, BRAND-01, BRAND-02, BRAND-03
 **Success Criteria** (what must be TRUE):
+
   1. Every duplicated color literal lives in `CONFIG.PALETTE` before expansion, and the expanded palette adds hue-tinted darks (moss green, blue-grey, rust) with WCAG AA contrast recorded per role and zero pink anywhere
   2. Each of the 8 levels has a distinct background/accent theme tint produced through the art pipeline, human-signed-off in the running game
   3. The title screen shows the Nox Run dark-green/black pixel wordmark (CC0 font, Pillow-baked PNG) with a light/neon separation element, revealed in a ≤500ms non-strobing animation and human-signed-off at real sizes
   4. No user-facing "Math Lab" string remains (HTML title, title screen, docs, Docker, README) — enforced by a grep sweep with an explicit allowlist for the save key and school-game comments
   5. A pre-rebrand save resumes with XP/level/completion intact — the `mathlab_platformer_v2` localStorage key provably untouched
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 27: Audio & ADHD-Safe Sound
+
 **Goal**: The game sounds alive — calm ambient music and satisfying SFX she can mute, with a mix designed to never startle
 **Depends on**: Phase 25 (SFX hooks land on the final mechanics/level set); runs after Phase 26 in milestone order
 **Requirements**: AUD-01, AUD-02, AUD-03, AUD-04
 **Success Criteria** (what must be TRUE):
+
   1. Jump, land, pickup, correct answer, soft-neutral wrong, door/gate, and level-clear each play a distinct CC0 sound (license proofs vendored), identical across all mechanics via the shared challenge-resolution seams
   2. Calm ambient music loops seamlessly (OGG) and starts only after her first press on the title screen — audible in a fresh incognito session, never before a gesture
   3. Pressing M toggles mute anywhere, the setting persists across reloads in its own localStorage key, and the progress save is untouched
   4. Dying twice or exiting to level select never stacks or leaks music — exactly one music handle exists at all times (idempotent music manager)
   5. The mix is ADHD-safe by design — music clearly below SFX, no buzzers or startle stingers — with human sound sign-off recorded
+
 **Plans**: TBD
 
 ### Phase 28: Full Verification & Interactive Sign-off
+
 **Goal**: Every v5.0 claim is backed by interactive proof — all eight levels provably completable with all mechanics reachable, on the finished art and sound
 **Depends on**: Phases 22–27 (everything)
 **Requirements**: VALID-03
 **Success Criteria** (what must be TRUE):
+
   1. The interactive audit drives start→goal with mechanic encounters on all 8 levels; every encounter is either genuinely driven or individually excepted with a documented technical reason, improving on v4.1's 6/16 blind spot
   2. The full automated gate suite is green in one run: browser-boot across all 8 levels, `validate-levels.mjs`, and `check-safety.sh`
   3. A fresh-incognito playthrough confirms audio starts on first gesture, and a pre-rebrand save still resumes on the rebranded build
   4. Human interactive sign-off is recorded for levels, per-level themes, logo, and audio in the running game — no claim closes on automation alone
+
 **Plans**: TBD
 
 ## Progress

@@ -357,7 +357,7 @@ const hidden = await page.evaluate(() => get("challenge").filter(o => o.hidden).
 | A2 | The rough platform-reachability flags (8 platforms) include false positives | Structural inventory | Low if labeled candidates; HIGH if the planner records them as confirmed defects — Phase 23's calibrated envelope is the arbiter |
 | A3 | Kaplay 3001's collision pass skips paused objects in both roles | Checklist #1 | Low — asserted by collect.js's header citing a headless playtest and the engine source; re-confirm in lib/kaplay.mjs if a fix depends on the precise semantics |
 
-## Open Questions
+## Open Questions (RESOLVED — delegated to plans: Q1 → 22-02 Task 2, Q2 → escalation batch item 3 in 22-01/22-05, Q3 → heuristic-candidate labeling in 22-04 Task 3)
 
 1. **Is the door/gates missing-`busy`-guard actually exploitable?**
    - What we know: enemy.js got the guard (WR-03); door/gates rely on `player.paused` alone; paused objects skip collisions.
