@@ -332,6 +332,53 @@ A release BEFORE the barrier collision in the same frame is ordinary variable-ju
 
 **Disposition:** clean, no fix.
 
+### Finding 14: config.js token sweep — 2 dead tokens REMOVED, 1 unconsumed token KEPT with rationale (scripted-sweep tier)
+
+**File:** `src/config.js`
+**Method:** scratchpad Node script `sweep-22-04-config-tokens.mjs` — imports the live CONFIG, enumerates every top-level scalar and GROUP.LEAF token (119 pre-removal), and greps every `src/` + `scripts/` file for consumers with comments stripped (so prose mentions don't count) and the repo's alias idiom resolved (`const F = CONFIG.FX; … F.SQUASH_X`). Cross-checked with raw `grep -rn` for the three flagged names (catches destructuring/computed forms the alias regex could miss).
+
+**Result: 116 of 119 tokens have ≥1 src/ consumer.** The three zero-src-consumer tokens and their dispositions:
+
+| Token | src/ consumers | scripts/ consumers | Disposition |
+|-------|----------------|--------------------|-------------|
+| `CONFIG.COLLECT.CORRECT_GLOW` | ZERO (raw-grep confirmed) | ZERO | **REMOVED** — its comment ("used when correct pickup is chosen") was stale/false: the shipped correct-pickup feedback is challenge-close + pickup teardown (collect.js 121–125); no glow concept exists in code |
+| `CONFIG.COLLECT.WRONG_GLOW` | ZERO (raw-grep confirmed) | ZERO | **REMOVED** — comment equally stale: the shipped wrong-pickup nudge is `fx.pop(slotObj.pos.clone())` (collect.js 129), the neon-green pop; the muted-red glow was never wired. Any red-nudge/glow redesign is visual-feedback semantics → Phase 26 palette scope (deferred note in config.js comment), not restored here |
+| `CONFIG.PROGRESS.EASY_TABLES` | ZERO — `calculateXp` awards via `HARD_TABLES.includes(table) ? XP_HARD : XP_EASY`; the easy set is the implicit complement (progress.js 103–106) | ZERO | **KEPT** — the PROGRESS block is "ported VERBATIM from archive — DO NOT re-tune" and its comment explicitly records the HARD/EASY duplication with CONFIG.BRAIN as intentional ("different consumers"). This is a documented decision token (exactly the T-22-07 class the threat model says to keep); removing it would break the verbatim-port fidelity contract |
+
+**Post-removal re-sweep:** 117 tokens, only `PROGRESS.EASY_TABLES` unconsumed (kept by rationale above). Full gate suite + smoke green after the removal commit.
+
+**Disposition (2026-07-05):** FIXED — commit `06c86c3` (`fix(22-04): remove dead COLLECT.CORRECT_GLOW/WRONG_GLOW config tokens`).
+
+### Finding 15: progress.js save-blob validation — **CONFIRMED INTACT, every named protection verified at HEAD** (source + gate-oracle tier)
+
+**File:** `src/progress.js` (the phase's highest-value security check — V5 input validation, T-22-01 mitigate)
+**Each protection verified by name, source read this session:**
+
+1. **Version gate:** `loadSave()` rejects any blob with `data.version !== CONFIG.SAVE.VERSION` → `defaults()`, no migration (line 284) — the SAVE.KEY/VERSION clean-reset pair reads CONFIG only, never a literal.
+2. **try/catch with defaults:** three layers — `storageAvailable()` wraps the localStorage *access itself* (sandboxed-iframe throw class, 254–260); `JSON.parse` in its own nested try/catch → defaults (277–281); the whole load in an outer try/catch → defaults (290–293). No failure mode throws into the caller.
+3. **Explicit-field copy (prototype-pollution mitigation):** `validate()` copies ONLY named, range-checked keys into a fresh `defaults()` object — no `{...data}`, no `Object.assign` from the untrusted blob (199–249); accuracy clamped to table 1–9 / value 0–1; history filtered to booleans and clamped to MASTERY_WINDOW; levels flags strictly coerced `=== true`; own-key reads/writes so `__proto__` junk cannot pollute (createProgress's seeding repeats the same discipline, 61–91).
+4. **Finite-number guards:** `isFinite(data.xp)` + `xp >= 0` (204–206); `Number.isFinite(data.level)` + `>= 1` + floor (211–213) — the documented `{"level":1e400}` Infinity-brick case is closed in BOTH validate() and createProgress().
+5. **Junk level id fallback:** junk ids in the levels map are tolerated as inert own keys (they can never unlock — unlock derives from LEVEL_ORDER in the registry); a junk *current* level id resolves via `getLevel()`'s fallback to `LEVELS[0]` (levels/index.js 31–33, T-13-07).
+6. **Quota-exceeded guard:** `writeSave()` catches `QuotaExceededError` by name with a warn, all other setItem failures caught + warned, never rethrown (308–314).
+
+**Oracle:** `check-progress.sh` (asserts the firewall + guard set) and `smoke-progress.mjs` both green on HEAD after every commit this plan. No fix needed — expected clean per research (lowest-risk file), confirmed clean.
+
+**Disposition:** clean, no fix; nothing weakened.
+
+### Finding 16: build.js apex-derived blockers + loop hygiene + glyph colors; registry derivation — **CONFIRMED CLEAN** (source + smoke tier)
+
+**Files:** `src/levels/build.js`, `src/levels/index.js`
+
+**build.js (three hypotheses, all pass):**
+- **Apex-derived blocker heights present for EVERY barrier type (bug-pattern #8):** doors (line 151), math-gates (192), and enemies (230) all compute `Math.ceil((CONFIG.JUMP_FORCE ** 2) / (2 * CONFIG.GRAVITY)) + 64` — the WR-04/CR-02 formula, identical at all three sites, so a future JUMP_FORCE/GRAVITY retune scales all blockers together. No barrier relies on its cosmetic panel height.
+- **Loop-variable hygiene (bug-pattern #10):** every entity loop binds the entry (`run`/`p`/`c`/`s`/`d`/`mg`/`e`/`z`) and uses only that binding; the one index-carrying loop — `for (const [i, s] of (g.answerPickupSlots ?? []).entries())` — uses `i` solely for `slotObj.slotIndex = i` and `s` for position, matching collect.js's slot lookup by `slotIndex`. Inner tile loops step `tx` and pass `(tx, run.x, run.w)` / `(tx, p.x, p.w)` to `pickTopFrame` — index and entry never cross.
+- **Glyph label colors (844cd08 convention):** all three glyph `text()` draws carry explicit `color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2])` — door "X" (175), gate "?" (214), enemy "!" (251).
+- Optional descriptor slots (`doors`/`mathGates`/`enemies`/`collectZones`/`answerPickupSlots`) all `?? []`-guarded; the required slots (floors/platforms/coins/spikes/goal) exist in all four shipped descriptors (read-only verified in Task 3's interval check).
+
+**levels/index.js:** `LEVEL_ORDER` derives from the single LEVELS array (one source of order); `getLevel()` falls back to `LEVELS[0]` for unknown/junk ids (T-13-07); `isUnlocked()` derives purely from LEVEL_ORDER + `progress.isLevelCleared` — never stored — with a null/malformed-progress guard returning only-first-open, and an unknown id treated as first (consistent with getLevel's fallback semantics, documented in-file). Smoke-covered: `smoke-progress.mjs` exercises registry/unlock derivation and is green on HEAD.
+
+**Disposition:** both clean, no fix.
+
 ## Cluster A Regression (Plan 22-02, Task 3 — post-fix HEAD `030cbe5` + fixes `c9953a4`/`51d2653`)
 
 All 4 static gates green after every commit in this plan (verbatim final lines each run: `gate checks: PASS`, `import-safety checks: PASS`, `safety checks: PASS`, `smoke-progress: PASS` + `progress checks: PASS`).
