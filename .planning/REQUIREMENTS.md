@@ -98,13 +98,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| — | — | — |
+| FIX-01 | Phase 22 | Pending |
+| FIX-02 | Phase 22 | Pending |
+| VALID-01 | Phase 23 | Pending |
+| VALID-02 | Phase 23 | Pending |
+| VALID-03 | Phase 28 | Pending (harness-upgrade groundwork begins Phase 23) |
+| VALID-04 | Phase 24 | Pending |
+| LVL-01 | Phase 24 | Pending |
+| LVL-02 | Phase 25 | Pending |
+| LVL-03 | Phase 25 | Pending |
+| LVL-04 | Phase 25 | Pending |
+| LVL-05 | Phase 25 | Pending |
+| LVL-06 | Phase 25 | Pending |
+| MATH-01 | Phase 25 | Pending |
+| MATH-02 | Phase 25 | Pending |
+| VIS-01 | Phase 26 | Pending |
+| VIS-02 | Phase 26 | Pending |
+| VIS-03 | Phase 26 | Pending |
+| BRAND-01 | Phase 26 | Pending |
+| BRAND-02 | Phase 26 | Pending |
+| BRAND-03 | Phase 26 | Pending |
+| AUD-01 | Phase 27 | Pending |
+| AUD-02 | Phase 27 | Pending |
+| AUD-03 | Phase 27 | Pending |
+| AUD-04 | Phase 27 | Pending |
 
 **Coverage:**
-- v5.0 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️ (roadmap pending)
+- v5.0 requirements: 24 total (note: previously miscounted as 23 — the ID list FIX-01..02, VALID-01..04, LVL-01..06, MATH-01..02, VIS-01..03, BRAND-01..03, AUD-01..04 sums to 24)
+- Mapped to phases: 24 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-05*
-*Last updated: 2026-07-05 after initial definition*
+*Last updated: 2026-07-05 — traceability mapped during v5.0 roadmap creation (Phases 22–28)*
