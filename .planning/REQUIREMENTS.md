@@ -16,7 +16,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Structural Validity
 
 - [ ] **VALID-01**: Static level validator (`scripts/validate-levels.mjs`) checks spawn→goal reachability, gap widths vs jump envelope, door-over-hole, and mechanic reachability on every level; exits non-zero on failure
-- [ ] **VALID-02**: Validator is calibrated against real engine physics (empirically measured jump envelope) and proven by catching the two known live bugs (door-over-hole, unreachable areas) before being trusted
+- [x] **VALID-02**: Validator is calibrated against real engine physics (empirically measured jump envelope) and proven by catching the two known live bugs (door-over-hole, unreachable areas) before being trusted
 - [ ] **VALID-03**: Interactive audit drives start→goal with mechanic encounters on all 8 levels (harness upgraded to shrink the current 6/16 encounter blind spot)
 - [ ] **VALID-04**: All known structural defects in existing levels fixed (doors over floor holes, unreachable areas)
 
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIX-01 | Phase 22 | Complete |
 | FIX-02 | Phase 22 | Complete |
 | VALID-01 | Phase 23 | Pending |
-| VALID-02 | Phase 23 | Pending |
+| VALID-02 | Phase 23 | Complete |
 | VALID-03 | Phase 28 | Pending (harness-upgrade groundwork begins Phase 23) |
 | VALID-04 | Phase 24 | Pending |
 | LVL-01 | Phase 24 | Pending |
