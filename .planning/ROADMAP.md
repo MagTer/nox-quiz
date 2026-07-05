@@ -108,12 +108,12 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
   3. Bigger design changes surfaced by the review are presented to the user as explicit approve/reject decisions — none are implemented silently
   4. Known structural level defects (doors over floor holes, unreachable areas) are inventoried but deliberately left in place as Phase 23's validator calibration targets
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 22-01-PLAN.md — De-flake check-gate.sh + 22-FINDINGS.md skeleton + full-suite pre-fix baseline
+- [x] 22-01-PLAN.md — De-flake check-gate.sh + 22-FINDINGS.md skeleton + full-suite pre-fix baseline
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -247,7 +247,7 @@ Plans:
 | 19. Polish & Consolidated Kid-UAT | v4.0 | 4/4 | ✅ Complete | 2026-07-03 |
 | 20. Real CC0 Art Redo & Human Sign-off | v4.1 | 3/3 | ✅ Complete | 2026-07-04 |
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | ✅ Complete | 2026-07-04 |
-| 22. Implementation Review & Auto-Fix | v5.0 | 0/5 | Planned | - |
+| 22. Implementation Review & Auto-Fix | v5.0 | 1/5 | In Progress|  |
 | 23. Level Validation Harness | v5.0 | 0/TBD | Not started | - |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 0/TBD | Not started | - |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 0/TBD | Not started | - |
