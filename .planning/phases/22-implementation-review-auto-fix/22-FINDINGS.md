@@ -456,7 +456,7 @@ Clusters: **A** = challenge seam + mechanics (4 mechanics + challenge.js + mathG
 | 2 | src/mechanics/door.js | A | fixed | Finding 4 | commit `c9953a4` — WR-03 busy guard (engine-proven same-frame window) |
 | 3 | src/mechanics/enemy.js | A | clean | Finding 3 | WR-03 + 21-04 fixes verified at HEAD; busy-reset invariant noted |
 | 4 | src/mechanics/gates.js | A | fixed | Finding 4 | commit `c9953a4` — WR-03 busy guard (engine-proven same-frame window) |
-| 5 | src/ui/challenge.js | A | escalated | Finding 1; Candidates 2, 3 | no defect (close() hazard REFUTED); FIX-02 round decided 2026-07-05: Candidate 2 REJECTED (hide/restore kept by design — prevention is a soft-lock hazard), Candidate 3 APPROVED (CONFIG.GATE token lift — implementation pending, lands post-decision) |
+| 5 | src/ui/challenge.js | A | fixed | Finding 1; Candidates 2, 3 | no defect (close() hazard REFUTED); FIX-02 round 2026-07-05: Candidate 2 REJECTED (hide/restore kept by design — prevention is a soft-lock hazard), Candidate 3 APPROVED and implemented — commit `e4e0d2e` (CONFIG.GATE.BOX_W/BOX_H/BOX_GAP lift, zero behavior change, closes IN-03) |
 | 6 | src/ui/mathGate.js | A | clean | Finding 2 | banner teardown safe on every scene-exit path (source tier) |
 | 7 | src/ui/hud.js | B | clean | Finding 9 | one-way contract source-verified + assertion-8 oracle; flash tween triple-covered on scene exit |
 | 8 | src/scenes/game.js | B | clean | Finding 6 | full controller/tween inventory: zero uncovered handles; both onSceneLeave sweeps engine-proven to fire |
@@ -545,6 +545,7 @@ Decision: REJECTED — 2026-07-05 — hide/restore compromise kept by design; pr
 **Why-escalated:** Extraction creates NEW config tokens; the CONTEXT polish rule permits auto-fix polish "ONLY with existing config tokens." 22-RESEARCH Open Question 2 notes the rule's intent targets new visual *systems* and the extraction is cheap and zero-behavior-change — but by the locked "when genuinely ambiguous, escalate" rule this goes to the FIX-02 round, not auto-fix.
 **Recommendation:** Approve the extraction (three `CONFIG.GATE.BOX_W/BOX_H/BOX_GAP` tokens, values byte-identical, `844cd08` convention-citing comment style) — zero behavior change, closes IN-03, and Phase 25's difficulty/content work touches this UI anyway. Implement only after an APPROVED line exists (Plan 22-05 batch).
 Decision: APPROVED — 2026-07-05 — implement per recommendation: lift BOX_W 84 / BOX_H 44 / GAP 16 from `src/ui/challenge.js` (~lines 221–223) into `CONFIG.GATE.BOX_W` / `BOX_H` / `BOX_GAP` in `src/config.js`, values byte-identical, following the 844cd08 constant-lift convention. Rationale: zero behavior change, closes IN-03 from 21-REVIEW, and Phase 25's content work touches this UI anyway. Implementation lands as its own atomic fix(22-05) commit AFTER this decisions commit (FIX-02 ordering).
+**Disposition (2026-07-05):** IMPLEMENTED — commit `e4e0d2e` (`fix(22-05): lift answer-box layout literals into CONFIG.GATE tokens (IN-03)`), landed after decisions commit `45edda5` (git-log ordering verified). Three CONFIG.GATE tokens added, values byte-identical; challenge.js consumes them via the repo's alias idiom; grid math untouched. node --check + all 4 static gates + smoke green post-commit. IN-03 (21-REVIEW) closed.
 
 ## Post-Fix Regression
 
