@@ -171,18 +171,57 @@ Three facts combine into the defect window:
 **Zero-behavior-change proof:** with at most one zone per level, `active` is only ever set from that zone, so the new zone guard can never trip; every spawned pickup belongs to the only active zone, so the ownership guard can never trip. Behaviorally inert on all 4 shipped levels — confirmed by the Task 3 audit row diff (collect rows stay triggered:true / resolved:null-by-design).
 **Disposition (2026-07-05):** FIXED — commit `51d2653` (`fix(22-02): collect.js multi-zone active-slot corruption hardening`).
 
+## Cluster A Regression (Plan 22-02, Task 3 — post-fix HEAD `030cbe5` + fixes `c9953a4`/`51d2653`)
+
+All 4 static gates green after every commit in this plan (verbatim final lines each run: `gate checks: PASS`, `import-safety checks: PASS`, `safety checks: PASS`, `smoke-progress: PASS` + `progress checks: PASS`).
+
+`node scripts/browser-boot.mjs` exited 0 on post-fix HEAD: `Browser boot: PASS — title -> select -> all levels loaded with no runtime errors.`
+
+### Fresh 16-encounter audit table (post-fix, 2026-07-05; `node scripts/audit-phase21-mechanics.mjs`, exit 0 as always — rows compared, not exit code)
+
+Sourced directly from this run's own printed JSON `results` array (row-provenance convention). Two consecutive post-fix runs were executed; both produced the SAME 5 unreached rows — the table below is the second (captured) run.
+
+| Level | Mechanic | x | Triggered | Resolved | reachedX |
+|-------|----------|---|-----------|----------|----------|
+| level-01 | answer-zone | 300 | true | null (by design) | 263.0 |
+| level-01 | math-gate | 600 | true | true | 560.6 |
+| level-01 | enemy | 1000 | true | true | 984.0 |
+| level-01 | math-gate | 1300 | true | true | 1281.3 |
+| level-01 | door | 1400 | true | true | 1398.5 |
+| level-02 | math-gate | 420 | true | true | 388.5 |
+| level-02 | math-gate | 1100 | false | false (unreached) | 638.2 |
+| level-02 | door | 1540 | false | false (unreached) | 598.5 |
+| level-03 | answer-zone | 200 | true | null (by design) | 160.0 |
+| level-03 | math-gate | 420 | true | true | 357.6 |
+| level-03 | enemy | 2400 | false | false (unreached) | 535.8 |
+| level-04 | answer-zone | 160 | true | null (by design) | 127.8 |
+| level-04 | math-gate | 320 | true | true | 286.2 |
+| level-04 | door | 900 | true | true | 880.5 |
+| level-04 | math-gate | 1800 | false | false (unreached) | 1064.1 |
+| level-04 | enemy | 2400 | false | false (unreached) | 1064.0 |
+
+### Row-by-row diff vs the canonical baseline (Run 1 table above), honoring the Baseline stable-core rule
+
+- **Stable core — always-unreached (5 rows):** level-02 math-gate x1100, level-02 door x1540, level-03 enemy x2400, level-04 math-gate x1800, level-04 enemy x2400 — **all still unreached** in both post-fix runs. Identical to baseline. ✓
+- **Stable core — always-reached (8 rows):** level-01 answer-zone x300 / math-gate x600 / enemy x1000, level-02 math-gate x420, level-03 answer-zone x200, level-04 answer-zone x160 / math-gate x320 / door x900 — **all triggered, resolved true (or null-by-design for the 3 answer-zones)**, byte-identical Triggered/Resolved to baseline (reachedX float jitter excepted). ✓
+- **Timing-sensitive rows (3):** level-01 math-gate x1300 (baseline Run 1: true/true → post-fix: true/true — identical), level-01 door x1400 (Run 1: true/true → post-fix: true/true — identical), level-03 math-gate x420 (Run 1: false/unreached → post-fix: **true/true in BOTH post-fix runs**). The single differing row vs baseline Run 1 is exactly this documented timing-sensitive row, flipping within its known run-to-run envelope (baseline Run 2 itself reached it); per the Baseline ground-truth rule this is neither a regression nor an improvement claim. No timing-sensitive row failed while triggered. ✓
+- **No newly-REACHED stable-unreached row, no newly-unreached stable-reached row.** The three Cluster A fix commits are behaviorally invisible to the audit, exactly as their zero-behavior-change arguments predicted (the door/gates busy guards and both collect guards cannot trip on single-zone, spaced-barrier levels).
+- **Script assumptions:** none broke — `scripts/lib/mechanic-drive.mjs` was NOT extended (resolveIfBoxed's baseline-decrease detection is unaffected: challenge-open counts per encounter are unchanged by the guards).
+
+Cluster A regression: PASS
+
 ## Per-Entity Verdict Table
 
 Clusters: **A** = challenge seam + mechanics (4 mechanics + challenge.js + mathGate.js), **B** = scenes & shell, **C** = world/engine + data. Allowed final Verdict values (CONTEXT-locked): clean / fixed / escalated / deferred-to-phase-N.
 
 | # | File | Cluster | Verdict | Finding refs | Notes |
 |---|------|---------|---------|--------------|-------|
-| 1 | src/mechanics/collect.js | A | pending | | |
-| 2 | src/mechanics/door.js | A | pending | | |
-| 3 | src/mechanics/enemy.js | A | pending | | |
-| 4 | src/mechanics/gates.js | A | pending | | |
-| 5 | src/ui/challenge.js | A | pending | | |
-| 6 | src/ui/mathGate.js | A | pending | | |
+| 1 | src/mechanics/collect.js | A | fixed | Finding 5 | commit `51d2653` — zone re-entrancy + pickup-ownership guards, zero-behavior-change today |
+| 2 | src/mechanics/door.js | A | fixed | Finding 4 | commit `c9953a4` — WR-03 busy guard (engine-proven same-frame window) |
+| 3 | src/mechanics/enemy.js | A | clean | Finding 3 | WR-03 + 21-04 fixes verified at HEAD; busy-reset invariant noted |
+| 4 | src/mechanics/gates.js | A | fixed | Finding 4 | commit `c9953a4` — WR-03 busy guard (engine-proven same-frame window) |
+| 5 | src/ui/challenge.js | A | escalated | Finding 1; Candidates 2, 3 | no defect (close() hazard REFUTED); same-time-open + answer-box constants go to the FIX-02 round |
+| 6 | src/ui/mathGate.js | A | clean | Finding 2 | banner teardown safe on every scene-exit path (source tier) |
 | 7 | src/ui/hud.js | B | pending | | |
 | 8 | src/scenes/game.js | B | pending | | |
 | 9 | src/scenes/select.js | B | pending | | |
