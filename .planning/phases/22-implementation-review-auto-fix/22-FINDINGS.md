@@ -278,6 +278,60 @@ Visual evidence: screenshot `22-03-B3-level-hud.png` (scratchpad, this run) — 
 
 **Disposition:** both clean, no fix; transform-is-load-bearing rationale recorded so no future pass "cleans it up."
 
+### Finding 11: player.js jump-cut release handler unguarded while frozen — **CONFIRMED BENIGN, no guard needed** (source tier; why-benign chain proven)
+
+**File:** `src/player.js` (onKeyRelease jump-cut, lines 91–93)
+**Hypothesis (22-RESEARCH Cluster C):** the jump-buffer write (onKeyPress, line 84) carries a `player.paused` guard but the onKeyRelease jump-cut (`if (player.vel.y < 0) player.vel.y *= CONFIG.JUMP_CUT`) does not; global key controllers are NOT paused by `player.paused` (Finding 4's engine extract: the paused propagation list contains only app-level input forwarders), so the release handler runs while the player is frozen — can it corrupt state?
+
+**Verdict: CONFIRMED BENIGN — the unguarded handler is a provable no-op during every freeze.** Three-link chain, each verified at HEAD this session:
+
+1. **Every pause site zeroes velocity synchronously BEFORE setting paused** — grep-verified across all five freeze paths: `door.js:60–61`, `gates.js:53–54`, `enemy.js:44–45` (all `player.vel = vec2(0);` then `player.paused = true;`), `game.js:193–194` (onReachGoal, with an ordering comment documenting exactly this contract), and `collect.js` never pauses at all (by design — the player must stay free to run into pickups, lines 63–65).
+2. **No code path writes a negative vel.y while paused:** `paused` halts body() gravity integration and the player's own onUpdate (which sets vel.x and consumes the jump buffer); the only other vel-writer, the buffered `player.jump()`, is doubly unreachable (consumed inside the paused onUpdate AND the buffer write itself is paused-guarded). So `vel.y === 0` for the entire freeze window.
+3. **Therefore the jump-cut predicate `player.vel.y < 0` is false throughout every freeze** — releasing the jump key while a challenge is open multiplies nothing; unpause paths (door/gates/enemy onSuccess) inherit vel = 0, no lurch.
+
+A release BEFORE the barrier collision in the same frame is ordinary variable-jump-height behavior (the player is not yet frozen); the collision handler then zeroes vel synchronously — JS single-threading leaves no interleaving in between.
+
+**Invariant recorded (same style as Finding 3's busy-reset note):** the benignity depends on the *vel-zero-before-pause* convention. Any future pause site that sets `player.paused = true` without zeroing velocity first re-opens this window (a mid-air freeze with vel.y < 0 would let a release shave upward velocity while frozen); such a site must either preserve the ordering or add the same paused guard the buffer write uses.
+
+**Animation transition guard (same file, second hypothesis):** `player.getCurAnim()?.name !== target` (line 111) — a missing current animation yields `undefined !== target` → `play(target)` fires, so the state machine self-heals from the no-anim state; no crash path. CONFIRMED CLEAN.
+
+**Disposition:** clean, no fix; invariant note recorded.
+
+### Finding 12: camera.js per-key fallbacks CONFIRMED; parallax.js partial-bounds NaN path CONFIRMED (latent) — **FIXED** (pure-function probe tier)
+
+**Files:** `src/camera.js` (clean), `src/parallax.js` (fixed)
+**Hypothesis (bug-pattern #10, labeled ASSUMED in research):** game.js's whole-object fallback `level.bounds ?? {...}` (game.js:88) does NOT default individual missing keys — a future descriptor carrying a PARTIAL bounds object reaches camera/parallax as-is. Does per-key defaulting catch it?
+
+**Evidence — scratchpad Node probe `probe-22-04-bounds.mjs` (imports the LIVE modules, stubs Kaplay globals, calls the real functions; probe inputs `{left:0}`, `{right:3000}`, `{left:0,right:3000}` plus a full-bounds control):**
+
+- **camera.js: CONFIRMED CLEAN.** All three partial shapes → `setCamPos(320.00, 180.00)`, finite=true. The per-key `bounds?.left ?? CONFIG.LEVEL_LEFT` (etc., lines 27–30) re-defaults every missing key individually.
+- **parallax.js pre-fix: CONFIRMED NaN path.** `{left:0}` and `{right:3000}` → `levelWidth = NaN` → `count = Math.ceil(NaN)+1 = NaN` → the build loop never runs → **instance counts [0,0,0]** — all three background layers silently absent (silent-invisibility class; and `updateParallaxLayers` would write NaN pos.x per frame for a missing `left`).
+- **parallax.js post-fix: counts [7,7,7]/[8,8,8], all xs finite.** Full-bounds control **byte-identical pre/post** (`counts [7,7,7], first x -368.0`) — zero behavior change on shipped descriptors.
+
+**Why fixed rather than noted (auto-fix rationale):** silent-invisibility is a named CONTEXT auto-fix class; the plan's threat model lists the descriptor→consumer boundary ("malformed fields surface as NaN/silent-invisibility bugs"); and this is the same asymmetric-defense shape Cluster A fixed in door/gates (camera defends per-key, parallax didn't) with content doubling in Phases 24–25. The fix copies camera.js's exact idiom: `bounds?.left ?? CONFIG.LEVEL_LEFT` / `bounds?.right ?? CONFIG.LEVEL_RIGHT` normalized once in `makeParallaxLayers`, plus the same `left` defaulting in `updateParallaxLayers`. No new exports, no new tokens (consumes existing CONFIG.LEVEL_LEFT/RIGHT).
+
+**Loop-index-vs-entry check (second hypothesis, bug-pattern #10's other half):** `updateParallaxLayers` indexes `layer.instances[i]` and recomputes position with the same `i * width()` term `makeParallaxLayer` used at creation — index and entry stay in lockstep; each instance carries its own `{ ratio }`. CONFIRMED CLEAN.
+
+**Disposition (2026-07-05):** camera.js clean; parallax.js FIXED — commit `0aa65a9` (`fix(22-04): per-key bounds defaulting in parallax.js`). Gates green post-commit.
+
+### Finding 13: fx.js tween lifecycle — **CONFIRMED CLEAN: every tween self-cleans or is swept; squash/stretch is single-flight** (source tier)
+
+**File:** `src/fx.js`
+**Hypotheses:** (a) some fx tween neither self-cleans nor is swept by game.js; (b) rapid jump-land squash/stretch sequences stack concurrent scale tweens.
+
+**Verdict: both REFUTED — clean.** Full tween inventory (4 effects, source read at HEAD):
+
+| Effect | Tween target | Self-clean | Sweep backstop |
+|--------|-------------|------------|----------------|
+| squash/stretch | player's own scale via `obj._fxScaleTween` handle | onEnd nulls the handle | game.js:310 cancels via `player._fxScaleTween` (WR-03 sweep; Finding 6 row 5) |
+| dust | "fx"-tagged particles | `.onEnd(() => destroy(p))` per particle | `destroyAll("fx")` (game.js:309) + `root.clearEvents()` at go (Finding 6 engine extract) |
+| pop | "fx"-tagged marker | `.onEnd(() => destroy(marker))` | same |
+| clearBurst | "fx"-tagged fixed() burst | `.onEnd(() => destroy(burst))` | same |
+
+**Single-flight (hypothesis b):** `squash()` opens with `if (obj._fxScaleTween) obj._fxScaleTween.cancel();` (line 65, WR-02 comment) before snapping the pose and starting the replacement tween — a jump→land inside the settle window cancels the prior tween rather than stacking; the replacement always ends at (1,1) so an interrupted settle still resolves to neutral. Handle-clear ordering is safe in both engine semantics: cancel() runs BEFORE the new tween is created/assigned, so even a synchronously-firing old onEnd could only null the handle before reassignment. CONFIRMED single-flight.
+
+**Disposition:** clean, no fix.
+
 ## Cluster A Regression (Plan 22-02, Task 3 — post-fix HEAD `030cbe5` + fixes `c9953a4`/`51d2653`)
 
 All 4 static gates green after every commit in this plan (verbatim final lines each run: `gate checks: PASS`, `import-safety checks: PASS`, `safety checks: PASS`, `smoke-progress: PASS` + `progress checks: PASS`).
