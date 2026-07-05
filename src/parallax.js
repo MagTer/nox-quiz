@@ -43,20 +43,31 @@ function makeParallaxLayer(name, bounds, ratio, zLayer, y) {
  */
 export function makeParallaxLayers(bounds) {
   const P = CONFIG.PARALLAX;
+  // Per-key defaulting, same idiom as camera.js: game.js's whole-object fallback
+  // (`level.bounds ?? {...}`) does NOT default individual missing keys, so a future
+  // descriptor carrying a PARTIAL bounds object (e.g. { left } without right) reaches
+  // here as-is and `bounds.right - bounds.left` goes NaN -> tile count NaN -> the
+  // build loop never runs -> ZERO layer instances (silently invisible background,
+  // bug-pattern #10 class). Probe-proven in 22-FINDINGS.md Finding 12; inert today
+  // because game.js always passes a complete bounds object for shipped descriptors.
+  const safeBounds = {
+    left: bounds?.left ?? CONFIG.LEVEL_LEFT,
+    right: bounds?.right ?? CONFIG.LEVEL_RIGHT,
+  };
   return [
     {
       name: "bg-far",
-      instances: makeParallaxLayer("bg-far", bounds, P.FAR_RATIO, P.FAR_Z, P.Y_ANCHOR - 120),
+      instances: makeParallaxLayer("bg-far", safeBounds, P.FAR_RATIO, P.FAR_Z, P.Y_ANCHOR - 120),
       ratio: P.FAR_RATIO,
     },
     {
       name: "bg-mid",
-      instances: makeParallaxLayer("bg-mid", bounds, P.MID_RATIO, P.MID_Z, P.Y_ANCHOR - 144),
+      instances: makeParallaxLayer("bg-mid", safeBounds, P.MID_RATIO, P.MID_Z, P.Y_ANCHOR - 144),
       ratio: P.MID_RATIO,
     },
     {
       name: "bg-near",
-      instances: makeParallaxLayer("bg-near", bounds, P.NEAR_RATIO, P.NEAR_Z, P.Y_ANCHOR - 90),
+      instances: makeParallaxLayer("bg-near", safeBounds, P.NEAR_RATIO, P.NEAR_Z, P.Y_ANCHOR - 90),
       ratio: P.NEAR_RATIO,
     },
   ];
@@ -69,10 +80,14 @@ export function makeParallaxLayers(bounds) {
  * @param {object} bounds
  */
 export function updateParallaxLayers(layers, camX, bounds) {
+  // Same per-key defaulting as makeParallaxLayers above: a partial bounds object
+  // missing `left` would otherwise write NaN into every instance's pos.x each frame
+  // (silently invisible layers). Inert today — game.js always passes a complete object.
+  const left = bounds?.left ?? CONFIG.LEVEL_LEFT;
   for (const layer of layers) {
     for (let i = 0; i < layer.instances.length; i++) {
       const inst = layer.instances[i];
-      inst.pos.x = bounds.left - width() + i * width() + camX * (1 - inst.ratio);
+      inst.pos.x = left - width() + i * width() + camX * (1 - inst.ratio);
     }
   }
 }
