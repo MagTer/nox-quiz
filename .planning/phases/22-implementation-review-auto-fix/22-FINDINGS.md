@@ -127,6 +127,50 @@ Numbered findings appended by Plans 22-02..22-05 in 21-FINDINGS format: what bro
 **Invariant note for future close paths:** `busy` is reset ONLY in onSuccess — currently correct because a correct answer is the challenge's sole close path (challenge.js keeps the overlay open on wrong answers; there is no cancel/timeout path by ADHD-safe design). If any future phase adds another close path (e.g. an escape-from-challenge affordance), door/gates/enemy `busy` flags must gain a matching reset or the mechanic soft-locks into permanent ignore. Recorded here so the invariant is findable.
 **Disposition:** clean, no fix.
 
+### Finding 4: door.js/gates.js missing WR-03 busy guard — same-frame double-fire IS possible at engine level — **CONFIRMED** (source tier; resolves 22-RESEARCH Open Question 1)
+
+**Files:** `src/mechanics/door.js`, `src/mechanics/gates.js`
+**Hypothesis (22-RESEARCH ⚠ / Open Question 1):** both files rely on `player.paused = true` alone (no `busy` guard, unlike enemy.js post-WR-03); is a second barrier collision possible in the same frame before `paused` takes effect?
+**Verdict: CONFIRMED — the double-fire is reachable at engine-semantics level.** Direct read of the vendored engine's collision pass (`lib/kaplay.mjs`, function `yn()` — minified, extracted this session):
+
+```js
+// pair loop inside the single incremental grid traversal (de-minified names in []):
+if(Q.c("area")&&!Q.paused){            // [traversed object's paused: checked ONCE, before its pair loop]
+  ...
+  for(let Ie of zt){                   // [grid-resident partners]
+    if(Ie.paused||!Ie.exists()||wn.has(Ie.id))continue;  // [partner's paused: re-checked per pair]
+    ...
+    ve.trigger("collideUpdate",Ie,Je); // [dispatches SYNCHRONOUSLY — area comp fires "collide" inline:
+    Ie.trigger("collideUpdate",ve,Cn); //  e[o.id]||this.trigger("collide",o,s) — so onCollide handlers
+  }                                    //  run mid-pass, per pair, same frame]
+```
+
+Three facts combine into the defect window:
+1. onCollide handlers run **synchronously per pair inside the pass** (area component translates collideUpdate → "collide" inline; verified in the same source).
+2. The traversed object's own `paused` flag is checked **once** before its pair loop; only the **partner's** flag (`Ie.paused`) is re-checked per pair.
+3. game.js adds the player (line 123) **after** buildLevel's barrier entities (line 113), so the player is the **later-traversed** object — the player is `ve`/Q, the barriers are the grid-resident `Ie`s. When the first barrier pair's handler sets `player.paused = true` mid-loop, the loop does NOT re-consult `ve.paused` — a second overlapping barrier pair still dispatches in the same frame, stacking a second openChallenge over a frozen player.
+   (Setting `GameObj.paused` also does not pause `on()`-registered handlers: the paused propagation list `s` in make() contains only the app-level input forwarders — onKeyPress et al. — not `on("collide")` controllers.)
+
+**Why it has never fired:** no two barriers in the shipped 4 levels sit within player-width of each other, so no frame ever contains two simultaneous barrier pairs. Latent, exactly like WR-03's original enemy case — and content doubles in Phases 24–25.
+**Fix (auto-fix, re-entrancy/leak class per CONTEXT):** copy the enemy.js WR-03 guard shape verbatim into both files — closure-local `busy` flag, checked at handler entry, set before the `player.paused` mutation, reset only in onSuccess, comment citing WR-03 / commit 5d168dc and this finding. Zero-behavior-change on current levels (the guard can never trip today) — proven by the Task 3 audit row diff.
+**Disposition (2026-07-05):** FIXED — commit `c9953a4` (`fix(22-02): add WR-03 busy re-entrancy guard to door.js and gates.js`).
+
+### Finding 5: collect.js multi-zone active-slot corruption — **CONFIRMED (latent)** — zero-behavior-change hardening landed (source tier)
+
+**File:** `src/mechanics/collect.js`
+**Hypothesis (22-RESEARCH ⚠):** the single `active` slot is overwritten when a second answer-zone is entered while the first is open; the pickup guard checks only `!active || slotObj.value === undefined`, not that the touched pickup belongs to the active zone; an overwritten slot's labelObj reference leaks stacked labels on re-trigger.
+**Verdict: CONFIRMED from source (unconditional semantics — all three legs):**
+1. **Slot overwrite:** the zone handler's early-return guard (line 51) is `active && active.zoneObj === zoneObj` — a DIFFERENT zone falls through and `active = {…}` (line 94) silently overwrites the first zone's session: its challenge handle and `q` are orphaned (the first zone's overlay is left open forever with no reference able to close it).
+2. **Cross-zone pickup resolution:** the pickup handler (line 100) accepts ANY pickup with a defined `value` — zone A's pickups resolve against zone B's question; `cleared.add(zoneObj)` then marks the WRONG zone cleared while destroyPickups() tears down only zone B's pickups.
+3. **Label leak:** re-entering the orphaned first zone after its slot was overwritten re-runs the spawn loop; `slotObj.labelObj = add([...])` overwrites the reference to the still-live first label — the old label object leaks on screen and is never destroyed (destroyPickups only destroys the CURRENT labelObj reference).
+**Unreachable today:** L1/L3/L4 have exactly one answer-zone each, L2 has zero (`src/levels/*.js`, read-only verified) — no second zone exists to trigger any leg. Latent until Phase 25's multi-zone content.
+**Fix (auto-fix, handler-scoping/leak class per CONTEXT; f541f88 single-handler rule + a727c13 closure-local rule preserved):**
+- Zone-entry re-entrancy guard: while a slot is active, entry into a DIFFERENT zone returns early (same idiom class as WR-03 — every other mechanic ignores new triggers while its challenge is open; this makes collect.js consistent rather than changing any reachable behavior).
+- Pickup-ownership guard: the pickup handler additionally requires `zoneObj.slots.includes(slotObj.slotIndex)` — the touched pickup must belong to the active zone.
+- Still exactly ONE top-level onCollide per event; no new module-level state; no new exports.
+**Zero-behavior-change proof:** with at most one zone per level, `active` is only ever set from that zone, so the new zone guard can never trip; every spawned pickup belongs to the only active zone, so the ownership guard can never trip. Behaviorally inert on all 4 shipped levels — confirmed by the Task 3 audit row diff (collect rows stay triggered:true / resolved:null-by-design).
+**Disposition (2026-07-05):** FIXED — commit `51d2653` (`fix(22-02): collect.js multi-zone active-slot corruption hardening`).
+
 ## Per-Entity Verdict Table
 
 Clusters: **A** = challenge seam + mechanics (4 mechanics + challenge.js + mathGate.js), **B** = scenes & shell, **C** = world/engine + data. Allowed final Verdict values (CONTEXT-locked): clean / fixed / escalated / deferred-to-phase-N.
