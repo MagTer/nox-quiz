@@ -172,13 +172,13 @@ Plans:
   3. Checkpoint density scales with the new lengths, so a respawn never sends her back more than one section
   4. The upgraded interactive audit drives each lengthened level start→goal with mechanic encounters resolved, and level-01's geometry-pinning smoke fixture is consciously re-baselined (not deleted)
 
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 24-01-PLAN.md — Fix level-01's 2 over-hole mathGates + extend 62.5% (VALID-04, LVL-01)
-- [ ] 24-02-PLAN.md — Extend level-02 52.9% (no known defects) (LVL-01)
+- [x] 24-02-PLAN.md — Extend level-02 52.9% (no known defects) (LVL-01)
 - [ ] 24-03-PLAN.md — Fix level-03's 2 unreachable platforms + extend 52.9% (VALID-04, LVL-01)
 - [ ] 24-04-PLAN.md — Fix level-04's over-hole mathGate + 6 unreachable platforms + extend 55% (VALID-04, LVL-01)
 
@@ -280,7 +280,7 @@ Plans:
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | ✅ Complete | 2026-07-04 |
 | 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
-| 24. Fix & Lengthen Levels 1–4 | v5.0 | 1/6 | In Progress|  |
+| 24. Fix & Lengthen Levels 1–4 | v5.0 | 2/6 | In Progress|  |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 0/TBD | Not started | - |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
