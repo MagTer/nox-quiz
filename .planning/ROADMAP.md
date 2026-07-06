@@ -203,7 +203,7 @@ Plans:
   4. Level select shows all 8 levels in a 2×4 grid with locked/unlocked/cleared semantics preserved, and an existing pre-v5.0 save resumes with levels 5–8 locked by default
   5. Levels 5–8 include verticality segments, and every level hides one optional secret XP alcove — finding it rewards XP, missing it costs nothing
 
-**Plans:** 3/7 plans executed
+**Plans:** 4/7 plans executed
 **UI hint**: yes
 
 Plans:
@@ -215,7 +215,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 25-03-PLAN.md — Author levels 5-8 (pure-data descriptors, gentle ramp, level-07/08 verticality) + registry append
-- [ ] 25-04-PLAN.md — MATH-01/MATH-02 literal edits + secret alcove retrofit into levels 1-4
+- [x] 25-04-PLAN.md — MATH-01/MATH-02 literal edits + secret alcove retrofit into levels 1-4
 - [ ] 25-05-PLAN.md — Level select 2×4 grid + row-aware keyboard cursor
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -301,7 +301,7 @@ Plans:
 | 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
-| 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 3/7 | In Progress|  |
+| 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 4/7 | In Progress|  |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |

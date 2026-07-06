@@ -6,14 +6,14 @@ current_phase: 25
 current_phase_name: Levels 5–8, Difficulty Ramp & Select Grid
 status: executing
 stopped_at: Phase 24 complete, ready to plan Phase 25
-last_updated: "2026-07-06T21:06:54.687Z"
+last_updated: "2026-07-06T21:10:31.421Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
-  completed_plans: 19
+  completed_plans: 20
   percent: 43
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 25 (Levels 5–8, Difficulty Ramp & Select Grid) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-07-06 — Phase 25 execution started
 
@@ -106,6 +106,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 25]: Applied the select-nav row/col fix identically at all 3 call sites (browser-boot.mjs's 1 occurrence, audit-phase21-mechanics.mjs's 2 occurrences) rather than extracting a shared helper, per project convention of fixing duplicated Playwright code by hand in each copy
 - [Phase 25]: Left scripts/lib/audit-retry.mjs and scripts/lib/mechanic-drive.mjs untouched -- full retry-hardened 8-level closure sign-off is scoped to Phase 28 (VALID-03)
 - [Phase 25-03]: Verticality climb tiers must be authored as platforms (not floors, which are pinned to fixed FLOOR_Y in build.js), with ~70px x-overlap between consecutive tiers so the rising-jump reachability model's short-time-of-flight root lands inside the overlap window -- a 20-30px overlap produced false spawn-goal HARD-FAILs on both level-07 and level-08
+- [Phase 25-04]: check-progress.sh's final smoke-progress.mjs invocation was already RED before this plan due to Plan 25-03's LEVEL_ORDER bump to 8 (not yet re-baselined) -- confirmed pre-existing/out of scope, deferred to Plan 25-06
+- [Phase 25-04]: Each of levels 1-4's secretAlcove placed as a short ~70px extra hop above that level's earliest existing platform, mirroring levels 5-8's established alcove pattern -- off the required path, not signposted, not gating
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -154,6 +156,7 @@ Carried forward from previous milestone closes:
 | Phase 25 P01 | 3min | 2 tasks | 5 files |
 | Phase 25 P02 | 6min | 2 tasks | 2 files |
 | Phase 25 P03 | 12min | 2 tasks | 5 files |
+| Phase 25 P04 | 5min | 2 tasks | 6 files |
 
 ## Quick Tasks Completed
 
@@ -163,7 +166,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-06T21:06:09.533Z
+Last session: 2026-07-06T21:10:08.741Z
 Stopped at: Phase 23 complete, ready to plan Phase 24
 Resume file: None
 

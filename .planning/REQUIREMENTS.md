@@ -31,8 +31,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Math
 
-- [ ] **MATH-01**: Table 1 removed from all per-level question pools
-- [ ] **MATH-02**: ×10 questions eliminated entirely — second-factor roll 1–10 → 1–9 (explicitly authorized one-literal change to the LOCKED brain; nothing else in `src/math/` changes)
+- [x] **MATH-01**: Table 1 removed from all per-level question pools
+- [x] **MATH-02**: ×10 questions eliminated entirely — second-factor roll 1–10 → 1–9 (explicitly authorized one-literal change to the LOCKED brain; nothing else in `src/math/` changes)
 
 ### Visuals
 
@@ -110,8 +110,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LVL-04 | Phase 25 | Complete |
 | LVL-05 | Phase 25 | Complete |
 | LVL-06 | Phase 25 | Complete |
-| MATH-01 | Phase 25 | Pending |
-| MATH-02 | Phase 25 | Pending |
+| MATH-01 | Phase 25 | Complete |
+| MATH-02 | Phase 25 | Complete |
 | VIS-01 | Phase 26 | Pending |
 | VIS-02 | Phase 26 | Pending |
 | VIS-03 | Phase 26 | Pending |
