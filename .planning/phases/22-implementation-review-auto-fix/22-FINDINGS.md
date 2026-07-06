@@ -622,3 +622,5 @@ Two consecutive runs on final HEAD, both exit 0 (diagnostic — rows compared, n
 - All 3 escalation candidates decided 2026-07-05 (2 REJECTED with rationale, 1 APPROVED and implemented post-approval — decisions commit `45edda5` precedes fix commit `e4e0d2e` in git log, FIX-02 ordering verified). Zero undecided escalations.
 
 FINAL regression: PASS
+
+**Resolved in Phase 24:** the 3 over-hole defects and 8 unreachable-platform candidates this document inventoried (Structural Defect Inventory section) are fixed — see `.planning/phases/24-fix-lengthen-levels-1-4/24-FINDINGS.md` for before/after evidence.

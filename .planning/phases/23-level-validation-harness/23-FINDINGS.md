@@ -454,3 +454,5 @@ scripts/check-safety.sh && node scripts/smoke-progress.mjs` — all four PASS. Z
   level-04 disconnection (gap 1760..1960 / enemy x:2400 / spawn-goal, all downstream of the
   x1800 over-hole defect), and the 8 unreachable platforms — level-02 requires NO fixes; its
   apparent disconnection was entirely a validator bug, now corrected.
+
+**Resolved in Phase 24:** the 3 confirmed over-hole defects and all 8 individually-arbitrated unreachable platforms (section (e)) this document's RED-first proof named are fixed — see `.planning/phases/24-fix-lengthen-levels-1-4/24-FINDINGS.md` for before/after evidence and the direct BFS-reachability proof for the platforms.

@@ -1,8 +1,9 @@
 playwright not resolvable as a project dependency; falling back to /home/magnus/.nvm/versions/node/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs. Set PLAYWRIGHT_MJS_PATH to override on other machines.
-driveToXPlanned: 8 deaths while approaching targetX=1540 (reachedX=1120) — genuine "cannot survive the route" finding.
-driveToXPlanned: 8 deaths while approaching targetX=2400 (reachedX=347.5600000000003) — genuine "cannot survive the route" finding.
-driveToXPlanned: 8 deaths while approaching targetX=4360 (reachedX=110.47200000000062) — genuine "cannot survive the route" finding.
-driveToXPlanned: no forward progress for 15000ms while approaching targetX=2400 (maxX=1465.9519999999989, x=1405.8079999999998) — genuine "cannot progress" finding.
+driveToXPlanned: 8 deaths while approaching targetX=1360 (reachedX=806.0959999999998) — genuine "cannot survive the route" finding.
+driveToXPlanned: 8 deaths while approaching targetX=1540 (reachedX=1131.7120000000002) — genuine "cannot survive the route" finding.
+driveToXPlanned: 8 deaths while approaching targetX=2400 (reachedX=960) — genuine "cannot survive the route" finding.
+driveToXPlanned: 8 deaths while approaching targetX=4360 (reachedX=960) — genuine "cannot survive the route" finding.
+driveToXPlanned: no forward progress for 15000ms while approaching targetX=2400 (maxX=1465.1359999999993, x=1432.9999999999998) — genuine "cannot progress" finding.
 [
   {
     "level": "level-01",
@@ -46,8 +47,8 @@ driveToXPlanned: no forward progress for 15000ms while approaching targetX=2400 
     "x": 1400,
     "reachedX": null,
     "triggered": true,
-    "resolved": false,
-    "attempts": 1
+    "resolved": true,
+    "attempts": 2
   },
   {
     "level": "level-01",
@@ -119,7 +120,7 @@ driveToXPlanned: no forward progress for 15000ms while approaching targetX=2400 
     "reachedX": null,
     "triggered": true,
     "resolved": false,
-    "attempts": 2
+    "attempts": 5
   },
   {
     "level": "level-03",
@@ -136,7 +137,7 @@ driveToXPlanned: no forward progress for 15000ms while approaching targetX=2400 
     "x": 4360,
     "reachedX": null,
     "triggered": true,
-    "resolved": false,
+    "resolved": true,
     "attempts": 2
   },
   {
@@ -182,7 +183,7 @@ driveToXPlanned: no forward progress for 15000ms while approaching targetX=2400 
     "reachedX": null,
     "triggered": true,
     "resolved": false,
-    "attempts": 2
+    "attempts": 5
   },
   {
     "level": "level-04",
@@ -206,31 +207,13 @@ driveToXPlanned: no forward progress for 15000ms while approaching targetX=2400 
 AUDIT: FAILURES DETECTED
 [
   {
-    "level": "level-01",
-    "tag": "door",
-    "x": 1400,
-    "reachedX": null,
-    "triggered": true,
-    "resolved": false,
-    "attempts": 1
-  },
-  {
     "level": "level-03",
     "tag": "enemy",
     "x": 2400,
     "reachedX": null,
     "triggered": true,
     "resolved": false,
-    "attempts": 2
-  },
-  {
-    "level": "level-03",
-    "tag": "math-gate",
-    "x": 4360,
-    "reachedX": null,
-    "triggered": true,
-    "resolved": false,
-    "attempts": 2
+    "attempts": 5
   },
   {
     "level": "level-04",
@@ -239,6 +222,6 @@ AUDIT: FAILURES DETECTED
     "reachedX": null,
     "triggered": true,
     "resolved": false,
-    "attempts": 2
+    "attempts": 5
   }
 ]
