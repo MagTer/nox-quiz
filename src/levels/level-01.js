@@ -41,6 +41,8 @@ export const LEVEL_01 = {
       { x: 0, w: 560 }, // opening run
       { x: 720, w: 480 }, // middle run (after gap 1)
       { x: 1360, w: 880 }, // final run to the goal (after gap 2), ends at 2240
+      { x: 2400, w: 480 }, // new run after gap 3 (Phase 24 extension), ends at 2880
+      { x: 3040, w: 600 }, // final run to the new goal (Phase 24 extension), ends at 3640
     ],
 
     // Raised platforms (own merged collider each) — stepping stones over the gaps
@@ -50,6 +52,8 @@ export const LEVEL_01 = {
       { x: 560, y: 192, w: 128, h: 24 }, // mid-gap-1 stepping stone
       { x: 1208, y: 232, w: 152, h: 24 }, // stepping stone across gap 2
       { x: 1640, y: 232, w: 160, h: 24 }, // late height-variety ledge
+      { x: 2240, y: 250, w: 128, h: 24 }, // bridges new gap 3 (2240..2400), touches floor-2's end (Phase 24 extension)
+      { x: 2880, y: 250, w: 112, h: 24 }, // bridges new gap 4 (2880..3040), touches floor-3's end (Phase 24 extension)
     ],
 
     // 10 coins arced over the jumps and along the runs (count exercised in Plan 03).
@@ -80,8 +84,10 @@ export const LEVEL_01 = {
       { x: 2000, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // last hazard before the goal
     ],
 
-    // Goal caps the final run.
-    goal: { x: 2160, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    // Goal caps the final run (Phase 24 extension: was x:2160, capping the v4.1 final
+    // run at 2240; now caps the new final run — floor-4 ends at 3640, 80px buffer,
+    // matching the original's own 80px goal-to-floor-end convention: 2240-2160=80).
+    goal: { x: 3560, y: FLOOR_Y - CONFIG.GOAL_SIZE },
 
     // Respawn checkpoints — one near the start and one just BEFORE each spike.
     //
@@ -109,8 +115,8 @@ export const LEVEL_01 = {
     // --- Mid-level math mechanics (Phase 16) ---
     // MECH-04: two checkpoint gates on different floor runs.
     mathGates: [
-      { x: 600, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // opening run, just before gap 1
-      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // final run, before the door at 1400
+      { x: 528, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // opening run, just before gap 1 (Phase 24 reposition: was x:600, over-hole per VALID-04; 528..560 fully inside floor-0's 0..560 span)
+      { x: 1360, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // final run, before the door at 1400 (Phase 24 reposition: was x:1300, over-hole per VALID-04; 1360..1392 fully inside floor-2's 1360..2240 span)
     ],
 
     // MECH-05: one defeat-enemy encounter on the middle run.
