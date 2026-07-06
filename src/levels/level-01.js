@@ -124,7 +124,7 @@ export const LEVEL_01 = {
     // --- Mid-level math mechanics (Phase 16) ---
     // MECH-04: two checkpoint gates on different floor runs.
     mathGates: [
-      { x: 528, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // opening run, just before gap 1 (Phase 24 reposition: was x:600, over-hole per VALID-04; 528..560 fully inside floor-0's 0..560 span)
+      { x: 150, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // opening run (Phase 24 re-reposition: was x:528 [was x:600 pre-Phase-24, over-hole per VALID-04] — x:528 sat at floor-0's very edge, immediately before the gap-1 climbing platform at x:360-520, trapping forward-only traversal with no runway to execute the platform hop after the challenge resolves; x:150 sits comfortably mid-floor-0, well before the climbing platform, fully inside floor-0's 0..560 span)
       { x: 1360, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // final run, before the door at 1400 (Phase 24 reposition: was x:1300, over-hole per VALID-04; 1360..1392 fully inside floor-2's 1360..2240 span)
       { x: 3120, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // new gate on the new final run (Phase 24 extension, LVL-01 length/audit coverage — 3rd mathGate instance reuses an existing mechanic type, not new variety)
     ],

@@ -105,7 +105,7 @@ export const LEVEL_04 = {
 
     mathGates: [
       { x: 320, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1728, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24: repositioned 1800->1728, off the over-hole gap 1760..1960, inside floor-2's 1240..1760 span (VALID-04)
+      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24 re-reposition: was x:1728 [was x:1800 pre-Phase-24, over-hole per VALID-04] — x:1728 sat at floor-2's very edge, immediately before the gap 1760..1960 crossing platform, trapping forward-only traversal with no runway after the challenge resolves; x:1300 sits comfortably mid-floor-2, well before that platform, fully inside floor-2's 1240..1760 span
       { x: 5760, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24 extension, on floor-9 (5680..6200 span)
     ],
 

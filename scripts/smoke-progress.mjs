@@ -292,7 +292,9 @@ const deepEqual = (a, b) => {
 //   goal: { x: 2160, y: FLOOR_Y - CONFIG.GOAL_SIZE }
 //   checkpoints: [{ x: 96 }, { x: 800 }, { x: 1440 }, { x: 1920 }] (y: FLOOR_Y - 48)
 //   mathGates: [{ x: 600 }, { x: 1300 }] (y: FLOOR_Y - CONFIG.MATH_GATE.H) — x:600/x:1300 were
-//     over-hole per VALID-04, repositioned to x:528/x:1360
+//     over-hole per VALID-04, repositioned to x:528/x:1360; x:528 then re-repositioned to
+//     x:150 (it sat at floor-0's edge right before the gap-1 climbing platform — a
+//     forward-only traversal trap; see level-01.js's inline comment)
 {
   // The v4.2 (post-Phase-24) geometry lifted verbatim from src/levels/level-01.js: floors
   // 40-46, platforms 50-57, coins 67-84, spikes 87-92, goal 97, checkpoints 108-115,
@@ -352,7 +354,7 @@ const deepEqual = (a, b) => {
       { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
     mathGates: [
-      { x: 528, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 150, y: FLOOR_Y - CONFIG.MATH_GATE.H },
       { x: 1360, y: FLOOR_Y - CONFIG.MATH_GATE.H },
       { x: 3120, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
@@ -606,7 +608,9 @@ const deepEqual = (a, b) => {
 //     (y: FLOOR_Y - 48)
 //   doors: [{ x: 900, y: FLOOR_Y - CONFIG.DOOR.H }]
 //   mathGates: [{ x: 320 }, { x: 1800 }] (y: FLOOR_Y - CONFIG.MATH_GATE.H) — x:1800 was
-//     over-hole per VALID-04, repositioned to x:1728
+//     over-hole per VALID-04, repositioned to x:1728; then re-repositioned to x:1300
+//     (x:1728 sat at floor-2's edge right before the gap-crossing platform — a
+//     forward-only traversal trap; see level-04.js's inline comment)
 {
   const FLOOR_Y = CONFIG.FLOOR_Y;
   const expectedGeometry = {
@@ -692,7 +696,7 @@ const deepEqual = (a, b) => {
     ],
     mathGates: [
       { x: 320, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1728, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H },
       { x: 5760, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [
