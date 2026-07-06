@@ -50,6 +50,12 @@ export const LEVEL_03 = {
       { x: 2380, y: 264 },
       { x: 2860, y: 264 },
       { x: 3180, y: 264 },
+      { x: 3440, y: 264 }, // Phase 24 extension
+      { x: 3640, y: 184 }, // Phase 24 extension
+      { x: 3900, y: 128 }, // Phase 24 extension
+      { x: 4200, y: 264 }, // Phase 24 extension
+      { x: 4460, y: 176 }, // Phase 24 extension
+      { x: 4900, y: 264 }, // Phase 24 extension
     ],
 
     spikes: [
@@ -59,6 +65,8 @@ export const LEVEL_03 = {
       { x: 1820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 3020, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 3260, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 3680, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // Phase 24 extension (on floor-5, 3560..4160)
+      { x: 4800, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // Phase 24 extension (on floor-6, 4280..5200)
     ],
 
     goal: { x: 5120, y: FLOOR_Y - CONFIG.GOAL_SIZE }, // Phase 24: extended from x:3320 (LVL-01)
@@ -73,16 +81,22 @@ export const LEVEL_03 = {
       { x: 2300, y: FLOOR_Y - 48 },
       { x: 2920, y: FLOOR_Y - 48 },
       { x: 3160, y: FLOOR_Y - 48 },
+      { x: 3600, y: FLOOR_Y - 48 }, // Phase 24 extension — before the new spike (x=3680)
+      { x: 3720, y: FLOOR_Y - 48 }, // Phase 24 extension — before the new enemy (x=3800)
+      { x: 4280, y: FLOOR_Y - 48 }, // Phase 24 extension — before the new mathGate (x=4360), floor-6 start
+      { x: 4720, y: FLOOR_Y - 48 }, // Phase 24 extension — before the new spike (x=4800)
     ],
 
     doors: [],
 
     mathGates: [
       { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 4360, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24 extension (on floor-6, 4280..5200)
     ],
 
     enemies: [
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
+      { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H }, // Phase 24 extension (on floor-5, 3560..4160)
     ],
 
     collectZones: [
