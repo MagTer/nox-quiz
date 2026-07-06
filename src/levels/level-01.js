@@ -75,6 +75,12 @@ export const LEVEL_01 = {
       { x: 1680, y: 176 },
       { x: 1900, y: 264 },
       { x: 2080, y: 264 },
+      { x: 2280, y: 264 }, // Phase 24 extension — over the new gap-3 platform
+      { x: 2472, y: 184 }, // Phase 24 extension
+      { x: 2600, y: 136 }, // Phase 24 extension — before the new spike (x=2640)
+      { x: 2800, y: 264 }, // Phase 24 extension
+      { x: 3080, y: 264 }, // Phase 24 extension — start of the new final run
+      { x: 3400, y: 176 }, // Phase 24 extension — near the new goal
     ],
 
     // Floor spikes (sit ON the floor at FLOOR_Y). Each has a checkpoint just before it.
@@ -82,6 +88,7 @@ export const LEVEL_01 = {
       { x: 880, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // first hazard on the middle run
       { x: 1520, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // hazard on the final run
       { x: 2000, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // last hazard before the goal
+      { x: 2640, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // new hazard on the extension's first new floor run (Phase 24 extension)
     ],
 
     // Goal caps the final run (Phase 24 extension: was x:2160, capping the v4.1 final
@@ -103,6 +110,8 @@ export const LEVEL_01 = {
       { x: 800, y: FLOOR_Y - 48 }, // before the first spike (x=880)
       { x: 1440, y: FLOOR_Y - 48 }, // before the second spike (x=1520)
       { x: 1920, y: FLOOR_Y - 48 }, // before the third spike (x=2000)
+      { x: 2560, y: FLOOR_Y - 48 }, // before the new spike (x=2640) — 80px lead (Phase 24 extension)
+      { x: 3040, y: FLOOR_Y - 48 }, // before the new mathGate (x=3120) — 80px lead (Phase 24 extension)
     ],
 
     // Locked door — mid-level challenge seam (Plan 15-03). Sits on the final run
@@ -117,6 +126,7 @@ export const LEVEL_01 = {
     mathGates: [
       { x: 528, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // opening run, just before gap 1 (Phase 24 reposition: was x:600, over-hole per VALID-04; 528..560 fully inside floor-0's 0..560 span)
       { x: 1360, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // final run, before the door at 1400 (Phase 24 reposition: was x:1300, over-hole per VALID-04; 1360..1392 fully inside floor-2's 1360..2240 span)
+      { x: 3120, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // new gate on the new final run (Phase 24 extension, LVL-01 length/audit coverage — 3rd mathGate instance reuses an existing mechanic type, not new variety)
     ],
 
     // MECH-05: one defeat-enemy encounter on the middle run.
