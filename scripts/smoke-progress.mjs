@@ -280,23 +280,40 @@ const deepEqual = (a, b) => {
 };
 
 // --- LVL-02 regression: level-01 geometry === v3.0 src/level.js values, VERBATIM ---
+// Phase 24 re-baseline: level-01 extended + structural fixes applied (VALID-04/LVL-01).
+// OLD (pre-Phase-24, v4.1) values, retained for historical traceability:
+//   floors: [{ x: 0, w: 560 }, { x: 720, w: 480 }, { x: 1360, w: 880 }]
+//   platforms: [{ x: 360, y: 240, w: 160, h: 24 }, { x: 560, y: 192, w: 128, h: 24 },
+//     { x: 1208, y: 232, w: 152, h: 24 }, { x: 1640, y: 232, w: 160, h: 24 }]
+//   coins: [{ x: 200, y: 264 }, { x: 392, y: 184 }, { x: 592, y: 136 }, { x: 800, y: 264 },
+//     { x: 960, y: 264 }, { x: 1240, y: 176 }, { x: 1440, y: 264 }, { x: 1680, y: 176 },
+//     { x: 1900, y: 264 }, { x: 2080, y: 264 }]
+//   spikes: [{ x: 880 }, { x: 1520 }, { x: 2000 }] (y: FLOOR_Y - CONFIG.SPIKE_SIZE)
+//   goal: { x: 2160, y: FLOOR_Y - CONFIG.GOAL_SIZE }
+//   checkpoints: [{ x: 96 }, { x: 800 }, { x: 1440 }, { x: 1920 }] (y: FLOOR_Y - 48)
+//   mathGates: [{ x: 600 }, { x: 1300 }] (y: FLOOR_Y - CONFIG.MATH_GATE.H) — x:600/x:1300 were
+//     over-hole per VALID-04, repositioned to x:528/x:1360
 {
-  // The EXACT v3.0 geometry lifted from src/level.js (floors 46-50, platforms 54-59,
-  // coins 69-80, spikes 83-87, goal 90, checkpoints 101-106). Spike/goal/checkpoint values
-  // are reconstructed from CONFIG with the same expressions the source uses, so this is a
-  // byte-equivalent comparison (proves the lift is verbatim, not eyeballed).
+  // The v4.2 (post-Phase-24) geometry lifted verbatim from src/levels/level-01.js: floors
+  // 40-46, platforms 50-57, coins 67-84, spikes 87-92, goal 97, checkpoints 108-115,
+  // doors 120-122, mathGates 126-130, enemies 133-135, collectZones 138-140,
+  // answerPickupSlots 143-148.
   const FLOOR_Y = CONFIG.FLOOR_Y; // 320
   const expectedGeometry = {
     floors: [
       { x: 0, w: 560 },
       { x: 720, w: 480 },
       { x: 1360, w: 880 },
+      { x: 2400, w: 480 },
+      { x: 3040, w: 600 },
     ],
     platforms: [
       { x: 360, y: 240, w: 160, h: 24 },
       { x: 560, y: 192, w: 128, h: 24 },
       { x: 1208, y: 232, w: 152, h: 24 },
       { x: 1640, y: 232, w: 160, h: 24 },
+      { x: 2240, y: 250, w: 128, h: 24 },
+      { x: 2880, y: 250, w: 112, h: 24 },
     ],
     coins: [
       { x: 200, y: 264 },
@@ -309,25 +326,35 @@ const deepEqual = (a, b) => {
       { x: 1680, y: 176 },
       { x: 1900, y: 264 },
       { x: 2080, y: 264 },
+      { x: 2280, y: 264 },
+      { x: 2472, y: 184 },
+      { x: 2600, y: 136 },
+      { x: 2800, y: 264 },
+      { x: 3080, y: 264 },
+      { x: 3400, y: 176 },
     ],
     spikes: [
       { x: 880, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 1520, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 2000, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2640, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
-    goal: { x: 2160, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 3560, y: FLOOR_Y - CONFIG.GOAL_SIZE },
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
       { x: 800, y: FLOOR_Y - 48 },
       { x: 1440, y: FLOOR_Y - 48 },
       { x: 1920, y: FLOOR_Y - 48 },
+      { x: 2560, y: FLOOR_Y - 48 },
+      { x: 3040, y: FLOOR_Y - 48 },
     ],
     doors: [
       { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
     mathGates: [
-      { x: 600, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 528, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 1360, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 3120, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [
       { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H },
@@ -349,6 +376,21 @@ const deepEqual = (a, b) => {
 }
 
 // --- LVL-02 regression: level-02 geometry matches authored descriptor ---
+// Phase 24 re-baseline: level-02 extended + bounds bumped (VALID-04/LVL-01).
+// OLD (pre-Phase-24, v4.1) values, retained for historical traceability:
+//   floors: [{ x: 0, w: 520 }, { x: 700, w: 560 }, { x: 1420, w: 600 }, { x: 2180, w: 620 }]
+//   platforms: [{ x: 280, y: 240, w: 160, h: 24 }, { x: 500, y: 192, w: 128, h: 24 },
+//     { x: 640, y: 232, w: 128, h: 24 }, { x: 1200, y: 232, w: 128, h: 24 },
+//     { x: 1360, y: 192, w: 96, h: 24 }, { x: 2020, y: 232, w: 128, h: 24 },
+//     { x: 2360, y: 240, w: 128, h: 24 }]
+//   coins: [{ x: 160, y: 264 }, { x: 320, y: 184 }, { x: 540, y: 136 }, { x: 760, y: 264 },
+//     { x: 1040, y: 264 }, { x: 1260, y: 176 }, { x: 1560, y: 264 }, { x: 1900, y: 176 },
+//     { x: 2280, y: 264 }, { x: 2600, y: 264 }]
+//   spikes: [{ x: 920 }, { x: 1180 }, { x: 1760 }, { x: 2560 }] (y: FLOOR_Y - CONFIG.SPIKE_SIZE)
+//   goal: { x: 2720, y: FLOOR_Y - CONFIG.GOAL_SIZE }
+//   checkpoints: [{ x: 96 }, { x: 340 }, { x: 840 }, { x: 1020 }, { x: 1120 }, { x: 1460 },
+//     { x: 1680 }, { x: 2480 }] (y: FLOOR_Y - 48)
+//   mathGates: [{ x: 420 }, { x: 1100 }] (y: FLOOR_Y - CONFIG.MATH_GATE.H)
 {
   const FLOOR_Y = CONFIG.FLOOR_Y;
   const expectedGeometry = {
@@ -357,6 +399,8 @@ const deepEqual = (a, b) => {
       { x: 700, w: 560 },
       { x: 1420, w: 600 },
       { x: 2180, w: 620 },
+      { x: 2960, w: 560 },
+      { x: 3680, w: 600 },
     ],
     platforms: [
       { x: 280, y: 240, w: 160, h: 24 },
@@ -366,6 +410,8 @@ const deepEqual = (a, b) => {
       { x: 1360, y: 192, w: 96, h: 24 },
       { x: 2020, y: 232, w: 128, h: 24 },
       { x: 2360, y: 240, w: 128, h: 24 },
+      { x: 2800, y: 250, w: 128, h: 24 },
+      { x: 3520, y: 250, w: 112, h: 24 },
     ],
     coins: [
       { x: 160, y: 264 },
@@ -378,14 +424,20 @@ const deepEqual = (a, b) => {
       { x: 1900, y: 176 },
       { x: 2280, y: 264 },
       { x: 2600, y: 264 },
+      { x: 2840, y: 264 },
+      { x: 3040, y: 184 },
+      { x: 3260, y: 136 },
+      { x: 3560, y: 264 },
+      { x: 3900, y: 176 },
     ],
     spikes: [
       { x: 920, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 1180, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 1760, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 2560, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 3200, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
-    goal: { x: 2720, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 4200, y: FLOOR_Y - CONFIG.GOAL_SIZE },
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
       { x: 340, y: FLOOR_Y - 48 },
@@ -395,6 +447,8 @@ const deepEqual = (a, b) => {
       { x: 1460, y: FLOOR_Y - 48 },
       { x: 1680, y: FLOOR_Y - 48 },
       { x: 2480, y: FLOOR_Y - 48 },
+      { x: 3120, y: FLOOR_Y - 48 },
+      { x: 3680, y: FLOOR_Y - 48 },
     ],
     doors: [
       { x: 1540, y: FLOOR_Y - CONFIG.DOOR.H },
@@ -402,6 +456,7 @@ const deepEqual = (a, b) => {
     mathGates: [
       { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
       { x: 1100, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 3760, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [],
     collectZones: [],
@@ -414,6 +469,26 @@ const deepEqual = (a, b) => {
 }
 
 // --- LVL-02 regression: level-03 geometry matches authored descriptor ---
+// Phase 24 re-baseline: level-03 extended + 2 unreachable platforms lowered
+// (VALID-04/LVL-01).
+// OLD (pre-Phase-24, v4.1) values, retained for historical traceability:
+//   floors: [{ x: 0, w: 480 }, { x: 640, w: 560 }, { x: 1320, w: 600 }, { x: 2040, w: 640 },
+//     { x: 2840, w: 560 }]
+//   platforms: [{ x: 280, y: 240, w: 128, h: 24 }, { x: 480, y: 184, w: 96, h: 24 },
+//     { x: 1160, y: 224, w: 112, h: 24 }, { x: 1520, y: 232, w: 96, h: 24 },
+//     { x: 1880, y: 184, w: 128, h: 24 }, { x: 2220, y: 232, w: 96, h: 24 },
+//     { x: 2640, y: 192, w: 128, h: 24 }] — x:1880/x:2640 were unreachable per VALID-04
+//     (rise 136px/128px vs the 88.331px calibrated ceiling), y lowered to 260/260
+//   coins: [{ x: 140, y: 264 }, { x: 300, y: 184 }, { x: 520, y: 128 }, { x: 800, y: 264 },
+//     { x: 1080, y: 264 }, { x: 1420, y: 176 }, { x: 1740, y: 264 }, { x: 1980, y: 128 },
+//     { x: 2380, y: 264 }, { x: 2860, y: 264 }, { x: 3180, y: 264 }]
+//   spikes: [{ x: 820 }, { x: 1040 }, { x: 1580 }, { x: 1820 }, { x: 3020 }, { x: 3260 }]
+//     (y: FLOOR_Y - CONFIG.SPIKE_SIZE)
+//   goal: { x: 3320, y: FLOOR_Y - CONFIG.GOAL_SIZE }
+//   checkpoints: [{ x: 96 }, { x: 340 }, { x: 740 }, { x: 960 }, { x: 1500 }, { x: 1740 },
+//     { x: 2300 }, { x: 2920 }, { x: 3160 }] (y: FLOOR_Y - 48)
+//   mathGates: [{ x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H }]
+//   enemies: [{ x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H }]
 {
   const FLOOR_Y = CONFIG.FLOOR_Y;
   const expectedGeometry = {
@@ -423,15 +498,19 @@ const deepEqual = (a, b) => {
       { x: 1320, w: 600 },
       { x: 2040, w: 640 },
       { x: 2840, w: 560 },
+      { x: 3560, w: 600 },
+      { x: 4280, w: 920 },
     ],
     platforms: [
       { x: 280, y: 240, w: 128, h: 24 },
       { x: 480, y: 184, w: 96, h: 24 },
       { x: 1160, y: 224, w: 112, h: 24 },
       { x: 1520, y: 232, w: 96, h: 24 },
-      { x: 1880, y: 184, w: 128, h: 24 },
+      { x: 1880, y: 260, w: 128, h: 24 },
       { x: 2220, y: 232, w: 96, h: 24 },
-      { x: 2640, y: 192, w: 128, h: 24 },
+      { x: 2640, y: 260, w: 128, h: 24 },
+      { x: 3400, y: 255, w: 128, h: 24 },
+      { x: 4160, y: 255, w: 112, h: 24 },
     ],
     coins: [
       { x: 140, y: 264 },
@@ -445,6 +524,12 @@ const deepEqual = (a, b) => {
       { x: 2380, y: 264 },
       { x: 2860, y: 264 },
       { x: 3180, y: 264 },
+      { x: 3440, y: 264 },
+      { x: 3640, y: 184 },
+      { x: 3900, y: 128 },
+      { x: 4200, y: 264 },
+      { x: 4460, y: 176 },
+      { x: 4900, y: 264 },
     ],
     spikes: [
       { x: 820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
@@ -453,8 +538,10 @@ const deepEqual = (a, b) => {
       { x: 1820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 3020, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 3260, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 3680, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 4800, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
-    goal: { x: 3320, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 5120, y: FLOOR_Y - CONFIG.GOAL_SIZE },
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
       { x: 340, y: FLOOR_Y - 48 },
@@ -465,13 +552,19 @@ const deepEqual = (a, b) => {
       { x: 2300, y: FLOOR_Y - 48 },
       { x: 2920, y: FLOOR_Y - 48 },
       { x: 3160, y: FLOOR_Y - 48 },
+      { x: 3600, y: FLOOR_Y - 48 },
+      { x: 3720, y: FLOOR_Y - 48 },
+      { x: 4280, y: FLOOR_Y - 48 },
+      { x: 4720, y: FLOOR_Y - 48 },
     ],
     doors: [],
     mathGates: [
       { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 4360, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
+      { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H },
     ],
     collectZones: [
       { x: 200, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
@@ -490,6 +583,30 @@ const deepEqual = (a, b) => {
 }
 
 // --- LVL-02 regression: level-04 geometry matches authored descriptor ---
+// Phase 24 re-baseline: level-04 extended + 1 over-hole mathGate repositioned +
+// 6 unreachable platforms lowered (VALID-04/LVL-01).
+// OLD (pre-Phase-24, v4.1) values, retained for historical traceability:
+//   floors: [{ x: 0, w: 440 }, { x: 600, w: 480 }, { x: 1240, w: 520 }, { x: 1960, w: 560 },
+//     { x: 2680, w: 560 }, { x: 3400, w: 600 }]
+//   platforms: [{ x: 240, y: 232, w: 112, h: 24 }, { x: 440, y: 168, w: 80, h: 24 },
+//     { x: 1080, y: 200, w: 112, h: 24 }, { x: 1400, y: 216, w: 80, h: 24 },
+//     { x: 1760, y: 176, w: 128, h: 24 }, { x: 2140, y: 216, w: 80, h: 24 },
+//     { x: 2520, y: 192, w: 112, h: 24 }, { x: 2880, y: 224, w: 80, h: 24 },
+//     { x: 3240, y: 184, w: 112, h: 24 }] — all 6 non-x:2880/x:440/x:240 platforms were
+//     unreachable per VALID-04 (rise 104-144px vs the 88.331px calibrated ceiling), y
+//     lowered uniformly to 250 (rise 70px)
+//   coins: [{ x: 120, y: 264 }, { x: 260, y: 176 }, { x: 460, y: 112 }, { x: 760, y: 264 },
+//     { x: 980, y: 264 }, { x: 1300, y: 176 }, { x: 1660, y: 264 }, { x: 1900, y: 128 },
+//     { x: 2300, y: 264 }, { x: 2600, y: 264 }, { x: 3000, y: 264 }, { x: 3560, y: 264 }]
+//   spikes: [{ x: 820 }, { x: 1000 }, { x: 1480 }, { x: 1700 }, { x: 2320 }, { x: 2480 },
+//     { x: 3880 }] (y: FLOOR_Y - CONFIG.SPIKE_SIZE)
+//   goal: { x: 3920, y: FLOOR_Y - CONFIG.GOAL_SIZE }
+//   checkpoints: [{ x: 96 }, { x: 200 }, { x: 740 }, { x: 860 }, { x: 920 }, { x: 1400 },
+//     { x: 1620 }, { x: 1740 }, { x: 2240 }, { x: 2360 }, { x: 2440 }, { x: 3800 }]
+//     (y: FLOOR_Y - 48)
+//   doors: [{ x: 900, y: FLOOR_Y - CONFIG.DOOR.H }]
+//   mathGates: [{ x: 320 }, { x: 1800 }] (y: FLOOR_Y - CONFIG.MATH_GATE.H) — x:1800 was
+//     over-hole per VALID-04, repositioned to x:1728
 {
   const FLOOR_Y = CONFIG.FLOOR_Y;
   const expectedGeometry = {
@@ -500,17 +617,23 @@ const deepEqual = (a, b) => {
       { x: 1960, w: 560 },
       { x: 2680, w: 560 },
       { x: 3400, w: 600 },
+      { x: 4160, w: 560 },
+      { x: 4920, w: 600 },
+      { x: 5680, w: 520 },
     ],
     platforms: [
       { x: 240, y: 232, w: 112, h: 24 },
       { x: 440, y: 168, w: 80, h: 24 },
-      { x: 1080, y: 200, w: 112, h: 24 },
-      { x: 1400, y: 216, w: 80, h: 24 },
-      { x: 1760, y: 176, w: 128, h: 24 },
-      { x: 2140, y: 216, w: 80, h: 24 },
-      { x: 2520, y: 192, w: 112, h: 24 },
+      { x: 1080, y: 250, w: 112, h: 24 },
+      { x: 1400, y: 250, w: 80, h: 24 },
+      { x: 1760, y: 250, w: 128, h: 24 },
+      { x: 2140, y: 250, w: 80, h: 24 },
+      { x: 2520, y: 250, w: 112, h: 24 },
       { x: 2880, y: 224, w: 80, h: 24 },
-      { x: 3240, y: 184, w: 112, h: 24 },
+      { x: 3240, y: 250, w: 112, h: 24 },
+      { x: 4000, y: 250, w: 128, h: 24 },
+      { x: 4720, y: 250, w: 128, h: 24 },
+      { x: 5520, y: 250, w: 112, h: 24 },
     ],
     coins: [
       { x: 120, y: 264 },
@@ -525,6 +648,13 @@ const deepEqual = (a, b) => {
       { x: 2600, y: 264 },
       { x: 3000, y: 264 },
       { x: 3560, y: 264 },
+      { x: 4040, y: 264 },
+      { x: 4260, y: 184 },
+      { x: 4460, y: 136 },
+      { x: 4760, y: 264 },
+      { x: 5060, y: 176 },
+      { x: 5300, y: 264 },
+      { x: 5900, y: 264 },
     ],
     spikes: [
       { x: 820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
@@ -534,8 +664,10 @@ const deepEqual = (a, b) => {
       { x: 2320, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 2480, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 3880, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 4300, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 5200, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
-    goal: { x: 3920, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 6120, y: FLOOR_Y - CONFIG.GOAL_SIZE },
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
       { x: 200, y: FLOOR_Y - 48 },
@@ -549,13 +681,19 @@ const deepEqual = (a, b) => {
       { x: 2360, y: FLOOR_Y - 48 },
       { x: 2440, y: FLOOR_Y - 48 },
       { x: 3800, y: FLOOR_Y - 48 },
+      { x: 4220, y: FLOOR_Y - 48 },
+      { x: 4920, y: FLOOR_Y - 48 },
+      { x: 5120, y: FLOOR_Y - 48 },
+      { x: 5680, y: FLOOR_Y - 48 },
     ],
     doors: [
       { x: 900, y: FLOOR_Y - CONFIG.DOOR.H },
+      { x: 5000, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
     mathGates: [
       { x: 320, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1800, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 1728, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 5760, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
