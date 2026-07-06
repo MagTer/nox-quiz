@@ -76,6 +76,17 @@ const check = (cond, msg) => {
   check(q.xp === 20, `overshoot surplus should carry over to 20 (NOT 0), got ${q.xp}`);
 }
 
+// --- LVL-06: addBonusXp/CONFIG.PROGRESS.XP_ALCOVE permanent regression pin ---
+// Promotes Plan 25-01's throwaway verify command into a permanent assertion: a flat,
+// non-table-scaled bonus (the secret-alcove reward) adds exactly XP_ALCOVE (5) and does
+// NOT level up a fresh level-1 progress (threshold(1) = 200, far above 5).
+{
+  const p = createProgress();
+  const leveledUp = p.addBonusXp(CONFIG.PROGRESS.XP_ALCOVE);
+  check(p.getXp() === 5, `LVL-06: addBonusXp(XP_ALCOVE) should leave getXp() at 5, got ${p.getXp()}`);
+  check(leveledUp === false, `LVL-06: addBonusXp(XP_ALCOVE) should not level up a fresh progress, got ${leveledUp}`);
+}
+
 // --- SAVE-02: serialize round-trip — xp/level/accuracy survive + a version field is present ---
 {
   const brain = createBrain();
@@ -186,6 +197,25 @@ const check = (cond, msg) => {
     check(isUnlocked(second, locked) === true,
       `SAVE-06: ${second} should UNLOCK once ${LEVEL_ORDER[0]} is cleared (derived, not stored)`);
   }
+}
+
+// --- LVL-04: pre-v5.0-save-resume — a save that only ever knew levels 1-4 (all cleared)
+// resumes correctly against the now-8-level registry with ZERO migration code. isUnlocked's
+// single-predecessor-chain logic derives level-05 as unlocked (level-04 is cleared) and
+// level-06 as still locked (level-05 has never been cleared in this old save). ---
+{
+  const oldSave = createProgress({
+    levels: {
+      "level-01": { cleared: true },
+      "level-02": { cleared: true },
+      "level-03": { cleared: true },
+      "level-04": { cleared: true },
+    },
+  });
+  check(isUnlocked("level-05", oldSave) === true,
+    `LVL-04: a pre-v5.0 save with levels 1-4 cleared should unlock level-05 (predecessor level-04 is cleared)`);
+  check(isUnlocked("level-06", oldSave) === false,
+    `LVL-04: a pre-v5.0 save with levels 1-4 cleared should NOT unlock level-06 (level-05 never cleared)`);
 }
 
 // --- SAVE-05: never-bricks — hostile blobs passed DIRECTLY to createProgress, never throw ---
