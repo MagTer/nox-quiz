@@ -13,7 +13,7 @@ export const LEVEL_04 = {
   displayName: "The Last Span",
   allowedTables: [6, 7, 8, 9],
 
-  bounds: { left: 0, right: 4000, top: 0, bottom: 360 },
+  bounds: { left: 0, right: 6200, top: 0, bottom: 360 }, // Phase 24: bumped 4000->6200 for the +2200px extension (LVL-01)
 
   geometry: {
     floors: [
@@ -23,18 +23,24 @@ export const LEVEL_04 = {
       { x: 1960, w: 560 },
       { x: 2680, w: 560 },
       { x: 3400, w: 600 },
+      { x: 4160, w: 560 }, // Phase 24 extension run 1 (after new gap 4000..4160)
+      { x: 4920, w: 600 }, // Phase 24 extension run 2 (after new gap 4720..4920)
+      { x: 5680, w: 520 }, // Phase 24 extension run 3, final run to the new goal (after new gap 5520..5680), ends at 6200
     ],
 
     platforms: [
       { x: 240, y: 232, w: 112, h: 24 },
       { x: 440, y: 168, w: 80, h: 24 },
-      { x: 1080, y: 200, w: 112, h: 24 },
-      { x: 1400, y: 216, w: 80, h: 24 },
-      { x: 1760, y: 176, w: 128, h: 24 },
-      { x: 2140, y: 216, w: 80, h: 24 },
-      { x: 2520, y: 192, w: 112, h: 24 },
+      { x: 1080, y: 250, w: 112, h: 24 }, // Phase 24: rise reduced 120->70px (VALID-04) — was y:200
+      { x: 1400, y: 250, w: 80, h: 24 }, // Phase 24: rise reduced 104->70px (VALID-04) — was y:216
+      { x: 1760, y: 250, w: 128, h: 24 }, // Phase 24: rise reduced 144->70px (VALID-04) — was y:176
+      { x: 2140, y: 250, w: 80, h: 24 }, // Phase 24: rise reduced 104->70px (VALID-04) — was y:216
+      { x: 2520, y: 250, w: 112, h: 24 }, // Phase 24: rise reduced 128->70px (VALID-04) — was y:192
       { x: 2880, y: 224, w: 80, h: 24 },
-      { x: 3240, y: 184, w: 112, h: 24 },
+      { x: 3240, y: 250, w: 112, h: 24 }, // Phase 24: rise reduced 136->70px (VALID-04) — was y:184
+      { x: 4000, y: 250, w: 128, h: 24 }, // Phase 24 extension: bridges new gap 4000..4160, touching floor-6's end at 4000 exactly, rise 70px
+      { x: 4720, y: 250, w: 128, h: 24 }, // Phase 24 extension: bridges new gap 4720..4920, touches floor-7's end exactly, rise 70px
+      { x: 5520, y: 250, w: 112, h: 24 }, // Phase 24 extension: bridges new gap 5520..5680, touches floor-8's end exactly, rise 70px
     ],
 
     coins: [
@@ -62,7 +68,7 @@ export const LEVEL_04 = {
       { x: 3880, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
 
-    goal: { x: 3920, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 6120, y: FLOOR_Y - CONFIG.GOAL_SIZE }, // Phase 24: moved 3920->6120 for the +2200px extension (LVL-01); 80px buffer before floor-9's end at 6200
 
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
@@ -85,7 +91,7 @@ export const LEVEL_04 = {
 
     mathGates: [
       { x: 320, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1800, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+      { x: 1728, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24: repositioned 1800->1728, off the over-hole gap 1760..1960, inside floor-2's 1240..1760 span (VALID-04)
     ],
 
     enemies: [
