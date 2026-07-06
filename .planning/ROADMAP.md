@@ -86,7 +86,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 
 - [x] **Phase 22: Implementation Review & Auto-Fix** - Review every game entity, fix bugs and obvious UX issues autonomously, escalate bigger design changes for approval (completed 2026-07-05)
 - [x] **Phase 23: Level Validation Harness** - Static level validator calibrated against real engine physics + upgraded interactive audit, proven against the known live bugs before being trusted (completed 2026-07-05)
-- [ ] **Phase 24: Fix & Lengthen Levels 1–4** - Fix the known structural defects and lengthen the four kid-validated levels with scaled checkpoint density, gated by the new validator
+- [x] **Phase 24: Fix & Lengthen Levels 1–4** - Fix the known structural defects and lengthen the four kid-validated levels with scaled checkpoint density, gated by the new validator (completed 2026-07-06)
 - [ ] **Phase 25: Levels 5–8, Difficulty Ramp & Select Grid** - Four new pure-data levels with verticality and secret alcoves, gentle 8-level ramp, 2×4 select grid, tables 1 and ×10 dropped
 - [ ] **Phase 26: Grunge Palette & Nox Run Rebrand** - Centralized then expanded grunge palette with per-level themes, Nox Run logo and full string sweep with the save key untouched
 - [ ] **Phase 27: Audio & ADHD-Safe Sound** - Core SFX set, calm gesture-gated ambient music, persisted M-key mute, designed ADHD-safe mix
@@ -172,7 +172,7 @@ Plans:
   3. Checkpoint density scales with the new lengths, so a respawn never sends her back more than one section
   4. The upgraded interactive audit drives each lengthened level start→goal with mechanic encounters resolved, and level-01's geometry-pinning smoke fixture is consciously re-baselined (not deleted)
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -188,7 +188,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 24-06-PLAN.md — Interactive audit re-run + 24-FINDINGS.md evidence doc (VALID-04, LVL-01)
+- [x] 24-06-PLAN.md — Interactive audit re-run + 24-FINDINGS.md evidence doc (VALID-04, LVL-01)
 
 ### Phase 25: Levels 5–8, Difficulty Ramp & Select Grid
 
@@ -280,7 +280,7 @@ Plans:
 | 21. Real Verification Pass — Mechanics & Sign-off Integrity | v4.1 | 7/7 | ✅ Complete | 2026-07-04 |
 | 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
-| 24. Fix & Lengthen Levels 1–4 | v5.0 | 5/6 | In Progress|  |
+| 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 0/TBD | Not started | - |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |

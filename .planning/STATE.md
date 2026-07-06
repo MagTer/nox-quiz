@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Nox Run — Real Levels
-current_phase: 24
-current_phase_name: Fix & Lengthen Levels 1–4
+current_phase: 25
+current_phase_name: Levels 5–8, Difficulty Ramp & Select Grid
 status: executing
-stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-07-06T02:45:03.701Z"
+stopped_at: Phase 23 complete, ready to plan Phase 24
+last_updated: "2026-07-06T19:18:11.371Z"
 last_activity: 2026-07-06
-last_activity_desc: Phase 24 execution started
+last_activity_desc: Phase 24 complete, transitioned to Phase 25
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 16
-  completed_plans: 15
-  percent: 29
+  completed_plans: 16
+  percent: 43
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 24 (Fix & Lengthen Levels 1–4) — EXECUTING
-Plan: 6 of 6
+Phase: 25 — Levels 5–8, Difficulty Ramp & Select Grid
+Plan: Not started
 Status: Ready to execute
-Last activity: 2026-07-06 — Phase 24 execution started
+Last activity: 2026-07-06 — Phase 24 complete, transitioned to Phase 25
 
 Progress: [███░░░░░░░] 29% (2/7 phases)
 
