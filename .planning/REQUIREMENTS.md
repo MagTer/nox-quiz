@@ -23,11 +23,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Levels & Content
 
 - [x] **LVL-01**: Existing 4 levels lengthened (append past kid-validated sections) with checkpoint density scaled to length
-- [ ] **LVL-02**: 4 new levels (5–8) as pure-data descriptors through the existing registry/builder
-- [ ] **LVL-03**: Gentle difficulty ramp across all 8 levels (platforming + per-level table pools), including a mixed-review level
+- [x] **LVL-02**: 4 new levels (5–8) as pure-data descriptors through the existing registry/builder
+- [x] **LVL-03**: Gentle difficulty ramp across all 8 levels (platforming + per-level table pools), including a mixed-review level
 - [x] **LVL-04**: Level select scales to a 2×4 grid, preserving locked/unlocked/cleared semantics
 - [x] **LVL-05**: Verticality segments in late levels (5–8)
-- [ ] **LVL-06**: One secret XP alcove per level — optional discovery reward, no punishment for missing it
+- [x] **LVL-06**: One secret XP alcove per level — optional discovery reward, no punishment for missing it
 
 ### Math
 
@@ -105,11 +105,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VALID-03 | Phase 28 | Pending (harness-upgrade groundwork begins Phase 23) |
 | VALID-04 | Phase 24 | Complete |
 | LVL-01 | Phase 24 | Complete |
-| LVL-02 | Phase 25 | Pending |
-| LVL-03 | Phase 25 | Pending |
+| LVL-02 | Phase 25 | Complete |
+| LVL-03 | Phase 25 | Complete |
 | LVL-04 | Phase 25 | Complete |
 | LVL-05 | Phase 25 | Complete |
-| LVL-06 | Phase 25 | Pending |
+| LVL-06 | Phase 25 | Complete |
 | MATH-01 | Phase 25 | Pending |
 | MATH-02 | Phase 25 | Pending |
 | VIS-01 | Phase 26 | Pending |
