@@ -220,20 +220,22 @@ export const CONFIG = {
   },
 
   // --- Level-select scene layout (Phase 14 NAV-02; src/scenes/select.js consumes) ---
-  // A single horizontal row of numbered level tiles, three visual states
+  // A 4-column x N-row grid of numbered level tiles, three visual states
   // (locked/unlocked/cleared). No magic numbers in the scene — tile geometry + text
   // sizes read here. Real art is deferred to Phase 18; these are placeholder-but-tunable.
   //
-  // IN-03 OVERFLOW FLAG (whoever appends level 2+): select.js lays tiles in ONE row at
-  // x = START_X + i * (TILE_W + GAP) with NO wrap. On the 640px internal canvas with the
-  // values below (START_X=120, TILE_W=96, GAP=24), roughly the 5th tile's center already
-  // exceeds the right edge — tiles will silently run off-canvas as LEVEL_ORDER grows. Only
-  // one level exists today so nothing overflows yet. Before adding a 5th+ level, add row
-  // wrapping (or paging) in select.js's tiles.forEach layout, or tighten these constants.
+  // IN-03 RESOLVED (Phase 25): the old single-row layout's overflow risk (flagged here
+  // since Phase 14) is fixed — select.js now lays tiles in a 4-column x N-row grid using
+  // ROW_GAP for vertical spacing. Appending levels beyond 8 will need EITHER more rows
+  // (cheap: the `Math.floor(i/4)` row math already generalizes) OR a paging scheme if the
+  // grid outgrows the 640x360 canvas vertically.
   SELECT: {
     TILE_W: 96, // px — tile width
     TILE_H: 96, // px — tile height
     GAP: 24, // px — horizontal spacing between tiles
+    ROW_GAP: 16, // px — vertical gap between row 1 and row 2. Ceiling derivation (25-RESEARCH.md
+    // Pitfall 5): ROW_Y(180) + TILE_H(96) + ROW_GAP + TILE_H/2(48) <= 360 requires ROW_GAP <= 36;
+    // 16 is comfortably inside that.
     ROW_Y: 180, // px — vertical center of the tile row (screen-space, fixed())
     START_X: 120, // px — left edge / center anchor X of the first tile in the row
     LABEL_SIZE: 28, // px — tile number label text size
