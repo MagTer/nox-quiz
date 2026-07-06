@@ -46,12 +46,17 @@ const BARRIER_WIDTH = {
  */
 export function findOverHoleBarriers(geometry) {
   const runs = (geometry.floors ?? []).map((f) => [f.x, f.x + f.w]);
-  const onFloor = (x) => runs.some(([a, b]) => x >= a && x <= b);
+  // CR-01 fix: require BOTH edges to be covered by the SAME single run, not each
+  // edge independently checked against (possibly different) runs. Checking edges
+  // independently let a barrier whose left edge sat on run A and right edge sat on
+  // run B pass, even though the middle of its footprint floats over the gap
+  // between them with no floor beneath it at all.
+  const fullyOnOneFloor = (x0, x1) => runs.some(([a, b]) => x0 >= a && x1 <= b);
   const rows = [];
   for (const kind of ["doors", "mathGates", "enemies"]) {
     for (const e of geometry[kind] ?? []) {
       const w = BARRIER_WIDTH[kind];
-      if (!onFloor(e.x) || !onFloor(e.x + w)) {
+      if (!fullyOnOneFloor(e.x, e.x + w)) {
         rows.push({ kind, x: e.x, w, footprint: [e.x, e.x + w] });
       }
     }
