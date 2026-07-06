@@ -21,9 +21,19 @@
 // on every attempt would multiply runtime ~5x for no benefit, since most encounters are
 // already stably reached on attempt 1. This wrapper skips re-driving (not re-reloading —
 // the level itself is stateful/sequential, so a fresh reload is still required every
-// attempt) any encounter already recorded as triggered:true from an earlier attempt, and
-// exits the attempts loop early the moment every encounter has been triggered at least
-// once, so it never calls reloadLevel for attempts it doesn't need.
+// attempt) any encounter already recorded as FULLY DONE (triggered AND resolved, or
+// triggered for a renderChoices:false zone with no resolution step) from an earlier
+// attempt, and exits the attempts loop early the moment every encounter is done.
+//
+// Phase 24 close-out fix: an encounter that TRIGGERED but whose answer-key resolution
+// failed used to be skipped on every subsequent attempt too (the original condition
+// only checked `previous?.triggered`, not `previous?.resolved`) — silently discarding
+// every later attempt's chance to resolve it, which defeated the OR-across-attempts
+// premise for exactly the timing-sensitive class this wrapper exists for. Confirmed
+// empirically: the same door@1400 encounter resolved successfully in an isolated
+// single-level run but reported resolved:false in a full 4-level run — a real
+// run-to-run timing difference, not a deterministic bug, i.e. precisely what a
+// resolution retry is for.
 
 import { deriveEncounters, driveToXPlanned, resolveIfBoxed } from './mechanic-drive.mjs';
 
@@ -64,11 +74,16 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
       const key = `${encounter.tag}@${encounter.x}`;
       const previous = results.get(key);
 
-      if (previous?.triggered) {
-        // Already proven reachable in an earlier attempt — Pitfall 5's cost guard:
-        // never re-drive an encounter whose outcome is already known-good. The level
-        // reload above still happened this attempt; only the per-encounter re-drive is
-        // skipped.
+      // Pitfall 5's cost guard skips re-driving an encounter whose outcome is already
+      // known-good — but "known-good" means FULLY resolved (or a renderChoices:false
+      // zone, which has no resolution step at all), not merely triggered. An
+      // encounter that triggered but whose answer-key resolution failed is exactly
+      // the class this retry wrapper exists for (22-FINDINGS.md's "timing-sensitive"
+      // encounters) — skipping it here silently discarded every later attempt's
+      // chance to resolve it, so a resolution that failed once could never recover
+      // even though the whole point of OR-across-attempts is that it might succeed
+      // on attempt 2. The level reload above still happened this attempt regardless.
+      if (previous?.triggered && (previous.resolved === true || !encounter.renderChoices)) {
         continue;
       }
 
@@ -79,18 +94,24 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
       // naturally on every approach, not just the level's first.
       const { triggered } = await driveToXPlanned(page, encounter.x, level.geometry);
 
+      // OR-across-attempts for BOTH fields independently: a previously-triggered
+      // encounter stays triggered even if this attempt's own drive somehow doesn't
+      // redetect it, and a previously-unresolved encounter only flips to resolved
+      // once ANY attempt actually resolves it (never regresses true -> false).
+      const everTriggered = triggered || (previous?.triggered ?? false);
       let resolved = previous?.resolved ?? null;
-      if (triggered && encounter.renderChoices) {
+      if (everTriggered && encounter.renderChoices && resolved !== true) {
         ({ resolved } = await resolveIfBoxed(page, true));
+        resolved = resolved || (previous?.resolved ?? false);
       }
 
       results.set(key, {
-        triggered: triggered || (previous?.triggered ?? false),
-        resolved: resolved ?? previous?.resolved ?? null,
+        triggered: everTriggered,
+        resolved,
         attempts: (previous?.attempts ?? 0) + 1,
       });
 
-      if (!triggered) {
+      if (!everTriggered) {
         // Matches driveToXClimbing's existing sequential-approach semantics (preserved
         // from the retired single-pass caller): an untriggered mechanic blocks progress
         // to later encounters within the SAME attempt/pass, since the player never
@@ -99,12 +120,17 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
       }
     }
 
-    const everyEncounterTriggered = encounters.every(
-      (encounter) => results.get(`${encounter.tag}@${encounter.x}`)?.triggered
-    );
-    if (everyEncounterTriggered) {
-      // Early exit — every encounter has been reached at least once; do not spend
-      // remaining attempts (or call reloadLevel again) proving nothing new.
+    // Early-exit requires FULL resolution, not just triggering — an encounter this
+    // wrapper now knows how to keep retrying (the fix above) must actually get those
+    // retries; exiting on triggered-only would reintroduce the exact bug just fixed.
+    const everyEncounterDone = encounters.every((encounter) => {
+      const r = results.get(`${encounter.tag}@${encounter.x}`);
+      return r?.triggered && (r.resolved === true || !encounter.renderChoices);
+    });
+    if (everyEncounterDone) {
+      // Early exit — every encounter is fully resolved (or, for renderChoices:false
+      // zones, triggered — their only outcome); do not spend remaining attempts (or
+      // call reloadLevel again) proving nothing new.
       break;
     }
   }

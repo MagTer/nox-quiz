@@ -384,6 +384,9 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
         // Respawn signature: a large instantaneous backward warp. Reset takeoff
         // consumption so the re-walk re-executes every takeoff on the way back out.
         deaths++;
+        if (process.env.AUDIT_DEBUG) {
+          console.error(`driveToXPlanned: death #${deaths} at maxX=${maxX.toFixed(0)} (respawned to x=${x.toFixed(0)}), approaching targetX=${targetX}`);
+        }
         consumed.clear();
         maxX = x;
         if (deaths >= maxDeaths) {

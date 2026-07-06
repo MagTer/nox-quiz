@@ -187,8 +187,23 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE) {
       x = Math.max(x, from.xStart + 4);
       takeoffs.push({ x, kind: "mount", fromY: from.y });
     } else if (to.xStart > from.xEnd + 4) {
-      // Flat/descending across a real gap: coyote jump just past the lip.
-      takeoffs.push({ x: from.xEnd + GAP_COYOTE_MARK, kind: "gap", fromY: from.y });
+      // Flat/descending across a real gap. A DESCENDING gap (to.y > from.y) may
+      // already be crossable by pure momentum — walking off the ledge with no jump
+      // press at all, landing sooner and more predictably than an active jump would.
+      // Skipping the press here when it isn't needed matters: an unnecessary jump's
+      // longer, higher arc can sail clean over a ground-level trigger (a checkpoint's
+      // 8px-wide marker) sitting just past the landing spot — confirmed empirically
+      // on level-03's platform-1 -> floor-1 drop, where an unconditional jump press
+      // landed AT/PAST the x:740 checkpoint, causing every subsequent death on that
+      // approach to respawn all the way back at x:340 instead of x:740.
+      const dy = to.y - from.y;
+      const spanMin = to.xStart - from.xEnd;
+      const fallT = dy > 0 ? Math.sqrt((2 * dy) / CONFIG.GRAVITY) : 0;
+      const fallReach = AIR_SPEED * fallT;
+      if (fallReach < spanMin) {
+        takeoffs.push({ x: from.xEnd + GAP_COYOTE_MARK, kind: "gap", fromY: from.y });
+      }
+      // else: pure fall momentum already clears the gap — no takeoff needed, walk off.
     }
     // else: descending onto an overlapping/touching lower surface — just walk off.
   }
