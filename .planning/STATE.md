@@ -6,14 +6,14 @@ current_phase: 24
 current_phase_name: Fix & Lengthen Levels 1–4
 status: executing
 stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-07-06T02:37:41.421Z"
+last_updated: "2026-07-06T02:45:03.701Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 24 execution started
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 29
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 24 (Fix & Lengthen Levels 1–4) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-07-06 — Phase 24 execution started
 
@@ -100,6 +100,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 24-02]: bounds.right manually bumped 2800->4280 — level-02 carries an explicit bounds field that src/scenes/game.js uses AS-IS, unlike level-01's dynamically-derived camera clamp
 - [Phase 24]: [Phase 24-03]: level-03's 2 fixed platforms (x:1880, x:2640) used a narrower 60px rise target (not the wider 65-75px band) per 24-RESEARCH.md's narrow-40px-overlap-window physics caveat; new bridging platforms used 65px rise (wider touching windows)
 - [Phase 24]: level-04's over-hole mathGate and all 6 known-unreachable platforms fixed with a uniform 70px rise (wide 80-128px span windows tolerate this uniformly, unlike level-03's narrower 40px-window platforms); level-04 extended 55% (goal 3920->6120, bounds.right 4000->6200) via pure appends after x:4000
+- [Phase ?]: [Phase 24-05]: All 4 scripts/smoke-progress.mjs geometry blocks re-baselined (not just level-01's) with old pre-Phase-24 values retained in comments; full suite green (validate-levels PASS zero HARD-FAILs, smoke PASS, check-progress PASS) and LOCKED surfaces (src/math, lib/kaplay.mjs) diff-proven byte-identical to baseline 5eedee8
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -144,6 +145,7 @@ Carried forward from previous milestone closes:
 | Phase 24 P02 | 10min | 2 tasks | 1 files |
 | Phase 24 P03 | 9min | 2 tasks | 1 files |
 | Phase 24 P04 | 5min | 2 tasks | 1 files |
+| Phase 24 P05 | 10min | 2 tasks | 1 files |
 
 ## Quick Tasks Completed
 
@@ -153,7 +155,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-06T02:37:05.946Z
+Last session: 2026-07-06T02:44:56.855Z
 Stopped at: Phase 23 complete, ready to plan Phase 24
 Resume file: None
 

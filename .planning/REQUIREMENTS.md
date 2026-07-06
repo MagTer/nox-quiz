@@ -18,11 +18,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **VALID-01**: Static level validator (`scripts/validate-levels.mjs`) checks spawn→goal reachability, gap widths vs jump envelope, door-over-hole, and mechanic reachability on every level; exits non-zero on failure
 - [x] **VALID-02**: Validator is calibrated against real engine physics (empirically measured jump envelope) and proven by catching the two known live bugs (door-over-hole, unreachable areas) before being trusted
 - [ ] **VALID-03**: Interactive audit drives start→goal with mechanic encounters on all 8 levels (harness upgraded to shrink the current 6/16 encounter blind spot)
-- [ ] **VALID-04**: All known structural defects in existing levels fixed (doors over floor holes, unreachable areas)
+- [x] **VALID-04**: All known structural defects in existing levels fixed (doors over floor holes, unreachable areas)
 
 ### Levels & Content
 
-- [ ] **LVL-01**: Existing 4 levels lengthened (append past kid-validated sections) with checkpoint density scaled to length
+- [x] **LVL-01**: Existing 4 levels lengthened (append past kid-validated sections) with checkpoint density scaled to length
 - [ ] **LVL-02**: 4 new levels (5–8) as pure-data descriptors through the existing registry/builder
 - [ ] **LVL-03**: Gentle difficulty ramp across all 8 levels (platforming + per-level table pools), including a mixed-review level
 - [ ] **LVL-04**: Level select scales to a 2×4 grid, preserving locked/unlocked/cleared semantics
@@ -103,8 +103,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VALID-01 | Phase 23 | Complete |
 | VALID-02 | Phase 23 | Complete |
 | VALID-03 | Phase 28 | Pending (harness-upgrade groundwork begins Phase 23) |
-| VALID-04 | Phase 24 | Pending |
-| LVL-01 | Phase 24 | Pending |
+| VALID-04 | Phase 24 | Complete |
+| LVL-01 | Phase 24 | Complete |
 | LVL-02 | Phase 25 | Pending |
 | LVL-03 | Phase 25 | Pending |
 | LVL-04 | Phase 25 | Pending |
