@@ -168,8 +168,18 @@ try {
 
     try {
       // Move the select cursor to the i-th tile (first tile already focused after a
-      // fresh title -> select entry).
-      for (let j = 0; j < i; j++) {
+      // fresh title -> select entry). The select screen is a fixed 4-column grid:
+      // compute a row/col position and press ArrowDown row times then ArrowRight col
+      // times, instead of assuming a single flat row of tiles (25-RESEARCH.md Pitfall
+      // 1) -- for i in 0..3 (levels 1-4), row is always 0, so this is byte-identical to
+      // the old ArrowRight-times-i loop.
+      const row = Math.floor(i / 4);
+      const col = i % 4;
+      for (let j = 0; j < row; j++) {
+        await page.keyboard.press("ArrowDown");
+        await page.waitForTimeout(150);
+      }
+      for (let j = 0; j < col; j++) {
         await page.keyboard.press("ArrowRight");
         await page.waitForTimeout(150);
       }
@@ -190,7 +200,15 @@ try {
       async function reloadLevel() {
         await page.keyboard.press("Escape");
         await page.waitForTimeout(800);
-        for (let j = 0; j < i; j++) {
+        // Same row/col fix as the outer loop above, applied independently per the
+        // project's "fix duplicated Playwright code by hand in each copy" convention.
+        const reloadRow = Math.floor(i / 4);
+        const reloadCol = i % 4;
+        for (let j = 0; j < reloadRow; j++) {
+          await page.keyboard.press("ArrowDown");
+          await page.waitForTimeout(150);
+        }
+        for (let j = 0; j < reloadCol; j++) {
           await page.keyboard.press("ArrowRight");
           await page.waitForTimeout(150);
         }
