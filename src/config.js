@@ -147,6 +147,7 @@ export const CONFIG = {
   PROGRESS: {
     XP_EASY: 10, // XP for a correct answer on tables 1–5
     XP_HARD: 20, // XP for a correct answer on tables 6–9
+    XP_ALCOVE: 5, // flat XP for touching a level's hidden secret alcove (LVL-06) — deliberately below XP_EASY so it reads as a bonus, not a shortcut
     BASE_XP: 200, // XP required for Level 1 → Level 2
     LEVEL_MULT: 1.3, // per-level threshold multiplier (threshold = round(BASE_XP * MULT^(L-1)))
     HARD_TABLES: [6, 7, 8, 9], // hard tables (award XP_HARD)

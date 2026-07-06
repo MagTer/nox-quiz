@@ -151,6 +151,24 @@ export function createProgress(saved) {
       return leveledUp;
     },
 
+    // Award a FLAT, non-table-scaled XP amount (LVL-06's secret-alcove bonus). This
+    // exists because calculateXp(table) can only ever yield XP_EASY/XP_HARD (10/20) —
+    // there is no `table` value that produces an arbitrary flat amount like the
+    // alcove's 5, so a genuine sibling method is required rather than a call-site
+    // reuse or a fabricated table hack. Reuses the IDENTICAL carry-over while-loop
+    // body as addXp (xp -= threshold, level += 1, never reset to 0) — seeded from a
+    // raw `amount` instead of a table lookup.
+    addBonusXp(amount) {
+      xp += amount;
+      let leveledUp = false;
+      while (xp >= threshold(level)) {
+        xp -= threshold(level); // carry surplus over, never reset to 0
+        level += 1;
+        leveledUp = true;
+      }
+      return leveledUp;
+    },
+
     // Build the persistable blob (archive toJSON 713-716 shape + version). Persists ONLY
     // xp/level/accuracy/history — NEVER run/session state (no coins/goalReached). The
     // brain's accuracy/history come from brain.snapshot(); a missing snapshot defaults
