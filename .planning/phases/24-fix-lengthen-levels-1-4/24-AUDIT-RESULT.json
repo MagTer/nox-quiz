@@ -1,0 +1,244 @@
+playwright not resolvable as a project dependency; falling back to /home/magnus/.nvm/versions/node/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs. Set PLAYWRIGHT_MJS_PATH to override on other machines.
+driveToXPlanned: 8 deaths while approaching targetX=1540 (reachedX=1120) — genuine "cannot survive the route" finding.
+driveToXPlanned: 8 deaths while approaching targetX=2400 (reachedX=347.5600000000003) — genuine "cannot survive the route" finding.
+driveToXPlanned: 8 deaths while approaching targetX=4360 (reachedX=110.47200000000062) — genuine "cannot survive the route" finding.
+driveToXPlanned: no forward progress for 15000ms while approaching targetX=2400 (maxX=1465.9519999999989, x=1405.8079999999998) — genuine "cannot progress" finding.
+[
+  {
+    "level": "level-01",
+    "tag": "math-gate",
+    "x": 150,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-01",
+    "tag": "answer-zone",
+    "x": 300,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": null,
+    "attempts": 1
+  },
+  {
+    "level": "level-01",
+    "tag": "enemy",
+    "x": 1000,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-01",
+    "tag": "math-gate",
+    "x": 1360,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 2
+  },
+  {
+    "level": "level-01",
+    "tag": "door",
+    "x": 1400,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": false,
+    "attempts": 1
+  },
+  {
+    "level": "level-01",
+    "tag": "math-gate",
+    "x": 3120,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-02",
+    "tag": "math-gate",
+    "x": 420,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-02",
+    "tag": "math-gate",
+    "x": 1100,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-02",
+    "tag": "door",
+    "x": 1540,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 2
+  },
+  {
+    "level": "level-02",
+    "tag": "math-gate",
+    "x": 3760,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-03",
+    "tag": "answer-zone",
+    "x": 200,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": null,
+    "attempts": 1
+  },
+  {
+    "level": "level-03",
+    "tag": "math-gate",
+    "x": 420,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-03",
+    "tag": "enemy",
+    "x": 2400,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": false,
+    "attempts": 2
+  },
+  {
+    "level": "level-03",
+    "tag": "enemy",
+    "x": 3800,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-03",
+    "tag": "math-gate",
+    "x": 4360,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": false,
+    "attempts": 2
+  },
+  {
+    "level": "level-04",
+    "tag": "answer-zone",
+    "x": 160,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": null,
+    "attempts": 1
+  },
+  {
+    "level": "level-04",
+    "tag": "math-gate",
+    "x": 320,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-04",
+    "tag": "door",
+    "x": 900,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-04",
+    "tag": "math-gate",
+    "x": 1300,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-04",
+    "tag": "enemy",
+    "x": 2400,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": false,
+    "attempts": 2
+  },
+  {
+    "level": "level-04",
+    "tag": "door",
+    "x": 5000,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  },
+  {
+    "level": "level-04",
+    "tag": "math-gate",
+    "x": 5760,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": true,
+    "attempts": 1
+  }
+]
+AUDIT: FAILURES DETECTED
+[
+  {
+    "level": "level-01",
+    "tag": "door",
+    "x": 1400,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": false,
+    "attempts": 1
+  },
+  {
+    "level": "level-03",
+    "tag": "enemy",
+    "x": 2400,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": false,
+    "attempts": 2
+  },
+  {
+    "level": "level-03",
+    "tag": "math-gate",
+    "x": 4360,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": false,
+    "attempts": 2
+  },
+  {
+    "level": "level-04",
+    "tag": "enemy",
+    "x": 2400,
+    "reachedX": null,
+    "triggered": true,
+    "resolved": false,
+    "attempts": 2
+  }
+]
