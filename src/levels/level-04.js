@@ -56,6 +56,13 @@ export const LEVEL_04 = {
       { x: 2600, y: 264 },
       { x: 3000, y: 264 },
       { x: 3560, y: 264 },
+      { x: 4040, y: 264 }, // Phase 24 extension
+      { x: 4260, y: 184 }, // Phase 24 extension
+      { x: 4460, y: 136 }, // Phase 24 extension
+      { x: 4760, y: 264 }, // Phase 24 extension
+      { x: 5060, y: 176 }, // Phase 24 extension
+      { x: 5300, y: 264 }, // Phase 24 extension
+      { x: 5900, y: 264 }, // Phase 24 extension
     ],
 
     spikes: [
@@ -66,6 +73,8 @@ export const LEVEL_04 = {
       { x: 2320, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 2480, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
       { x: 3880, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 4300, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // Phase 24 extension, on floor-7 (4160..4720 span)
+      { x: 5200, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // Phase 24 extension, on floor-8 (4920..5520 span)
     ],
 
     goal: { x: 6120, y: FLOOR_Y - CONFIG.GOAL_SIZE }, // Phase 24: moved 3920->6120 for the +2200px extension (LVL-01); 80px buffer before floor-9's end at 6200
@@ -83,15 +92,21 @@ export const LEVEL_04 = {
       { x: 2360, y: FLOOR_Y - 48 },
       { x: 2440, y: FLOOR_Y - 48 },
       { x: 3800, y: FLOOR_Y - 48 },
+      { x: 4220, y: FLOOR_Y - 48 }, // Phase 24 extension, before the new spike (x=4300) — 80px lead
+      { x: 4920, y: FLOOR_Y - 48 }, // Phase 24 extension, before the new door (x=5000), at floor-8's start — 80px lead
+      { x: 5120, y: FLOOR_Y - 48 }, // Phase 24 extension, before the new spike (x=5200) — 80px lead
+      { x: 5680, y: FLOOR_Y - 48 }, // Phase 24 extension, before the new mathGate (x=5760), at floor-9's start — 80px lead
     ],
 
     doors: [
       { x: 900, y: FLOOR_Y - CONFIG.DOOR.H },
+      { x: 5000, y: FLOOR_Y - CONFIG.DOOR.H }, // Phase 24 extension, on floor-8 (4920..5520 span)
     ],
 
     mathGates: [
       { x: 320, y: FLOOR_Y - CONFIG.MATH_GATE.H },
       { x: 1728, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24: repositioned 1800->1728, off the over-hole gap 1760..1960, inside floor-2's 1240..1760 span (VALID-04)
+      { x: 5760, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24 extension, on floor-9 (5680..6200 span)
     ],
 
     enemies: [
