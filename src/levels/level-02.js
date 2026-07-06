@@ -94,6 +94,13 @@ export const LEVEL_02 = {
     enemies: [],
     collectZones: [],
     answerPickupSlots: [],
+
+    // Phase 25 retrofit (LVL-06) — purely additive, does not touch any existing
+    // floor/platform/checkpoint geometry. A short extra hop UP from the early
+    // platform (x:280, y:240, w:160) — not signposted, not gating.
+    secretAlcove: [
+      { x: 320, y: 170 },
+    ],
   },
 
   mechanics: [],

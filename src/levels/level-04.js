@@ -123,6 +123,13 @@ export const LEVEL_04 = {
       { x: 130, y: FLOOR_Y - 40 },
       { x: 190, y: FLOOR_Y - 40 },
     ],
+
+    // Phase 25 retrofit (LVL-06) — purely additive, does not touch any existing
+    // floor/platform/checkpoint geometry. A short extra hop UP from the opening
+    // platform (x:240, y:232, w:112) — not signposted, not gating.
+    secretAlcove: [
+      { x: 270, y: 162 },
+    ],
   },
 
   mechanics: [],
