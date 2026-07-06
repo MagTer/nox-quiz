@@ -118,12 +118,33 @@ const server = createServer(async (req, res) => {
 await new Promise((res) => server.listen(PORT, "127.0.0.1", res));
 
 const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
-const page = await context.newPage();
 
 const results = [];
 
-try {
+// Phase 24 (24-06): per-level context recycling — a fresh browser context/page for
+// each of the 4 levels, while the single `browser` process stays alive across levels.
+// Session-state hygiene only: bounds each level's browser-session lifetime instead of
+// letting one context accumulate state across the whole (Phase-24-lengthened) run.
+//
+// HISTORY / CORRECTED DIAGNOSIS: this recycling was first added chasing an uncaught
+// `browserContext.close: Target page, context or browser has been closed` exception,
+// then attributed to headless-Chromium/WebGL degradation. That attribution was WRONG.
+// The real cause chain (see scripts/lib/route-planner.mjs's header): the old blind
+// bunny-hopping driver got deterministically stuck on marginal jumps, the retry
+// wrapper multiplied the wasted wall-clock past the caller's `timeout` budget, and
+// timeout's SIGTERM fired Playwright's own graceful-shutdown handler (which closes
+// the browser), making whatever Playwright call was in flight reject with the
+// misleading "has been closed" error. Fixing the driver (geometry-informed planned
+// takeoffs) removed the stall; the recycling is kept as cheap hygiene.
+// Scope: isolated to this caller script's own session-management code — does not
+// change `scripts/lib/mechanic-drive.mjs`, `scripts/lib/audit-retry.mjs`, or
+// `scripts/browser-boot.mjs` (auditLevelWithRetries only ever touches `page`, never
+// `context`, so this is a pure session-lifecycle change with zero effect on
+// triggered/resolved semantics).
+async function newLevelPage() {
+  const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
+  const page = await context.newPage();
+
   await page.goto(`http://localhost:${PORT}/src/index.html`, { waitUntil: "networkidle" });
   await page.waitForTimeout(1500); // let Kaplay init and title scene paint
 
@@ -138,61 +159,74 @@ try {
   await page.keyboard.press("Space");
   await page.waitForTimeout(800);
 
+  return { context, page };
+}
+
+try {
   for (let i = 0; i < LEVEL_ORDER.length; i++) {
-    // Move the select cursor to the i-th tile (first tile already focused).
-    for (let j = 0; j < i; j++) {
-      await page.keyboard.press("ArrowRight");
-      await page.waitForTimeout(150);
-    }
+    const { context, page } = await newLevelPage();
 
-    await page.keyboard.press("Enter");
-    await page.waitForTimeout(1500); // let the game scene build the level
-
-    const level = getLevel(LEVEL_ORDER[i]);
-
-    // Phase 23: reloadLevel is the retry wrapper's own navigation callback — it
-    // performs exactly the same re-entry the loop above already does for the FIRST
-    // entry into this level (Escape back to select, reposition the cursor on tile i,
-    // Enter, settle), so each retry attempt starts from a genuinely fresh level
-    // instance rather than the player's end-of-attempt state.
-    async function reloadLevel() {
-      await page.keyboard.press("Escape");
-      await page.waitForTimeout(800);
+    try {
+      // Move the select cursor to the i-th tile (first tile already focused after a
+      // fresh title -> select entry).
       for (let j = 0; j < i; j++) {
         await page.keyboard.press("ArrowRight");
         await page.waitForTimeout(150);
       }
+
       await page.keyboard.press("Enter");
-      await page.waitForTimeout(1500);
-    }
+      await page.waitForTimeout(1500); // let the game scene build the level
 
-    const levelResults = await auditLevelWithRetries(page, level, {
-      maxAttempts: 5,
-      reloadLevel,
-    });
+      const level = getLevel(LEVEL_ORDER[i]);
 
-    // Convert the wrapper's `${tag}@${x}` -> {triggered, resolved, attempts} Map into
-    // the same flat results array shape this script already builds and prints.
-    // `reachedX` is not tracked by the wrapper (only triggered/resolved feed the
-    // pass/fail logic below), so it is recorded as null. `attempts` is carried through
-    // as an extra field (beyond the pass/fail-relevant triggered/resolved/tag) so the
-    // 23-FINDINGS.md retry-harness table can cite this run's own printed JSON directly.
-    for (const [key, outcome] of levelResults) {
-      const atIdx = key.lastIndexOf("@");
-      results.push({
-        level: level.id,
-        tag: key.slice(0, atIdx),
-        x: Number(key.slice(atIdx + 1)),
-        reachedX: null,
-        triggered: outcome.triggered,
-        resolved: outcome.resolved,
-        attempts: outcome.attempts,
+      // Phase 23: reloadLevel is the retry wrapper's own navigation callback — it
+      // performs exactly the same re-entry the block above already does for the FIRST
+      // entry into this level (Escape back to select, reposition the cursor on tile i,
+      // Enter, settle), so each retry attempt starts from a genuinely fresh level
+      // instance rather than the player's end-of-attempt state. Unchanged by the
+      // Phase 24 context-recycling fix — reloadLevel still operates within the SAME
+      // per-level page across that level's own retry attempts; only the OUTER loop
+      // (across levels) now gets a fresh context/page.
+      async function reloadLevel() {
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(800);
+        for (let j = 0; j < i; j++) {
+          await page.keyboard.press("ArrowRight");
+          await page.waitForTimeout(150);
+        }
+        await page.keyboard.press("Enter");
+        await page.waitForTimeout(1500);
+      }
+
+      const levelResults = await auditLevelWithRetries(page, level, {
+        maxAttempts: 5,
+        reloadLevel,
       });
-    }
 
-    // Back to select for the next level.
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(800);
+      // Convert the wrapper's `${tag}@${x}` -> {triggered, resolved, attempts} Map into
+      // the same flat results array shape this script already builds and prints.
+      // `reachedX` is not tracked by the wrapper (only triggered/resolved feed the
+      // pass/fail logic below), so it is recorded as null. `attempts` is carried through
+      // as an extra field (beyond the pass/fail-relevant triggered/resolved/tag) so the
+      // 23-FINDINGS.md retry-harness table can cite this run's own printed JSON directly.
+      for (const [key, outcome] of levelResults) {
+        const atIdx = key.lastIndexOf("@");
+        results.push({
+          level: level.id,
+          tag: key.slice(0, atIdx),
+          x: Number(key.slice(atIdx + 1)),
+          reachedX: null,
+          triggered: outcome.triggered,
+          resolved: outcome.resolved,
+          attempts: outcome.attempts,
+        });
+      }
+    } finally {
+      // Recycle this level's context before moving to the next level (or exiting the
+      // loop) — this is the load-bearing part of the fix, bounding each level's
+      // browser-session lifetime instead of letting it grow unbounded across all 4.
+      await context.close();
+    }
   }
 
   console.log(JSON.stringify(results, null, 2));
@@ -216,7 +250,8 @@ try {
     console.log(JSON.stringify(failing, null, 2));
   }
 } finally {
-  await context.close();
+  // Per-level `context` instances are already closed by the inner try/finally above;
+  // only the single long-lived `browser` process and the static file server remain.
   await browser.close();
   server.close();
 }

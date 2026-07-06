@@ -25,7 +25,7 @@
 // exits the attempts loop early the moment every encounter has been triggered at least
 // once, so it never calls reloadLevel for attempts it doesn't need.
 
-import { deriveEncounters, driveToXClimbing, resolveIfBoxed } from './mechanic-drive.mjs';
+import { deriveEncounters, driveToXPlanned, resolveIfBoxed } from './mechanic-drive.mjs';
 
 /**
  * Drive every mechanic encounter in `level.geometry` through up to `maxAttempts`
@@ -54,9 +54,6 @@ import { deriveEncounters, driveToXClimbing, resolveIfBoxed } from './mechanic-d
 export async function auditLevelWithRetries(page, level, { maxAttempts = 5, reloadLevel } = {}) {
   const results = new Map(); // `${tag}@${x}` -> { triggered, resolved, attempts }
   const encounters = deriveEncounters(level.geometry);
-  const firstFloorEnd = level.geometry.floors?.[0]
-    ? level.geometry.floors[0].x + level.geometry.floors[0].w
-    : 0;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (attempt > 1) {
@@ -75,8 +72,12 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
         continue;
       }
 
-      const driveOpts = encounter.x < firstFloorEnd ? { warmupUntilFirstGap: true } : {};
-      const { triggered } = await driveToXClimbing(page, encounter.x, driveOpts);
+      // Phase 24 close-out: driveToXPlanned (geometry-informed walk + planned
+      // takeoffs) replaced driveToXClimbing (blind jump-whenever-grounded). Walking
+      // is now the default everywhere, so the first-encounter warmupUntilFirstGap
+      // special case is retired as a class — ground-level trigger zones register
+      // naturally on every approach, not just the level's first.
+      const { triggered } = await driveToXPlanned(page, encounter.x, level.geometry);
 
       let resolved = previous?.resolved ?? null;
       if (triggered && encounter.renderChoices) {

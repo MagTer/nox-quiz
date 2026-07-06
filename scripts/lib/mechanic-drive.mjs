@@ -1,5 +1,6 @@
 // scripts/lib/mechanic-drive.mjs — shared, platform-aware traversal module for the
-// Phase 21 interactive mechanic audit (Plan 21-05).
+// Phase 21 interactive mechanic audit (Plan 21-05; driveToXPlanned added in the
+// Phase 24 close-out fix).
 //
 // This module owns NO Playwright launch/server code of its own — it only operates on
 // a `page` object handed in by a caller script (scripts/audit-phase21-mechanics.mjs
@@ -17,6 +18,11 @@
 // JUMP_FORCE/GRAVITY ~= 0.371s; max single-jump rise JUMP_FORCE^2/(2*GRAVITY) ~= 96.6px;
 // max single-jump horizontal travel at RUN_SPEED ~= 178px. Every authored compound gap
 // in this game is crossable as a CHAIN of individual hops each within this envelope.
+// (Phase 24 measured correction: EFFECTIVE airborne horizontal speed is ~210 px/s,
+// so real full-jump travel is ~156px — see route-planner.mjs.)
+
+import { planTakeoffs } from "./route-planner.mjs";
+import { CONFIG } from "../../src/config.js";
 
 /**
  * Merge every mechanic type present in geometry into one ascending-x-sorted list,
@@ -78,7 +84,14 @@ export async function resolveIfBoxed(page, renderChoices) {
     }
   }
 
-  return { resolved: false };
+  // Settle re-check (Phase 24 close-out): a correct final-key press can close the
+  // challenge a beat AFTER that key's own 200ms post-press check (close animation /
+  // next-frame teardown), producing a false "resolved:false" for a challenge that
+  // did in fact resolve — observed empirically as door@1400 reporting resolved:false
+  // while the drive demonstrably continued PAST the door to later encounters.
+  await page.waitForTimeout(600);
+  const settled = await page.evaluate(() => get("challenge").length);
+  return { resolved: settled < initial };
 }
 
 /**
@@ -237,6 +250,211 @@ export async function driveToXClimbing(page, targetX, opts = {}) {
           `targetX=${targetX} or triggering a challenge (reachedX=${x}) — genuine ` +
           '"mechanic unreachable" finding, not a script bug.'
       );
+    }
+  } finally {
+    await page.keyboard.up("ArrowRight");
+  }
+
+  return { reachedX: x, triggered };
+}
+
+// DEPRECATION NOTE (Phase 24 close-out): driveToXClimbing above is retained for
+// reference but is no longer the audit's driver. Its "press Space on every grounded
+// tick" model had three systemic, empirically-confirmed failure modes against the
+// Phase-24-lengthened levels — it bunny-hops OVER ground-level checkpoint markers
+// (so a later fall-death respawns at the level START, an infinite loop), its fixed
+// cadence makes marginal jumps fail DETERMINISTICALLY (defeating audit-retry.mjs's
+// OR-across-attempts premise), and its unbounded per-encounter iteration budget
+// pushed audit wall-clock past any sane `timeout` (whose SIGTERM then surfaced as a
+// misleading Playwright "browser has been closed" rejection, previously misread as
+// hardware/browser instability). See route-planner.mjs's header for the full write-up.
+
+/**
+ * Geometry-informed replacement for driveToXClimbing (Phase 24 close-out): WALK by
+ * default — so ground-level triggers (checkpoints, collect zones, gates, doors,
+ * enemies) all register naturally — and jump ONLY at takeoff points planned by
+ * route-planner.mjs from the same level.geometry the structural validator models.
+ *
+ * Takeoff matching is positional and stateless-per-window: each takeoff fires once
+ * per approach (a `consumed` set), and a detected death (a large backward x warp —
+ * the respawn signature) clears the set so the re-walk re-executes every takeoff it
+ * passes. Gap-kind takeoffs fire even when not grounded: walking a few px off the
+ * lip before the press lands is COVERED by the engine's own coyote time
+ * (CONFIG.COYOTE_MS) and actually maximizes the arc's range — the measured full-jump
+ * range (~156px + 16px player width) clears this game's 160px gaps only from the
+ * lip itself.
+ *
+ * If the target x is reached without the challenge count rising (e.g. an arc carried
+ * the player past a 32px-wide trigger), a short ArrowLeft back-walk re-approaches the
+ * trigger from the far side before giving up — collision triggers fire on contact
+ * from either direction.
+ *
+ * Returns { reachedX, triggered } — same shape as driveToXClimbing.
+ */
+export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
+  const {
+    pollMs = 55, // steady-walk poll
+    nearPollMs = 20, // tightened poll when a takeoff is within lookahead
+    lookaheadPx = 150,
+    jumpHoldMs = 450, // held past ~371ms time-to-apex so JUMP_CUT never truncates
+    maxMs = 90_000, // hard wall-clock budget per encounter approach
+    stallMs = 15_000, // no NEW forward progress for this long => stalled
+    maxDeaths = 8,
+  } = opts;
+
+  // Per-kind fire windows (px past the takeoff mark). Mounts are tightest: a late
+  // fire crosses the platform's leading edge too low and bonks its side — the arc
+  // math (route-planner.mjs's offsets) tolerates ~16px of lateness for high rises.
+  // Gap marks sit 2px past the lip and the whole window must stay inside the
+  // engine's coyote grace (~21px at run speed), so the fire always lands the
+  // forward-shifted arc (see route-planner.mjs's corner-clip note). Spike hops just
+  // need the spike mid-arc — plenty of slack.
+  const FIRE_WINDOW = { mount: 16, gap: 18, spike: 26 };
+
+  // Feet-height tolerance for matching a takeoff's launch surface (player is 16x32,
+  // pos.y is the top-left corner, so feet = pos.y + 32).
+  const FROM_Y_TOL = 30;
+
+  const { takeoffs } = planTakeoffs(geometry, targetX);
+  const baseline = await page.evaluate(() => get("challenge").length);
+
+  await page.keyboard.down("ArrowRight");
+
+  let x = null;
+  let triggered = false;
+  const consumed = new Set();
+  let maxX = -Infinity;
+  let deaths = 0;
+  let lastProgressAt = Date.now();
+  const deadline = Date.now() + maxMs;
+
+  try {
+    while (Date.now() < deadline) {
+      const s = await page.evaluate(() => {
+        const p = get("player")[0];
+        return p
+          ? { x: p.pos.x, y: p.pos.y, grounded: p.isGrounded(), ch: get("challenge").length }
+          : null;
+      });
+      if (!s) break;
+      x = s.x;
+      triggered = s.ch > baseline;
+      if (triggered) break;
+
+      if (x >= targetX + 8) {
+        // WELL past the target x (inside/beyond the trigger's own footprint — every
+        // trigger kind is >= 32px wide) without the challenge count rising: the last
+        // arc may have sailed clean over the trigger. Back-walk briefly to
+        // re-contact it from the far side — but NEVER below the target's own
+        // surface's left edge (the previous crossing's gap is right there; walking
+        // back into it is a guaranteed death — observed empirically). Note the
+        // earlier `x >= targetX - 16` break of the old driver stopped at exact
+        // first-contact WITHOUT overlap (a 0px touch does not collide), reporting
+        // false "unreached"; +8 guarantees real overlap before giving up.
+        await page.keyboard.up("ArrowRight");
+        await page.keyboard.down("ArrowLeft");
+        const surfaces = [
+          ...(geometry.floors ?? []).map((f) => ({ x0: f.x, x1: f.x + f.w })),
+          ...(geometry.platforms ?? []).map((p) => ({ x0: p.x, x1: p.x + p.w })),
+        ];
+        const targetSurface = surfaces.find((sf) => targetX >= sf.x0 && targetX <= sf.x1);
+        const backLimit = Math.max(targetX - 40, (targetSurface?.x0 ?? targetX - 40) + 8);
+        for (let j = 0; j < 14; j++) {
+          await page.waitForTimeout(110);
+          const st = await page.evaluate(() => {
+            const p = get("player")[0];
+            return p ? { x: p.pos.x, ch: get("challenge").length } : null;
+          });
+          if (!st) break;
+          if (st.ch > baseline) {
+            triggered = true;
+            break;
+          }
+          if (st.x <= backLimit) break;
+        }
+        await page.keyboard.up("ArrowLeft");
+        await page.keyboard.down("ArrowRight"); // finally-block symmetry
+        break;
+      }
+
+      if (x > maxX + 1) {
+        maxX = x;
+        lastProgressAt = Date.now();
+      } else if (maxX - x > 250) {
+        // Respawn signature: a large instantaneous backward warp. Reset takeoff
+        // consumption so the re-walk re-executes every takeoff on the way back out.
+        deaths++;
+        consumed.clear();
+        maxX = x;
+        if (deaths >= maxDeaths) {
+          console.error(
+            `driveToXPlanned: ${deaths} deaths while approaching targetX=${targetX} ` +
+              `(reachedX=${x}) — genuine "cannot survive the route" finding.`
+          );
+          break;
+        }
+        // A respawn checkpoint can sit PAST the takeoff the player just missed
+        // (e.g. it missed a platform mount, walked forward on the floor, touched a
+        // checkpoint, then died in the next gap) — walking right from the respawn
+        // would skip the route's only way up, deterministically dying forever.
+        // Retreat to just before the nearest takeoff behind the respawn point,
+        // clamped to the current surface's left edge so the retreat itself never
+        // walks off into a gap.
+        const behind = [...takeoffs].reverse().find((t) => t.x < x - 10);
+        if (behind) {
+          const feetY = s.y + 32;
+          const surfaces = [
+            ...(geometry.floors ?? []).map((f) => ({ x0: f.x, x1: f.x + f.w, y: CONFIG.FLOOR_Y })),
+            ...(geometry.platforms ?? []).map((p) => ({ x0: p.x, x1: p.x + p.w, y: p.y })),
+          ];
+          const surface = surfaces
+            .filter((sf) => x >= sf.x0 && x <= sf.x1)
+            .sort((a, b) => Math.abs(a.y - feetY) - Math.abs(b.y - feetY))[0];
+          const retreatTo = Math.max(behind.x - 24, (surface?.x0 ?? x) + 8);
+          if (retreatTo < x - 10) {
+            await page.keyboard.up("ArrowRight");
+            await page.keyboard.down("ArrowLeft");
+            const retreatDeadline = Date.now() + 4000;
+            while (Date.now() < retreatDeadline) {
+              const rx = await page.evaluate(() => get("player")[0]?.pos.x ?? null);
+              if (rx === null || rx <= retreatTo) break;
+              await page.waitForTimeout(40);
+            }
+            await page.keyboard.up("ArrowLeft");
+            await page.keyboard.down("ArrowRight");
+            maxX = -Infinity; // deliberate backward move — re-arm the death detector
+            lastProgressAt = Date.now();
+            continue;
+          }
+        }
+      }
+
+      if (Date.now() - lastProgressAt > stallMs) {
+        console.error(
+          `driveToXPlanned: no forward progress for ${stallMs}ms while approaching ` +
+            `targetX=${targetX} (maxX=${maxX}, x=${x}) — genuine "cannot progress" finding.`
+        );
+        break;
+      }
+
+      let fired = false;
+      for (let i = 0; i < takeoffs.length; i++) {
+        const t = takeoffs[i];
+        if (consumed.has(i)) continue;
+        if (x < t.x || x > t.x + FIRE_WINDOW[t.kind]) continue;
+        if (Math.abs(s.y + 32 - t.fromY) > FROM_Y_TOL) continue; // wrong surface — skip
+        if (!s.grounded && t.kind !== "gap") continue; // gap fires airborne too (coyote)
+        consumed.add(i);
+        await page.keyboard.press("Space", { delay: jumpHoldMs });
+        fired = true;
+        break;
+      }
+      if (fired) continue;
+
+      const nearTakeoff = takeoffs.some(
+        (t, i) => !consumed.has(i) && t.x - x > -30 && t.x - x < lookaheadPx
+      );
+      await page.waitForTimeout(nearTakeoff ? nearPollMs : pollMs);
     }
   } finally {
     await page.keyboard.up("ArrowRight");
