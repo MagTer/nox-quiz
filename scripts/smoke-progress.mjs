@@ -370,6 +370,9 @@ const deepEqual = (a, b) => {
       { x: 270, y: FLOOR_Y - 40 },
       { x: 330, y: FLOOR_Y - 40 },
     ],
+    secretAlcove: [
+      { x: 400, y: 170 },
+    ],
   };
 
   const actual = getLevel("level-01").geometry;
@@ -463,6 +466,9 @@ const deepEqual = (a, b) => {
     enemies: [],
     collectZones: [],
     answerPickupSlots: [],
+    secretAlcove: [
+      { x: 320, y: 170 },
+    ],
   };
 
   const actual = getLevel("level-02").geometry;
@@ -576,6 +582,9 @@ const deepEqual = (a, b) => {
       { x: 230, y: FLOOR_Y - 100 },
       { x: 170, y: FLOOR_Y - 40 },
       { x: 230, y: FLOOR_Y - 40 },
+    ],
+    secretAlcove: [
+      { x: 310, y: 170 },
     ],
   };
 
@@ -711,6 +720,9 @@ const deepEqual = (a, b) => {
       { x: 130, y: FLOOR_Y - 40 },
       { x: 190, y: FLOOR_Y - 40 },
     ],
+    secretAlcove: [
+      { x: 270, y: 162 },
+    ],
   };
 
   const actual = getLevel("level-04").geometry;
@@ -720,8 +732,8 @@ const deepEqual = (a, b) => {
 
 // --- LVL-01/04: full registry length and derived unlock of the second level ---
 {
-  check(LEVEL_ORDER.length === 4,
-    `LVL-01/04: LEVEL_ORDER should have 4 levels, got ${LEVEL_ORDER.length}`);
+  check(LEVEL_ORDER.length === 8,
+    `LVL-01/04: LEVEL_ORDER should have 8 levels, got ${LEVEL_ORDER.length}`);
   check(LEVEL_ORDER[1] === "level-02",
     `LVL-04: LEVEL_ORDER[1] should be "level-02", got ${LEVEL_ORDER[1]}`);
 }
