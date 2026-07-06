@@ -29,8 +29,19 @@ export const LEVEL_03 = {
     platforms: [
       { x: 280, y: 240, w: 128, h: 24 },
       { x: 480, y: 184, w: 96, h: 24 },
-      { x: 1160, y: 224, w: 112, h: 24 },
-      { x: 1520, y: 232, w: 96, h: 24 },
+      // Plan 25-07: the former { x: 1160, y: 224, w: 112, h: 24 } stepping stone over
+      // the 1200..1320 gap REMOVED — it was unreachable as a landing (96px rise
+      // exceeded the calibrated 88.331 maxRise) AND, discovered only by the
+      // interactive audit driving a real held jump underneath it, its underside
+      // (248) sat a mere 40px above floor level — well within a held jump's first
+      // ~100ms of ascent — turning any direct-jump attempt at this gap into a
+      // ceiling bonk that killed all upward velocity and dropped the player into
+      // the gap. The 120px gap is independently, comfortably within a single direct
+      // jump (well under the ~156px calibrated range) per validate-levels.mjs's own
+      // WARN-not-HARD-FAIL reading — this platform was never load-bearing for
+      // reachability, only an unreachable, hazardous obstruction. Mirrors the
+      // identical fix applied to level-07's redundant gap-1 platform this same plan.
+      { x: 1520, y: 172, w: 96, h: 24 }, // Plan 25-07: raised 232->172 (underside clearance 64px->124px) — its old underside sat only 64px above floor level, a ceiling-bonk hazard for the spike@1580 hop launched at x:1528 (inside this platform's 1520..1616 span), discovered by the interactive audit. A decorative height-variety hop (not gap-bridging); raising it is cosmetic-only.
       { x: 1880, y: 260, w: 128, h: 24 }, // Phase 24: y lowered 184->260 (rise 136px->60px) — was unreachable, VALID-04
       { x: 2220, y: 232, w: 96, h: 24 },
       { x: 2640, y: 260, w: 128, h: 24 }, // Phase 24: y lowered 192->260 (rise 128px->60px) — was unreachable, VALID-04

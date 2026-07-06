@@ -297,6 +297,18 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
     nearPollMs = 20, // tightened poll when a takeoff is within lookahead
     lookaheadPx = 150,
     jumpHoldMs = 450, // held past ~371ms time-to-apex so JUMP_CUT never truncates
+    // Plan 25-07 fix: a spike hop only needs to clear an 8px-tall hitbox — the
+    // header's own SPIKE_OFFSET note already says the arc clears it "anywhere from
+    // ~7px to ~150px past takeoff," i.e. even a short, JUMP_CUT-shortened hop is
+    // comfortably enough height. Firing the SAME near-max-range hold used for
+    // mount/gap takeoffs wastes ~150-180px of horizontal travel a spike never
+    // needed, and that unused range can sail clean over the NEXT takeoff's fire
+    // window while still airborne — confirmed empirically (level-03's two
+    // consecutive spikes at x:820/1040 and again x:3020/3260 sit only ~140-220px
+    // apart, well inside the full-hold arc's ~156px range). A short hold (JUMP_CUT
+    // applied while still rising) still clears any spike with margin but lands far
+    // sooner, leaving room for whatever takeoff comes next.
+    spikeJumpHoldMs = 150,
     maxMs = 90_000, // hard wall-clock budget per encounter approach
     stallMs = 15_000, // no NEW forward progress for this long => stalled
     maxDeaths = 8,
@@ -448,7 +460,7 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
         if (Math.abs(s.y + 32 - t.fromY) > FROM_Y_TOL) continue; // wrong surface — skip
         if (!s.grounded && t.kind !== "gap") continue; // gap fires airborne too (coyote)
         consumed.add(i);
-        await page.keyboard.press("Space", { delay: jumpHoldMs });
+        await page.keyboard.press("Space", { delay: t.kind === "spike" ? spikeJumpHoldMs : jumpHoldMs });
         fired = true;
         break;
       }

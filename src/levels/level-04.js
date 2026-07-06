@@ -32,7 +32,7 @@ export const LEVEL_04 = {
       { x: 240, y: 232, w: 112, h: 24 },
       { x: 440, y: 168, w: 80, h: 24 },
       { x: 1080, y: 250, w: 112, h: 24 }, // Phase 24: rise reduced 120->70px (VALID-04) — was y:200
-      { x: 1400, y: 250, w: 80, h: 24 }, // Phase 24: rise reduced 104->70px (VALID-04) — was y:216
+      { x: 1400, y: 190, w: 80, h: 24 }, // Phase 24: rise reduced 104->70px (VALID-04) — was y:216. Plan 25-07: raised further to y:190 (underside clearance 46px->106px) — its old underside sat only 46px above floor level, a ceiling-bonk hazard for the spike@1480 hop launched at x:1428 (inside this platform's 1400..1480 span), discovered by the interactive audit. Not gap-bridging (sits entirely within floor-2's own span); raising it is cosmetic-only, no reachability requirement depends on its old height.
       { x: 1760, y: 250, w: 128, h: 24 }, // Phase 24: rise reduced 144->70px (VALID-04) — was y:176
       { x: 2140, y: 250, w: 80, h: 24 }, // Phase 24: rise reduced 104->70px (VALID-04) — was y:216
       { x: 2520, y: 250, w: 112, h: 24 }, // Phase 24: rise reduced 128->70px (VALID-04) — was y:192

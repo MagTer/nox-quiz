@@ -73,6 +73,24 @@ const MOUNT_OFFSET_LOW = 68; // gentler rises: cross rising, land mid-span
 // above it and landing well inside the far floor's span.
 const GAP_COYOTE_MARK = 2;
 
+// Plan 25-07 fix: the coyote-timed fire above is fragile against Playwright's own
+// read-then-act round-trip latency, which can itself approach CONFIG.COYOTE_MS's
+// ~100ms window — confirmed empirically (level-03's gap-2, whose would-be stepping
+// platform sits at a 96px rise just past the calibrated maxRise, so no mount route
+// exists and this gap MUST cross via the direct flat jump): firing while STILL
+// GROUNDED a few px before the lip works reliably (matching the much wider timing
+// tolerance already proven for spike hops, which fire while comfortably grounded)
+// whenever the gap has enough range margin below the ~156px full-flat-jump ceiling
+// that undershooting is not a risk — this project's own documented corner-clip
+// pitfall (the comment above) only applies to gaps NEAR that ceiling (e.g. the
+// 160px case), not comfortably-smaller ones (e.g. this game's typical ~120-140px
+// gaps). Only gaps within EARLY_LEAD_MARGIN of the ceiling keep the tight coyote
+// mark, since early-firing them risks exactly the corner-clip this project already
+// found and fixed once.
+const MAX_FLAT_RANGE = AIR_SPEED * ((2 * CONFIG.JUMP_FORCE) / CONFIG.GRAVITY); // ~156px
+const EARLY_LEAD_MARGIN = 30; // px of slack below MAX_FLAT_RANGE required to fire early
+const EARLY_LEAD_PX = 15; // how far before the lip to fire when margin allows it
+
 // Spike hops launch this many px before the spike; the arc clears the 16px spike tile
 // (8px tall hitbox) anywhere from ~7px to ~150px past takeoff, so 52px of lead puts
 // the spike comfortably mid-arc.
@@ -146,6 +164,171 @@ function bottleneckPath(nodes, graph, startId, goalId, envelope) {
   return path.reverse();
 }
 
+// Plan 25-07 fix: reachability.mjs's graph treats every (from, to) node pair as an
+// independent boolean feasibility fact — it has no concept of a THIRD node's solid
+// footprint physically blocking a "shortcut" edge between two others. That is exactly
+// correct for the validator's pure connectivity question (VALID-01 only needs to know
+// a path EXISTS), but wrong for THIS driver, which actually EXECUTES the jump: every
+// takeoff this driver fires is a held-Space press for jumpHoldMs (450ms, well past
+// apex), producing the SAME near-maximum-height arc every time — there is no partial-
+// height jump input here. So a flat (same-height) hop between two floor nodes, when an
+// elevated platform's x-span sits inside that gap at a rise the arc's ascent phase
+// reaches, is landed ON (or bonked into) instead of sailed over, even though
+// reachability.mjs correctly reports the direct edge as graph-feasible in isolation.
+// Discovered empirically (Plan 25-07's full 8-level audit run): level-01's gap-2
+// (1200..1360, platform 1208..1360 at y:232) and level-07's gap-1 (460..600, platform
+// 500..612 at y:255) both pair a short, directly-jumpable gap with a bridging
+// stepping-stone platform occupying the same airspace — the bottleneck-cost path
+// picked the cheaper direct edge, and the arc collided with the platform mid-flight,
+// carrying the player OVER the ground-level checkpoint just past the gap (checkpoints
+// are only 48px tall, well below an elevated platform's underside) and into the next
+// hazard with no checkpoint touched — a full-restart death loop, not a resolvable
+// timing flake.
+//
+// Fix is scoped to TAKEOFF GENERATION only (never the graph/path used for
+// reachability, which stays exactly reachability.mjs's own proven fact) — a first
+// attempt that instead removed the obstructed edge from the graph broke pathfinding
+// outright, because reachability.mjs's overlapping-span model has its own separate,
+// already-documented limitation (STATE.md's marginRatio WARN-tier precision gap) that
+// leaves some platform->floor "step down onto the wider floor below" edges missing
+// entirely; blindly excluding the direct edge left no path at all. Instead, when the
+// PATH bottleneckPath already chose contains a flat hop whose real flight corridor is
+// obstructed, insert a "mount" takeoff onto that obstacle (using the exact same
+// mount-offset math as a real path-included platform) — descending off the far edge
+// afterward needs no extra takeoff, it is the same natural gravity walk-off already
+// used for every other "descending onto an overlapping/touching lower surface" case
+// below. This never touches reachability.mjs, buildGraph, or bottleneckPath — the
+// chosen path and its overall feasibility are untouched; only how the flat leg of that
+// path gets DRIVEN changes.
+const FLAT_EDGE_RISE_TOLERANCE = 12; // matches the mount-vs-gap rise threshold used below
+
+/**
+ * Find the platform node (if any) whose solid footprint physically sits inside the
+ * open-air gap between `from` and `to`, at a rise the jump envelope's arc actually
+ * reaches — i.e. a real mid-flight obstruction for a flat/near-flat hop, not a node
+ * merely nearby. Returns the LOWEST-rise candidate (the easiest/most-reachable one,
+ * matching the author's evident stepping-stone intent) or `null` if none obstructs.
+ */
+function findObstructingPlatform(from, to, nodes, envelope) {
+  const gapStart = Math.min(from.xEnd, to.xEnd);
+  const gapEnd = Math.max(from.xStart, to.xStart);
+  if (gapStart >= gapEnd) return null; // overlapping/touching spans — no open-air gap to obstruct
+  let best = null;
+  for (const obstacle of nodes) {
+    if (obstacle === from || obstacle === to) continue;
+    if (obstacle.xEnd <= gapStart || obstacle.xStart >= gapEnd) continue; // no x overlap with the gap
+    const rise = from.y - obstacle.y;
+    // A real obstruction: elevated enough to be a genuine platform (not floor-level
+    // noise) yet within the arc's reachable rise (jumpReach's own maxRise ceiling) —
+    // exactly the height band a held-jump's ascent phase will actually pass through.
+    if (rise > FLAT_EDGE_RISE_TOLERANCE && rise <= envelope.maxRise) {
+      if (!best || rise < from.y - best.y) best = obstacle;
+    }
+  }
+  return best;
+}
+
+/**
+ * Re-run bottleneckPath between `fromId` and `toId` with the direct edge between
+ * them (both directions) excluded — used to find a REAL alternate route (e.g. a
+ * two-platform stepping-stone chain) when the direct edge is physically obstructed.
+ * A single ad hoc mount onto the nearest obstacle (the fallback below) only handles
+ * a ONE-obstacle case; some gaps (e.g. level-02's gap-2) need two chained platforms,
+ * each requiring its own takeoff — this finds that real chain instead of guessing.
+ */
+function pathAvoidingDirectEdge(nodes, graph, fromId, toId, envelope) {
+  const filtered = new Map();
+  for (const [id, edges] of graph) {
+    filtered.set(
+      id,
+      edges.filter((e) => !((id === fromId && e.to === toId) || (id === toId && e.to === fromId)))
+    );
+  }
+  return bottleneckPath(nodes, filtered, fromId, toId, envelope);
+}
+
+/**
+ * Compute and push the takeoff(s) needed for one leg of the planned path (from ->
+ * to), recursing through a real avoiding-the-obstruction sub-path when the direct
+ * hop is physically blocked by another node's footprint (see this file's header).
+ * `depth` bounds recursion — level graphs are small (<20 nodes), so this only ever
+ * recurses a couple of levels deep for a genuine multi-platform chain.
+ */
+function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, depth = 0) {
+  const rise = Math.max(0, from.y - to.y);
+
+  if (rise > 12) {
+    // Mount: cross the leading edge while rising, near apex for high rises.
+    const offset = rise >= 76 ? MOUNT_OFFSET_HIGH : MOUNT_OFFSET_LOW;
+    let x = to.xStart - offset;
+    x = Math.min(x, from.xEnd - 4); // never past the takeoff surface's own lip
+    x = Math.max(x, from.xStart + 4);
+    takeoffs.push({ x, kind: "mount", fromY: from.y });
+    return;
+  }
+
+  // Plan 25-07 fix: bottleneckPath found this hop directly feasible (flat/near-flat,
+  // rise <= 12), but a solid platform's footprint may still sit physically inside the
+  // gap at a rise the arc's ascent phase reaches — reachability.mjs's graph has no
+  // concept of a third node obstructing an edge between two others (see this file's
+  // header). Route THROUGH the real alternate chain instead of attempting a direct
+  // flight that would collide with it.
+  const obstacle = findObstructingPlatform(from, to, nodes, envelope);
+  if (obstacle) {
+    if (depth < 4) {
+      const subPath = pathAvoidingDirectEdge(nodes, graph, from.id, to.id, envelope);
+      if (subPath && subPath.length > 2) {
+        for (let j = 0; j < subPath.length - 1; j++) {
+          pushHopTakeoffs(subPath[j], subPath[j + 1], nodes, graph, envelope, takeoffs, depth + 1);
+        }
+        return;
+      }
+    }
+    // No real alternate chain found (or recursion budget exhausted) — best-effort
+    // fallback: mount onto the nearest obstacle; descending off its far edge needs
+    // no separate takeoff (natural gravity walk-off, same as the plain case below).
+    const obsRise = from.y - obstacle.y;
+    const offset = obsRise >= 76 ? MOUNT_OFFSET_HIGH : MOUNT_OFFSET_LOW;
+    let x = obstacle.xStart - offset;
+    x = Math.min(x, from.xEnd - 4);
+    x = Math.max(x, from.xStart + 4);
+    takeoffs.push({ x, kind: "mount", fromY: from.y });
+    return;
+  }
+
+  if (to.xStart > from.xEnd + 4) {
+    // Flat/descending across a real gap. A DESCENDING gap (to.y > from.y) may
+    // already be crossable by pure momentum — walking off the ledge with no jump
+    // press at all, landing sooner and more predictably than an active jump would.
+    // Skipping the press here when it isn't needed matters: an unnecessary jump's
+    // longer, higher arc can sail clean over a ground-level trigger (a checkpoint's
+    // 8px-wide marker) sitting just past the landing spot — confirmed empirically
+    // on level-03's platform-1 -> floor-1 drop, where an unconditional jump press
+    // landed AT/PAST the x:740 checkpoint, causing every subsequent death on that
+    // approach to respawn all the way back at x:340 instead of x:740.
+    const dy = to.y - from.y;
+    const spanMin = to.xStart - from.xEnd;
+    const fallT = dy > 0 ? Math.sqrt((2 * dy) / CONFIG.GRAVITY) : 0;
+    const fallReach = AIR_SPEED * fallT;
+    if (fallReach < spanMin) {
+      // Plan 25-07 fix: a perfectly flat gap (dy === 0) with comfortable range
+      // margin fires EARLY, while still solidly grounded, instead of gambling on
+      // the fragile coyote window — see this file's header (MAX_FLAT_RANGE /
+      // EARLY_LEAD_MARGIN). Descending gaps (dy > 0) keep the proven coyote mark
+      // unchanged; their arc geometry differs and was never the failing case.
+      const flatMargin = MAX_FLAT_RANGE - spanMin;
+      if (dy === 0 && flatMargin >= EARLY_LEAD_MARGIN) {
+        const x = Math.max(from.xStart + 4, from.xEnd - EARLY_LEAD_PX);
+        takeoffs.push({ x, kind: "gap", fromY: from.y });
+      } else {
+        takeoffs.push({ x: from.xEnd + GAP_COYOTE_MARK, kind: "gap", fromY: from.y });
+      }
+    }
+    // else: pure fall momentum already clears the gap — no takeoff needed, walk off.
+  }
+  // else: descending onto an overlapping/touching lower surface — just walk off.
+}
+
 /**
  * Plan the ordered takeoff list for driving from spawn to `targetX`.
  *
@@ -175,37 +358,7 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE) {
   const takeoffs = [];
 
   for (let i = 0; i < path.length - 1; i++) {
-    const from = path[i];
-    const to = path[i + 1];
-    const rise = Math.max(0, from.y - to.y);
-
-    if (rise > 12) {
-      // Mount: cross the leading edge while rising, near apex for high rises.
-      const offset = rise >= 76 ? MOUNT_OFFSET_HIGH : MOUNT_OFFSET_LOW;
-      let x = to.xStart - offset;
-      x = Math.min(x, from.xEnd - 4); // never past the takeoff surface's own lip
-      x = Math.max(x, from.xStart + 4);
-      takeoffs.push({ x, kind: "mount", fromY: from.y });
-    } else if (to.xStart > from.xEnd + 4) {
-      // Flat/descending across a real gap. A DESCENDING gap (to.y > from.y) may
-      // already be crossable by pure momentum — walking off the ledge with no jump
-      // press at all, landing sooner and more predictably than an active jump would.
-      // Skipping the press here when it isn't needed matters: an unnecessary jump's
-      // longer, higher arc can sail clean over a ground-level trigger (a checkpoint's
-      // 8px-wide marker) sitting just past the landing spot — confirmed empirically
-      // on level-03's platform-1 -> floor-1 drop, where an unconditional jump press
-      // landed AT/PAST the x:740 checkpoint, causing every subsequent death on that
-      // approach to respawn all the way back at x:340 instead of x:740.
-      const dy = to.y - from.y;
-      const spanMin = to.xStart - from.xEnd;
-      const fallT = dy > 0 ? Math.sqrt((2 * dy) / CONFIG.GRAVITY) : 0;
-      const fallReach = AIR_SPEED * fallT;
-      if (fallReach < spanMin) {
-        takeoffs.push({ x: from.xEnd + GAP_COYOTE_MARK, kind: "gap", fromY: from.y });
-      }
-      // else: pure fall momentum already clears the gap — no takeoff needed, walk off.
-    }
-    // else: descending onto an overlapping/touching lower surface — just walk off.
+    pushHopTakeoffs(path[i], path[i + 1], nodes, graph, envelope, takeoffs);
   }
 
   // Spike hops for every spike on a path FLOOR node before the target. fromY pins

@@ -539,11 +539,14 @@ const deepEqual = (a, b) => {
       { x: 3560, w: 600 },
       { x: 4280, w: 920 },
     ],
+    // Plan 25-07: the former x:1160 stepping stone (rise 96px, exceeded the
+    // calibrated 88.331 maxRise, AND a ceiling-bonk hazard for the direct gap-jump
+    // underneath it) REMOVED; x:1520 raised 232->172 (a ceiling-bonk hazard for the
+    // spike@1580 hop launched underneath it) — see level-03.js's own inline comments.
     platforms: [
       { x: 280, y: 240, w: 128, h: 24 },
       { x: 480, y: 184, w: 96, h: 24 },
-      { x: 1160, y: 224, w: 112, h: 24 },
-      { x: 1520, y: 232, w: 96, h: 24 },
+      { x: 1520, y: 172, w: 96, h: 24 },
       { x: 1880, y: 260, w: 128, h: 24 },
       { x: 2220, y: 232, w: 96, h: 24 },
       { x: 2640, y: 260, w: 128, h: 24 },
@@ -664,11 +667,13 @@ const deepEqual = (a, b) => {
       { x: 4920, w: 600 },
       { x: 5680, w: 520 },
     ],
+    // Plan 25-07: x:1400 raised 250->190 (was a ceiling-bonk hazard for the
+    // spike@1480 hop launched underneath it) — see level-04.js's own inline comment.
     platforms: [
       { x: 240, y: 232, w: 112, h: 24 },
       { x: 440, y: 168, w: 80, h: 24 },
       { x: 1080, y: 250, w: 112, h: 24 },
-      { x: 1400, y: 250, w: 80, h: 24 },
+      { x: 1400, y: 190, w: 80, h: 24 },
       { x: 1760, y: 250, w: 128, h: 24 },
       { x: 2140, y: 250, w: 80, h: 24 },
       { x: 2520, y: 250, w: 112, h: 24 },

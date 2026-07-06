@@ -37,15 +37,30 @@ export const LEVEL_07 = {
       { x: 1920, w: 680 }, // gap 1800..1920 (120px), ends 2600
     ],
 
-    // --- Raised platforms: the gap-bridging stepping stones on the main run,
-    // PLUS the 6-tier ascending climb (each tier is a wide, full-width landing;
-    // Δy=-65..-70px per hop, well under the 88.331px calibrated ceiling; every
-    // hop makes NET-RIGHTWARD x progress, per Pitfall 4). ---
+    // --- Raised platforms: the 6-tier ascending climb (each tier is a wide,
+    // full-width landing; Δy=-65..-70px per hop, well under the 88.331px
+    // calibrated ceiling; every hop makes NET-RIGHTWARD x progress, per
+    // Pitfall 4). ---
+    //
+    // Plan 25-07 fix: the main run's 3 short "bridging" stepping-stone platforms
+    // (formerly at x:500/1160/1840) were REMOVED — each of their gaps (140px,
+    // 120px, 120px) is independently, comfortably within a single direct jump
+    // (validate-levels.mjs already reports these as WARN, not HARD-FAIL, meaning
+    // the direct floor-to-floor hop was always graph-feasible without them). Their
+    // mere physical presence, positioned mid-gap rather than flush against the far
+    // floor's own edge (unlike e.g. level-01's gap-1/gap-2 platforms, which extend
+    // all the way to the landing floor), created a genuine gameplay trap for ANY
+    // player (not just the audit bot): crossing via the platform meant walking off
+    // its far edge only 12-16px into the next floor run, so the ~65-70px vertical
+    // fall to floor level completed while ALREADY well past the ground-level
+    // checkpoint (checkpoints are a mere 8px-wide, 48px-tall marker, far below an
+    // elevated platform's underside) and dangerously close to/overlapping the very
+    // next spike hazard — a full-level-restart death loop, discovered via Plan
+    // 25-07's audit run, not a resolvable timing flake. Removing them lets a
+    // direct, low, single-hop jump return the player to floor level immediately
+    // after the gap (matching this level's own coin@650/coin@1050 floor-level
+    // placements, which already assumed a quick, uninterrupted landing).
     platforms: [
-      { x: 500, y: 255, w: 112, h: 24 }, // bridges gap 460..600 (rise 65px)
-      { x: 1160, y: 250, w: 96, h: 24 }, // bridges gap 1120..1240 (rise 70px)
-      { x: 1840, y: 255, w: 96, h: 24 }, // bridges gap 1800..1920 (rise 65px)
-
       // --- Capstone climb: 6 ascending, net-rightward, full-width tiers.
       // Each consecutive pair OVERLAPS in x by ~70px (not just a few px) — the
       // rising-jump reachability model requires the SHORT-time-of-flight root's

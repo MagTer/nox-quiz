@@ -8,7 +8,7 @@ import { createServer } from "http";
 import { readFile } from "fs/promises";
 import { extname, join, resolve, sep } from "path";
 import { LEVEL_ORDER, getLevel } from "../src/levels/index.js";
-import { deriveEncounters, driveToXClimbing, resolveIfBoxed } from "./lib/mechanic-drive.mjs";
+import { deriveEncounters, driveToXPlanned, resolveIfBoxed } from "./lib/mechanic-drive.mjs";
 
 // WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
 // path. Tries (1) normal project-relative resolution (works once `playwright` is a real
@@ -161,23 +161,20 @@ try {
     // scripts/audit-phase21-mechanics.mjs (Plan 21-01/21-05), not here.
     const level = getLevel(LEVEL_ORDER[i]);
     const encounters = deriveEncounters(level.geometry);
-    // Rule 1 fix (found via Task 2's own repeated-run regression check — level-03 and
-    // level-04 each place TWO encounters on the same gap-free opening floor run, e.g.
-    // level-03's collect-zone(200) AND math-gate(420) both sit before its first gap at
-    // 480): scripts/audit-phase21-mechanics.mjs's own "only encounterIdx===0" rule
-    // (mirrored here originally) silently assumes a level's first floor run holds only
-    // ONE encounter, which is false for level-03/04. Reusing driveToXClimbing's own
-    // already-proven, opt-in warmupUntilFirstGap option (unchanged, from
-    // scripts/lib/mechanic-drive.mjs), extend it to EVERY encounter still within that
-    // same opening, hazard-free floor run (not just index 0) — a strictly narrower,
-    // already-safe superset of the single-encounter case, derived straight from
-    // level.geometry.floors rather than a positional index guess.
-    const firstFloorEnd = level.geometry.floors?.[0]
-      ? level.geometry.floors[0].x + level.geometry.floors[0].w
-      : 0;
+    // Plan 25-07 fix (Rule 1 — bug): the old driveToXClimbing ("jump whenever
+    // grounded, from spawn") is the exact retired driver Phase 24's close-out
+    // documented as bunny-hopping over ground-level checkpoints and failing
+    // marginal jumps deterministically (see mechanic-drive.mjs's DEPRECATION
+    // NOTE) — it stalled indefinitely against level-07/08's verticality climbs,
+    // which the Phase-24 fix (driveToXPlanned: walk by default, jump only at
+    // planned takeoffs from the same geometry the structural validator uses)
+    // already solves. Swapping to the same proven driver audit-retry.mjs already
+    // uses retires the old driver's warmupUntilFirstGap special case as a class
+    // (driveToXPlanned walks by default, so ground-level triggers register
+    // naturally on every approach, not just the level's first — see
+    // audit-retry.mjs's own comment at its driveToXPlanned call site).
     for (const encounter of encounters) {
-      const driveOpts = encounter.x < firstFloorEnd ? { warmupUntilFirstGap: true } : {};
-      const { triggered } = await driveToXClimbing(page, encounter.x, driveOpts);
+      const { triggered } = await driveToXPlanned(page, encounter.x, level.geometry);
       if (!triggered) {
         errors.push({
           type: "mechanic",

@@ -28,7 +28,7 @@ export const LEVEL_06 = {
 
     platforms: [
       { x: 520, y: 255, w: 128, h: 24 }, // bridges gap 480..640 (rise 65px)
-      { x: 840, y: 250, w: 112, h: 24 }, // height-variety hop on floor-1 (rise 70px)
+      { x: 840, y: 190, w: 112, h: 24 }, // Plan 25-07: raised 250->190 (underside clearance 46px->106px) — its old underside sat only 46px above floor level, a ceiling-bonk hazard for the spike@900 hop launched at x:848 (inside this platform's 840..952 span), discovered by the interactive audit. Still purely a height-variety hop on floor-1 (not gap-bridging); raising it is cosmetic-only.
       { x: 1240, y: 250, w: 96, h: 24 }, // bridges gap 1200..1320 (rise 70px)
       { x: 1960, y: 250, w: 96, h: 24 }, // bridges gap 1920..2040 (rise 70px)
       { x: 2700, y: 255, w: 112, h: 24 }, // bridges gap 2660..2780 (rise 65px)
