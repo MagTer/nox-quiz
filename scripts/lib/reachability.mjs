@@ -166,6 +166,22 @@ export function canReach(fromNode, toNode, envelope) {
   );
   const theoreticalMaxReach = envelope.runSpeed * theoreticalMaxT;
 
+  // WR-01 (known, documented limitation — see 23-FINDINGS.md and 23-REVIEW.md):
+  // for any hop where dy >= 0 (landing at the same height or lower), rootsAndReaches
+  // yields exactly ONE positive-root candidate, and that candidate's `reach` is, by
+  // construction, the same value used as `theoreticalMaxReach` above (the larger of
+  // the same two roots). So whenever a flat/downward hop is feasible at all,
+  // marginRatio evaluates to exactly 1.0 — there is no way for such a hop to ever
+  // land below WARN_MARGIN_RATIO and be reported PASS; it is either WARN or has no
+  // edge at all. This makes the WARN tier non-discriminating for the common
+  // flat/downward case (every flat/downward WARN row across all 4 shipped levels
+  // prints marginRatio=1.000) — it cannot distinguish "this gap is trivially easy"
+  // from "this gap is nearly the calibrated max." Only dy < 0 (rising) hops, which
+  // can yield two distinct positive roots, produce a marginRatio meaningfully below
+  // 1.0. Fixing this properly requires computing a real tightness ratio from the
+  // *required* distance (spanMin/spanMax) against the reachable range instead of
+  // this fixed single-candidate reach — deferred as a larger algorithmic change,
+  // not fixed here.
   let best = null;
   for (const { reach } of candidates) {
     if (reach >= spanMin && reach <= spanMax) {
