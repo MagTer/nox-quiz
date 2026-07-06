@@ -25,10 +25,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-05)
+See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 23 — Level Validation Harness
+**Current Focus:** Phase 24 — Fix & Lengthen Levels 1–4
 
 **Shipped State (v4.1):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion — with real curated CC0 art under human sign-off and interactively-audited mechanics. All prior milestone requirements satisfied.
 
@@ -41,9 +41,9 @@ Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-07-06 — Phase 23 complete, transitioned to Phase 24
 
-Progress: [█░░░░░░░░░] 14% (1/7 phases)
+Progress: [███░░░░░░░] 29% (2/7 phases)
 
-**Next:** `/gsd-discuss-phase 23` (optional: `/gsd-verify-work 22` for human UAT pass, `/gsd-secure-phase 22` for security enforcement)
+**Next:** `/gsd-discuss-phase 24` (optional: `/gsd-verify-work 23` for human UAT pass, `/gsd-secure-phase 23` for security enforcement)
 
 ## v5.0 Roadmap Summary
 
@@ -63,7 +63,7 @@ Progress: [█░░░░░░░░░] 14% (1/7 phases)
 
 **Velocity (through v4.1):** 21 phases, 62 plans completed across 5 shipped milestones (2026-06-20 → 2026-07-04). Per-plan history archived in `.planning/milestones/`.
 
-**v5.0:** No plans executed yet.
+**v5.0:** 10 plans completed across Phases 22–23 (2026-07-05 → 2026-07-06).
 
 ## Accumulated Context
 
@@ -107,9 +107,11 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 
 ### Blockers/Concerns
 
-- **Research flags:** Phase 23 (validator) — hop-envelope edge cases + one-time empirical calibration against the real engine; Phase 27 (audio) — re-verify exact Kaplay 3001 `play()` handle/volume/autoplay semantics against `lib/kaplay.mjs` before implementing
-- **Audit blind spot:** 6/16 mechanic encounters unreachable by the v4.1 harness (spike-timing resonance, documented in 21-FINDINGS.md) — must shrink in Phase 23 and close or except in Phase 28 (VALID-03)
-- **[Phase 22] 22-REVIEW.md latent warnings (advisory, none live on shipped content):** collect.js zone→slots→choices contract unvalidated — becomes live with Phase 25 multi-zone content; check-gate.sh comment stripper misses block comments (false-GREEN path) and the no-timer pattern misses column-0 `wait(` — both matter for Phase 23's validator/gate work
+- **Research flags:** Phase 27 (audio) — re-verify exact Kaplay 3001 `play()` handle/volume/autoplay semantics against `lib/kaplay.mjs` before implementing
+- **Audit blind spot:** RESOLVED for levels 1-4 in Phase 23 — 16/16 mechanic encounters now reliably triggered via the retry harness (was 6/16 unreached under the v4.1 single-pass harness). Full 8-level closure (once levels 5-8 exist) remains Phase 28's job (VALID-03 final close).
+- **[Phase 22] 22-REVIEW.md latent warnings (advisory, none live on shipped content):** collect.js zone→slots→choices contract unvalidated — becomes live with Phase 25 multi-zone content
+- **[Phase 23] validate-levels.mjs WR-03 (deferred, non-blocking):** Playwright static-server + path-traversal guard code is duplicated verbatim across `browser-boot.mjs`, `audit-phase21-mechanics.mjs`, and `calibrate-jump-envelope.mjs` by deliberate project convention ("copy verbatim, do not simplify") — a future guard fix must be applied identically in all three places by hand; extracting to a shared module is a reasonable future cleanup, not urgent
+- **[Phase 23] reachability.mjs WARN-tier precision gap (deferred, non-blocking):** `marginRatio` is mathematically pinned to ~1.000 for every flat-or-downward hop (documented in-code and in 23-FINDINGS.md) — the WARN tier currently cannot distinguish "trivially easy" from "near the calibrated ceiling" for the common case. Not a correctness bug (no false PASS/HARD-FAIL), but worth revisiting if the WARN tier needs finer signal before Phase 28's final sign-off.
 
 ## Deferred Items
 
@@ -120,7 +122,7 @@ Carried forward from previous milestone closes:
 | uat | SAFE-05 kid-UAT live sign-off (platforming feel, non-over-stimulation) — protocol in `.planning/milestones/v4.0-phases/19-polish-consolidated-kid-uat/19-UAT.md` | pending (UAT-FUT-01 in REQUIREMENTS.md) | v4.0/v4.1 |
 | deploy | SETUP-02 live Dokploy URL playthrough confirmation (container curl-proven locally) | pending (DEPLOY-FUT-01) | v3.0 |
 | uat | MOVE-05 throttled/non-60Hz empirical feel check (code verified dt-correct) | pending, low-risk | v3.0 |
-| test-tooling | 6/16 encounter audit blind spot | actively addressed in v5.0 (VALID-03) | v4.1 |
+| test-tooling | 6/16 encounter audit blind spot | resolved for levels 1-4 in Phase 23 (16/16); full 8-level closure remains Phase 28 (VALID-03) | v4.1 |
 | Phase 22 P01 | 15min | 2 tasks | 2 files |
 | Phase 22 P02 | 24min | 3 tasks | 4 files |
 | Phase 22 P03 | 18min | 2 tasks | 1 files |
@@ -140,11 +142,11 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-05T22:03:38.576Z
-Stopped at: Completed 23-04-PLAN.md
+Last session: 2026-07-06T14:35:00.000Z
+Stopped at: Phase 23 complete, ready to plan Phase 24
 Resume file: None
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-07-05 (Phase 22 complete, transitioned to Phase 23)
+**Last updated:** 2026-07-06 (Phase 23 complete, transitioned to Phase 24)
