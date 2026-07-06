@@ -244,7 +244,7 @@ export function createBrain({ seedAccuracy, seedHistory, allowedTables } = {}) {
     nextQuestion() {
       const weights = calculateWeights();
       const table = weightedRandom(weights);
-      const multiplicand = Math.floor(Math.random() * 10) + 1;
+      const multiplicand = Math.floor(Math.random() * 9) + 1;
       const answer = table * multiplicand;
       const distractors = generateDistractors(answer, table, multiplicand);
       const choices = shuffle([answer, ...distractors]);

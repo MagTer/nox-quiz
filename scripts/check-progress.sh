@@ -125,7 +125,20 @@ for f in "src/levels/level-01.js" "src/levels/index.js"; do
   fi
 done
 
-# 14. Final step — invoke the headless math/seed smoke.
+# 14. MATH-01 regression — level-02's allowedTables must have table 1 dropped (6/7 kept, no
+#     compensating table added).
+grep -q 'allowedTables: \[2, 3, 4, 5, 6, 7\]' "$ROOT/src/levels/level-02.js" \
+  || fail "level-02.js's allowedTables must be exactly [2, 3, 4, 5, 6, 7] (MATH-01: table 1 dropped)"
+
+# 15. MATH-02 regression — brain.js's multiplicand roll must be narrowed to 1-9 (the ONE
+#     authorized literal change to the LOCKED math brain), and the old 1-10 roll must be gone.
+grep -q 'Math.floor(Math.random() \* 9) + 1' "$ROOT/src/math/brain.js" \
+  || fail "brain.js's multiplicand roll must be exactly Math.floor(Math.random() * 9) + 1 (MATH-02)"
+if grep -Fq 'Math.floor(Math.random() * 10) + 1' "$ROOT/src/math/brain.js"; then
+  fail "brain.js still contains the old Math.floor(Math.random() * 10) + 1 roll — MATH-02 not fully applied"
+fi
+
+# 16. Final step — invoke the headless math/seed smoke.
 node "$ROOT/scripts/smoke-progress.mjs" || fail "smoke-progress failed (pure XP/level + seed adaptation)"
 
 echo "progress checks: PASS"

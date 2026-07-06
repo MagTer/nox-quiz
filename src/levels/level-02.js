@@ -12,7 +12,7 @@ const FLOOR_Y = CONFIG.FLOOR_Y; // 320
 export const LEVEL_02 = {
   id: "level-02",
   displayName: "The Rusted Climb",
-  allowedTables: [1, 2, 3, 4, 5, 6, 7],
+  allowedTables: [2, 3, 4, 5, 6, 7],
 
   // Camera clamp scaled to the longer level; top/bottom match the 360px screen.
   // Phase 24: bumped 2800 -> 4280 to cover the +1480px extension (goal 4200 + GOAL_SIZE + 64px buffer).
