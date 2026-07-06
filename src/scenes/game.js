@@ -29,6 +29,7 @@ import { wireDoor } from "../mechanics/door.js";
 import { wireGates } from "../mechanics/gates.js";
 import { wireEnemy } from "../mechanics/enemy.js";
 import { wireCollect } from "../mechanics/collect.js";
+import { wireSecretAlcove } from "../mechanics/secretAlcove.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
 import { mountHud } from "../ui/hud.js";
 import * as fx from "../fx.js"; // engine-side juice (coin pop + clear burst) — JUICE-02/03
@@ -255,6 +256,10 @@ export function gameScene(data) {
   wireGates({ player, brain });
   wireEnemy({ player, brain });
   wireCollect({ player, brain });
+
+  // LVL-06: the secret XP alcove is the ONLY mechanic call site wired with `progress`
+  // instead of `brain` — it awards a flat XP bonus, never opens a challenge.
+  wireSecretAlcove({ player, progress });
 
   // --- Escape → level-select (NAV-03 agency) ---
   // Lets her bail back to select mid-level with no forced replay of earlier levels.

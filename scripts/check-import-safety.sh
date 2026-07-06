@@ -85,7 +85,8 @@ for f in \
   "src/scenes/title.js" "src/scenes/select.js" \
   "src/scenes/game.js" "src/main.js" "src/parallax.js" \
   "src/ui/challenge.js" "src/mechanics/door.js" \
-  "src/mechanics/gates.js" "src/mechanics/enemy.js" "src/mechanics/collect.js"; do
+  "src/mechanics/gates.js" "src/mechanics/enemy.js" "src/mechanics/collect.js" \
+  "src/mechanics/secretAlcove.js"; do
   [ -f "$ROOT/$f" ] || fail "missing module: $f"
   node --check "$ROOT/$f" || fail "node --check failed (syntax error in $f)"
 done
@@ -127,7 +128,8 @@ fi
 #    post-init module scope (RESEARCH Pitfall 5).
 for f in "src/scenes/title.js" "src/scenes/select.js" "src/parallax.js" \
   "src/ui/challenge.js" "src/mechanics/door.js" \
-  "src/mechanics/gates.js" "src/mechanics/enemy.js" "src/mechanics/collect.js"; do
+  "src/mechanics/gates.js" "src/mechanics/enemy.js" "src/mechanics/collect.js" \
+  "src/mechanics/secretAlcove.js"; do
   if strip_comments "$ROOT/$f" | grep -Eq "$TOPLEVEL_TRAP"; then
     fail "engine global referenced at MODULE TOP LEVEL in $f — scenes must be a727c13-safe (engine globals only INSIDE the factory body; a top-level ref throws at import and blanks the game)"
   fi

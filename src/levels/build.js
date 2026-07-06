@@ -283,4 +283,12 @@ export function buildLevel(levelData) {
 
     slotObj.slotIndex = i;
   }
+
+  // --- Secret XP alcoves (LVL-06 — optional, silent, walk-through-only bonus) ---
+  // No blocker collider, no visible panel, no glyph: this is a walk-through bonus, not
+  // a barrier, unlike every other mechanic block above. Guarded with ?? [] so every
+  // existing level (which has no secretAlcove key yet) still builds without error.
+  for (const a of g.secretAlcove ?? []) {
+    add([rect(24, 24), pos(a.x, a.y), area(), opacity(0), "secret-alcove"]);
+  }
 }
