@@ -13,7 +13,7 @@ export const LEVEL_03 = {
   displayName: "The Hollow",
   allowedTables: [3, 4, 5, 6, 7, 8, 9],
 
-  bounds: { left: 0, right: 3400, top: 0, bottom: 360 },
+  bounds: { left: 0, right: 5200, top: 0, bottom: 360 }, // Phase 24: right bumped 3400->5200 (LVL-01)
 
   geometry: {
     floors: [
@@ -22,6 +22,8 @@ export const LEVEL_03 = {
       { x: 1320, w: 600 },
       { x: 2040, w: 640 },
       { x: 2840, w: 560 },
+      { x: 3560, w: 600 }, // Phase 24 extension run 1 (after the new 3400..3560 gap)
+      { x: 4280, w: 920 }, // Phase 24 extension run 2 (after the new 4160..4280 gap; final run to the new goal)
     ],
 
     platforms: [
@@ -29,9 +31,11 @@ export const LEVEL_03 = {
       { x: 480, y: 184, w: 96, h: 24 },
       { x: 1160, y: 224, w: 112, h: 24 },
       { x: 1520, y: 232, w: 96, h: 24 },
-      { x: 1880, y: 184, w: 128, h: 24 },
+      { x: 1880, y: 260, w: 128, h: 24 }, // Phase 24: y lowered 184->260 (rise 136px->60px) — was unreachable, VALID-04
       { x: 2220, y: 232, w: 96, h: 24 },
-      { x: 2640, y: 192, w: 128, h: 24 },
+      { x: 2640, y: 260, w: 128, h: 24 }, // Phase 24: y lowered 192->260 (rise 128px->60px) — was unreachable, VALID-04
+      { x: 3400, y: 255, w: 128, h: 24 }, // Phase 24 extension: bridges 3400..3560 gap (rise 65px)
+      { x: 4160, y: 255, w: 112, h: 24 }, // Phase 24 extension: bridges 4160..4280 gap (rise 65px)
     ],
 
     coins: [
@@ -57,7 +61,7 @@ export const LEVEL_03 = {
       { x: 3260, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
 
-    goal: { x: 3320, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 5120, y: FLOOR_Y - CONFIG.GOAL_SIZE }, // Phase 24: extended from x:3320 (LVL-01)
 
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
