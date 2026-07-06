@@ -6,14 +6,14 @@ current_phase: 25
 current_phase_name: Levels 5–8, Difficulty Ramp & Select Grid
 status: executing
 stopped_at: Phase 24 complete, ready to plan Phase 25
-last_updated: "2026-07-06T20:49:39.666Z"
+last_updated: "2026-07-06T20:53:20.375Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
-  completed_plans: 17
+  completed_plans: 18
   percent: 43
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 25 (Levels 5–8, Difficulty Ramp & Select Grid) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-07-06 — Phase 25 execution started
 
@@ -103,6 +103,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase ?]: [Phase 24-05]: All 4 scripts/smoke-progress.mjs geometry blocks re-baselined (not just level-01's) with old pre-Phase-24 values retained in comments; full suite green (validate-levels PASS zero HARD-FAILs, smoke PASS, check-progress PASS) and LOCKED surfaces (src/math, lib/kaplay.mjs) diff-proven byte-identical to baseline 5eedee8
 - [Phase 25-01]: addBonusXp is a new sibling method on createProgress(), not a call-site reuse of addXp(table) — calculateXp(table) can only ever yield XP_EASY/XP_HARD (10/20), never an arbitrary flat amount like the alcove's 5
 - [Phase 25-01]: secretAlcove.js is the only mechanic wired with progress instead of brain in game.js — it never opens a challenge or freezes the player, so it has no need for the brain's math-selection state
+- [Phase 25]: Applied the select-nav row/col fix identically at all 3 call sites (browser-boot.mjs's 1 occurrence, audit-phase21-mechanics.mjs's 2 occurrences) rather than extracting a shared helper, per project convention of fixing duplicated Playwright code by hand in each copy
+- [Phase 25]: Left scripts/lib/audit-retry.mjs and scripts/lib/mechanic-drive.mjs untouched -- full retry-hardened 8-level closure sign-off is scoped to Phase 28 (VALID-03)
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -149,6 +151,7 @@ Carried forward from previous milestone closes:
 | Phase 24 P04 | 5min | 2 tasks | 1 files |
 | Phase 24 P05 | 10min | 2 tasks | 1 files |
 | Phase 25 P01 | 3min | 2 tasks | 5 files |
+| Phase 25 P02 | 6min | 2 tasks | 2 files |
 
 ## Quick Tasks Completed
 
@@ -158,7 +161,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-06T20:49:20.121Z
+Last session: 2026-07-06T20:52:38.040Z
 Stopped at: Phase 23 complete, ready to plan Phase 24
 Resume file: None
 
