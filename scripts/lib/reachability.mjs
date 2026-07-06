@@ -326,12 +326,21 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
   for (const kind of ["doors", "mathGates", "enemies", "collectZones"]) {
     for (const e of geometry[kind] ?? []) {
       const w = BARRIER_WIDTH[kind];
+      // CR-03: require BOTH the barrier's near edge (e.x) AND its far edge
+      // (e.x + w) to land on the SAME floor node, mirroring CR-01's fix in
+      // over-hole-check.mjs. Checking only e.x let a barrier whose footprint
+      // extends past the end of its floor run into an adjacent gap report PASS
+      // here even when over-hole-check.mjs's own coverage for that kind was
+      // missing or masked — this is deliberate defense-in-depth, not redundant
+      // with over-hole-check.mjs, since the two modules can be run/consumed
+      // independently.
       const node = nodeContaining(floorNodes, e.x);
-      if (!node) {
+      const endNode = nodeContaining(floorNodes, e.x + w);
+      if (!node || !endNode || node.id !== endNode.id) {
         rows.push({
           check: "mechanic-reachability",
           status: "HARD-FAIL",
-          descriptor: `${kind} x:${e.x}..${e.x + w} not on any floor run`,
+          descriptor: `${kind} x:${e.x}..${e.x + w} not fully supported by any single floor run`,
         });
         continue;
       }
