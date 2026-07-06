@@ -16,7 +16,7 @@ Math Lab is a replayable 2D platformer she controls with the keyboard, served as
 
 **Validated this milestone:** the game's art now matches the intended dark-grunge aesthetic under real human sign-off, and this project's own verification claims are now held to the same interactive-proof standard the process gap had let slip. **What it isn't yet:** audio/SFX + music, more worlds/level packs, and live deployment confirmation remain for future milestones. Also carried forward as known, intentionally-scoped gaps: New Finding 4's visual-overlap half is fixed but 6/16 mechanic encounters across the 4 levels remain out of the audit script's reach (documented technical reason: spike-hazard timing resonance in the traversal model) — not a game bug, a test-tooling limitation.
 
-**v5.0 progress:** Phase 22 (Implementation Review & Auto-Fix) complete 2026-07-05 — all 24 entities/surfaces carry final review verdicts (17 clean, 6 fixed, 4 structural-deferred), one approved escalation implemented after its recorded decision, full suite green with zero regressions vs the pre-fix baseline; LOCKED surfaces (math brain, vendored Kaplay, level descriptors) diff-proven untouched.
+**v5.0 progress:** Phase 22 (Implementation Review & Auto-Fix) complete 2026-07-05 — all 24 entities/surfaces carry final review verdicts (17 clean, 6 fixed, 4 structural-deferred), one approved escalation implemented after its recorded decision, full suite green with zero regressions vs the pre-fix baseline; LOCKED surfaces (math brain, vendored Kaplay, level descriptors) diff-proven untouched. Phase 23 (Level Validation Harness) complete 2026-07-06 — `scripts/validate-levels.mjs` built and proven RED-first against the untouched levels 1–4 (9 genuine hard-failures, correctly naming all 3 known over-hole defects), its jump envelope empirically calibrated against the real engine (not closed-form theory), and the interactive audit's 6/16 mechanic-encounter blind spot fully closed to 16/16 on levels 1–4. Zero level-descriptor edits landed (fixes are Phase 24's job). A code review independently caught and fixed 3 additional false-negative bugs in the validator's own detection logic before it was trusted as a gate.
 
 ## Current Milestone: v5.0 Nox Run — Real Levels
 
@@ -58,10 +58,11 @@ Math Lab is a replayable 2D platformer she controls with the keyboard, served as
 - ✓ Real curated CC0 pixel art (player, tileset, parallax, title/select) replacing v4.0's placeholder art, under mandatory human visual sign-off (ART-05..08, PROC-01/02) — v4.1
 - ✓ Interactive verification integrity: door/gates/enemy/mathGate mechanics driven with real movement across all 4 levels, hardened boot gate, corrected milestone-audit sign-off claims (VERIFY-01..04) — v4.1
 - ✓ Clean, reviewed base before content doubles: all 24 entities/surfaces reviewed with autonomous in-boundary fixes, batched approve/reject escalation round (none silent), zero regressions proven vs baseline, structural defects inventoried for Phase 23 calibration (FIX-01, FIX-02) — Validated in Phase 22: Implementation Review & Auto-Fix, v5.0
+- ✓ Static level validator (`validate-levels.mjs`) checking spawn→goal reachability, gap widths vs an empirically-calibrated jump envelope, door-over-hole placement, and mechanic reachability on every registered level, exiting non-zero on failure; jump envelope measured against the real running engine with a recorded safety margin; proven RED-first against the untouched levels 1–4 by independently catching the known live bugs (VALID-01, VALID-02) — Validated in Phase 23: Level Validation Harness, v5.0
 
 ### Active
 
-*(v5.0 — REQUIREMENTS.md: structural validity harness, 8 longer levels, richer grunge palette, Nox Run rebrand + logo, audio/SFX, drop tables 1 & 10; FIX-01/FIX-02 validated in Phase 22)*
+*(v5.0 — REQUIREMENTS.md: 8 longer levels, richer grunge palette, Nox Run rebrand + logo, audio/SFX, drop tables 1 & 10; FIX-01/FIX-02 validated in Phase 22, VALID-01/VALID-02 validated in Phase 23; VALID-03 groundwork laid in Phase 23, final closure across all 8 levels is Phase 28)*
 
 
 ### Out of Scope
@@ -139,4 +140,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-05 — v5.0 Phase 22 (Implementation Review & Auto-Fix) complete*
+*Last updated: 2026-07-06 — v5.0 Phase 23 (Level Validation Harness) complete*
