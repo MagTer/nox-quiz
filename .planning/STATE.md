@@ -6,14 +6,14 @@ current_phase: 25
 current_phase_name: Levels 5–8, Difficulty Ramp & Select Grid
 status: executing
 stopped_at: Phase 24 complete, ready to plan Phase 25
-last_updated: "2026-07-06T20:46:23.353Z"
+last_updated: "2026-07-06T20:49:39.666Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
-  completed_plans: 16
+  completed_plans: 17
   percent: 43
 ---
 
@@ -37,8 +37,8 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 25 (Levels 5–8, Difficulty Ramp & Select Grid) — EXECUTING
-Plan: 1 of 7
-Status: Executing Phase 25
+Plan: 2 of 7
+Status: Ready to execute
 Last activity: 2026-07-06 — Phase 25 execution started
 
 Progress: [███░░░░░░░] 29% (2/7 phases)
@@ -101,6 +101,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 24]: [Phase 24-03]: level-03's 2 fixed platforms (x:1880, x:2640) used a narrower 60px rise target (not the wider 65-75px band) per 24-RESEARCH.md's narrow-40px-overlap-window physics caveat; new bridging platforms used 65px rise (wider touching windows)
 - [Phase 24]: level-04's over-hole mathGate and all 6 known-unreachable platforms fixed with a uniform 70px rise (wide 80-128px span windows tolerate this uniformly, unlike level-03's narrower 40px-window platforms); level-04 extended 55% (goal 3920->6120, bounds.right 4000->6200) via pure appends after x:4000
 - [Phase ?]: [Phase 24-05]: All 4 scripts/smoke-progress.mjs geometry blocks re-baselined (not just level-01's) with old pre-Phase-24 values retained in comments; full suite green (validate-levels PASS zero HARD-FAILs, smoke PASS, check-progress PASS) and LOCKED surfaces (src/math, lib/kaplay.mjs) diff-proven byte-identical to baseline 5eedee8
+- [Phase 25-01]: addBonusXp is a new sibling method on createProgress(), not a call-site reuse of addXp(table) — calculateXp(table) can only ever yield XP_EASY/XP_HARD (10/20), never an arbitrary flat amount like the alcove's 5
+- [Phase 25-01]: secretAlcove.js is the only mechanic wired with progress instead of brain in game.js — it never opens a challenge or freezes the player, so it has no need for the brain's math-selection state
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -146,6 +148,7 @@ Carried forward from previous milestone closes:
 | Phase 24 P03 | 9min | 2 tasks | 1 files |
 | Phase 24 P04 | 5min | 2 tasks | 1 files |
 | Phase 24 P05 | 10min | 2 tasks | 1 files |
+| Phase 25 P01 | 3min | 2 tasks | 5 files |
 
 ## Quick Tasks Completed
 
@@ -155,7 +158,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-06T02:44:56.855Z
+Last session: 2026-07-06T20:49:20.121Z
 Stopped at: Phase 23 complete, ready to plan Phase 24
 Resume file: None
 

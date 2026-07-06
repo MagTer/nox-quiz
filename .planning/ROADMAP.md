@@ -203,13 +203,13 @@ Plans:
   4. Level select shows all 8 levels in a 2×4 grid with locked/unlocked/cleared semantics preserved, and an existing pre-v5.0 save resumes with levels 5–8 locked by default
   5. Levels 5–8 include verticality segments, and every level hides one optional secret XP alcove — finding it rewards XP, missing it costs nothing
 
-**Plans:** 7 plans
+**Plans:** 1/7 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
 
-- [ ] 25-01-PLAN.md — Secret alcove mechanic core (progress.addBonusXp + CONFIG.PROGRESS.XP_ALCOVE + mechanics/secretAlcove.js + build.js/game.js wiring)
+- [x] 25-01-PLAN.md — Secret alcove mechanic core (progress.addBonusXp + CONFIG.PROGRESS.XP_ALCOVE + mechanics/secretAlcove.js + build.js/game.js wiring)
 - [ ] 25-02-PLAN.md — Playwright select-nav row/col fix (browser-boot.mjs + audit-phase21-mechanics.mjs, both call sites)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -301,7 +301,7 @@ Plans:
 | 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
-| 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 0/7 | Not started | - |
+| 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 1/7 | In Progress|  |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
