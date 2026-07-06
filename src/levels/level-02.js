@@ -15,7 +15,8 @@ export const LEVEL_02 = {
   allowedTables: [1, 2, 3, 4, 5, 6, 7],
 
   // Camera clamp scaled to the longer level; top/bottom match the 360px screen.
-  bounds: { left: 0, right: 2800, top: 0, bottom: 360 },
+  // Phase 24: bumped 2800 -> 4280 to cover the +1480px extension (goal 4200 + GOAL_SIZE + 64px buffer).
+  bounds: { left: 0, right: 4280, top: 0, bottom: 360 },
 
   geometry: {
     floors: [
@@ -23,6 +24,8 @@ export const LEVEL_02 = {
       { x: 700, w: 560 },
       { x: 1420, w: 600 },
       { x: 2180, w: 620 },
+      { x: 2960, w: 560 }, // Phase 24 extension run 1 (after gap 2800..2960)
+      { x: 3680, w: 600 }, // Phase 24 extension run 2 (after gap 3520..3680), final run to the new goal
     ],
 
     platforms: [
@@ -33,6 +36,8 @@ export const LEVEL_02 = {
       { x: 1360, y: 192, w: 96, h: 24 },
       { x: 2020, y: 232, w: 128, h: 24 },
       { x: 2360, y: 240, w: 128, h: 24 },
+      { x: 2800, y: 250, w: 128, h: 24 }, // Phase 24: bridges the new 2800..2960 gap, touches floor-3's end at 2800
+      { x: 3520, y: 250, w: 112, h: 24 }, // Phase 24: bridges the new 3520..3680 gap, touches the new floor-4's end at 3520
     ],
 
     coins: [
@@ -55,7 +60,7 @@ export const LEVEL_02 = {
       { x: 2560, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
 
-    goal: { x: 2720, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 4200, y: FLOOR_Y - CONFIG.GOAL_SIZE }, // Phase 24: moved from 2720 (80px buffer before floor-5's end at 4280)
 
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
