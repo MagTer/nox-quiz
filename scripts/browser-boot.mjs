@@ -132,8 +132,18 @@ try {
   // WR-02: derive from the live LEVEL_ORDER import instead of a hardcoded 4-level literal.
   const levels = LEVEL_ORDER;
   for (let i = 0; i < levels.length; i++) {
-    // Move the cursor right to the i-th selectable tile (first tile is already focused).
-    for (let j = 0; j < i; j++) {
+    // Move the cursor to the i-th selectable tile (first tile is already focused).
+    // The select screen is a fixed 4-column grid: compute a row/col position and press
+    // ArrowDown row times then ArrowRight col times, instead of assuming a single flat
+    // row of tiles (25-RESEARCH.md Pitfall 1) -- for i in 0..3 (levels 1-4), row is
+    // always 0, so this is byte-identical to the old ArrowRight-times-i loop.
+    const row = Math.floor(i / 4);
+    const col = i % 4;
+    for (let j = 0; j < row; j++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(150);
+    }
+    for (let j = 0; j < col; j++) {
       await page.keyboard.press("ArrowRight");
       await page.waitForTimeout(150);
     }
