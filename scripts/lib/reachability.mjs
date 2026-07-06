@@ -61,14 +61,26 @@ export function buildNodes(geometry) {
 }
 
 /**
- * Find the first node whose [xStart, xEnd] span contains `x`. When `y` is supplied,
- * additionally requires |y - node.y| < 8, disambiguating an overlapping floor/
- * platform pair at the same x.
+ * Find the node whose [xStart, xEnd] span contains `x`. When only one node's span
+ * contains `x`, that node is returned regardless of `y` (the common case). When
+ * `y` is supplied AND more than one node's span contains `x` (an overlapping
+ * floor/platform pair at the same x), the candidate whose `y` is numerically
+ * CLOSEST to the supplied `y` is returned, disambiguating the pair.
+ *
+ * WR-02: this compares against the closest candidate rather than requiring an
+ * exact `|y - node.y| < 8` match, because real level geometry places entities
+ * (goal/mathGate/door/enemy) using their own sprite-anchor y (e.g.
+ * `FLOOR_Y - CONFIG.GOAL_SIZE`), which is offset from a floor/platform node's y
+ * by the sprite's height — not equal to it. "Closest" still reliably picks the
+ * intended node because the vertical separation between two genuinely distinct
+ * overlapping nodes (bounded below by the jump envelope's maxRise, ~88px in the
+ * calibrated constant) is always far larger than any single sprite's height
+ * offset (<=32px for every barrier kind in this game).
  */
 export function nodeContaining(nodes, x, y) {
-  return nodes.find(
-    (n) => x >= n.xStart && x <= n.xEnd && (y === undefined || Math.abs(y - n.y) < 8)
-  );
+  const candidates = nodes.filter((n) => x >= n.xStart && x <= n.xEnd);
+  if (candidates.length <= 1 || y === undefined) return candidates[0];
+  return candidates.reduce((best, n) => (Math.abs(n.y - y) < Math.abs(best.y - y) ? n : best));
 }
 
 // Solve 0.5*gravity*t^2 - jumpForce*t - dy = 0 for t, returning only positive roots
@@ -296,7 +308,12 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
 
   // --- spawn-goal ---
   const goalX = geometry.goal?.x;
-  const goalNode = goalX !== undefined ? nodeContaining(nodes, goalX) : undefined;
+  // WR-02: pass geometry.goal.y through so nodeContaining can disambiguate an
+  // overlapping floor/platform pair at the same x (its own documented purpose for
+  // the y parameter) — e.g. a goal placed on an elevated platform that overlaps a
+  // floor run's x-range. Omitting y previously "worked" only by accident, because
+  // buildNodes always pushes floor nodes before platform nodes.
+  const goalNode = goalX !== undefined ? nodeContaining(nodes, goalX, geometry.goal.y) : undefined;
   if (!goalNode || !spawnPaths.has(goalNode.id)) {
     rows.push({
       check: "spawn-goal",
