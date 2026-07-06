@@ -203,7 +203,7 @@ Plans:
   4. Level select shows all 8 levels in a 2×4 grid with locked/unlocked/cleared semantics preserved, and an existing pre-v5.0 save resumes with levels 5–8 locked by default
   5. Levels 5–8 include verticality segments, and every level hides one optional secret XP alcove — finding it rewards XP, missing it costs nothing
 
-**Plans:** 5/7 plans executed
+**Plans:** 6/7 plans executed
 **UI hint**: yes
 
 Plans:
@@ -220,7 +220,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 25-06-PLAN.md — smoke-progress.mjs regression finalize (LEVEL_ORDER length bump, geometry re-pinning, save-resume + addBonusXp assertions)
+- [x] 25-06-PLAN.md — smoke-progress.mjs regression finalize (LEVEL_ORDER length bump, geometry re-pinning, save-resume + addBonusXp assertions)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -301,7 +301,7 @@ Plans:
 | 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
-| 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 5/7 | In Progress|  |
+| 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 6/7 | In Progress|  |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
