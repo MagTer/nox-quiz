@@ -5,7 +5,7 @@ milestone_name: Nox Run — Real Levels
 current_phase: 25
 current_phase_name: Levels 5–8, Difficulty Ramp & Select Grid
 status: executing
-stopped_at: Phase 23 complete, ready to plan Phase 24
+stopped_at: Phase 24 complete, ready to plan Phase 25
 last_updated: "2026-07-06T19:18:11.371Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 24 complete, transitioned to Phase 25
