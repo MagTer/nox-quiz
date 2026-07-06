@@ -90,8 +90,10 @@ export function selectScene(data) {
   // UNLOCKED = bright accent, selectable. CLEARED = a check/done mark.
   const tileBoxes = []; // parallel to `tiles`; holds the rect entity per tile
   tiles.forEach((t) => {
-    const x = S.START_X + t.i * (S.TILE_W + S.GAP);
-    const y = S.ROW_Y;
+    const col = t.i % 4;
+    const row = Math.floor(t.i / 4);
+    const x = S.START_X + col * (S.TILE_W + S.GAP);
+    const y = S.ROW_Y + row * (S.TILE_H + S.ROW_GAP);
 
     const fillColor = t.state === "locked" ? LOCKED_GREY : UNLOCKED_FILL;
 
@@ -177,9 +179,55 @@ export function selectScene(data) {
   }
   paintCursor();
 
+  // Left/Right (moveCursor): row-scoped wrap. Only the subset of `selectable`
+  // cursor-indices whose tile falls in the SAME row as the current tile is eligible —
+  // wrapping the whole flat `selectable` list (the old single-row behavior) would let
+  // Left/Right spill into an adjacent row, which CONTEXT.md's locked semantics forbid.
   function moveCursor(delta) {
     if (selectable.length === 0) return;
-    cursor = (cursor + delta + selectable.length) % selectable.length;
+    const currentRow = Math.floor(selectable[cursor] / 4);
+    const rowCursorIdxs = selectable
+      .map((_, ci) => ci)
+      .filter((ci) => Math.floor(selectable[ci] / 4) === currentRow);
+    const posInRow = rowCursorIdxs.indexOf(cursor);
+    const nextPos =
+      (posInRow + delta + rowCursorIdxs.length) % rowCursorIdxs.length;
+    cursor = rowCursorIdxs[nextPos];
+    paintCursor();
+  }
+
+  // Up/Down (moveCursorRow): jump between rows WITHOUT wrapping past the top/bottom
+  // edge (no-op if the target row has no selectable tile at all). Lands on the same
+  // column in the target row if selectable there, else the nearest selectable column.
+  function moveCursorRow(delta) {
+    if (selectable.length === 0) return;
+    const currentRow = Math.floor(selectable[cursor] / 4);
+    const currentCol = selectable[cursor] % 4;
+    const targetRow = currentRow + delta;
+
+    const targetRowCursorIdxs = selectable
+      .map((_, ci) => ci)
+      .filter((ci) => Math.floor(selectable[ci] / 4) === targetRow);
+    if (targetRowCursorIdxs.length === 0) return; // no cross-edge wrap — no-op
+
+    const sameColCi = targetRowCursorIdxs.find(
+      (ci) => selectable[ci] % 4 === currentCol,
+    );
+    if (sameColCi !== undefined) {
+      cursor = sameColCi;
+    } else {
+      // Nearest selectable column in the target row (smallest |col - currentCol|).
+      let best = targetRowCursorIdxs[0];
+      let bestDist = Math.abs((selectable[best] % 4) - currentCol);
+      for (const ci of targetRowCursorIdxs) {
+        const dist = Math.abs((selectable[ci] % 4) - currentCol);
+        if (dist < bestDist) {
+          best = ci;
+          bestDist = dist;
+        }
+      }
+      cursor = best;
+    }
     paintCursor();
   }
 
@@ -193,5 +241,7 @@ export function selectScene(data) {
   // Plain app-bus nav controllers are auto-cleared by go() in Kaplay 3001 (Pattern 6).
   onKeyPress("left", () => moveCursor(-1));
   onKeyPress("right", () => moveCursor(+1));
+  onKeyPress("up", () => moveCursorRow(-1));
+  onKeyPress("down", () => moveCursorRow(+1));
   onKeyPress("enter", () => playCursor());
 }
