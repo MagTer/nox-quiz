@@ -11,9 +11,10 @@
 // its own PASS/FAIL report.
 //
 // SCOPE: this checks ONLY floor-run coverage (geometry.floors), never
-// geometry.platforms. Every shipped door/mathGate/enemy in this game sits at
-// floor level (y: FLOOR_Y - CONFIG.X.H — see src/levels/level-01.js), never at
-// platform level, so platform-membership is intentionally out of scope here.
+// geometry.platforms. Every shipped door/mathGate/enemy/collectZone in this game
+// sits at floor level (y: FLOOR_Y - CONFIG.X.H — see src/levels/level-01.js),
+// never at platform level, so platform-membership is intentionally out of scope
+// here.
 //
 // RESULT CONTRACT: an empty array ([]) means clean (every barrier is fully
 // supported by a floor run). A non-empty array means HARD-FAIL — each row names
@@ -22,9 +23,9 @@
 // (the barrier's footprint is not fully contained in any single floor run).
 //
 // NEVER-BRICK GUARD: every optional geometry array (floors, doors, mathGates,
-// enemies) is `?? []`-guarded, matching this project's established
+// enemies, collectZones) is `?? []`-guarded, matching this project's established
 // build.js/deriveEncounters "never brick" convention (T-23-02) — a geometry
-// object with all four omitted returns [] without throwing.
+// object with all five omitted returns [] without throwing.
 
 import { fileURLToPath } from "url";
 
@@ -34,11 +35,16 @@ const BARRIER_WIDTH = {
   doors: CONFIG.DOOR.W, // 32
   mathGates: CONFIG.MATH_GATE.W, // 32
   enemies: CONFIG.ENEMY.W, // 32
+  // CR-02: collectZones also sit at floor level with a well-defined footprint
+  // width and must be checked like every other barrier kind — reachability.mjs's
+  // own BARRIER_WIDTH map already treats collectZones as a first-class barrier
+  // kind; this module previously omitted it with no scope justification.
+  collectZones: CONFIG.COLLECT.ZONE_W, // 64
 };
 
 /**
- * Find every door/mathGate/enemy whose footprint is NOT fully covered by any
- * single floor run in `geometry.floors`.
+ * Find every door/mathGate/enemy/collectZone whose footprint is NOT fully
+ * covered by any single floor run in `geometry.floors`.
  *
  * @param {object} geometry - a level's geometry object (src/levels/*.js shape).
  * @returns {Array<{kind: string, x: number, w: number, footprint: [number, number]}>}
@@ -53,7 +59,7 @@ export function findOverHoleBarriers(geometry) {
   // between them with no floor beneath it at all.
   const fullyOnOneFloor = (x0, x1) => runs.some(([a, b]) => x0 >= a && x1 <= b);
   const rows = [];
-  for (const kind of ["doors", "mathGates", "enemies"]) {
+  for (const kind of ["doors", "mathGates", "enemies", "collectZones"]) {
     for (const e of geometry[kind] ?? []) {
       const w = BARRIER_WIDTH[kind];
       if (!fullyOnOneFloor(e.x, e.x + w)) {
