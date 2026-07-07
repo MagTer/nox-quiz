@@ -389,7 +389,7 @@ const deepEqual = (a, b) => {
       { x: 3120, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [
-      { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H },
+      { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],
     collectZones: [
       { x: 300, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
@@ -604,8 +604,8 @@ const deepEqual = (a, b) => {
       { x: 4360, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [
-      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
-      { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H },
+      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 },
+      { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 },
     ],
     collectZones: [
       { x: 200, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
@@ -744,7 +744,7 @@ const deepEqual = (a, b) => {
       { x: 5760, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [
-      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
+      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],
     collectZones: [
       { x: 160, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
