@@ -1,0 +1,6 @@
+# GSD research cache — machine-generated, regenerated on demand, never reviewed
+.planning/research/.cache/
+
+# Local scratch artifacts (screenshots, probe output) — evidence that matters is
+# committed explicitly under a phase dir; anything here is throwaway
+artifacts/

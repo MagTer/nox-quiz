@@ -18,6 +18,11 @@ recreates the directory and leaves ~32 PNGs untracked at the stale path.
   upgraded; then delete the stale directory.
 - Until then: leave untracked; do NOT commit them (Plan 22-01 made the same call
   implicitly by leaving them out of the baseline commit).
+- **RESOLVED (2026-07-07):** Phase 23's harness rewrite removed screenshot capture
+  from the audit path entirely (`page.screenshot` now exists only in the two
+  standalone `screenshot-phase18/20.mjs` one-offs), so the stale directory can no
+  longer regenerate. The untracked leftover PNGs were deleted; the signed-off v4.1
+  evidence remains intact in `.planning/milestones/v4.1-phases/.../screenshots/`.
 
 ## From Plan 22-05 (2026-07-05) — FIX-02 decision round
 
