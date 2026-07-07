@@ -9,7 +9,29 @@
 // MAX_FALL_SPEED are set explicitly (not relying on body() defaults — RESEARCH
 // Open Question #1) and are tuned on the stress strip in 08-01 Task 3.
 
+// --- Centralized color palette (VIS-01; Phase 26 Plan 01) ---
+// The single source of truth for every color used across src/scenes/, src/ui/,
+// src/fx.js, and src/levels/build.js. Plain data literal — no engine calls, safe
+// at module top level per the a727c13 rule. Exposed below as CONFIG.PALETTE.
+const PALETTE = {
+  BG: [0x0a, 0x0a, 0x0a],
+  SURFACE: [20, 20, 20],
+  SURFACE_ALT: [30, 30, 30],
+  SURFACE_UNLOCKED: [0x11, 0x11, 0x11],
+  BORDER: [0x33, 0x33, 0x33],
+  MUTED: [0x44, 0x44, 0x44],
+  MUTED_BORDER: [0x55, 0x55, 0x55],
+  TEXT: [0xe8, 0xe8, 0xe8],
+  TEXT_DIM: [0x88, 0x88, 0x88],
+  DANGER: [0xff, 0x44, 0x33],
+  REWARD: [0x00, 0xff, 0x88],
+  CLEARED: [0x66, 0xcc, 0xff],
+  CURSOR: [0xff, 0xff, 0xff],
+};
+
 export const CONFIG = {
+  PALETTE,
+
   // --- Movement / physics (CONTEXT starting tune values — tunable in Phase 12) ---
   RUN_SPEED: 240, // px/s — horizontal run speed (left/right)
   GRAVITY: 1400, // px/s^2 — downward acceleration applied by body()
@@ -98,8 +120,8 @@ export const CONFIG = {
   DOOR: {
     W: 32, // px — door footprint width
     H: 64, // px — door panel height (compact visual; an invisible tall blocker handles physics)
-    LOCKED_GREY: [0x44, 0x44, 0x44], // locked fill (matches select.js LOCKED_GREY)
-    LOCKED_BORDER: [0x55, 0x55, 0x55], // locked outline (matches select.js LOCKED_BORDER)
+    LOCKED_GREY: PALETTE.MUTED, // locked fill (matches select.js LOCKED_GREY)
+    LOCKED_BORDER: PALETTE.MUTED_BORDER, // locked outline (matches select.js LOCKED_BORDER)
     GLYPH_SIZE: 22, // px — lock glyph text size (matches SELECT.GLYPH_SIZE)
   },
 
@@ -108,8 +130,8 @@ export const CONFIG = {
   MATH_GATE: {
     W: 32, // px — gate footprint width
     H: 64, // px — gate panel height
-    LOCKED_GREY: [0x44, 0x44, 0x44], // locked fill (matches DOOR/SELECT locked-tile palette)
-    LOCKED_BORDER: [0x55, 0x55, 0x55], // locked outline
+    LOCKED_GREY: PALETTE.MUTED, // locked fill (matches DOOR/SELECT locked-tile palette)
+    LOCKED_BORDER: PALETTE.MUTED_BORDER, // locked outline
     GLYPH_SIZE: 22, // px — gate glyph text size
   },
 
@@ -118,7 +140,7 @@ export const CONFIG = {
   ENEMY: {
     W: 32, // px — enemy footprint width
     H: 32, // px — enemy footprint height
-    COLOR: [0xff, 0x44, 0x33], // muted red placeholder (NO pink)
+    COLOR: PALETTE.DANGER, // muted red placeholder (NO pink)
     GLYPH_SIZE: 22, // px — enemy glyph text size
   },
 
@@ -138,9 +160,9 @@ export const CONFIG = {
     // labels existed with correct values but were visually unreadable). Reuses the same
     // dark-grunge box/label palette as challenge.js's answer boxes (BOX_BG/BOX_BORDER) and
     // select.js's tile labels (LABEL_FG, ~18:1 contrast, WCAG AA) for visual consistency.
-    PICKUP_BG: [30, 30, 30],
-    PICKUP_BORDER: [0x44, 0x44, 0x44],
-    PICKUP_FG: [0xe8, 0xe8, 0xe8],
+    PICKUP_BG: PALETTE.SURFACE_ALT,
+    PICKUP_BORDER: PALETTE.MUTED,
+    PICKUP_FG: PALETTE.TEXT,
   },
 
   // --- Progression / XP (ported VERBATIM from archive/math-lab.html 604-619 — DO NOT re-tune) ---
