@@ -52,7 +52,7 @@ import { CONFIG } from "../config.js"; // leaf constants only — CONFIG.BRAIN n
  *   snapshot: () => { accuracy: Object<number, number>, history: Object<number, boolean[]> }
  * }}
  *   nextQuestion() yields a 6–9-biased question: `a`=table (1..9), `b`=multiplicand
- *   (1..10), `answer`=a*b, and `choices` is a 4-element shuffled array containing the
+ *   (1..9), `answer`=a*b, and `choices` is a 4-element shuffled array containing the
  *   answer plus 3 distinct plausible distractors. reportResult() updates this brain's
  *   in-memory EWMA accuracy weighting. snapshot() returns shallow copies of accuracy/history
  *   for the loader to persist (one-way export — the brain never reads storage).
@@ -221,7 +221,7 @@ export function createBrain({ seedAccuracy, seedHistory, allowedTables } = {}) {
     const poolArr = shuffle([...pool]);
     const chosen = poolArr.slice(0, 3);
 
-    // Last-resort pad (should be unreachable for multiplicand 1–10 range).
+    // Last-resort pad (should be unreachable for multiplicand 1–9 range).
     while (chosen.length < 3) {
       let pad = answer + chosen.length + 1;
       while (pad === answer || chosen.includes(pad)) pad++;
