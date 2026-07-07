@@ -9,7 +9,7 @@ import { createRequire } from "module";
 import { createServer } from "http";
 import { readFile } from "fs/promises";
 import { existsSync, readdirSync } from "fs";
-import { extname, join } from "path";
+import { extname, join, resolve, sep } from "path";
 
 // WR-02 (ported from browser-boot.mjs): resolve playwright dynamically instead of a
 // hardcoded, machine-specific absolute path. Tries (1) normal project-relative
@@ -51,6 +51,7 @@ async function resolvePlaywright() {
 const { chromium } = await resolvePlaywright();
 
 const ROOT = new URL("../", import.meta.url);
+const ROOT_ABS = resolve(ROOT.pathname);
 const PORT = 8767;
 
 const MIME = {
@@ -79,7 +80,14 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let path = decodeURIComponent(url.pathname);
   if (path === "/") path = "/index.html";
-  const filePath = join(ROOT.pathname, path);
+  // WR-02 (ported from screenshot-phase26.mjs/browser-boot.mjs): resolve + clamp to
+  // ROOT so `..` segments can't escape the served directory; loopback-only bind below.
+  const filePath = resolve(join(ROOT.pathname, path));
+  if (filePath !== ROOT_ABS && !filePath.startsWith(ROOT_ABS + sep)) {
+    res.writeHead(403);
+    res.end("Forbidden");
+    return;
+  }
   try {
     const data = await readFile(filePath);
     const mime = MIME[extname(filePath)] || "application/octet-stream";
@@ -91,7 +99,7 @@ const server = createServer(async (req, res) => {
   }
 });
 
-await new Promise((res) => server.listen(PORT, res));
+await new Promise((res) => server.listen(PORT, "127.0.0.1", res));
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
