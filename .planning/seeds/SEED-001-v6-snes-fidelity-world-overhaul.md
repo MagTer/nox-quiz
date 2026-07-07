@@ -114,6 +114,13 @@ different art per biome, not hue rotation.
 
 ## Breadcrumbs
 
+- **`.planning/research/v6-scouting/ASSET-SCOUTING.md` — ART-01 pre-work DONE
+  (2026-07-07, user-authorized out-of-harness scouting):** recommended anchor is the
+  ansimuz Gothicvania family (all CC0 via OpenGameArt mirrors — swamp/town/cemetery/
+  church/castle biomes, heroes, enemies, parallax), with biome→level mapping, player
+  candidates, flags (pink town sky retint, CC-BY music excluded), and rejected
+  alternatives. v6.0's sourcing phase should START from that report, not re-scout.
+
 - `src/levels/build.js` — the ONE builder; autotiler (`pickTopFrame`), props layer,
   and all sprite-panel swaps land here
 - `src/main.js` — sprite load manifest (will grow substantially; consider data-driven
