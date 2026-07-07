@@ -99,6 +99,32 @@ re-fetchable from the stable OGA URLs in the table; itch.io packs (Options 2/3) 
 re-downloaded via the page's Download button (a session-key fetch script from this
 scouting session is preserved in the scratchpad but the URLs are the durable record).
 
+## Style board (added 2026-07-08)
+
+Four mock screens at the game's exact internal resolution (640×360, floor line at
+y=320, current NOX RUN badge overlaid for brand-fit), composed from the downloaded
+packs with `styleboard.py` (committed next to this doc; pure Pillow):
+
+- `style-board-swamp.png` — levels 1–2 register. Swamp pack layers + tileset terrain;
+  shows the SWAMP HUNTER player candidate plus spider and swamp-thing enemies.
+- `style-board-town.png` — levels 3–4 register. Town pack scene; shows the GOTHIC HERO
+  player candidate and the hell hound (a patrol-enemy candidate). **The pack's
+  salmon-pink dusk sky was hue-rotated to steel-blue night in this render** — live
+  proof the no-pink palette-conform pass works on this art.
+- `style-board-cemetery.png` — levels 5–6 register. Cemetery pack layers; **the pack's
+  magenta horizon glow was hue-rotated to cold blue** (same no-pink pass); Gothic Hero
+  + ghost.
+- `style-board-castle.png` — levels 7–8 register. Old Dark Castle interior; Gothic
+  Hero + fire skull; note the wooden door reading as a natural math-gate/door skin.
+- `style-board-sheet.png` — all four at 1.5× nearest-neighbor (the game's CSS display
+  scale), for side-by-side cohesion judgment.
+
+**What to judge at sign-off:** (1) do the four biomes read as one game? (2) is the
+register dark/edgy without being scary-gross for a 12-year-old? (3) which player
+candidate — Gothic Hero (caped) or Swamp Hunter? (4) are the hue-shifted skies
+(town/cemetery) acceptable? Composition details (exact prop placement, parallax
+distances, terrain autotiling) are v6.0 implementation work, not what this board fixes.
+
 ## Preview images (committed next to this doc)
 
 - `preview-swamp.png` — Swamp pack full scene (player + enemies in situ)
