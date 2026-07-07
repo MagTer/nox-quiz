@@ -89,6 +89,27 @@ loadSprite("bg-near", "../assets/parallax/near.png");
 // Shared title / level-select dark-grunge backdrop (Phase 18 ART-04)
 loadSprite("title-bg", "../assets/tiles/title-bg.png");
 
+// Per-level theme variants (VIS-03; Phase 26 Plan 05) — 8 baked themes, one
+// dedicated accent per level (26-03/26-12). Sprite names exactly match
+// parallax.js's layerName() template and build.js's groundSprite template
+// (`${base}-theme-${n}`), including the literal "theme-N" shape set on each
+// level descriptor's `.theme` field in 26-06.
+for (let n = 1; n <= 8; n++) {
+  loadSprite(`bg-far-theme-${n}`, `../assets/parallax/far-theme-${n}.png`);
+  loadSprite(`bg-mid-theme-${n}`, `../assets/parallax/mid-theme-${n}.png`);
+  loadSprite(`bg-near-theme-${n}`, `../assets/parallax/near-theme-${n}.png`);
+  loadSprite(`ground-theme-${n}`, `../assets/tiles/ground-theme-${n}.png`, {
+    sliceX: CONFIG.GROUND_FRAMES,
+  });
+}
+
+// Door + enemy sprite art (VIS-04; Phase 26 Plan 05) — replaces the flat-color
+// rect+glyph placeholder shipped since Phase 18.
+loadSprite("door", "../assets/door.png");
+loadSprite("enemy-1", "../assets/enemy-1.png");
+loadSprite("enemy-2", "../assets/enemy-2.png");
+loadSprite("enemy-3", "../assets/enemy-3.png");
+
 // Register the real platformer scene and boot it. Seed data is passed via
 // go(name, data) — the CONTEXT-locked anti-leak mechanism: the scene reads its
 // start position from this payload instead of any module-level state.
