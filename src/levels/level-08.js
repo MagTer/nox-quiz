@@ -119,7 +119,7 @@ export const LEVEL_08 = {
     ],
 
     enemies: [
-      { x: 1600, y: FLOOR_Y - CONFIG.ENEMY.H }, // floor-2 (1160..1680)
+      { x: 1600, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 }, // enemy-3 (fly); floor-2 (1160..1680)
     ],
 
     collectZones: [

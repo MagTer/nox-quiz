@@ -81,7 +81,7 @@ export const LEVEL_06 = {
     ],
 
     enemies: [
-      { x: 2150, y: FLOOR_Y - CONFIG.ENEMY.H }, // floor-3 (2040..2660)
+      { x: 2150, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 }, // enemy-2 (barnacle); floor-3 (2040..2660)
     ],
 
     collectZones: [

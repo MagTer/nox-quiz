@@ -110,7 +110,7 @@ export const LEVEL_04 = {
     ],
 
     enemies: [
-      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
+      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }, // enemy-1 (saw)
     ],
 
     collectZones: [

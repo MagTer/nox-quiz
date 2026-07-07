@@ -106,8 +106,8 @@ export const LEVEL_03 = {
     ],
 
     enemies: [
-      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H },
-      { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H }, // Phase 24 extension (on floor-5, 3560..4160)
+      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 }, // enemy-2 (barnacle)
+      { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 }, // enemy-3 (fly); Phase 24 extension (on floor-5, 3560..4160)
     ],
 
     collectZones: [

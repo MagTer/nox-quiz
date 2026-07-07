@@ -133,7 +133,7 @@ export const LEVEL_01 = {
 
     // MECH-05: one defeat-enemy encounter on the middle run.
     enemies: [
-      { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H },
+      { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }, // enemy-1 (saw)
     ],
 
     // MECH-03: one collect-the-answer zone near the start.
