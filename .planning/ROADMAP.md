@@ -377,3 +377,21 @@ not a quick fix.
 Plans:
 
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.2: Fix pink spike hazard sprite (BACKLOG)
+
+**Goal:** [Captured for future planning]
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Captured 2026-07-07 during Phase 26 execution (26-08 screenshot-proof checkpoint): `assets/spike.png`
+(loaded verbatim via `loadSprite("spike", ...)`, no runtime tint) is genuinely pink/rose, not red —
+confirmed via direct pixel scan: dominant opaque colors are `(22,16,30)` dark outline, `(112,87,156)`
+purple, `(255,241,235)` near-white highlight, and `(224,150,168)` dusty pink/rose (zero red-family
+pixels found). This violates CLAUDE.md's explicit, whole-game "no pink" constraint. Pre-existing
+v4.1 art, untouched by Phase 26 or any plan in it. Likely a small, scoped fix (recolor/re-source one
+sprite) whenever picked up.
+
+Plans:
+
+- [ ] TBD (promote with /gsd-review-backlog when ready)
