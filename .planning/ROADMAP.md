@@ -240,7 +240,47 @@ Plans:
   5. **Superseded 2026-07-07 (26-CONTEXT.md):** the `mathlab_platformer_v2` localStorage key is explicitly NOT preserved — the user confirmed the save key may be freely renamed/changed as part of the rebrand, intentionally resetting pre-rebrand player progress. No pre-rebrand-save-resume check is required.
   6. **Added 2026-07-07 (VIS-04, 26-CONTEXT.md):** doors and enemies render with real CC0 sprite art (not the current flat-color rect + text-glyph placeholders — `config.js`'s enemy color is literally commented "placeholder"), sourced and licensed the same way as the existing player/tileset/parallax art, human-signed-off in the running game
 
-**Plans**: TBD
+**Plans:** 11 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 26-01-PLAN.md — VIS-01 palette centralization: CONFIG.PALETTE + sweep of title/select/hud/challenge/mathGate/fx/build.js
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 26-02-PLAN.md — VIS-02 palette expansion: 3 new hue tokens + scripts/check-contrast.mjs + 26-CONTRAST.md
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 26-03-PLAN.md — VIS-03a: 8 per-level theme sub-palettes + theme-parameterized Pillow bake (32 PNGs)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 26-04-PLAN.md — VIS-04a: source/vendor/bake real CC0 door + 3-variant enemy sprite art
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 26-05-PLAN.md — VIS-03b/VIS-04b: build.js/config.js/parallax.js/game.js/main.js wiring (theme-aware ground sprite, door/enemy sprite swap)
+- [ ] 26-06-PLAN.md — level descriptor data: theme field (8 levels) + enemy variant field (6 encounters)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 26-07-PLAN.md — BRAND-01/03: monogram font + logo-hero/logo-badge bake + title.js reveal tween + select.js badge + human sign-off
+- [ ] 26-08-PLAN.md — VIS-03/VIS-04 screenshot proof (scripts/screenshot-phase26.mjs) + human sign-off
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 26-09-PLAN.md — BRAND-02a: core src/ string sweep + save-key rename (mathlab_platformer_v2 -> noxrun_platformer_v1) + sync 5 scripts
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 26-10-PLAN.md — BRAND-02b: docs/README/Docker/CREDITS/script-docstring sweep + scripts/check-rebrand.sh permanent gate
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 26-11-PLAN.md — Closing zero-regression proof: full gate suite + interactive mechanic-audit re-run
+
 **UI hint**: yes
 
 ### Phase 27: Audio & ADHD-Safe Sound
@@ -303,7 +343,7 @@ Plans:
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
-| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
+| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/11 | Not started | - |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
 
