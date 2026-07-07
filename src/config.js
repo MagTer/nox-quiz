@@ -18,9 +18,14 @@ const PALETTE = {
   SURFACE: [20, 20, 20],
   SURFACE_ALT: [30, 30, 30],
   SURFACE_UNLOCKED: [0x11, 0x11, 0x11],
-  BORDER: [0x33, 0x33, 0x33],
+  // BORDER/MUTED_BORDER brightened from their original 0x333333/0x555555 values
+  // (VIS-02; Phase 26 Plan 02) — the originals measured 1.57:1/2.66:1 against BG,
+  // below the 3.0:1 UI-component WCAG threshold this plan's must-have requires
+  // for every role. MUTED (0x444444, not a checked pairing) is left as-is.
+  // See 26-CONTRAST.md and 26-02-SUMMARY.md's deviation log.
+  BORDER: [0x5e, 0x5e, 0x5e],
   MUTED: [0x44, 0x44, 0x44],
-  MUTED_BORDER: [0x55, 0x55, 0x55],
+  MUTED_BORDER: [0x70, 0x70, 0x70],
   TEXT: [0xe8, 0xe8, 0xe8],
   TEXT_DIM: [0x88, 0x88, 0x88],
   DANGER: [0xff, 0x44, 0x33],
