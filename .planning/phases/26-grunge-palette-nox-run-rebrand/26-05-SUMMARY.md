@@ -149,3 +149,7 @@ Note: no level descriptor currently sets a `.theme` field (that's Plan 26-06's j
 ---
 *Phase: 26-grunge-palette-nox-run-rebrand*
 *Completed: 2026-07-07*
+
+## Self-Check: PASSED
+
+All 5 modified source files (src/levels/build.js, src/config.js, src/parallax.js, src/scenes/game.js, src/main.js) plus this summary found on disk; all 4 commit hashes (2df2937, 2f93666, e443998, b0a9113) found in git log.
