@@ -27,6 +27,10 @@ const PALETTE = {
   REWARD: [0x00, 0xff, 0x88],
   CLEARED: [0x66, 0xcc, 0xff],
   CURSOR: [0xff, 0xff, 0xff],
+  // --- Hue-tinted dark accents (VIS-02; Phase 26 Plan 02) ---
+  ACCENT_MOSS: [0x2a, 0x3d, 0x2a], // dark moss green — calm early-level accent
+  ACCENT_SLATE: [0x2c, 0x38, 0x44], // cold blue-grey — mid-level accent
+  ACCENT_RUST: [0x5a, 0x33, 0x22], // muted rust/umber — harsh late-level accent
 };
 
 export const CONFIG = {
