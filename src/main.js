@@ -19,7 +19,7 @@ import { gameScene } from "./scenes/game.js";
 const k = kaplay({
   width: 640,
   height: 360,
-  background: "#0a0a0a",            // project dark-grunge background
+  background: CONFIG.PALETTE.BG,    // project dark-grunge background (single source of truth)
   crisp: true,                      // pixel-perfect upscale (image-rendering: pixelated) — keeps art sharp when the canvas is scaled up
   canvas: document.querySelector("#game"),
 });
