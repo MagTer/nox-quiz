@@ -6,14 +6,14 @@ current_phase: 26
 current_phase_name: Grunge Palette & Nox Run Rebrand
 status: executing
 stopped_at: Completed 26-07-PLAN.md (Nox Run logo baked + wired, human-approved after 2 checkpoint rounds)
-last_updated: "2026-07-07T21:25:35.617Z"
+last_updated: "2026-07-07T21:31:18.653Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 26 execution started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 35
-  completed_plans: 32
+  completed_plans: 33
   percent: 57
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 26 (Grunge Palette & Nox Run Rebrand) — EXECUTING
-Plan: 10 of 11
+Plan: 11 of 11
 Status: Ready to execute
 Last activity: 2026-07-07 — Phase 26 execution started
 
@@ -103,6 +103,7 @@ Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, no
 | Phase 26 P06 | 4min | 2 tasks | 8 files |
 | Phase 26 P07 | 18min | 3 tasks | 10 files |
 | Phase 26 P08 | 30min | 2 tasks | 20 files |
+| Phase 26 P09 | 12min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase ?]: [Phase 26-07]: Human-verify checkpoint round 1 found two real defects (reveal too fast, letters too tight especially on the select badge); both fixed (LOGO_REVEAL_MS 400->500, per-character letter-spacing + upscale-only bake) and re-verified before re-presenting -- approved on round 2
 - [Phase 26]: [Phase 26-08]: Reused scripts/lib/mechanic-drive.mjs's proven driveToXPlanned/resolveIfBoxed driver for a new screenshot script instead of a bespoke timed-hold navigation -- level-01's enemy/door sit behind a mandatory gap-jump and multiple mandatory challenge encounters a bare ArrowRight timer cannot account for
 - [Phase 26]: [Phase 26-08]: Found and fixed a genuine mid-parallax-layer bug via the plan's own screenshot review (7 of 8 themes rendered an identical grey hill) -- _mid_accent_sub() now replaces the top two luminance-ranked slots instead of one, scoped exactly to the mid sub-palette per explicit human instruction; the near layer's identical unfixed defect and a pre-existing pink spike sprite (backlog 999.2) were both surfaced but deliberately left out of scope
+- [Phase 26-09]: Reworded comments referencing the old save key to avoid quoting it literally, so Task 3's own negative-literal verify (grep for zero mathlab_platformer_v2 occurrences in scripts/ + config.js) stays meaningful rather than self-defeated by Task 1's own documentation prose
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -212,7 +214,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-07T21:25:08.601Z
+Last session: 2026-07-07T21:30:35.064Z
 Stopped at: Completed 26-07-PLAN.md (Nox Run logo baked + wired, human-approved after 2 checkpoint rounds)
 Resume file: None
 
