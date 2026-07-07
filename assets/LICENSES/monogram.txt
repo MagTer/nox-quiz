@@ -1,0 +1,48 @@
+Asset:        assets/_font-src/monogram.ttf  (pixel font, used to bake
+              assets/logo-hero.png / assets/logo-badge.png)
+Source pack:  "monogram" by datagoblin
+Author:       datagoblin
+Source URL:   https://datagoblin.itch.io/monogram
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the asset's own itch.io page:
+    "Monogram is a monospace bitmap font, free and CC0!"
+    (the page's License badge additionally reads "Creative Commons Zero v1.0
+     Universal" — the same CC0 declaration covers every file listed under
+     this product's Uploads section, including the file actually vendored
+     here.)
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+    "...dedicated the work to the public domain by waiving all of his or her
+     rights to the work worldwide under copyright law... You can copy, modify,
+     distribute and perform the work, even for commercial purposes, all without
+     asking permission."
+
+File provenance note (read before assuming a filename mismatch is an error):
+The itch.io page's own Uploads list names 4 files for this product —
+monogram.zip, monogram.ttf (10 kB), monogram.p8, and monogram-extended.ttf
+(57 kB). All 4 ship under the one CC0 declaration above; "-extended" is an
+official companion file from the SAME product/page (a superset glyph
+coverage variant), not a different or third-party font. itch.io's plain
+`monogram.ttf` sits behind an interactive, session-gated "Download Now"
+purchase-flow (pay-what-you-want, min price 0) that a stable, scriptable URL
+does not front. The page's OWN live custom CSS, however, embeds a direct,
+non-interactive `@font-face` URL to `monogram-extended.ttf`
+(https://menez.io/css/font/monogram-extended.ttf — menez.io is the same
+author's asset-hosting domain, used by the page itself to render its own
+description text in the font) — this is the "embedded direct file URL"
+vendored here, per this plan's sourcing fallback order. The downloaded file
+was verified before vendoring: TrueType-valid (openable via
+`PIL.ImageFont.truetype`), and its internal font-name table reports
+`('monogram', 'Regular')` — confirming it is genuinely the Monogram font,
+not a mislabeled substitute. Saved locally as `monogram.ttf` (the generic,
+code-facing name every other vendored asset in this repo uses, matching
+`scripts/build-art-assets.py`'s `FONT_PATH` reference) rather than
+`monogram-extended.ttf`, to avoid implying a second, separate font asset
+exists in this project.
+
+Verification: License page opened and the "free and CC0!" declaration plus
+the "Creative Commons Zero v1.0 Universal" license badge confirmed this
+session (2026-07-07). NOT merely "free" and NOT CC-BY.
+
+Vendor logo / brand art: none.

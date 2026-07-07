@@ -540,6 +540,68 @@ def build_enemies():
         save(remapped.convert("RGBA"), os.path.join(ROOT, "assets", out_name))
 
 
+FONT_PATH = os.path.join(ROOT, "assets", "_font-src", "monogram.ttf")
+
+# Logo fill/stroke colors (BRAND-01/BRAND-03; Phase 26 Plan 07) — mirror
+# CONFIG.PALETTE.ACCENT_MOSS/REWARD's CURRENT live hex values from
+# src/config.js (same "read live, don't hand-copy a stale plan literal"
+# principle Plan 26-03 established for THEME_PALETTES above). Named
+# LOGO_FILL/LOGO_STROKE rather than reusing the module-level ACCENT_MOSS
+# constant defined earlier in this file: that constant is Plan 26-12's
+# per-level-theme accent (theme-1's ground/parallax tint) and happens to
+# share the same hex value as CONFIG.PALETTE.ACCENT_MOSS today only by
+# coincidence of which level is first — redefining ACCENT_MOSS here would
+# silently collide with that unrelated, already-in-use module constant.
+LOGO_FILL = (0x47, 0x68, 0x47)  # == CONFIG.PALETTE.ACCENT_MOSS
+LOGO_STROKE = (0x00, 0xFF, 0x88)  # == CONFIG.PALETTE.REWARD
+
+
+def build_logo():
+    """Bake the "NOX RUN" wordmark -> assets/logo-hero.png (360x90) and
+    assets/logo-badge.png (144x36) using the CC0 "monogram" pixel font
+    (BRAND-01/BRAND-03; Phase 26 Plan 07).
+
+    Renders once onto a small transparent source canvas tightly sized to the
+    STROKED text's own ink bbox, height-rounded so the canvas is an exact
+    4:1 width:height ratio — this is what lets both target canvases below
+    (360x90 and 144x36, both also exactly 4:1) scale up UNIFORMLY, never a
+    non-uniform/distorting stretch. `Image.NEAREST` scales that SAME small
+    source canvas independently to each target size (the badge is never
+    derived by shrinking the hero PNG — each is its own baked NEAREST scale,
+    per this plan's explicit "do not runtime-scale one into the other"
+    rule); NEAREST preserves the pixel font's crisp blocky edges instead of
+    introducing anti-aliased smoothing on upscale.
+    """
+    font = ImageFont.truetype(FONT_PATH, 64)
+    probe = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
+    ink_bbox = probe.textbbox((0, 0), "NOX RUN", font=font, stroke_width=2)
+    ink_w = ink_bbox[2] - ink_bbox[0]
+    ink_h = ink_bbox[3] - ink_bbox[1]
+
+    canvas_w = ink_w
+    canvas_h = round(canvas_w / 4)  # exact 4:1 canvas -> uniform hero/badge scale
+    pad_top = (canvas_h - ink_h) // 2
+
+    canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    draw.text(
+        (-ink_bbox[0], pad_top - ink_bbox[1]),
+        "NOX RUN",
+        font=font,
+        fill=(*LOGO_FILL, 255),
+        stroke_width=2,
+        stroke_fill=(*LOGO_STROKE, 255),
+    )
+
+    hero = canvas.resize((360, 90), Image.NEAREST)
+    assert hero.size == (360, 90), f"logo-hero wrong size: {hero.size}"
+    save(hero, os.path.join(ROOT, "assets", "logo-hero.png"))
+
+    badge = canvas.resize((144, 36), Image.NEAREST)
+    assert badge.size == (144, 36), f"logo-badge wrong size: {badge.size}"
+    save(badge, os.path.join(ROOT, "assets", "logo-badge.png"))
+
+
 def _load_live_palette():
     """Read CONFIG.PALETTE live from src/config.js via a node subprocess.
 
@@ -611,3 +673,4 @@ if __name__ == "__main__":
         build_parallax_theme(theme_id, palette)
     build_door()
     build_enemies()
+    build_logo()
