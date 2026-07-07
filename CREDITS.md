@@ -1,6 +1,6 @@
 # Credits
 
-Math Lab ships a small subset of third-party pixel art for its platformer level.
+Nox Run ships a small subset of third-party pixel art for its platformer levels.
 **Every shipped asset is CC0 (Creative Commons Zero / Public Domain)** — verified at
 each asset's own source page before vendoring. CC0 attribution is *optional*, but the
 original authors are listed below as good practice.

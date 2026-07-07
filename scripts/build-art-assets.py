@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build Phase 20 real-CC0-art pixel assets for Math Lab.
+"""Build Phase 20 real-CC0-art pixel assets for Nox Run.
 
 Successor to `scripts/generate-art-assets.py` (which drew flat rectangles +
 random noise and is now retained only as a labeled dev/prototyping tool — see

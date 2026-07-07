@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Phase 18 placeholder pixel-art assets for Math Lab.
+"""Generate Phase 18 placeholder pixel-art assets for Nox Run.
 
 SUPERSEDED (Phase 20): the shipped pipeline is now `scripts/build-art-assets.py`,
 which sources real, licensed CC0 art instead of drawing procedural rectangles
