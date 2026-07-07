@@ -118,7 +118,7 @@ export function gameScene(data) {
   // --- Parallax background (Phase 18 ART-03) ---
   // Camera-driven layers below gameplay z-order; created after the level so
   // bounds are known and before the player so the player draws on top.
-  const parallaxLayers = makeParallaxLayers(bounds);
+  const parallaxLayers = makeParallaxLayers(bounds, level.theme);
 
   // --- Player ---
   // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).

@@ -39,9 +39,10 @@ function makeParallaxLayer(name, bounds, ratio, zLayer, y) {
 /**
  * Build all three parallax layers for a level.
  * @param {object} bounds - level bounds with left/right
+ * @param {string} [theme] - level theme id (e.g. "theme-3"); falsy -> base untinted layers
  * @returns {{name: string, instances: GameObj[], ratio: number}[]}
  */
-export function makeParallaxLayers(bounds) {
+export function makeParallaxLayers(bounds, theme) {
   const P = CONFIG.PARALLAX;
   // Per-key defaulting, same idiom as camera.js: game.js's whole-object fallback
   // (`level.bounds ?? {...}`) does NOT default individual missing keys, so a future
@@ -54,20 +55,42 @@ export function makeParallaxLayers(bounds) {
     left: bounds?.left ?? CONFIG.LEVEL_LEFT,
     right: bounds?.right ?? CONFIG.LEVEL_RIGHT,
   };
+  // Theme-templated sprite-name helper (VIS-03; Phase 26 Plan 05), same per-key-
+  // defaulting spirit as safeBounds above: theme absent means the base untinted
+  // layer set, never a crash.
+  const layerName = (base) => (theme ? `${base}-${theme}` : base);
   return [
     {
-      name: "bg-far",
-      instances: makeParallaxLayer("bg-far", safeBounds, P.FAR_RATIO, P.FAR_Z, P.Y_ANCHOR - 120),
+      name: layerName("bg-far"),
+      instances: makeParallaxLayer(
+        layerName("bg-far"),
+        safeBounds,
+        P.FAR_RATIO,
+        P.FAR_Z,
+        P.Y_ANCHOR - 120,
+      ),
       ratio: P.FAR_RATIO,
     },
     {
-      name: "bg-mid",
-      instances: makeParallaxLayer("bg-mid", safeBounds, P.MID_RATIO, P.MID_Z, P.Y_ANCHOR - 144),
+      name: layerName("bg-mid"),
+      instances: makeParallaxLayer(
+        layerName("bg-mid"),
+        safeBounds,
+        P.MID_RATIO,
+        P.MID_Z,
+        P.Y_ANCHOR - 144,
+      ),
       ratio: P.MID_RATIO,
     },
     {
-      name: "bg-near",
-      instances: makeParallaxLayer("bg-near", safeBounds, P.NEAR_RATIO, P.NEAR_Z, P.Y_ANCHOR - 90),
+      name: layerName("bg-near"),
+      instances: makeParallaxLayer(
+        layerName("bg-near"),
+        safeBounds,
+        P.NEAR_RATIO,
+        P.NEAR_Z,
+        P.Y_ANCHOR - 90,
+      ),
       ratio: P.NEAR_RATIO,
     },
   ];

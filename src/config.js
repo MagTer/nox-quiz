@@ -141,9 +141,7 @@ export const CONFIG = {
   DOOR: {
     W: 32, // px — door footprint width
     H: 64, // px — door panel height (compact visual; an invisible tall blocker handles physics)
-    LOCKED_GREY: PALETTE.MUTED, // locked fill (matches select.js LOCKED_GREY)
-    LOCKED_BORDER: PALETTE.MUTED_BORDER, // locked outline (matches select.js LOCKED_BORDER)
-    GLYPH_SIZE: 22, // px — lock glyph text size (matches SELECT.GLYPH_SIZE)
+    SPRITES: ["door"], // real sprite art (VIS-04; Phase 26 Plan 05) — replaces the flat-color rect+glyph placeholder
   },
 
   // --- Checkpoint math gates (mid-level challenge seam; MECH-04) ---
@@ -156,13 +154,12 @@ export const CONFIG = {
     GLYPH_SIZE: 22, // px — gate glyph text size
   },
 
-  // --- Defeat-enemy placeholder (MECH-05) ---
-  // Compact square placeholder; Phase 18 replaces it with a sprite. Muted red, no pink.
+  // --- Defeat-enemy encounter (MECH-05) ---
+  // Real sprite art since Phase 26 Plan 05 (VIS-04) — 3 distinct variants.
   ENEMY: {
     W: 32, // px — enemy footprint width
     H: 32, // px — enemy footprint height
-    COLOR: PALETTE.DANGER, // muted red placeholder (NO pink)
-    GLYPH_SIZE: 22, // px — enemy glyph text size
+    SPRITES: ["enemy-1", "enemy-2", "enemy-3"], // real sprite art (VIS-04; Phase 26 Plan 05) — replaces the flat-color rect+glyph placeholder
   },
 
   // --- Collect-the-answer zone + pickups (MECH-03) ---
