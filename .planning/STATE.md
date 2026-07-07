@@ -4,16 +4,16 @@ milestone: v5.0
 milestone_name: Nox Run — Real Levels
 current_phase: 26
 current_phase_name: Grunge Palette & Nox Run Rebrand
-status: ready-to-execute
+status: executing
 stopped_at: Phase 26 fully planned (11 plans, 9 waves) and plan-checker verified; ready to execute
-last_updated: "2026-07-07T16:35:44.236Z"
+last_updated: "2026-07-07T18:36:35.043Z"
 last_activity: 2026-07-07
-last_activity_desc: Phase 25 complete, transitioned to Phase 26
+last_activity_desc: Phase 26 execution started
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 23
-  completed_plans: 23
+  total_plans: 34
+  completed_plans: 24
   percent: 57
 ---
 
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 26 — Grunge Palette & Nox Run Rebrand
-Plan: Not started
-Status: Fully planned and plan-checker verified (11 plans across 9 waves — palette centralization/expansion incl. a new human-verify checkpoint for the banned-hue guardrail, per-level theming, door/enemy sprite art (new VIS-04), Nox Run logo, full rebrand sweep with save key intentionally renamed). Ready to execute.
-Last activity: 2026-07-07 — Phase 26 planned (research, pattern-mapper, planner, plan-checker revision loop all complete)
+Phase: 26 (Grunge Palette & Nox Run Rebrand) — EXECUTING
+Plan: 2 of 11
+Status: Ready to execute
+Last activity: 2026-07-07 — Phase 26 execution started
 
 Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, not yet executed)
 
@@ -94,6 +94,7 @@ Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, no
 | Phase 25 P07 | spans 2 sessions (~16h wall-clock, mostly idle) | 2 tasks | 10 files |
 
 </details>
+| Phase 26 P01 | 7min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 25-07]: 25-07's human-verify checkpoint (secret alcove + select-grid sign-off) was closed on an explicitly reduced scope (level-01's alcove only) by the human's own choice, honestly recorded rather than treated as a full pass -- see 25-FINDINGS.md (d)
 - [Phase 25]: Code review (25-REVIEW.md) found 6 warnings; 4 fixed (config magic number, stale comments in level-08/brain.js, progress.js DRY), 2 (secretAlcove has zero automated reachability/trigger coverage) deliberately left unfixed rather than risk false HARD-FAILs on shipped content -- tracked as a pending todo, not silently dropped
 - [Phase 25]: Phase-level UAT (25-UAT.md) closed via a real full-playthrough that surfaced genuine, separate issues (some pickups/ledges unreachable in levels 5-8, level-07/08 end-climb sections near-duplicates); user explicitly accepted these as non-blocking/deferrable rather than reopening Wave 2 plans -- VERIFICATION.md status upgraded human_needed -> passed on this explicit basis, new issues captured as a pending todo
+- [Phase 26-01]: PALETTE ships with 13 named color-role keys (plan prose miscounted as 12; kept all 13 as literally specified since 12 are required consumer mappings and BG is a legitimate forward-looking token) — Plan 26-01's action text said 'exactly 12 keys' but its own key list enumerated 13; dropping one would break Task 2/3 consumer mappings
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -187,7 +189,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-07
+Last session: 2026-07-07T18:36:35.032Z
 Stopped at: Phase 26 fully planned and verified, ready to execute (user requested a context reset here)
 Resume file: None
 

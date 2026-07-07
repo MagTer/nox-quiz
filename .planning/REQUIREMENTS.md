@@ -36,7 +36,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Visuals
 
-- [ ] **VIS-01**: Duplicated color literals centralized into `CONFIG.PALETTE` before any expansion
+- [x] **VIS-01**: Duplicated color literals centralized into `CONFIG.PALETTE` before any expansion
 - [ ] **VIS-02**: Expanded grunge palette — hue-tinted darks (moss green, blue-grey, rust), WCAG AA contrast recorded per role, no pink
 - [ ] **VIS-03**: Per-level background/accent theme tinting via the art pipeline, under human visual sign-off
 - [ ] **VIS-04**: Doors and enemies get real CC0 sprite art replacing their placeholder rect+glyph rendering (config.js's enemy `COLOR` is literally commented "placeholder"; door is a flat grey panel), under human visual sign-off — added 2026-07-07 per user request during Phase 26 discuss, echoing the original v5.0 kickoff framing ("make sure monster, doors and other parts of the game are reviewed and updated")
@@ -113,7 +113,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LVL-06 | Phase 25 | Complete |
 | MATH-01 | Phase 25 | Complete |
 | MATH-02 | Phase 25 | Complete |
-| VIS-01 | Phase 26 | Pending |
+| VIS-01 | Phase 26 | Complete |
 | VIS-02 | Phase 26 | Pending |
 | VIS-03 | Phase 26 | Pending |
 | VIS-04 | Phase 26 | Pending |
