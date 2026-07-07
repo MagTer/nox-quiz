@@ -70,6 +70,11 @@ export function buildLevel(levelData) {
 
   const g = levelData.geometry;
 
+  // Theme-aware ground sprite (VIS-03; Phase 26 Plan 05): falls back to the base
+  // untinted "ground" sprite when levelData.theme is unset, so any level without a
+  // theme (or a future level, or a node-import context) still builds correctly.
+  const groundSprite = levelData.theme ? `ground-${levelData.theme}` : "ground";
+
   // Helper: pick the correct ground.png frame for a top-surface tile based on
   // its position within a run/platform. Pure visual pass — colliders are merged
   // separately and untouched (Phase 18 ART-02).
@@ -103,7 +108,7 @@ export function buildLevel(levelData) {
     // Visual-only floor tiles across the run — NO area()/body() (the merged
     // collider above is the only physics body for this run).
     for (let tx = run.x; tx < run.x + run.w; tx += T) {
-      add([sprite("ground", { frame: pickTopFrame(tx, run.x, run.w) }), pos(tx, FLOOR_Y)]);
+      add([sprite(groundSprite, { frame: pickTopFrame(tx, run.x, run.w) }), pos(tx, FLOOR_Y)]);
     }
   }
 
@@ -120,7 +125,7 @@ export function buildLevel(levelData) {
       "ground",
     ]);
     for (let tx = p.x; tx < p.x + p.w; tx += T) {
-      add([sprite("ground", { frame: pickTopFrame(tx, p.x, p.w) }), pos(tx, p.y)]);
+      add([sprite(groundSprite, { frame: pickTopFrame(tx, p.x, p.w) }), pos(tx, p.y)]);
     }
   }
 
@@ -170,27 +175,12 @@ export function buildLevel(levelData) {
       "door",
     ]);
 
-    // Visible door panel — the cosmetic locked door the player sees.
-    const panel = add([
-      rect(CONFIG.DOOR.W, CONFIG.DOOR.H),
-      pos(d.x, d.y),
-      color(...CONFIG.DOOR.LOCKED_GREY),
-      outline(2, rgb(...CONFIG.DOOR.LOCKED_BORDER)),
-      "door-panel",
-    ]);
-
-    // Visual lock glyph — purely cosmetic, no area() so it never collides.
-    const glyph = add([
-      text("X", { size: CONFIG.DOOR.GLYPH_SIZE }),
-      anchor("center"),
-      pos(d.x + CONFIG.DOOR.W / 2, d.y + CONFIG.DOOR.H / 2),
-      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
-      "door-glyph",
-    ]);
+    // Visible door panel — the cosmetic locked door the player sees. Real sprite art
+    // (VIS-04; Phase 26 Plan 05) replaces the flat-color rect+glyph placeholder.
+    const panel = add([sprite("door"), pos(d.x, d.y), "door-panel"]);
 
     // Stash linked visual objects on the blocker so door.js can clean everything up at once.
     blocker.panelObj = panel;
-    blocker.glyphObj = glyph;
   }
 
   // --- Checkpoint math gates (MECH-04) ---
@@ -249,23 +239,16 @@ export function buildLevel(levelData) {
       "enemy",
     ]);
 
+    // Visible enemy panel — real sprite art (VIS-04; Phase 26 Plan 05) replaces the
+    // flat-color rect+glyph placeholder. Falls back to variant 0 (enemy-1) when a
+    // level's enemy object has no `variant` field yet.
     const panel = add([
-      rect(CONFIG.ENEMY.W, CONFIG.ENEMY.H),
+      sprite(CONFIG.ENEMY.SPRITES[e.variant ?? 0]),
       pos(e.x, e.y),
-      color(...CONFIG.ENEMY.COLOR),
       "enemy-panel",
     ]);
 
-    const glyph = add([
-      text("!", { size: CONFIG.ENEMY.GLYPH_SIZE }),
-      anchor("center"),
-      pos(e.x + CONFIG.ENEMY.W / 2, e.y + CONFIG.ENEMY.H / 2),
-      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
-      "enemy-glyph",
-    ]);
-
     enemyObj.panelObj = panel;
-    enemyObj.glyphObj = glyph;
   }
 
   // --- Collect-the-answer zones (MECH-03) ---
