@@ -1,4 +1,4 @@
-// src/main.js — Math Lab v3.0 game shell (Phase 8 platformer boot)
+// src/main.js — Nox Run v3.0 game shell (Phase 8 platformer boot)
 //
 // Imports the vendored Kaplay engine (relative to src/, so the same path
 // resolves under the dev server and inside the nginx container), initializes
@@ -91,7 +91,7 @@ loadSprite("title-bg", "../assets/tiles/title-bg.png");
 
 // Baked "NOX RUN" wordmark (BRAND-01/BRAND-03; Phase 26 Plan 07) — hero size
 // for the title screen, badge size for level-select. Replaces the old
-// text("Math Lab") wordmark.
+// plain-text wordmark.
 loadSprite("logo-hero", "../assets/logo-hero.png");
 loadSprite("logo-badge", "../assets/logo-badge.png");
 

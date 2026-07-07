@@ -1,4 +1,4 @@
-// src/scenes/title.js — the Math Lab title scene (Phase 14 NAV-01).
+// src/scenes/title.js — the Nox Run title scene (Phase 14 NAV-01).
 //
 // The simplest possible instance of the project's scene-factory template
 // (src/scenes/game.js:31): a closure-only factory whose body draws the
@@ -26,7 +26,7 @@ import { resetSave } from "../progress.js"; // guarded storage-clearing seam (Re
 // Colors read from the single source of truth, CONFIG.PALETTE (VIS-01; Phase 26 Plan 01).
 
 /**
- * titleScene — NAV-01. Render the centered "Math Lab" wordmark + a press-to-start
+ * titleScene — NAV-01. Render the centered "Nox Run" logo + a press-to-start
  * prompt, and wire Enter / Space / full-screen click → go("select").
  *
  * @param {object} [data] go() payload (unused here; kept for the factory contract).

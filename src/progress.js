@@ -296,18 +296,18 @@ export function loadSave() {
     try {
       data = JSON.parse(raw);
     } catch {
-      console.warn("[MathLab] Save data corrupt — using defaults");
+      console.warn("[NoxRun] Save data corrupt — using defaults");
       return defaults();
     }
 
     if (!data || data.version !== CONFIG.SAVE.VERSION) {
-      console.warn("[MathLab] Save version mismatch — using defaults");
+      console.warn("[NoxRun] Save version mismatch — using defaults");
       return defaults(); // NO migration from the school game's save
     }
 
     return validate(data);
   } catch (e) {
-    console.warn("[MathLab] Load failed:", e);
+    console.warn("[NoxRun] Load failed:", e);
     return defaults();
   }
 }
@@ -326,9 +326,9 @@ export function writeSave(blob) {
     localStorage.setItem(CONFIG.SAVE.KEY, JSON.stringify(blob));
   } catch (e) {
     if (e?.name === "QuotaExceededError") {
-      console.warn("[MathLab] localStorage full — progress may not save");
+      console.warn("[NoxRun] localStorage full — progress may not save");
     } else {
-      console.warn("[MathLab] Save failed:", e);
+      console.warn("[NoxRun] Save failed:", e);
     }
   }
 }
@@ -347,6 +347,6 @@ export function resetSave() {
   try {
     localStorage.removeItem(CONFIG.SAVE.KEY);
   } catch (e) {
-    console.warn("[MathLab] Reset failed:", e);
+    console.warn("[NoxRun] Reset failed:", e);
   }
 }
