@@ -23,16 +23,7 @@ import { CONFIG } from "../config.js"; // title layout constants
 import { resetSave } from "../progress.js"; // guarded storage-clearing seam (Reset Progress)
 
 // Dark-grunge palette per CLAUDE.md (neon-green accent, light-grey foreground, NO pink).
-// Plain data literals — safe at module scope because they call no engine global (a727c13).
-// Reused verbatim from src/ui/hud.js:36-37 so the title reads as the same world.
-const ACCENT_GREEN = [0x00, 0xff, 0x88]; // "Math Lab" wordmark
-const HINT_FG = [0xe8, 0xe8, 0xe8]; // press-to-start prompt (#e8e8e8 — ~18:1 on #0a0a0a)
-
-// Reset Progress control palette (quick-260707-95c).
-const RESET_FG = [0x88, 0x88, 0x88]; // muted grey — visually secondary to the start prompt
-const DANGER_RED = [0xff, 0x44, 0x33]; // same muted-red as challenge.js ACCENT_RED / CONFIG.ENEMY.COLOR
-const PANEL_BG = [20, 20, 20]; // byte-identical to challenge.js's PANEL_BG
-const PANEL_BORDER = [0x33, 0x33, 0x33]; // byte-identical to challenge.js's PANEL_BORDER
+// Colors read from the single source of truth, CONFIG.PALETTE (VIS-01; Phase 26 Plan 01).
 
 /**
  * titleScene — NAV-01. Render the centered "Math Lab" wordmark + a press-to-start
@@ -53,7 +44,7 @@ export function titleScene(data) {
     text("Math Lab", { size: T.TITLE_SIZE }),
     anchor("center"),
     pos(center()),
-    color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]),
+    color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
     fixed(),
     z(9000),
     "title",
@@ -64,7 +55,7 @@ export function titleScene(data) {
     text("press ENTER / SPACE / click to start", { size: T.PROMPT_SIZE }),
     anchor("center"),
     pos(center().x, center().y + T.PROMPT_DY),
-    color(HINT_FG[0], HINT_FG[1], HINT_FG[2]),
+    color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
     fixed(),
     z(9000),
     "title",
@@ -79,7 +70,7 @@ export function titleScene(data) {
     rect(T.RESET_CHIP_W, T.RESET_CHIP_H),
     anchor("center"),
     pos(center().x, T.RESET_Y),
-    color(PANEL_BG[0], PANEL_BG[1], PANEL_BG[2]),
+    color(CONFIG.PALETTE.SURFACE[0], CONFIG.PALETTE.SURFACE[1], CONFIG.PALETTE.SURFACE[2]),
     opacity(0.85),
     fixed(),
     z(8999),
@@ -92,7 +83,7 @@ export function titleScene(data) {
     text("press R to reset progress", { size: T.RESET_SIZE }),
     anchor("center"),
     pos(center().x, T.RESET_Y),
-    color(RESET_FG[0], RESET_FG[1], RESET_FG[2]),
+    color(CONFIG.PALETTE.TEXT_DIM[0], CONFIG.PALETTE.TEXT_DIM[1], CONFIG.PALETTE.TEXT_DIM[2]),
     fixed(),
     z(9000),
     "title",
@@ -145,8 +136,8 @@ export function titleScene(data) {
       rect(T.CONFIRM_PANEL_W, T.CONFIRM_PANEL_H),
       anchor("center"),
       pos(center()),
-      color(PANEL_BG[0], PANEL_BG[1], PANEL_BG[2]),
-      outline(2, rgb(PANEL_BORDER[0], PANEL_BORDER[1], PANEL_BORDER[2])),
+      color(CONFIG.PALETTE.SURFACE[0], CONFIG.PALETTE.SURFACE[1], CONFIG.PALETTE.SURFACE[2]),
+      outline(2, rgb(CONFIG.PALETTE.BORDER[0], CONFIG.PALETTE.BORDER[1], CONFIG.PALETTE.BORDER[2])),
       fixed(),
       z(9991),
       "title",
@@ -156,7 +147,7 @@ export function titleScene(data) {
     // Heading — danger-red, states the destructive action plainly.
     add([
       text("Reset ALL progress?", { size: T.CONFIRM_TITLE_SIZE }),
-      color(DANGER_RED[0], DANGER_RED[1], DANGER_RED[2]),
+      color(CONFIG.PALETTE.DANGER[0], CONFIG.PALETTE.DANGER[1], CONFIG.PALETTE.DANGER[2]),
       anchor("center"),
       pos(center().x, center().y - 40),
       fixed(),
@@ -170,7 +161,7 @@ export function titleScene(data) {
       text("XP, levels, and unlocked stages will be cleared. This can't be undone.", {
         size: T.CONFIRM_BODY_SIZE,
       }),
-      color(HINT_FG[0], HINT_FG[1], HINT_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       anchor("center"),
       pos(center().x, center().y - 8),
       fixed(),
@@ -182,7 +173,7 @@ export function titleScene(data) {
     // Hint — the Y/N/ESC key mapping.
     add([
       text("Y = yes, reset     N / ESC = cancel", { size: T.CONFIRM_HINT_SIZE }),
-      color(HINT_FG[0], HINT_FG[1], HINT_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       anchor("center"),
       pos(center().x, center().y + 30),
       fixed(),
@@ -224,7 +215,7 @@ export function titleScene(data) {
       text("Progress reset.", { size: T.PROMPT_SIZE }),
       anchor("center"),
       pos(center()),
-      color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]),
+      color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
       opacity(1),
       fixed(),
       z(9500),

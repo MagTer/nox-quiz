@@ -31,10 +31,7 @@
 import { CONFIG } from "../config.js"; // HUD layout constants — the only non-engine import
 
 // Dark-grunge palette per CLAUDE.md (#333 track border-grey, neon-green accent, NO pink).
-// Reused verbatim from src/ui/mathGate.js 39-42 so the HUD reads as the same world.
-const TRACK_GREY = [0x33, 0x33, 0x33]; // XP bar track (empty portion)
-const ACCENT_GREEN = [0x00, 0xff, 0x88]; // badge + XP fill + level-up flash
-const HINT_FG = [0xe8, 0xe8, 0xe8]; // controls hint text (#e8e8e8 — ~18:1 on #0a0a0a, readable)
+// Colors read from the single source of truth, CONFIG.PALETTE (VIS-01; Phase 26 Plan 01).
 
 /**
  * Mount the fixed progression HUD for one scene/session.
@@ -56,7 +53,7 @@ export function mountHud(progress) {
   const badge = add([
     text("LVL " + progress.getLevel(), { size: M.BADGE_SIZE }),
     pos(M.X, M.Y),
-    color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]),
+    color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
     fixed(),
     z(9000),
     "hud",
@@ -66,7 +63,7 @@ export function mountHud(progress) {
   add([
     rect(M.BAR_W, M.BAR_H),
     pos(M.X, M.Y + M.BAR_DY),
-    color(TRACK_GREY[0], TRACK_GREY[1], TRACK_GREY[2]),
+    color(CONFIG.PALETTE.BORDER[0], CONFIG.PALETTE.BORDER[1], CONFIG.PALETTE.BORDER[2]),
     fixed(),
     z(9000),
     "hud",
@@ -77,7 +74,7 @@ export function mountHud(progress) {
   const fill = add([
     rect(1, M.BAR_H),
     pos(M.X, M.Y + M.BAR_DY),
-    color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]),
+    color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
     fixed(),
     z(9001),
     "hud",
@@ -97,7 +94,7 @@ export function mountHud(progress) {
   add([
     text("← → move · SPACE jump", { size: CONFIG.HINT.SIZE }),
     pos(CONFIG.HINT.X, CONFIG.HINT.Y),
-    color(HINT_FG[0], HINT_FG[1], HINT_FG[2]),
+    color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
     fixed(),
     z(9000),
     "hud",
@@ -128,7 +125,7 @@ export function mountHud(progress) {
       text("LEVEL UP", { size: M.FLASH_SIZE }),
       anchor("center"),
       pos(center()),
-      color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]),
+      color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
       opacity(1),
       fixed(),
       z(9500),

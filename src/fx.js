@@ -9,8 +9,7 @@
 // dark-grunge grey dust + neon-green pop/burst, NO pink.
 //
 // ENGINE-GLOBAL DISCIPLINE — a727c13 LESSON (HARD): this module's ONLY top-level
-// statement that touches a name is `import { CONFIG } from "./config.js"` (plus the
-// plain ACCENT_GREEN array literal, which is just data — no engine call). Every
+// statement that touches a name is `import { CONFIG } from "./config.js"`. Every
 // Kaplay global (add, tween, rect, pos, color, opacity, anchor, z, scale, vec2,
 // destroy, easings, fixed, center) is used ONLY INSIDE the exported function bodies.
 // Imports are hoisted and run BEFORE main.js calls kaplay({ global: true }), so a
@@ -32,9 +31,8 @@
 
 import { CONFIG } from "./config.js"; // FX tuning constants — the only non-engine import
 
-// Dark-grunge neon-green accent (reused verbatim from src/ui/hud.js:36). A plain
-// array literal — data only, no engine call — so it is safe at module top level.
-const ACCENT_GREEN = [0x00, 0xff, 0x88]; // pop + clear burst (NO pink anywhere)
+// Dark-grunge neon-green accent, read from CONFIG.PALETTE.REWARD (VIS-01; Phase 26
+// Plan 01) — pop + clear burst (NO pink anywhere).
 
 /**
  * Squash/stretch the player via its scale() comp, then snap back to neutral (1,1).
@@ -147,7 +145,7 @@ export function pop(at) {
   const marker = add([
     rect(F.POP_SIZE, F.POP_SIZE), // dedicated pop footprint — decoupled from DUST_SIZE (IN-02)
     pos(at.x, at.y),
-    color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]), // neon-green
+    color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]), // neon-green
     opacity(1),
     anchor("center"),
     scale(1),
@@ -183,7 +181,7 @@ export function clearBurst() {
   const burst = add([
     rect(F.BURST_SIZE, F.BURST_SIZE),
     pos(center()),
-    color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]), // neon-green
+    color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]), // neon-green
     opacity(0.6),
     anchor("center"),
     scale(1),
