@@ -357,3 +357,22 @@ Plans:
 
 *Archives: [v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) · [v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md) · [v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md) · [v4.1-ROADMAP.md](milestones/v4.1-ROADMAP.md)*
 *v5.0 roadmap created 2026-07-05 — next: `/gsd-plan-phase 22`*
+
+## Backlog
+
+### Phase 999.1: Reconsider/remove the "collect the answer" mechanic (BACKLOG)
+
+**Goal:** [Captured for future planning]
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Captured 2026-07-07 during Phase 26 execution: user found the collect-the-answer mechanic
+(`collectZones`, MECH-03, `src/mechanics/collect.js` — invisible answer-zone triggers that
+spawn numeric pickups matching a math question) confusing/bad while playtesting during a
+Phase 26 checkpoint review ("that feature is rather bad anyway"). Currently present in 5 of
+8 levels (01, 03, 04, 06, 08; not in 02, 05, 07). Removing or reworking it would affect
+math-practice pacing tuned across Phases 24–25, so this needs deliberate discuss/plan work,
+not a quick fix.
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
