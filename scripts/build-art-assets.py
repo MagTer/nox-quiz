@@ -556,42 +556,77 @@ LOGO_FILL = (0x47, 0x68, 0x47)  # == CONFIG.PALETTE.ACCENT_MOSS
 LOGO_STROKE = (0x00, 0xFF, 0x88)  # == CONFIG.PALETTE.REWARD
 
 
+LOGO_TEXT = "NOX RUN"
+LOGO_FONT_SIZE = 32  # px — deliberately small (not 64): keeps the padded source
+# canvas below BOTH bake targets (360x90 hero, 144x36 badge) so Image.NEAREST
+# always scales UP, never down — a downscale-via-NEAREST softened/lost stroke
+# pixels at badge size in this plan's first attempt (human-verify feedback,
+# 2026-07-07: "logo... hard to read, especially on the level select screen").
+LOGO_STROKE_WIDTH = 2  # px — kept absolute (not scaled with font size); at
+# LOGO_FONT_SIZE 32 this stroke reads as a clearly visible neon edge without
+# fully engulfing the smaller glyph's dark fill (a size-64/stroke-2 pairing
+# tried during Task 1 left almost no fill visible — chunky-but-hard-to-read).
+LOGO_LETTER_SPACING = 4  # px of EXTRA gap inserted after each character's
+# own monospace advance width (human-verify feedback, 2026-07-07: "slightly
+# more spacing between the letters would make it easier to read").
+
+
 def build_logo():
     """Bake the "NOX RUN" wordmark -> assets/logo-hero.png (360x90) and
     assets/logo-badge.png (144x36) using the CC0 "monogram" pixel font
     (BRAND-01/BRAND-03; Phase 26 Plan 07).
 
-    Renders once onto a small transparent source canvas tightly sized to the
-    STROKED text's own ink bbox, height-rounded so the canvas is an exact
-    4:1 width:height ratio — this is what lets both target canvases below
+    Renders CHARACTER BY CHARACTER (not one draw.text(long_string) call) at a
+    fixed per-character pitch (monogram's own uniform monospace advance width
+    + LOGO_LETTER_SPACING extra gap) onto a small transparent source canvas —
+    Pillow's draw.text() has no letter-spacing/tracking parameter, so this is
+    the direct way to add gap between glyphs. The canvas is sized to the
+    stroked text's own ink bbox (using the SPACED total width, not the
+    single-call bbox), height-rounded so the canvas is an exact 4:1
+    width:height ratio — this is what lets both target canvases below
     (360x90 and 144x36, both also exactly 4:1) scale up UNIFORMLY, never a
     non-uniform/distorting stretch. `Image.NEAREST` scales that SAME small
     source canvas independently to each target size (the badge is never
     derived by shrinking the hero PNG — each is its own baked NEAREST scale,
     per this plan's explicit "do not runtime-scale one into the other"
     rule); NEAREST preserves the pixel font's crisp blocky edges instead of
-    introducing anti-aliased smoothing on upscale.
+    introducing anti-aliased smoothing on upscale — and LOGO_FONT_SIZE is
+    deliberately chosen small enough that both scale steps are upscales.
     """
-    font = ImageFont.truetype(FONT_PATH, 64)
+    font = ImageFont.truetype(FONT_PATH, LOGO_FONT_SIZE)
     probe = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
-    ink_bbox = probe.textbbox((0, 0), "NOX RUN", font=font, stroke_width=2)
-    ink_w = ink_bbox[2] - ink_bbox[0]
-    ink_h = ink_bbox[3] - ink_bbox[1]
 
+    # monogram is a genuinely monospace font (every glyph reports the same
+    # advance width) — confirmed live via font.getlength() before relying on
+    # a single char_pitch for the whole string instead of per-glyph metrics.
+    advance = font.getlength("N")
+    char_pitch = advance + LOGO_LETTER_SPACING
+
+    # Vertical extent + left-side stroke overflow read from the ORIGINAL
+    # single-call bbox (stroke_width bleeds a couple px left/above the
+    # nominal glyph origin) — spacing only changes horizontal layout.
+    full_bbox = probe.textbbox((0, 0), LOGO_TEXT, font=font, stroke_width=LOGO_STROKE_WIDTH)
+    ink_h = full_bbox[3] - full_bbox[1]
+    left_overflow = -full_bbox[0]
+
+    ink_w = round(char_pitch * (len(LOGO_TEXT) - 1) + advance) + 2 * left_overflow
     canvas_w = ink_w
     canvas_h = round(canvas_w / 4)  # exact 4:1 canvas -> uniform hero/badge scale
     pad_top = (canvas_h - ink_h) // 2
 
     canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
-    draw.text(
-        (-ink_bbox[0], pad_top - ink_bbox[1]),
-        "NOX RUN",
-        font=font,
-        fill=(*LOGO_FILL, 255),
-        stroke_width=2,
-        stroke_fill=(*LOGO_STROKE, 255),
-    )
+    y = pad_top - full_bbox[1]
+    for i, ch in enumerate(LOGO_TEXT):
+        x = left_overflow + i * char_pitch
+        draw.text(
+            (x, y),
+            ch,
+            font=font,
+            fill=(*LOGO_FILL, 255),
+            stroke_width=LOGO_STROKE_WIDTH,
+            stroke_fill=(*LOGO_STROKE, 255),
+        )
 
     hero = canvas.resize((360, 90), Image.NEAREST)
     assert hero.size == (360, 90), f"logo-hero wrong size: {hero.size}"
