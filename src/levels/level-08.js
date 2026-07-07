@@ -92,7 +92,7 @@ export const LEVEL_08 = {
     // it sits on: FLOOR_Y-48 on the floors, tier.y-48 on each climb tier.
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 }, // start
-      { x: 130, y: FLOOR_Y - 48 }, // before collectZone@200 (lead 70)
+      { x: 130, y: FLOOR_Y - 48 }, // before collectZone@150 (lead 20)
       { x: 630, y: FLOOR_Y - 48 }, // before door@700 (lead 70)
       { x: 780, y: FLOOR_Y - 48 }, // before spike@850 (lead 70)
       { x: 1230, y: FLOOR_Y - 48 }, // before mathGate@1300 (lead 70)
