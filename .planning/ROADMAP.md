@@ -88,7 +88,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 - [x] **Phase 23: Level Validation Harness** - Static level validator calibrated against real engine physics + upgraded interactive audit, proven against the known live bugs before being trusted (completed 2026-07-05)
 - [x] **Phase 24: Fix & Lengthen Levels 1–4** - Fix the known structural defects and lengthen the four kid-validated levels with scaled checkpoint density, gated by the new validator (completed 2026-07-06)
 - [x] **Phase 25: Levels 5–8, Difficulty Ramp & Select Grid** - Four new pure-data levels with verticality and secret alcoves, gentle 8-level ramp, 2×4 select grid, tables 1 and ×10 dropped (completed 2026-07-07)
-- [ ] **Phase 26: Grunge Palette & Nox Run Rebrand** - Centralized then expanded grunge palette with per-level themes, Nox Run logo and full string sweep with the save key untouched
+- [ ] **Phase 26: Grunge Palette & Nox Run Rebrand** - Centralized then expanded grunge palette with per-level themes, Nox Run logo and full string sweep (save key intentionally NOT preserved — user confirmed 2026-07-07)
 - [ ] **Phase 27: Audio & ADHD-Safe Sound** - Core SFX set, calm gesture-gated ambient music, persisted M-key mute, designed ADHD-safe mix
 - [ ] **Phase 28: Full Verification & Interactive Sign-off** - Interactive audit start→goal on all 8 levels, all automated gates green in one run, human sign-off on levels/art/audio
 
@@ -228,16 +228,17 @@ Plans:
 
 ### Phase 26: Grunge Palette & Nox Run Rebrand
 
-**Goal**: The game looks and reads as Nox Run — a richer dark-grunge identity with per-level themes and a signed-off logo — while her save survives untouched
+**Goal**: The game looks and reads as Nox Run — a richer dark-grunge identity with per-level themes, real door/enemy sprites replacing their placeholder rects, and a signed-off logo
 **Depends on**: Phase 25 (per-level themes need all 8 levels; internally, palette work precedes the logo so the wordmark is designed against final tokens)
-**Requirements**: VIS-01, VIS-02, VIS-03, BRAND-01, BRAND-02, BRAND-03
+**Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, BRAND-01, BRAND-02, BRAND-03
 **Success Criteria** (what must be TRUE):
 
   1. Every duplicated color literal lives in `CONFIG.PALETTE` before expansion, and the expanded palette adds hue-tinted darks (moss green, blue-grey, rust) with WCAG AA contrast recorded per role and zero pink anywhere
   2. Each of the 8 levels has a distinct background/accent theme tint produced through the art pipeline, human-signed-off in the running game
   3. The title screen shows the Nox Run dark-green/black pixel wordmark (CC0 font, Pillow-baked PNG) with a light/neon separation element, revealed in a ≤500ms non-strobing animation and human-signed-off at real sizes
-  4. No user-facing "Math Lab" string remains (HTML title, title screen, docs, Docker, README) — enforced by a grep sweep with an explicit allowlist for the save key and school-game comments
-  5. A pre-rebrand save resumes with XP/level/completion intact — the `mathlab_platformer_v2` localStorage key provably untouched
+  4. No user-facing "Math Lab" string remains (HTML title, title screen, docs, Docker, README) — enforced by a grep sweep with an explicit allowlist for historical school-game comments
+  5. **Superseded 2026-07-07 (26-CONTEXT.md):** the `mathlab_platformer_v2` localStorage key is explicitly NOT preserved — the user confirmed the save key may be freely renamed/changed as part of the rebrand, intentionally resetting pre-rebrand player progress. No pre-rebrand-save-resume check is required.
+  6. **Added 2026-07-07 (VIS-04, 26-CONTEXT.md):** doors and enemies render with real CC0 sprite art (not the current flat-color rect + text-glyph placeholders — `config.js`'s enemy color is literally commented "placeholder"), sourced and licensed the same way as the existing player/tileset/parallax art, human-signed-off in the running game
 
 **Plans**: TBD
 **UI hint**: yes

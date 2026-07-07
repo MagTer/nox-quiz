@@ -10,7 +10,7 @@
 | Language | Vanilla ES2020 modules under `src/` | No TypeScript, no JSX, no framework, no npm, no build step, no node_modules. |
 | Serving | MUST be over HTTP — `file://` is blocked (guard in `src/index.html`) | Dev: `cd src && python3 -m http.server 8000`. Production: nginx Docker static container via Dokploy (`docker/`, `docs/DEPLOY.md`) — packaging, not a build. |
 | Canvas | Internal 640×360, displayed 1.5× via CSS `transform: scale(1.5)` | NEVER scale via width/height — desyncs Kaplay's offsetX/offsetY mouse mapping and silently breaks `box.onClick()` (documented in `src/main.js`). |
-| Persistence | localStorage key `mathlab_platformer_v2`, version 2 | Key is NOT part of the brand — rebrand must never touch it. All access through guarded `src/progress.js` seams (never throw, forgiving defaults). |
+| Persistence | localStorage key `mathlab_platformer_v2`, version 2 (pre-Phase-26 value) | **Superseded 2026-07-07:** earlier milestones treated this key as brand-independent and never-touch; Phase 26's CONTEXT.md records the user's explicit, confirmed decision to rename/change the save key as part of the Nox Run rebrand, intentionally resetting pre-rebrand player progress (no migration). All access still goes through guarded `src/progress.js` seams (never throw, forgiving defaults) — only the key literal's stability guarantee changed. |
 | Assets | Curated CC0 pixel art under `assets/` | Licenses in `assets/LICENSES/`, credits in `CREDITS.md`; some baked by `scripts/build-art-assets.py` (Pillow). |
 | Test harness | Playwright driven from `scripts/*.mjs` | Resolved dynamically (project dep → `PLAYWRIGHT_MJS_PATH` env → nvm-wide gsd-pi search). No JS test framework — the shell gates + browser scripts ARE the suite. |
 

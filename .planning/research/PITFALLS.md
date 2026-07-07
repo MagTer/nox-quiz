@@ -209,6 +209,8 @@ A design/planning task at the start of the level-content phase; validator enforc
 
 ### Pitfall 10: Rebrand renames the save key (or the URL) and wipes her progress
 
+> **Consciously accepted 2026-07-07 (26-CONTEXT.md):** for the save-key half of this pitfall specifically, the user explicitly confirmed — after being asked to verify they understood the effect — that the save key MAY be freely renamed/changed as part of Phase 26, intentionally accepting the progress reset this section warns about. This is exactly the "consciously accepts a progress reset and tells her" escape hatch this pitfall's own mitigation section already named as a legitimate alternative to keeping the key frozen. The deployed-origin/URL half of this pitfall is unaffected — no URL change is planned.
+
 **What goes wrong:**
 The most dangerous 5 minutes of the milestone: a thorough "Nox Run" rename sweeps up `mathlab_platformer_v2` — the localStorage key holding the XP, levels, and unlocks of the one player who matters. Rename it and her progress is gone on next visit. A subtler variant: the rebrand motivates a new deployment URL/origin — localStorage is origin-scoped, so a new origin orphans the save just as thoroughly with zero code changes.
 

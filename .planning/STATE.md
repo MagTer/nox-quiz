@@ -102,7 +102,7 @@ Progress: [██████░░░░] 57% (4/7 phases)
 Full log in PROJECT.md Key Decisions. Binding for v5.0:
 
 - **Brain is LOCKED** — difficulty via per-level table pools only; the single authorized exception is MATH-02's one-literal roll change (1–10 → 1–9); verify zero other diff in `src/math/`
-- **`mathlab_platformer_v2` save key is NOT part of the brand** — rebrand must never touch it; pre-rebrand save must resume post-rebrand
+- **`mathlab_platformer_v2` save key is NOT part of the brand** — SUPERSEDED 2026-07-07: user confirmed the save key may be freely renamed/changed as part of the Phase 26 rebrand, intentionally resetting her current pre-rebrand progress (no migration required)
 - **Zero new runtime dependencies** — no Howler.js, no npm, no Kaplay upgrade; use vendored Kaplay's audio API (`setVolume`, not deprecated `volume()`)
 - **Validator trusted only after catching the known live bugs** (door-over-hole, unreachable areas) — Phase 22 inventories them but leaves them in place for Phase 23's RED calibration; Phase 24 fixes them
 - **v4.1 verification standard holds** — no phase closes on greps/automation alone; interactive proof + human sign-off where claimed

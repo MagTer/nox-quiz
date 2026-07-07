@@ -39,11 +39,12 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **VIS-01**: Duplicated color literals centralized into `CONFIG.PALETTE` before any expansion
 - [ ] **VIS-02**: Expanded grunge palette — hue-tinted darks (moss green, blue-grey, rust), WCAG AA contrast recorded per role, no pink
 - [ ] **VIS-03**: Per-level background/accent theme tinting via the art pipeline, under human visual sign-off
+- [ ] **VIS-04**: Doors and enemies get real CC0 sprite art replacing their placeholder rect+glyph rendering (config.js's enemy `COLOR` is literally commented "placeholder"; door is a flat grey panel), under human visual sign-off — added 2026-07-07 per user request during Phase 26 discuss, echoing the original v5.0 kickoff framing ("make sure monster, doors and other parts of the game are reviewed and updated")
 
 ### Rebrand
 
 - [ ] **BRAND-01**: Nox Run logo — dark green/black pixel wordmark (CC0 font, Pillow-baked PNG) with a light/neon separation element, human-signed-off in the running game
-- [ ] **BRAND-02**: Full Math Lab → Nox Run string sweep (HTML title, title screen, docs, Docker, README) with the localStorage save key (`mathlab_platformer_v2`) explicitly untouched and a pre-rebrand save verified to resume
+- [ ] **BRAND-02**: Full Math Lab → Nox Run string sweep (HTML title, title screen, docs, Docker, README). **Amended 2026-07-07 (26-CONTEXT.md):** the localStorage save key (`mathlab_platformer_v2`) is explicitly NOT required to survive the rebrand — user confirmed it may be freely renamed/changed, intentionally resetting pre-rebrand player progress; no save-resume verification required.
 - [ ] **BRAND-03**: Logo reveal animation on title screen — ≤500ms, non-strobing
 
 ### Audio
@@ -115,6 +116,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIS-01 | Phase 26 | Pending |
 | VIS-02 | Phase 26 | Pending |
 | VIS-03 | Phase 26 | Pending |
+| VIS-04 | Phase 26 | Pending |
 | BRAND-01 | Phase 26 | Pending |
 | BRAND-02 | Phase 26 | Pending |
 | BRAND-03 | Phase 26 | Pending |
@@ -125,8 +127,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Coverage:**
 
-- v5.0 requirements: 24 total (note: previously miscounted as 23 — the ID list FIX-01..02, VALID-01..04, LVL-01..06, MATH-01..02, VIS-01..03, BRAND-01..03, AUD-01..04 sums to 24)
-- Mapped to phases: 24 ✓
+- v5.0 requirements: 25 total (FIX-01..02, VALID-01..04, LVL-01..06, MATH-01..02, VIS-01..04, BRAND-01..03, AUD-01..04 — VIS-04 added 2026-07-07 during Phase 26 discuss)
+- Mapped to phases: 25 ✓
 - Unmapped: 0
 
 ---
