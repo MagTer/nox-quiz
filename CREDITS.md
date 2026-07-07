@@ -23,6 +23,7 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 | Background Elements (composited) | `assets/tiles/title-bg.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Title/select screen backdrop — castle + hills + clouds |
 | 6 Color Dungeon 16x16 (gate/archway) | `assets/door.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Locked door barrier sprite |
 | New Platformer Pack (saw/barnacle/fly enemies) | `assets/enemy-1.png, assets/enemy-2.png, assets/enemy-3.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/new-platformer-pack | CC0 | Defeat-enemy encounter sprites — 3 variants |
+| monogram (pixel font) | `assets/_font-src/monogram.ttf` | datagoblin | https://datagoblin.itch.io/monogram | CC0 | Baked into `assets/logo-hero.png`/`assets/logo-badge.png` — the "NOX RUN" title/select wordmark |
 
 ## Notes
 
@@ -41,6 +42,11 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
   (which also includes worm/snail/slime variants) for a mechanical/monster/insect thematic
   spread — following the same "no vendor logos, single cropped tile" discipline as every
   other asset in this file.
+- `assets/_font-src/monogram.ttf` was vendored from `monogram-extended.ttf` — an
+  officially-listed companion file on the same CC0 "monogram" product page (a
+  superset-glyph-coverage variant, not a different font), fetched via the page's own
+  embedded `@font-face` URL rather than its base file's interactive purchase-flow
+  download. Full provenance in `assets/LICENSES/monogram.txt`.
 - **Phase 20 correction:** Phase 18 (v4.0) silently replaced the real, CC0-sourced
   `player.png`/`ground.png` above with procedurally-generated placeholder art
   (`scripts/generate-art-assets.py` drawing flat rectangles + random noise), while
