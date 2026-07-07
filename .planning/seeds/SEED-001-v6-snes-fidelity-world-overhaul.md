@@ -114,6 +114,16 @@ different art per biome, not hue rotation.
 
 ## Breadcrumbs
 
+- **`.planning/research/v6-scouting/SPIKE-FINDINGS.md` — MOT-01/MOT-02/ART-02 technical
+  pre-work DONE (2026-07-08, user-authorized out-of-harness spikes, measured against the
+  pinned vendored engine in a real browser):** (1) Kaplay 3001 carries platform riders
+  NATIVELY (`stickToPlatform`, default on) — manual carry is a proven anti-pattern;
+  (2) built-in `patrol()` component covers patrol-enemy movement, dt-based, no timers;
+  (3) ART-02 fill rendering must use cap-row-per-tile + CHUNKED `{tiled:true}` fill
+  sprites (≤~40 cols/object — one giant tiled quad silently renders nothing; naive
+  per-tile fill hits a 15fps cliff at ~5k objects). Port-ready idioms + perf table in
+  the doc; spike code under `spike-code/`. v6.0 planning should consume these as
+  verified facts, not re-research them.
 - **`.planning/research/v6-scouting/ASSET-SCOUTING.md` — ART-01 pre-work DONE
   (2026-07-07, user-authorized out-of-harness scouting):** recommended anchor is the
   ansimuz Gothicvania family (all CC0 via OpenGameArt mirrors — swamp/town/cemetery/
