@@ -105,6 +105,22 @@ export function createProgress(saved) {
       ? CONFIG.PROGRESS.XP_HARD
       : CONFIG.PROGRESS.XP_EASY;
 
+  // Shared award + level-up-with-surplus-carry-over helper (WR-05 dedup): both addXp
+  // and addBonusXp add a delta to `xp` then run the IDENTICAL carry-over while-loop
+  // (RESEARCH Pattern 1) — `xp -= threshold` (NOT xp = 0) is deliberate, resetting to 0
+  // feels punishing (archive 682 comment). Kept as one closure-local helper so the two
+  // public methods can never diverge if this business rule is ever retuned.
+  const awardAndCarry = (delta) => {
+    xp += delta;
+    let leveledUp = false;
+    while (xp >= threshold(level)) {
+      xp -= threshold(level); // carry surplus over, never reset to 0
+      level += 1;
+      leveledUp = true;
+    }
+    return leveledUp;
+  };
+
   return {
     // Live getters — mirror getXp()/getLevel() so the headless smoke can read p.xp/p.level
     // directly as well as via the explicit getters used in the plan's behaviour spec.
@@ -141,32 +157,17 @@ export function createProgress(saved) {
     // award. `xp -= threshold` (NOT xp = 0) is deliberate — resetting to 0 feels punishing
     // (archive 682 comment). Returns whether a level-up happened.
     addXp(table) {
-      xp += calculateXp(table);
-      let leveledUp = false;
-      while (xp >= threshold(level)) {
-        xp -= threshold(level); // carry surplus over, never reset to 0
-        level += 1;
-        leveledUp = true;
-      }
-      return leveledUp;
+      return awardAndCarry(calculateXp(table));
     },
 
     // Award a FLAT, non-table-scaled XP amount (LVL-06's secret-alcove bonus). This
     // exists because calculateXp(table) can only ever yield XP_EASY/XP_HARD (10/20) —
     // there is no `table` value that produces an arbitrary flat amount like the
     // alcove's 5, so a genuine sibling method is required rather than a call-site
-    // reuse or a fabricated table hack. Reuses the IDENTICAL carry-over while-loop
-    // body as addXp (xp -= threshold, level += 1, never reset to 0) — seeded from a
-    // raw `amount` instead of a table lookup.
+    // reuse or a fabricated table hack. Shares the awardAndCarry() helper with addXp
+    // (WR-05) — seeded from a raw `amount` instead of a table lookup.
     addBonusXp(amount) {
-      xp += amount;
-      let leveledUp = false;
-      while (xp >= threshold(level)) {
-        xp -= threshold(level); // carry surplus over, never reset to 0
-        level += 1;
-        leveledUp = true;
-      }
-      return leveledUp;
+      return awardAndCarry(amount);
     },
 
     // Build the persistable blob (archive toJSON 713-716 shape + version). Persists ONLY
