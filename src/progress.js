@@ -331,3 +331,21 @@ export function writeSave(blob) {
     }
   }
 }
+
+/**
+ * Clear the platformer save. This is the seam the title screen's "Reset Progress"
+ * control calls. It removes ONLY the versioned save key (CONFIG.SAVE.KEY) so any
+ * future, unrelated persisted setting (e.g. an audio mute-toggle key, not implemented
+ * yet) is never touched — a wildcard `localStorage.clear()` is deliberately never used.
+ * Forgiving by mandate, same guard shape as loadSave()/writeSave(): missing/blocked
+ * storage is a silent no-op, and a thrown removeItem is caught and warned, never
+ * rethrown into the caller.
+ */
+export function resetSave() {
+  if (!storageAvailable()) return;
+  try {
+    localStorage.removeItem(CONFIG.SAVE.KEY);
+  } catch (e) {
+    console.warn("[MathLab] Reset failed:", e);
+  }
+}
