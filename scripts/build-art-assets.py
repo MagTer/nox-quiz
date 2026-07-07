@@ -28,9 +28,11 @@ while ENVIRONMENT_PALETTE (ground/tileset) stays dark-grunge. The two palette
 lists are never mixed (Common Pitfall #4 from 20-RESEARCH.md).
 """
 
+import json
 import os
+import subprocess
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "assets", "_kenney-src")
@@ -328,8 +330,69 @@ def build_title_bg():
     save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", "title-bg.png"))
 
 
+def _load_live_palette():
+    """Read CONFIG.PALETTE live from src/config.js via a node subprocess.
+
+    Never hand-mirrored into a Python constant (avoids drift risk) — the
+    exact same "single source of truth, no hardcoded hex copy" principle
+    scripts/check-contrast.mjs already established, applied from the Python
+    side. Returns an ordered dict of role name -> [r, g, b].
+    """
+    result = subprocess.run(
+        [
+            "node",
+            "--input-type=module",
+            "-e",
+            "import { CONFIG } from './src/config.js'; console.log(JSON.stringify(CONFIG.PALETTE));",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return json.loads(result.stdout)
+
+
+def build_palette_swatch():
+    """CONFIG.PALETTE (live, all roles) -> 26-PALETTE-SWATCH.png (VIS-02).
+
+    Debug-only proof image for the Task 5 human-verify checkpoint: one
+    labeled swatch per CONFIG.PALETTE role, arranged in a fixed 4-column
+    grid on a mid-grey canvas (so near-black roles like BG stay visible
+    against the canvas edge). Not a runtime asset — never loaded by the game.
+    """
+    palette = _load_live_palette()
+
+    cell_w, cell_h = 140, 70
+    cols = 4
+    margin = 12
+    rows = (len(palette) + cols - 1) // cols
+
+    canvas_w = margin + cols * (cell_w + margin)
+    canvas_h = margin + rows * (cell_h + margin)
+    canvas = Image.new("RGB", (canvas_w, canvas_h), (0x60, 0x60, 0x60))  # mid-grey
+    draw = ImageDraw.Draw(canvas)
+    font = ImageFont.load_default()
+
+    for i, (role, rgb) in enumerate(palette.items()):
+        col = i % cols
+        row = i // cols
+        x0 = margin + col * (cell_w + margin)
+        y0 = margin + row * (cell_h + margin)
+        x1, y1 = x0 + cell_w, y0 + cell_h
+        r, g, b = rgb[0], rgb[1], rgb[2]
+        draw.rectangle([x0, y0, x1, y1], fill=(r, g, b))
+
+        text_color = (0, 0, 0) if (r + g + b) > 384 else (255, 255, 255)
+        label = f"{role}\n#{r:02x}{g:02x}{b:02x}"
+        draw.multiline_text((x0 + 8, y0 + 8), label, fill=text_color, font=font)
+
+    save(canvas, os.path.join(ROOT, ".planning", "phases", "26-grunge-palette-nox-run-rebrand", "26-PALETTE-SWATCH.png"))
+
+
 if __name__ == "__main__":
     build_player()
     build_ground()
     build_parallax()
     build_title_bg()
+    build_palette_swatch()
