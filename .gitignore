@@ -4,3 +4,7 @@
 # Local scratch artifacts (screenshots, probe output) — evidence that matters is
 # committed explicitly under a phase dir; anything here is throwaway
 artifacts/
+
+# Python bytecode cache — regenerated on every scripts/build-art-assets.py run
+__pycache__/
+*.pyc

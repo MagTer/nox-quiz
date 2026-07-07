@@ -323,6 +323,55 @@ def _accent_sub(base, primary_color):
     return lst
 
 
+def _mid_accent_sub(base, primary_color):
+    """MID-layer-specific accent substitution (Plan 26-08 checkpoint fix).
+
+    Bug this replaces: `_accent_sub` above only overwrites ONE slot (index 4,
+    which for ENVIRONMENT_PALETTE_MID's 5-entry list is originally P5=0x88
+    luma136), leaving the adjacent P4=0x66 (luma102) slot untouched. The
+    `mid` layer's own composited source art (hills1.png + temple/castle/tower
+    motifs) has a dominant fill luminance that _remap_luminance's per-image
+    normalization always buckets into this palette's TOP rank (empirically
+    confirmed: idx 4 of 5, every theme, since the source geometry is
+    level-invariant — only the accent recolor changes). Whichever color ends
+    up ranked highest AFTER _remap_luminance re-sorts by luminance is what
+    the player actually sees as the hill fill. All 8 hand-tuned dark-grunge
+    accent hues (Plan 26-02/26-12, already human-signed-off — their hex
+    values are NOT changed by this fix) have luma ~90-102, clustered BELOW
+    P4's 102 for 7 of 8 accents (only EMBER's 102.2 narrowly clears it) — so
+    the untouched P4 slot silently kept winning the top rank for every theme
+    except 8, making level-01..07's mid hill render as identical neutral
+    grey despite each theme's own distinct accent (found via real in-browser
+    screenshot review at the Plan 26-08 checkpoint, confirmed via direct
+    pixel-luma inspection of the baked assets before this fix).
+
+    Fix: replace BOTH of the two highest slots (indices 3 and 4) with
+    accent-derived shades — a darker body tone (scaled 0.8x per channel,
+    verified to stay above the next-highest surviving base entry, P3's
+    luma68, for even the darkest accent, MOSS at luma90.4 -> shade luma72.2)
+    and the accent itself as the brighter highlight. Whichever of the top
+    two ranks the dominant source pixel lands on, the result is now always
+    accent-family, regardless of the accent's own exact luma — removing the
+    fragile exact-luma-tie dependency `_accent_sub` had. Scoped to the `mid`
+    sub-palette only: far/near/ground/title all keep using `_accent_sub`
+    unchanged (far/ground already read correctly distinct per-theme; near
+    shares this same underlying pattern but is explicitly out of scope for
+    this fix — see 26-08-SUMMARY.md).
+    """
+    lst = list(base)
+
+    def _set(idx, color):
+        if idx < len(lst):
+            lst[idx] = color
+        else:
+            lst.append(color)
+
+    shade = tuple(max(0, round(c * 0.8)) for c in primary_color)
+    _set(3, shade)
+    _set(4, primary_color)
+    return lst
+
+
 # Theme-to-level mapping — one dedicated accent per level (Plan 26-12
 # mid-execution revision, 2026-07-07: previously 3 shared accents produced
 # identical baked output for level pairs 1/2, 3/4, 7/8, undercutting VIS-03's
@@ -352,7 +401,7 @@ _THEME_ACCENTS = {
 THEME_PALETTES = {
     theme_id: {
         "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, accent),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, accent),
+        "mid": _mid_accent_sub(ENVIRONMENT_PALETTE_MID, accent),
         "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, accent),
         "ground": _accent_sub(ENVIRONMENT_PALETTE, accent),
     }
