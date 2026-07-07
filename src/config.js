@@ -28,9 +28,14 @@ const PALETTE = {
   CLEARED: [0x66, 0xcc, 0xff],
   CURSOR: [0xff, 0xff, 0xff],
   // --- Hue-tinted dark accents (VIS-02; Phase 26 Plan 02) ---
-  ACCENT_MOSS: [0x2a, 0x3d, 0x2a], // dark moss green — calm early-level accent
-  ACCENT_SLATE: [0x2c, 0x38, 0x44], // cold blue-grey — mid-level accent
-  ACCENT_RUST: [0x5a, 0x33, 0x22], // muted rust/umber — harsh late-level accent
+  // Brightened from the plan's initial literal picks (0x2a3d2a/0x2c3844/0x5a3322,
+  // ~1.7:1 contrast) to clear scripts/check-contrast.mjs's 3.0:1 UI-component
+  // threshold against BG — see 26-CONTRAST.md and 26-02-SUMMARY.md's deviation
+  // log. Zero consumers exist yet (per-level theming lands in a later Phase 26
+  // plan), so this is a safe same-plan correction, not a shipped-art change.
+  ACCENT_MOSS: [0x47, 0x68, 0x47], // dark moss green — calm early-level accent (~3.15:1 vs BG)
+  ACCENT_SLATE: [0x4e, 0x64, 0x78], // cold blue-grey — mid-level accent (~3.22:1 vs BG)
+  ACCENT_RUST: [0x8c, 0x50, 0x36], // muted rust/umber — harsh late-level accent (~3.13:1 vs BG)
 };
 
 export const CONFIG = {
