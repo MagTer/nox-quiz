@@ -234,13 +234,14 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. Every duplicated color literal lives in `CONFIG.PALETTE` before expansion, and the expanded palette adds hue-tinted darks (moss green, blue-grey, rust) with WCAG AA contrast recorded per role and zero pink anywhere
+     **Revised 2026-07-07 (26-12-PLAN.md):** expanded to 8 total accent hues (one per level) — see 26-CONTEXT.md addendum.
   2. Each of the 8 levels has a distinct background/accent theme tint produced through the art pipeline, human-signed-off in the running game
   3. The title screen shows the Nox Run dark-green/black pixel wordmark (CC0 font, Pillow-baked PNG) with a light/neon separation element, revealed in a ≤500ms non-strobing animation and human-signed-off at real sizes
   4. No user-facing "Math Lab" string remains (HTML title, title screen, docs, Docker, README) — enforced by a grep sweep with an explicit allowlist for historical school-game comments
   5. **Superseded 2026-07-07 (26-CONTEXT.md):** the `mathlab_platformer_v2` localStorage key is explicitly NOT preserved — the user confirmed the save key may be freely renamed/changed as part of the rebrand, intentionally resetting pre-rebrand player progress. No pre-rebrand-save-resume check is required.
   6. **Added 2026-07-07 (VIS-04, 26-CONTEXT.md):** doors and enemies render with real CC0 sprite art (not the current flat-color rect + text-glyph placeholders — `config.js`'s enemy color is literally commented "placeholder"), sourced and licensed the same way as the existing player/tileset/parallax art, human-signed-off in the running game
 
-**Plans:** 3/11 plans executed
+**Plans:** 4/12 plans executed
 
 Plans:
 **Wave 1**
@@ -255,7 +256,11 @@ Plans:
 
 - [x] 26-03-PLAN.md — VIS-03a: 8 per-level theme sub-palettes + theme-parameterized Pillow bake (32 PNGs)
 
-**Wave 4** *(blocked on Wave 3 completion)*
+**Wave 3.5** *(mid-execution insert, 2026-07-07 — user-requested palette expansion, blocks Wave 4)*
+
+- [x] 26-12-PLAN.md — VIS-02/VIS-03 revision: expand CONFIG.PALETTE from 3 to 8 accent hues (one dedicated accent per level), human sign-off on the 5 new hues, THEME_PALETTES reassigned and all 32 theme PNGs rebaked
+
+**Wave 4** *(blocked on Wave 3.5 completion)*
 
 - [ ] 26-04-PLAN.md — VIS-04a: source/vendor/bake real CC0 door + 3-variant enemy sprite art
 

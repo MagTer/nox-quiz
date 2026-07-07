@@ -24,6 +24,7 @@ explicitly NOT touched — that art was human-signed-off in v4.1 and stays as-is
 ### Palette Centralization & Expansion (VIS-01, VIS-02)
 - Centralized palette lives in a new `CONFIG.PALETTE` object in `src/config.js` (not a separate module) — matches the project's "all tunables live in config.js" convention.
 - Add exactly 3 new hue-tinted darks: moss/dark green, cold blue-grey, muted rust/umber — matches the ROADMAP success criteria and prior STACK.md research verbatim.
+  - **Revised 2026-07-07 (mid-execution, user request):** expanded from 3 to 8 accent hues — one dedicated accent per level — after Wave 3's bake exposed that 3 shared hues produced identical themes for levels 1/2, 3/4, and 7/8, undercutting VIS-03's distinctness requirement. See 26-12-PLAN.md.
 - Document WCAG AA contrast per named role (bg/surface/text/text-dim/danger/reward/barrier/accent-1..n) as a table in the phase's evidence doc, with ratios checked via a small script rather than eyeballed.
 - Add an explicit, checked banned-hue guardrail against magenta/pink (desaturated magenta/mauve reads as pink) in addition to human sign-off.
 
