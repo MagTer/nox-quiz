@@ -168,6 +168,7 @@ Carried forward from previous milestone closes:
 | Date | Slug | Summary |
 |------|------|---------|
 | 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540); internal 640×360 unchanged |
+| 2026-07-07 | add-a-reset-progress-button-that-clears- | Keyboard-only (R) Reset Progress control on title screen with Y/N confirm overlay; new guarded `resetSave()` seam in progress.js clears only `mathlab_platformer_v2` |
 
 ## Session Continuity
 
