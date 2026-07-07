@@ -60,10 +60,11 @@ Math Lab is a replayable 2D platformer she controls with the keyboard, served as
 - ✓ Clean, reviewed base before content doubles: all 24 entities/surfaces reviewed with autonomous in-boundary fixes, batched approve/reject escalation round (none silent), zero regressions proven vs baseline, structural defects inventoried for Phase 23 calibration (FIX-01, FIX-02) — Validated in Phase 22: Implementation Review & Auto-Fix, v5.0
 - ✓ Static level validator (`validate-levels.mjs`) checking spawn→goal reachability, gap widths vs an empirically-calibrated jump envelope, door-over-hole placement, and mechanic reachability on every registered level, exiting non-zero on failure; jump envelope measured against the real running engine with a recorded safety margin; proven RED-first against the untouched levels 1–4 by independently catching the known live bugs (VALID-01, VALID-02) — Validated in Phase 23: Level Validation Harness, v5.0
 - ✓ All known structural defects in levels 1–4 fixed (3 over-hole gates, 8 unreachable platforms), each level extended 52.9–62.5% past its v4.1 length with checkpoint density scaled to match, zero edits inside kid-validated geometry, structural validator green with zero HARD-FAILs on all 4 (VALID-04, LVL-01) — Validated in Phase 24: Fix & Lengthen Levels 1–4, v5.0
+- ✓ Game doubled to 8 levels with a gentle difficulty ramp ([2,3,4,5]→[6,7,8,9] table pools, one mixed-review level), late-game verticality on levels 7–8, a hidden secret-XP alcove on every level (flat +5 XP, silent, no punishment for missing it), a scaling 2×4 level-select grid preserving locked/unlocked/cleared semantics and pre-v5.0 save resume, and tables 1/×10 fully dropped from the math (LVL-02..06, MATH-01, MATH-02) — Validated in Phase 25: Levels 5–8, Difficulty Ramp & Select Grid, v5.0. Human UAT found real, non-blocking content issues (some pickups/ledges unreachable in levels 5-8, level-07/08 end-climb repetition) explicitly accepted as deferred — see pending todos.
 
 ### Active
 
-*(v5.0 — REQUIREMENTS.md: 8 longer levels, richer grunge palette, Nox Run rebrand + logo, audio/SFX, drop tables 1 & 10; FIX-01/FIX-02 validated in Phase 22, VALID-01/VALID-02 validated in Phase 23, VALID-04/LVL-01 validated in Phase 24; VALID-03 groundwork laid in Phase 23, final closure across all 8 levels is Phase 28)*
+*(v5.0 — REQUIREMENTS.md: richer grunge palette, Nox Run rebrand + logo, audio/SFX; FIX-01/FIX-02 validated in Phase 22, VALID-01/VALID-02 validated in Phase 23, VALID-04/LVL-01 validated in Phase 24, LVL-02..06/MATH-01/MATH-02 validated in Phase 25; VALID-03 groundwork laid in Phase 23 and extended to all 8 levels in Phase 25, final formal closure remains Phase 28)*
 
 
 ### Out of Scope
@@ -122,6 +123,8 @@ Math Lab is a replayable 2D platformer she controls with the keyboard, served as
 | **v3.0: Display-only +50% window scale (post-close)** | Native 640×360 canvas looked tiny on a real monitor; scale display, keep internal res | ✓ Good — zero gameplay change (quick task 260628-c6e) |
 | **v4.1: Redo art with real CC0 packs + mandatory human sign-off** | v4.0's Phase 18 art was procedurally-generated placeholder noise, auto-approved without a real human sign-off checkpoint | ✓ Good — real curated art shipped, sign-off actually happened this time |
 | **v4.1: Independent interactive audit before trusting "passed"** | v4.0's later phases (15–18) had "human sign-off recorded" claims with no real session evidence, which let a total soft-lock and 5 other real bugs ship in collect.js undetected until a from-scratch playtest | ✓ Good — door/gates/enemy/mathGate now interactively audited, found + fixed 4 more real bugs, hardened the automated gate, corrected the audit record |
+| **v5.0 Phase 25: Never let `workflow.auto_advance` silently rubber-stamp a `checkpoint:human-verify` gate** | Project config has auto-mode on, which by default auto-approves human-verify checkpoints; this plan's own threat model explicitly said "never a rubber-stamp" for the secret-alcove/select-grid sign-off, matching the project's standing "no phase closes on greps/automation alone" rule | ✓ Good — user was asked and chose to do the walkthrough themselves; found this policy worth preserving for future autonomous runs |
+| **v5.0 Phase 25: Record partial/reduced-scope human sign-offs honestly rather than upgrading them to a full pass** | Human explicitly limited verification scope more than once (level-01-only alcove check, then a full playthrough that wasn't itemized against the 2 specific UAT asks) — the temptation is to round up to "verified"; FINDINGS.md/UAT.md/VERIFICATION.md all record exactly what was and wasn't checked | ✓ Good — real issues surfaced anyway (unreachable pickups/ledges, level-07/08 repetition) and were captured as todos instead of lost |
 
 ## Evolution
 
@@ -141,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-06 — v5.0 Phase 24 (Fix & Lengthen Levels 1–4) complete*
+*Last updated: 2026-07-07 — v5.0 Phase 25 (Levels 5–8, Difficulty Ramp & Select Grid) complete*

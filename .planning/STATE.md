@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Nox Run — Real Levels
-current_phase: 25
-current_phase_name: Levels 5–8, Difficulty Ramp & Select Grid
-status: executing
-stopped_at: 25-07 Task 1 complete (full 8-level suite green, fix commits 9e84a88/61f2169 landed); BLOCKED on Task 2 human-verify checkpoint (secret-alcove walkthrough + select-grid feel)
-last_updated: "2026-07-07T00:00:00.000Z"
+current_phase: 26
+current_phase_name: Grunge Palette & Nox Run Rebrand
+status: ready-to-plan
+stopped_at: Phase 25 complete (VERIFICATION passed, human UAT resolved); ready to plan Phase 26
+last_updated: "2026-07-07T16:35:44.236Z"
 last_activity: 2026-07-07
-last_activity_desc: 25-07 Task 1 done; awaiting human sign-off checkpoint
+last_activity_desc: Phase 25 complete, transitioned to Phase 26
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 23
-  completed_plans: 22
-  percent: 43
+  completed_plans: 23
+  percent: 57
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 25 — Levels 5–8, Difficulty Ramp & Select Grid
+**Current Focus:** Phase 26 — Grunge Palette & Nox Run Rebrand
 
 **Shipped State (v4.1):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion — with real curated CC0 art under human sign-off and interactively-audited mechanics. All prior milestone requirements satisfied.
 
@@ -36,14 +36,14 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 25 (Levels 5–8, Difficulty Ramp & Select Grid) — EXECUTING
-Plan: 7 of 7 (25-07 Task 1 complete; Task 2 human-verify checkpoint PENDING)
-Status: Blocked on human sign-off — secret-alcove walkthrough (all 8 levels) + 2×4 select-grid navigation feel. Tip: serve with `?debug=1` to see the invisible alcoves/colliders during the walkthrough.
-Last activity: 2026-07-07 — 25-07 Task 1 suite green; fix commits 9e84a88/61f2169 landed
+Phase: 26 — Grunge Palette & Nox Run Rebrand
+Plan: Not started
+Status: Ready to plan. Phase 25 closed with VERIFICATION status passed (7/9 must-haves independently verified; 2 closed via human UAT — see 25-UAT.md).
+Last activity: 2026-07-07 — Phase 25 complete, transitioned to Phase 26
 
-Progress: [████░░░░░░] 43% (3/7 phases)
+Progress: [██████░░░░] 57% (4/7 phases)
 
-**Next:** Complete 25-07 Task 2 (human walkthrough per 25-07-PLAN.md), fill 25-FINDINGS.md section (d), write 25-07-SUMMARY.md, then `/gsd-plan-phase 26`
+**Next:** `/gsd-plan-phase 26`
 
 ## v5.0 Roadmap Summary
 
@@ -63,7 +63,7 @@ Progress: [████░░░░░░] 43% (3/7 phases)
 
 **Velocity (through v4.1):** 21 phases, 62 plans completed across 5 shipped milestones (2026-06-20 → 2026-07-04). Per-plan history archived in `.planning/milestones/`.
 
-**v5.0:** 22 plans completed across Phases 22–25 (2026-07-05 → 2026-07-07).
+**v5.0:** 23 plans completed across Phases 22–25 (2026-07-05 → 2026-07-07).
 
 <details>
 <summary>v5.0 per-plan timing (moved out of the Deferred Items table, where these rows had been mis-appended)</summary>
@@ -91,6 +91,7 @@ Progress: [████░░░░░░] 43% (3/7 phases)
 | Phase 25 P04 | 5min | 2 tasks | 6 files |
 | Phase 25 P05 | 5min | 2 tasks | 2 files |
 | Phase 25 P06 | 8min | 2 tasks | 1 files |
+| Phase 25 P07 | spans 2 sessions (~16h wall-clock, mostly idle) | 2 tasks | 10 files |
 
 </details>
 
@@ -140,6 +141,9 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 25-05]: ROW_GAP:16 chosen well under the 36px derived ceiling; moveCursor's row-scoping filters selectable cursor-indices by matching row rather than reusing the whole-list wrap, keeping Left/Right from spilling into an adjacent row
 - [Phase 25-06]: secretAlcove key inserted immediately after answerPickupSlots in each expectedGeometry literal, matching the real level files' own key order
 - [Phase 25-06]: Both new Task 2 assertions pin already-implemented behavior from prior plans (25-01 addBonusXp, 25-03 8-level registry) -- no production code changed, zero RED phase, per the plan's explicit regression-pin purpose
+- [Phase 25-07]: 25-07's human-verify checkpoint (secret alcove + select-grid sign-off) was closed on an explicitly reduced scope (level-01's alcove only) by the human's own choice, honestly recorded rather than treated as a full pass -- see 25-FINDINGS.md (d)
+- [Phase 25]: Code review (25-REVIEW.md) found 6 warnings; 4 fixed (config magic number, stale comments in level-08/brain.js, progress.js DRY), 2 (secretAlcove has zero automated reachability/trigger coverage) deliberately left unfixed rather than risk false HARD-FAILs on shipped content -- tracked as a pending todo, not silently dropped
+- [Phase 25]: Phase-level UAT (25-UAT.md) closed via a real full-playthrough that surfaced genuine, separate issues (some pickups/ledges unreachable in levels 5-8, level-07/08 end-climb sections near-duplicates); user explicitly accepted these as non-blocking/deferrable rather than reopening Wave 2 plans -- VERIFICATION.md status upgraded human_needed -> passed on this explicit basis, new issues captured as a pending todo
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -150,7 +154,6 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 
 ### Pending Todos
 
-- `2026-07-04-drop-tables-1-and-10-from-practice-rotation.md` — covered by MATH-01/MATH-02 (Phase 25); move to completed when Phase 25 ships
 - `2026-07-07-review-levels-against-level-design-rules.md` — review the 8 shipped levels against the new `docs/LEVEL-DESIGN.md` SOFT rules (user: "down the road", not urgent; natural slot near Phase 28)
 - `2026-07-07-reconsider-secret-alcove-mechanic-discoverability-and-value.md` — user found the invisible/silent alcove reward "pointless... not what I was expecting" during Phase 25's sign-off; not actioned this milestone, revisit design before adding more content on the same pattern
 - `2026-07-07-add-automated-coverage-for-secretalcove-mechanic.md` — Phase 25 code review (WR-01/WR-06) found secretAlcove has zero automated reachability/trigger coverage in either verification harness; deliberately left unfixed (needs new detection/reachability logic, not a mechanical patch) — natural slot before/alongside Phase 28
@@ -159,7 +162,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 ### Blockers/Concerns
 
 - **Research flags:** Phase 27 (audio) — re-verify exact Kaplay 3001 `play()` handle/volume/autoplay semantics against `lib/kaplay.mjs` before implementing
-- **Audit blind spot:** RESOLVED for levels 1-4 in Phase 23 — 16/16 mechanic encounters now reliably triggered via the retry harness (was 6/16 unreached under the v4.1 single-pass harness). Full 8-level closure (once levels 5-8 exist) remains Phase 28's job (VALID-03 final close).
+- **Audit blind spot:** RESOLVED for levels 1-4 in Phase 23 (16/16 triggered) and extended to all 8 levels in Phase 25 (36/36 triggered, zero triggered:false — see 25-FINDINGS.md (b)). Phase 28's VALID-03 is still the milestone's final, formal human-signed-off closure — this just means the automated audit itself already covers all 8 levels going in. Note: `secretAlcove` remains outside both the audit's and the static validator's coverage by design — see the dedicated pending todo.
 - **[Phase 22] 22-REVIEW.md latent warnings (advisory, none live on shipped content):** collect.js zone→slots→choices contract unvalidated — becomes live with Phase 25 multi-zone content
 - **[Phase 23] validate-levels.mjs WR-03 (deferred, non-blocking):** Playwright static-server + path-traversal guard code is duplicated verbatim across `browser-boot.mjs`, `audit-phase21-mechanics.mjs`, and `calibrate-jump-envelope.mjs` by deliberate project convention ("copy verbatim, do not simplify") — a future guard fix must be applied identically in all three places by hand; extracting to a shared module is a reasonable future cleanup, not urgent
 - **[Phase 23] reachability.mjs WARN-tier precision gap (deferred, non-blocking):** `marginRatio` is mathematically pinned to ~1.000 for every flat-or-downward hop (documented in-code and in 23-FINDINGS.md) — the WARN tier currently cannot distinguish "trivially easy" from "near the calibrated ceiling" for the common case. Not a correctness bug (no false PASS/HARD-FAIL), but worth revisiting if the WARN tier needs finer signal before Phase 28's final sign-off.
@@ -173,7 +176,7 @@ Carried forward from previous milestone closes:
 | uat | SAFE-05 kid-UAT live sign-off (platforming feel, non-over-stimulation) — protocol in `.planning/milestones/v4.0-phases/19-polish-consolidated-kid-uat/19-UAT.md` | pending (UAT-FUT-01 in REQUIREMENTS.md) | v4.0/v4.1 |
 | deploy | SETUP-02 live Dokploy URL playthrough confirmation (container curl-proven locally) | pending (DEPLOY-FUT-01) | v3.0 |
 | uat | MOVE-05 throttled/non-60Hz empirical feel check (code verified dt-correct) | pending, low-risk | v3.0 |
-| test-tooling | 6/16 encounter audit blind spot | resolved for levels 1-4 in Phase 23 (16/16); full 8-level closure remains Phase 28 (VALID-03) | v4.1 |
+| test-tooling | 6/16 encounter audit blind spot | resolved for levels 1-4 in Phase 23 (16/16); extended to all 8 levels in Phase 25 (36/36); Phase 28 (VALID-03) remains the milestone's formal human-signed-off closure | v4.1 |
 
 ## Quick Tasks Completed
 
@@ -185,10 +188,10 @@ Carried forward from previous milestone closes:
 ## Session Continuity
 
 Last session: 2026-07-07
-Stopped at: 25-07 Task 1 complete; awaiting Task 2 human-verify checkpoint
+Stopped at: Phase 25 complete, ready to plan Phase 26
 Resume file: None
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-07-07 (mid-25-07 — Task 1 suite green, human sign-off pending)
+**Last updated:** 2026-07-07 (Phase 25 complete — code review + human UAT resolved, transitioned to Phase 26)

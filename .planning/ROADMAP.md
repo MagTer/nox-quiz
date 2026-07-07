@@ -87,7 +87,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 - [x] **Phase 22: Implementation Review & Auto-Fix** - Review every game entity, fix bugs and obvious UX issues autonomously, escalate bigger design changes for approval (completed 2026-07-05)
 - [x] **Phase 23: Level Validation Harness** - Static level validator calibrated against real engine physics + upgraded interactive audit, proven against the known live bugs before being trusted (completed 2026-07-05)
 - [x] **Phase 24: Fix & Lengthen Levels 1–4** - Fix the known structural defects and lengthen the four kid-validated levels with scaled checkpoint density, gated by the new validator (completed 2026-07-06)
-- [ ] **Phase 25: Levels 5–8, Difficulty Ramp & Select Grid** - Four new pure-data levels with verticality and secret alcoves, gentle 8-level ramp, 2×4 select grid, tables 1 and ×10 dropped
+- [x] **Phase 25: Levels 5–8, Difficulty Ramp & Select Grid** - Four new pure-data levels with verticality and secret alcoves, gentle 8-level ramp, 2×4 select grid, tables 1 and ×10 dropped (completed 2026-07-07)
 - [ ] **Phase 26: Grunge Palette & Nox Run Rebrand** - Centralized then expanded grunge palette with per-level themes, Nox Run logo and full string sweep with the save key untouched
 - [ ] **Phase 27: Audio & ADHD-Safe Sound** - Core SFX set, calm gesture-gated ambient music, persisted M-key mute, designed ADHD-safe mix
 - [ ] **Phase 28: Full Verification & Interactive Sign-off** - Interactive audit start→goal on all 8 levels, all automated gates green in one run, human sign-off on levels/art/audio
@@ -203,7 +203,7 @@ Plans:
   4. Level select shows all 8 levels in a 2×4 grid with locked/unlocked/cleared semantics preserved, and an existing pre-v5.0 save resumes with levels 5–8 locked by default
   5. Levels 5–8 include verticality segments, and every level hides one optional secret XP alcove — finding it rewards XP, missing it costs nothing
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 **UI hint**: yes
 
 Plans:
@@ -224,7 +224,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 25-07-PLAN.md — Full regression sweep + secret-alcove/select-grid human sign-off + 25-FINDINGS.md
+- [x] 25-07-PLAN.md — Full regression sweep + secret-alcove/select-grid human sign-off + 25-FINDINGS.md
 
 ### Phase 26: Grunge Palette & Nox Run Rebrand
 
@@ -301,7 +301,7 @@ Plans:
 | 22. Implementation Review & Auto-Fix | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
-| 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 6/7 | In Progress|  |
+| 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 0/TBD | Not started | - |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
