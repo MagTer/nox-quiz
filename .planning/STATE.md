@@ -5,15 +5,15 @@ milestone_name: Nox Run — Real Levels
 current_phase: 26
 current_phase_name: Grunge Palette & Nox Run Rebrand
 status: executing
-stopped_at: Completed 26-05-PLAN.md (per-level theming + door/enemy sprite wiring)
-last_updated: "2026-07-07T20:19:37.333Z"
+stopped_at: Completed 26-07-PLAN.md (Nox Run logo baked + wired, human-approved after 2 checkpoint rounds)
+last_updated: "2026-07-07T20:51:15.448Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 26 execution started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 35
-  completed_plans: 30
+  completed_plans: 31
   percent: 57
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 26 (Grunge Palette & Nox Run Rebrand) — EXECUTING
-Plan: 8 of 11
+Plan: 9 of 11
 Status: Ready to execute
 Last activity: 2026-07-07 — Phase 26 execution started
 
@@ -101,6 +101,7 @@ Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, no
 | Phase 26 P04 | 12min | 3 tasks | 12 files |
 | Phase 26 P05 | 18min | 3 tasks | 5 files |
 | Phase 26 P06 | 4min | 2 tasks | 8 files |
+| Phase 26 P07 | 18min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -162,6 +163,9 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase ?]: [Phase 26-04]: Each of the 3 enemy sprites (saw/barnacle/fly) scaled independently to a shared 28px max-bbox target rather than one shared scale factor -- correct since these are 3 unrelated single-frame sprites, not a walk-cycle pose set needing consistent proportions
 - [Phase 26-05]: theme threading uses a graceful string-template fallback (base sprite name when levelData.theme unset) rather than a hard requirement, so build.js/parallax.js stay usable before 26-06 sets any level's theme field — verified end-to-end via browser-boot.mjs exercising the fallback path on all 8 currently-themeless levels
 - [Phase ?]: [Phase 26-06] Followed the plan's exact 1:1 level-order -> theme-N mapping and exact enemy variant-cycling values verbatim, matching 26-03/26-12's THEME_PALETTES assignment
+- [Phase ?]: [Phase 26-07]: Vendored monogram.ttf via the itch.io product page's own embedded @font-face direct URL (monogram-extended.ttf, an officially-listed companion file) instead of the interactive purchase-flow-gated base file -- verified via PIL font-name-table lookup before trusting it
+- [Phase ?]: [Phase 26-07]: Named Python logo-color constants LOGO_FILL/LOGO_STROKE rather than reusing ACCENT_MOSS -- that name already exists as a distinct Plan 26-12 per-level-theme constant, and redefining it would silently collide
+- [Phase ?]: [Phase 26-07]: Human-verify checkpoint round 1 found two real defects (reveal too fast, letters too tight especially on the select badge); both fixed (LOGO_REVEAL_MS 400->500, per-character letter-spacing + upscale-only bake) and re-verified before re-presenting -- approved on round 2
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -205,8 +209,8 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-07T20:19:04.873Z
-Stopped at: Completed 26-05-PLAN.md (per-level theming + door/enemy sprite wiring)
+Last session: 2026-07-07T20:51:15.437Z
+Stopped at: Completed 26-07-PLAN.md (Nox Run logo baked + wired, human-approved after 2 checkpoint rounds)
 Resume file: None
 
 ---

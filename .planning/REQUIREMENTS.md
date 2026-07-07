@@ -43,9 +43,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Rebrand
 
-- [ ] **BRAND-01**: Nox Run logo — dark green/black pixel wordmark (CC0 font, Pillow-baked PNG) with a light/neon separation element, human-signed-off in the running game
+- [x] **BRAND-01**: Nox Run logo — dark green/black pixel wordmark (CC0 font, Pillow-baked PNG) with a light/neon separation element, human-signed-off in the running game
 - [ ] **BRAND-02**: Full Math Lab → Nox Run string sweep (HTML title, title screen, docs, Docker, README). **Amended 2026-07-07 (26-CONTEXT.md):** the localStorage save key (`mathlab_platformer_v2`) is explicitly NOT required to survive the rebrand — user confirmed it may be freely renamed/changed, intentionally resetting pre-rebrand player progress; no save-resume verification required.
-- [ ] **BRAND-03**: Logo reveal animation on title screen — ≤500ms, non-strobing
+- [x] **BRAND-03**: Logo reveal animation on title screen — ≤500ms, non-strobing
 
 ### Audio
 
@@ -117,9 +117,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIS-02 | Phase 26 | Complete |
 | VIS-03 | Phase 26 | Complete |
 | VIS-04 | Phase 26 | Complete |
-| BRAND-01 | Phase 26 | Pending |
+| BRAND-01 | Phase 26 | Complete |
 | BRAND-02 | Phase 26 | Pending |
-| BRAND-03 | Phase 26 | Pending |
+| BRAND-03 | Phase 26 | Complete |
 | AUD-01 | Phase 27 | Pending |
 | AUD-02 | Phase 27 | Pending |
 | AUD-03 | Phase 27 | Pending |
