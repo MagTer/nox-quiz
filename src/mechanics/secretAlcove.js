@@ -22,8 +22,13 @@ import { CONFIG } from "../config.js";
  * @param {object} args
  * @param {GameObj} args.player    the player entity (must have onCollide).
  * @param {object} args.progress   the scene's progression tracker (addBonusXp).
+ * @param {object} args.hud        the scene's HUD controller ({ refresh, flashLevelUp }) —
+ *   mirrors the goal's own "one-way HUD update, then flash on a level-up" idiom
+ *   (game.js's onReachGoal). Without this, addBonusXp silently updates progress's
+ *   internal xp/level but the on-screen bar never moves — found via manual playtest:
+ *   touching the alcove appeared to do nothing at all.
  */
-export function wireSecretAlcove({ player, progress }) {
+export function wireSecretAlcove({ player, progress, hud }) {
   // Fire-once latch keyed by the touched alcove object. Closure-local (never
   // module-level) so it is garbage-collected with the scene and cannot leak across
   // replays — same anti-leak discipline as enemy.js's `defeated` Set.
@@ -32,7 +37,9 @@ export function wireSecretAlcove({ player, progress }) {
   player.onCollide("secret-alcove", (alcoveObj) => {
     if (found.has(alcoveObj)) return;
     found.add(alcoveObj);
-    progress.addBonusXp(CONFIG.PROGRESS.XP_ALCOVE);
+    const leveledUp = progress.addBonusXp(CONFIG.PROGRESS.XP_ALCOVE);
+    hud.refresh();
+    if (leveledUp) hud.flashLevelUp();
     destroy(alcoveObj);
   });
 }
