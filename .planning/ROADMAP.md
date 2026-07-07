@@ -88,7 +88,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 - [x] **Phase 23: Level Validation Harness** - Static level validator calibrated against real engine physics + upgraded interactive audit, proven against the known live bugs before being trusted (completed 2026-07-05)
 - [x] **Phase 24: Fix & Lengthen Levels 1–4** - Fix the known structural defects and lengthen the four kid-validated levels with scaled checkpoint density, gated by the new validator (completed 2026-07-06)
 - [x] **Phase 25: Levels 5–8, Difficulty Ramp & Select Grid** - Four new pure-data levels with verticality and secret alcoves, gentle 8-level ramp, 2×4 select grid, tables 1 and ×10 dropped (completed 2026-07-07)
-- [ ] **Phase 26: Grunge Palette & Nox Run Rebrand** - Centralized then expanded grunge palette with per-level themes, Nox Run logo and full string sweep (save key intentionally NOT preserved — user confirmed 2026-07-07)
+- [x] **Phase 26: Grunge Palette & Nox Run Rebrand** - Centralized then expanded grunge palette with per-level themes, Nox Run logo and full string sweep (save key intentionally NOT preserved — user confirmed 2026-07-07) (completed 2026-07-07)
 - [ ] **Phase 27: Audio & ADHD-Safe Sound** - Core SFX set, calm gesture-gated ambient music, persisted M-key mute, designed ADHD-safe mix
 - [ ] **Phase 28: Full Verification & Interactive Sign-off** - Interactive audit start→goal on all 8 levels, all automated gates green in one run, human sign-off on levels/art/audio
 
@@ -242,7 +242,7 @@ Plans:
   5. **Superseded 2026-07-07 (26-CONTEXT.md):** the `mathlab_platformer_v2` localStorage key is explicitly NOT preserved — the user confirmed the save key may be freely renamed/changed as part of the rebrand, intentionally resetting pre-rebrand player progress. No pre-rebrand-save-resume check is required.
   6. **Added 2026-07-07 (VIS-04, 26-CONTEXT.md):** doors and enemies render with real CC0 sprite art (not the current flat-color rect + text-glyph placeholders — `config.js`'s enemy color is literally commented "placeholder"), sourced and licensed the same way as the existing player/tileset/parallax art, human-signed-off in the running game
 
-**Plans:** 11/12 plans executed
+**Plans:** 12/12 plans complete
 
 Plans:
 **Wave 1**
@@ -285,7 +285,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 26-11-PLAN.md — Closing zero-regression proof: full gate suite + interactive mechanic-audit re-run
+- [x] 26-11-PLAN.md — Closing zero-regression proof: full gate suite + interactive mechanic-audit re-run
 
 **UI hint**: yes
 
@@ -349,7 +349,7 @@ Plans:
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
-| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 11/12 | In Progress|  |
+| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | Complete   | 2026-07-07 |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
 

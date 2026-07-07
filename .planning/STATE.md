@@ -5,16 +5,16 @@ milestone_name: Nox Run — Real Levels
 current_phase: 26
 current_phase_name: Grunge Palette & Nox Run Rebrand
 status: verifying
-stopped_at: Completed 26-07-PLAN.md (Nox Run logo baked + wired, human-approved after 2 checkpoint rounds)
-last_updated: "2026-07-07T21:37:36.314Z"
+stopped_at: Completed 26-11-PLAN.md (Phase 26 closing verification — combined gate suite + 3x interactive mechanic audit, zero regressions confirmed)
+last_updated: "2026-07-07T21:55:44.956Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 26 execution started
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 35
-  completed_plans: 34
-  percent: 57
+  completed_plans: 35
+  percent: 71
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -105,6 +105,7 @@ Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, no
 | Phase 26 P08 | 30min | 2 tasks | 20 files |
 | Phase 26 P09 | 12min | 3 tasks | 10 files |
 | Phase 26 P10 | 5min | 3 tasks | 7 files |
+| Phase 26 P11 | 18min | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 26-09]: Reworded comments referencing the old save key to avoid quoting it literally, so Task 3's own negative-literal verify (grep for zero mathlab_platformer_v2 occurrences in scripts/ + config.js) stays meaningful rather than self-defeated by Task 1's own documentation prose
 - [Phase ?]: [Phase 26-10]: check-rebrand.sh self-excludes its own file from the .sh raw-scan category — its own source necessarily contains the literal allowlist pattern text (mathlab_save) and explanatory prose, which would otherwise self-match and always FAIL, mirroring check-safety.sh's 'the audit never matches itself' precedent
 - [Phase ?]: [Phase 26-10]: .claude/CLAUDE.md carries 2 unallowlisted Math Lab mentions inherited verbatim from .planning/PROJECT.md's still-unrenamed Project heading — out of this plan's explicit files_modified/full-sweep scope, logged to deferred-items.md rather than auto-fixed
+- [Phase 26-11]: check-progress.sh's smoke-progress.mjs level-01/03/04 geometry-pin failure confirmed pre-existing (Phase 25-04), not a Phase 26 regression -- left unfixed per Scope Boundary rule — Cross-referenced against deferred-items.md and STATE.md's own decision log, both already recording this exact failure class before this plan ran
+- [Phase 26-11]: Interactive mechanic audit run 3x for confidence; all 3 runs independently confirmed 37/37 triggered:true, 0 triggered:false across all 8 levels -- direct proof VIS-04's sprite swap is collision-neutral — Harness has documented headless-timing nondeterminism (STATE.md Phase 22-01); repeated runs isolate flakiness to post-trigger resolved status only, never the trigger/collision layer itself
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -217,8 +220,8 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-07T21:36:48.898Z
-Stopped at: Completed 26-07-PLAN.md (Nox Run logo baked + wired, human-approved after 2 checkpoint rounds)
+Last session: 2026-07-07T21:55:39.172Z
+Stopped at: Completed 26-11-PLAN.md (Phase 26 closing verification — combined gate suite + 3x interactive mechanic audit, zero regressions confirmed)
 Resume file: None
 
 ---
