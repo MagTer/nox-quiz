@@ -23,9 +23,12 @@ export const CONFIG = {
   CAM_RATE: 10, // 1/s — half-life rate for 1 - exp(-CAM_RATE*dt()) smoothing (8..12)
   CAM_Y_FACTOR: 0.5, // unitless — gentle vertical follow relative to primary X follow
 
-  // --- Level bounds (authored ~3.5-screen level) + respawn (FALL_MARGIN) ---
+  // --- Level bounds FALLBACKS + respawn (FALL_MARGIN) ---
+  // Since Phase 24 these are FALLBACKS only: game.js uses a level's explicit `bounds`
+  // field when present, else derives the right edge from geometry (levels now run
+  // 3640–6200px wide). Only LEVEL_LEFT/TOP/BOTTOM still commonly apply.
   LEVEL_LEFT: 0, // px — left world edge (camera clamp)
-  LEVEL_RIGHT: 2240, // px — right world edge (matches the authored level pixel width, ~3.5 screens of 640px)
+  LEVEL_RIGHT: 2240, // px — right-edge fallback (historical v3.0 single-level width; real levels override/derive)
   LEVEL_TOP: 0, // px — top world edge (camera clamp)
   LEVEL_BOTTOM: 360, // px — bottom world edge (one 360px screen tall; level is linear/horizontal)
   FALL_MARGIN: 120, // px — respawn when player.pos.y > LEVEL_BOTTOM + FALL_MARGIN
@@ -61,6 +64,7 @@ export const CONFIG = {
   SPIKE_HITBOX_W: 12, // px — tightened spike collider width (narrower than the 16px tile — fair points-only hit)
   SPIKE_HITBOX_H: 8, // px — tightened spike collider height (only the upper visible spikes, not the empty base)
   GOAL_SIZE: 16, // px — goal sprite footprint
+  ALCOVE_SIZE: 24, // px — secret-alcove trigger footprint (LVL-06; invisible walk-through square)
 
   // --- Math brain (ported verbatim from archive/math-lab.html 604-619 — DO NOT re-tune) ---
   // The 6–9 weighting + EWMA constants are already validated; the selection math is

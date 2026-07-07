@@ -34,7 +34,9 @@ export const LEVEL_01 = {
   // Platforms are raised { x, y, w, h } ledges spanning the gaps so every gap is
   // crossable. Coins arc over jumps; spikes sit on the floor with a generous
   // checkpoint placed just before each (a respawn never costs meaningful progress —
-  // ADHD-safe). The goal caps the final run. Level extent ≈ CONFIG.LEVEL_RIGHT (2240).
+  // ADHD-safe). The goal caps the final run. Level extent 3640px since the Phase 24
+  // extension (was 2240 = CONFIG.LEVEL_RIGHT in v3.0/v4.x; the camera right edge is
+  // now DERIVED from geometry in game.js — this level carries no explicit bounds).
   geometry: {
     // Contiguous floor runs (one merged collider each). Gaps: 560..720, 1200..1360.
     floors: [

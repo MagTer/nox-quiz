@@ -78,9 +78,11 @@ export function gameScene(data) {
   // (T-13-10). This phase adds NO scenes; it only proves the data spine loads/plays/persists.
   const level = getLevel(data?.levelId ?? LEVEL_ORDER[0]);
 
-  // Derive level bounds from authored geometry so camera follow and parallax tiling
-  // cover the whole level regardless of its length. Falls back to CONFIG defaults if
-  // the descriptor already carries explicit bounds (forward-looking slot).
+  // Level bounds for camera follow + parallax tiling. TWO conventions coexist (both
+  // shipped): if the descriptor carries an explicit `bounds` field it is used AS-IS
+  // (level-02+ — remember to bump bounds.right when extending such a level!); otherwise
+  // the right edge is DERIVED from the authored geometry below and left/top/bottom fall
+  // back to the CONFIG defaults (level-01).
   const levelRight = Math.max(
     ...level.geometry.floors.map((f) => f.x + f.w),
     ...level.geometry.platforms.map((p) => p.x + p.w),
@@ -126,8 +128,12 @@ export function gameScene(data) {
   // --- Checkpoints (last-touched marker = respawn point) ---
 
   // Lightweight near-invisible marker entity; touching it sets the respawn point.
+  // Under ?debug=1 (same flag build.js reads — see its debug-overlay comment) the
+  // marker renders faintly so checkpoint placement is inspectable during playtests.
+  const DEBUG =
+    typeof location !== "undefined" && new URLSearchParams(location.search).has("debug");
   function addCheckpoint(x, y) {
-    return add([rect(8, 48), pos(x, y), area(), opacity(0.001), "checkpoint"]);
+    return add([rect(8, 48), pos(x, y), area(), opacity(DEBUG ? 0.5 : 0.001), "checkpoint"]);
   }
 
   // Place markers from the authored level data: one near the start and one just
@@ -279,6 +285,10 @@ export function gameScene(data) {
     updateParallaxLayers(parallaxLayers, getCamPos().x, bounds);
 
     // Fall-off-world: respawn at the last-touched checkpoint (LEVEL-06).
+    // NOTE: this deliberately reads the GLOBAL CONFIG.LEVEL_BOTTOM, not the per-level
+    // `bounds.bottom` above — correct while every level keeps its play space above
+    // y=360 (all 8 shipped levels do). If a future level ever has play area BELOW
+    // the standard floor band, switch this to bounds.bottom or it will respawn-loop.
     if (player.pos.y > CONFIG.LEVEL_BOTTOM + CONFIG.FALL_MARGIN) {
       respawn();
     }

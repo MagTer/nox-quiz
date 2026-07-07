@@ -40,9 +40,10 @@ const k = kaplay({
 // handlers (e.g. the title screen's "click anywhere to start") unaffected.
 // Found via the Phase 14 mandatory browser-boot checkpoint: level-select tile
 // clicks silently missed their target after the width/height version shipped.
-// `transform-origin` defaults to the element's center, matching index.html's
-// `canvas { display:block; margin:auto }` centering — scaling from center
-// keeps the visually-enlarged canvas centered without any layout changes.
+// `transform-origin` defaults to the element's center; index.html flex-centers
+// the canvas on BOTH axes (see its <style> comment — the earlier margin:auto
+// approach only centered horizontally), so scaling from center keeps the
+// visually-enlarged canvas centered without any layout changes.
 {
   const canvas = document.querySelector("#game");
   canvas.style.transform = "scale(1.5)";

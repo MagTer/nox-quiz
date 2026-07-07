@@ -11,7 +11,7 @@
 // Engine globals (add, sprite, rect, pos, area, body, play, vec2, Rect) come from
 // Kaplay `global: true` — do NOT import them; they are referenced ONLY inside the
 // buildLevel body (after kaplay init). The ONLY import is ../config.js — this file
-// lives in src/levels/, so the config sibling is TWO dirs up (`../`).
+// lives in src/levels/, one directory below src/, so the config import is `../config.js`.
 //
 // INVARIANTS this module upholds (carried from Phase 8/9, lifted verbatim from the
 // v3.0 src/level.js buildLevel):
@@ -56,6 +56,19 @@ export function buildLevel(levelData) {
     );
   }
 
+  // --- Debug overlay (?debug=1) ---
+  // Serve the game with ?debug=1 (e.g. http://localhost:8000/?debug=1) to make every
+  // normally-invisible physics/trigger entity faintly visible: the merged floor and
+  // platform colliders, the tall door/gate/enemy blockers, answer zones, pickup slots,
+  // and the secret alcoves. Display-only — hitbox shapes, sizes, and tags are byte-
+  // identical in both modes, so gameplay and the audit harness are unaffected.
+  // `location` is browser-only, hence the typeof guard (this module must stay safely
+  // node-importable for the validator/smoke scripts). This flag replaces the previous
+  // "temporarily hand-edit opacity(0) in production code" playtest workaround.
+  const DEBUG =
+    typeof location !== "undefined" && new URLSearchParams(location.search).has("debug");
+  const HIDDEN = DEBUG ? 0.35 : 0; // opacity for normally-invisible entities
+
   const g = levelData.geometry;
 
   // Helper: pick the correct ground.png frame for a top-surface tile based on
@@ -84,7 +97,7 @@ export function buildLevel(levelData) {
       pos(run.x, FLOOR_Y),
       area(),
       body({ isStatic: true }),
-      opacity(0),
+      opacity(HIDDEN),
       "ground",
     ]);
 
@@ -104,7 +117,7 @@ export function buildLevel(levelData) {
       pos(p.x, p.y),
       area(),
       body({ isStatic: true }),
-      opacity(0),
+      opacity(HIDDEN),
       "ground",
     ]);
     for (let tx = p.x; tx < p.x + p.w; tx += T) {
@@ -152,7 +165,7 @@ export function buildLevel(levelData) {
     const blocker = add([
       rect(CONFIG.DOOR.W, blockerH),
       pos(d.x, d.y + CONFIG.DOOR.H - blockerH),
-      opacity(0), // invisible — the visible panel below provides the art
+      opacity(HIDDEN), // invisible — the visible panel below provides the art
       area(),
       body({ isStatic: true }),
       "door",
@@ -193,7 +206,7 @@ export function buildLevel(levelData) {
     const gateObj = add([
       rect(CONFIG.MATH_GATE.W, blockerH),
       pos(mg.x, mg.y + CONFIG.MATH_GATE.H - blockerH),
-      opacity(0), // invisible — the visible panel below provides the art
+      opacity(HIDDEN), // invisible — the visible panel below provides the art
       area(),
       body({ isStatic: true }),
       "math-gate",
@@ -231,7 +244,7 @@ export function buildLevel(levelData) {
     const enemyObj = add([
       rect(CONFIG.ENEMY.W, blockerH),
       pos(e.x, e.y + CONFIG.ENEMY.H - blockerH),
-      opacity(0), // invisible — the visible panel below provides the art
+      opacity(HIDDEN), // invisible — the visible panel below provides the art
       area(),
       body({ isStatic: true }),
       "enemy",
@@ -262,7 +275,7 @@ export function buildLevel(levelData) {
       rect(CONFIG.COLLECT.ZONE_W, CONFIG.COLLECT.ZONE_H),
       pos(z.x, z.y),
       area(),
-      opacity(0),
+      opacity(HIDDEN),
       "answer-zone",
     ]);
 
@@ -275,7 +288,7 @@ export function buildLevel(levelData) {
       rect(CONFIG.COLLECT.PICKUP_W, CONFIG.COLLECT.PICKUP_H),
       pos(s.x, s.y),
       area(),
-      opacity(0),
+      opacity(HIDDEN),
       color(...CONFIG.COLLECT.PICKUP_BG),
       outline(2, rgb(...CONFIG.COLLECT.PICKUP_BORDER)),
       "answer-pickup-slot",
@@ -288,7 +301,16 @@ export function buildLevel(levelData) {
   // No blocker collider, no visible panel, no glyph: this is a walk-through bonus, not
   // a barrier, unlike every other mechanic block above. Guarded with ?? [] so every
   // existing level (which has no secretAlcove key yet) still builds without error.
+  // Invisible in normal play (it IS a secret); under ?debug=1 it renders as a bright
+  // magenta marker so playtest/sign-off walkthroughs can find all 8 without reading
+  // level data. Debug-only fill — the shipped game keeps the no-pink rule.
   for (const a of g.secretAlcove ?? []) {
-    add([rect(24, 24), pos(a.x, a.y), area(), opacity(0), "secret-alcove"]);
+    add([
+      rect(CONFIG.ALCOVE_SIZE, CONFIG.ALCOVE_SIZE),
+      pos(a.x, a.y),
+      area(),
+      ...(DEBUG ? [color(255, 0, 255), opacity(0.8)] : [opacity(0)]),
+      "secret-alcove",
+    ]);
   }
 }
