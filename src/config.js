@@ -260,7 +260,12 @@ export const CONFIG = {
   // a press-to-start prompt below it. No magic numbers live in the scene —
   // every size/offset/duration reads here.
   TITLE: {
-    LOGO_REVEAL_MS: 400, // ms — one-shot, non-strobing logo-hero opacity 0->1 tween on scene-enter (comfortably under the 500ms cap; matches CONFIG.FX.BURST_MS's existing 400ms non-strobing precedent)
+    // ms — one-shot, non-strobing logo-hero opacity 0->1 tween on scene-enter.
+    // Was 400ms; human-verify feedback (2026-07-07) found that "not noticeable"
+    // — bumped to the BRAND-03 ≤500ms ceiling itself so the reveal reads as a
+    // deliberate fade rather than an instant pop-in. Still comfortably clears
+    // check-safety.sh's no-scheduler gate (tween() only, still one-shot).
+    LOGO_REVEAL_MS: 500,
     PROMPT_SIZE: 20, // px — "press to start" prompt text size
     PROMPT_DY: 72, // px — vertical offset of the prompt BELOW the centered title
 
