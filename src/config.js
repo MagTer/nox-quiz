@@ -198,15 +198,18 @@ export const CONFIG = {
     EASY_TABLES: [1, 2, 3, 4, 5], // easy tables (award XP_EASY)
   },
 
-  // --- Save / persistence (v4.0 CLEAN-RESET key — new namespace, no migration) ---
-  // v4.0 deliberately starts a FRESH save under a NEW key + version. The v3.0 blob under
-  // the old key (mathlab_platformer_v?) is NOT migrated and NOT deleted — it is simply made
-  // invisible by this new key, the PRIMARY clean-reset guard (SAVE-05). The version gate in
-  // loadSave() is the second guard. The old key is never read or written anywhere.
+  // --- Save / persistence (Phase 26 Nox Run rebrand CLEAN-RESET key — new namespace, no migration) ---
+  // The Phase 26 Nox Run rebrand deliberately starts a FRESH save under a NEW key. The prior
+  // key (mathlab_platformer_v2, itself a v4.0 clean-reset key) is NOT migrated and NOT deleted —
+  // it is simply orphaned/made invisible by this new key, per the explicit user-confirmed
+  // decision in 26-CONTEXT.md (the rebrand intentionally resets pre-rebrand player progress).
+  // CONFIG.SAVE.KEY is the single source of truth, also read by scripts/check-progress.sh's
+  // grep assertion and every Playwright script's SAVE_KEY const — all updated together
+  // whenever this key changes. The old key is never read or written anywhere.
   // (allowedTables et al. are level DATA, not config — they live in the level registry.)
   SAVE: {
-    KEY: "mathlab_platformer_v2", // v4.0 clean-reset localStorage key for the platformer progression
-    VERSION: 2, // v4.0 save-format version (gate: a foreign/older blob → safe defaults)
+    KEY: "noxrun_platformer_v1", // Phase 26 Nox Run rebrand clean-reset localStorage key for the platformer progression
+    VERSION: 2, // save-format version (gate: a foreign/older blob → safe defaults)
   },
 
   // --- HUD layout (level badge + XP bar + level-up flash; Wave 3 consumes; Phase 12 retunes) ---
@@ -255,9 +258,9 @@ export const CONFIG = {
 
   // --- Title scene layout (Phase 14 NAV-01; src/scenes/title.js consumes) ---
   // Dark-grunge title screen: the baked "NOX RUN" logo (BRAND-01/BRAND-03;
-  // Phase 26 Plan 07 — replaces the old plain-text "Math Lab" wordmark, so
-  // the old TITLE_SIZE text-size field is dead and removed alongside it) +
-  // a press-to-start prompt below it. No magic numbers live in the scene —
+  // Phase 26 Plan 07 — replaces the old plain-text wordmark, so the old
+  // TITLE_SIZE text-size field is dead and removed alongside it) + a
+  // press-to-start prompt below it. No magic numbers live in the scene —
   // every size/offset/duration reads here.
   TITLE: {
     // ms — one-shot, non-strobing logo-hero opacity 0->1 tween on scene-enter.
