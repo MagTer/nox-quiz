@@ -1,0 +1,42 @@
+Asset:        assets/enemy-1.png, assets/enemy-2.png, assets/enemy-3.png
+              (defeat-enemy encounter sprites, 32x32 each)
+Source pack:  "New Platformer Pack" (v1.1)
+Author:       Kenney (Kenney Vleugels)
+Source URL:   https://kenney.nl/assets/new-platformer-pack
+Source file:  https://kenney.nl/media/pages/assets/new-platformer-pack/1896103897-1764756702/kenney_new-platformer-pack-1.1.zip
+Source sprites used (Sprites/Enemies/Default/, 64x64px each):
+    saw_rest.png            -> assets/enemy-1.png  (mechanical archetype)
+    barnacle_attack_a.png   -> assets/enemy-2.png  (one-eyed horned monster archetype)
+    fly_rest.png            -> assets/enemy-3.png  (insect archetype)
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own bundled License.txt:
+    "License: (Creative Commons Zero, CC0)
+     http://creativecommons.org/publicdomain/zero/1.0/"
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+    "...dedicated the work to the public domain by waiving all of his or her
+     rights to the work worldwide under copyright law... You can copy, modify,
+     distribute and perform the work, even for commercial purposes, all without
+     asking permission."
+
+Verification: Pack downloaded and its own bundled License.txt opened and
+confirmed CC0 this session (2026-07-07). NOT CC-BY. Only the 3 named enemy
+PNGs were vendored to assets/_kenney-src/new-platformer-pack/ — not the whole
+zip (which also contains unrelated Sounds/Vector/Construct3/Tiled content),
+matching the project's existing "vendor only what's used" convention.
+
+Note on variety: the 3 source sprites were hand-picked from the pack's larger
+Enemies/Default roster (which also includes worm/snail/slime/fly variants) to
+intentionally span mechanical (saw), one-eyed horned monster (barnacle), and
+insect (fly) archetypes for thematic richness, per this phase's CONTEXT.md
+"2-3 distinct variants" requirement.
+
+Processing note: each 64x64 source sprite is cropped to its own content
+bbox, scaled independently so its largest dimension becomes 28px, centered
+on a 32x32 transparent canvas, then palette-remapped onto this project's
+ENVIRONMENT_PALETTE via the existing _remap_luminance pipeline (see
+scripts/build-art-assets.py build_enemies()) — enemies are a universal
+barrier/hazard element, not re-themed per level.
+
+Vendor logo / brand art: none.

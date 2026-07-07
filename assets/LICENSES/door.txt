@@ -1,0 +1,36 @@
+Asset:        assets/door.png  (locked door barrier sprite, 32x64)
+Source pack:  "6 Color Dungeon 16x16"
+Author:       HorusKDI
+Source URL:   https://opengameart.org/content/6-color-dungeon-16x16
+Source file:  https://opengameart.org/sites/default/files/16x16%20dungeon%20tiles.png
+Tile:         columns 0-2, rows 4-9 of the 16x16 tile grid (closed lattice
+              gate + archway base) — pixel crop box (left=0, top=64, right=48,
+              bottom=160), a 48x96px region: top half is a closed iron
+              lattice gate, bottom half is a dark stone archway/threshold —
+              together reads as a complete standing locked-gate structure.
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the asset's own OpenGameArt page:
+    "License(s): CC0"
+    (OpenGameArt's License(s) metadata field is the creator's authoritative
+     license declaration for the submission.)
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+    "...dedicated the work to the public domain by waiving all of his or her
+     rights to the work worldwide under copyright law... You can copy, modify,
+     distribute and perform the work, even for commercial purposes, all without
+     asking permission."
+
+Verification: License page opened and the License(s): CC0 line confirmed this
+session (2026-07-07). NOT merely "free" and NOT CC-BY. Same pack already
+supplies this project's assets/spike.png and assets/goal.png (see
+assets/LICENSES/spike.txt) — provenance already established, re-verified here
+for the new door crop.
+
+Processing note: the 48x96px source crop is resized to the locked CONFIG.DOOR
+dimensions (32x64) via Image.NEAREST, then palette-remapped onto this
+project's ENVIRONMENT_PALETTE via the existing _remap_luminance pipeline (see
+scripts/build-art-assets.py build_door()) — the door is a universal barrier
+element, not re-themed per level.
+
+Vendor logo / brand art: none.
