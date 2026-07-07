@@ -353,10 +353,14 @@ def _mid_accent_sub(base, primary_color):
     two ranks the dominant source pixel lands on, the result is now always
     accent-family, regardless of the accent's own exact luma — removing the
     fragile exact-luma-tie dependency `_accent_sub` had. Scoped to the `mid`
-    sub-palette only: far/near/ground/title all keep using `_accent_sub`
-    unchanged (far/ground already read correctly distinct per-theme; near
-    shares this same underlying pattern but is explicitly out of scope for
-    this fix — see 26-08-SUMMARY.md).
+    sub-palette originally (far/ground already read correctly distinct
+    per-theme and still use `_accent_sub` unchanged); `near` shared this same
+    underlying pattern and was left out of scope here — see 26-08-SUMMARY.md
+    — but was confirmed to exhibit the identical bug (all 8 baked
+    `near-theme-*.png` assets pixel-sampled: themes 1-7 shared an identical
+    (102,102,102) dominant fill, only theme-8/EMBER distinct — same
+    exact-luma-tie failure mode) and fixed with the mirrored
+    `_near_accent_sub` below (WR-03 follow-up, 2026-07-08).
     """
     lst = list(base)
 
@@ -369,6 +373,42 @@ def _mid_accent_sub(base, primary_color):
     shade = tuple(max(0, round(c * 0.8)) for c in primary_color)
     _set(3, shade)
     _set(4, primary_color)
+    return lst
+
+
+def _near_accent_sub(base, primary_color):
+    """NEAR-layer-specific accent substitution (WR-03 follow-up fix, mirrors
+    `_mid_accent_sub` above).
+
+    Bug this replaces: `_accent_sub` targets index 4, but
+    ENVIRONMENT_PALETTE_NEAR is only a 4-entry list (indices 0-3), so index 4
+    is always out of range and the accent gets APPENDED as a 5th bucket
+    instead of overwriting anything — the original P4=0x66 (luma102) slot
+    (last of the 4 base entries) survives untouched. Confirmed empirically:
+    pixel-sampling all 8 baked `near-theme-*.png` assets showed themes 1-7
+    sharing an identical (102,102,102) dominant fill (the untouched P4 slot
+    winning top rank after `_remap_luminance` re-sorts by luminance, since 7
+    of 8 accent hues have luma <102) — only theme-8/EMBER (luma102.2, the one
+    accent that narrowly clears 102) rendered distinct. The exact same
+    exact-luma-tie fragility as `_mid_accent_sub` was written to fix.
+
+    Fix: replace BOTH of the two highest slots (indices 2 and 3 — the last
+    two of this 4-entry list) with accent-derived shades, same shade
+    formula and reasoning as `_mid_accent_sub`. The next-highest surviving
+    base entry is index 1 (luma34), which the darkest accent's shade
+    (MOSS -> luma72.2) safely stays above.
+    """
+    lst = list(base)
+
+    def _set(idx, color):
+        if idx < len(lst):
+            lst[idx] = color
+        else:
+            lst.append(color)
+
+    shade = tuple(max(0, round(c * 0.8)) for c in primary_color)
+    _set(2, shade)
+    _set(3, primary_color)
     return lst
 
 
@@ -402,7 +442,7 @@ THEME_PALETTES = {
     theme_id: {
         "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, accent),
         "mid": _mid_accent_sub(ENVIRONMENT_PALETTE_MID, accent),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, accent),
+        "near": _near_accent_sub(ENVIRONMENT_PALETTE_NEAR, accent),
         "ground": _accent_sub(ENVIRONMENT_PALETTE, accent),
     }
     for theme_id, accent in _THEME_ACCENTS.items()
