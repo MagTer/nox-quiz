@@ -21,6 +21,8 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 | Background Elements (composited) | `assets/parallax/mid.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Parallax mid layer — temple/castle/tower + hills horizon rhythm |
 | Background Elements (composited) | `assets/parallax/near.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Parallax near layer — subtle hills texture |
 | Background Elements (composited) | `assets/tiles/title-bg.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Title/select screen backdrop — castle + hills + clouds |
+| 6 Color Dungeon 16x16 (gate/archway) | `assets/door.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Locked door barrier sprite |
+| New Platformer Pack (saw/barnacle/fly enemies) | `assets/enemy-1.png, assets/enemy-2.png, assets/enemy-3.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/new-platformer-pack | CC0 | Defeat-enemy encounter sprites — 3 variants |
 
 ## Notes
 
@@ -34,6 +36,11 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
   This is a mechanical re-grid of the same CC0 pixels — still CC0/public-domain.
 - A separate OpenGameArt page, `spinning-coin-0` (author *magdum*), was evaluated and
   **rejected**: it is CC-BY-SA 3.0, not CC0, and was **not** used.
+- `assets/enemy-1.png`, `assets/enemy-2.png`, `assets/enemy-3.png` (saw/barnacle/fly) were
+  hand-picked from the **New Platformer Pack**'s larger `Sprites/Enemies/Default/` roster
+  (which also includes worm/snail/slime variants) for a mechanical/monster/insect thematic
+  spread — following the same "no vendor logos, single cropped tile" discipline as every
+  other asset in this file.
 - **Phase 20 correction:** Phase 18 (v4.0) silently replaced the real, CC0-sourced
   `player.png`/`ground.png` above with procedurally-generated placeholder art
   (`scripts/generate-art-assets.py` drawing flat rectangles + random noise), while
