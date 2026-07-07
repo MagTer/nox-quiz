@@ -67,4 +67,20 @@ Full per-file rationale is inline in each changed file's own comments; task-leve
 
 ## (d) Human sign-off notes (Task 2)
 
-_Reserved — to be filled in after the Task 2 checkpoint (secret-alcove walkthrough across all 8 levels + 2x4 select-grid navigation feel) completes._
+**Verdict: Approved, with explicitly reduced scope** (human decision, recorded verbatim — not a full pass of the plan's original checklist).
+
+**What was actually verified by the human:**
+- Entered level-01, located and touched its secret alcove: HUD XP visibly incremented by exactly 5. Criterion (a) confirmed for level-01 only.
+- Player was not frozen and no challenge/answer-box UI appeared during the touch (observed as part of the same interaction — no separate report of a freeze or challenge panel).
+
+**Not independently re-verified in this pass** (human judged the level-01 check sufficient and elected not to continue):
+- Re-touching the same level-01 alcove doing nothing further (criterion c).
+- Completing level-01 without touching the alcove still clearing normally (criterion d).
+- The remaining 7 alcoves (levels 02–08).
+- The 2×4 select-grid's Up/Down/Left/Right navigation feel and locked/unlocked/cleared tile rendering.
+- Level-07/08 verticality + vertical camera pan.
+- The ~10–15 question spot-check (no "×1" table, no second-factor 10).
+
+**Context for the reduced scope:** the human's first reaction to the alcove was "I get the XP increase but nothing else happens — no alcove?", expecting some visible marker. This was confirmed as intended behavior, not a defect — 25-CONTEXT.md's binding decision is "hidden via geometry placement only, no signposting," and `build.js` explicitly ships `opacity(0)` with the comment "no blocker collider, no visible panel, no glyph... it IS a secret." Nothing in Phase 26's VIS-01..03 scope (palette/contrast/per-level background tinting) calls for adding a visual marker to this mechanic. After this was explained, the human said the mechanic "seems like a pointless feature that we might remove or adjust later. Not what I was expecting," then approved sign-off on the strength of the level-01 check alone ("It works on level one, that is enough").
+
+**Disposition:** Task 2's blocking gate is closed on this explicit, scope-limited human approval. The mechanic's XP-only/no-signposting design is confirmed working as specified — LVL-06's letter is satisfied — but its value as a feature is now an open question the human raised for a future phase, not a defect in this phase's implementation. Recorded as a pending todo in STATE.md rather than actioned here (no plan currently in scope calls for revisiting alcove UX). The 7 remaining alcoves were not independently re-checked by a human in this pass, and — per this plan's own scope note — Task 1's automated audit does not cover them either: `audit-phase21-mechanics.mjs`'s kind-lists intentionally exclude `secretAlcove` (25-RESEARCH.md Pitfall 3), so alcoves 2 through 8 rest on code-level review (identical `build.js`/`secretAlcove.js` wiring, per-level `geometry.secretAlcove` coordinates checked in 25-04's own SUMMARY) rather than either automated or human runtime verification. Same for the select-grid feel: Task 1's audit confirms the grid is *reachable* (36/36 `triggered:true` across all 8 levels proves the nav fix works well enough to drive the audit), but nobody eyeballed the wrap semantics or tile-state rendering live.
