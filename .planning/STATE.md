@@ -5,15 +5,15 @@ milestone_name: Nox Run — Real Levels
 current_phase: 26
 current_phase_name: Grunge Palette & Nox Run Rebrand
 status: executing
-stopped_at: Completed 26-12-PLAN.md (mid-execution palette expansion, 3->8 accents)
-last_updated: "2026-07-07T20:08:48.584Z"
+stopped_at: Completed 26-05-PLAN.md (per-level theming + door/enemy sprite wiring)
+last_updated: "2026-07-07T20:15:17.868Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 26 execution started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 35
-  completed_plans: 28
+  completed_plans: 29
   percent: 57
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 26 (Grunge Palette & Nox Run Rebrand) — EXECUTING
-Plan: 6 of 11
+Plan: 7 of 11
 Status: Ready to execute
 Last activity: 2026-07-07 — Phase 26 execution started
 
@@ -99,6 +99,7 @@ Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, no
 | Phase 26 P03 | 6min | 2 tasks | 33 files |
 | Phase 26 P12 | 9min | 5 tasks | 25 files |
 | Phase 26 P04 | 12min | 3 tasks | 12 files |
+| Phase 26 P05 | 18min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 26-12]: ACCENT_STEEL brightened from initial pick 0x4a5668 (~2.66:1) to 0x525e82 (~3.09:1) to clear the 3.0:1 WCAG threshold; human explicitly approved this exact value including its blue-purple lean — check-contrast.mjs's real formula run caught the WCAG gap before the human checkpoint, same pattern 26-02 used
 - [Phase ?]: [Phase 26-04]: door.png/enemy-*.png saved with alpha preserved (RGBA) rather than flattened to RGB like build_player()/build_ground() -- matches the spike.png/goal.png foreground-sprite precedent since these sit over textured level backgrounds, not flush against the near-black stage bg
 - [Phase ?]: [Phase 26-04]: Each of the 3 enemy sprites (saw/barnacle/fly) scaled independently to a shared 28px max-bbox target rather than one shared scale factor -- correct since these are 3 unrelated single-frame sprites, not a walk-cycle pose set needing consistent proportions
+- [Phase 26-05]: theme threading uses a graceful string-template fallback (base sprite name when levelData.theme unset) rather than a hard requirement, so build.js/parallax.js stay usable before 26-06 sets any level's theme field — verified end-to-end via browser-boot.mjs exercising the fallback path on all 8 currently-themeless levels
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -201,8 +203,8 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-07T20:08:03.049Z
-Stopped at: Completed 26-12-PLAN.md (mid-execution palette expansion, 3->8 accents)
+Last session: 2026-07-07T20:15:09.951Z
+Stopped at: Completed 26-05-PLAN.md (per-level theming + door/enemy sprite wiring)
 Resume file: None
 
 ---
