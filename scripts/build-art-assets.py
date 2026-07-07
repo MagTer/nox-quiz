@@ -476,6 +476,70 @@ def build_title_bg():
     save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", "title-bg.png"))
 
 
+def build_door():
+    """6 Color Dungeon 16x16 gate/archway tile -> assets/door.png (32x64).
+
+    VIS-04 (Phase 26 Plan 04): replaces the flat-color rect+glyph placeholder
+    that has shipped since Phase 18. Crops the sheet's closed-lattice-gate +
+    archway-base assembly, scales it 2/3 down to the locked CONFIG.DOOR
+    dimensions, and remaps it through the same luminance-ramp pipeline every
+    other environment asset uses. The door is a universal barrier element
+    (per 26-RESEARCH.md's Anti-Pattern note: danger/reward/barrier elements
+    must not be re-themed), so it stays on the base ENVIRONMENT_PALETTE, not
+    a per-theme variant.
+    """
+    target_w, target_h = 32, 64
+    sheet_path = os.path.join(
+        ROOT, "assets", "_opengameart-src", "6-color-dungeon", "16x16-dungeon-tiles.png"
+    )
+    im = Image.open(sheet_path).convert("RGBA")
+    crop = im.crop((0, 64, 48, 160))  # 48x96 — closed lattice gate + archway base
+    resized = crop.resize((target_w, target_h), Image.NEAREST)
+
+    remapped = _remap_luminance(resized, ENVIRONMENT_PALETTE)
+    assert remapped.size == (target_w, target_h), f"door sprite wrong size: {remapped.size}"
+    save(remapped.convert("RGBA"), os.path.join(ROOT, "assets", "door.png"))
+
+
+def build_enemies():
+    """Kenney "New Platformer Pack" enemy sprites -> assets/enemy-{1,2,3}.png (32x32 each).
+
+    VIS-04 (Phase 26 Plan 04): replaces the flat-color rect+glyph placeholder
+    that has shipped since Phase 18, with 3 distinct enemy variants (saw =
+    mechanical, barnacle = one-eyed horned monster, fly = insect). Unlike
+    build_player()'s shared-scale pose set, these are 3 unrelated static
+    single-frame sprites, so each gets an INDEPENDENT scale factor — no
+    shared walk-cycle proportion to preserve. Same universal-barrier
+    reasoning as build_door(): enemies stay on the base ENVIRONMENT_PALETTE,
+    never per-theme tinted.
+    """
+    target_w, target_h = 32, 32
+    content_target = 28  # px — largest bbox dimension after scaling, leaves a small margin
+    sources = [
+        ("saw_rest.png", "enemy-1.png"),
+        ("barnacle_attack_a.png", "enemy-2.png"),
+        ("fly_rest.png", "enemy-3.png"),
+    ]
+
+    for fname, out_name in sources:
+        im = Image.open(os.path.join(SRC, "new-platformer-pack", fname)).convert("RGBA")
+        bbox = im.getbbox()
+        cropped = im.crop(bbox)
+        scale = content_target / max(cropped.width, cropped.height)
+        new_w = max(1, round(cropped.width * scale))
+        new_h = max(1, round(cropped.height * scale))
+        resized = cropped.resize((new_w, new_h), Image.NEAREST)
+
+        canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+        px = (target_w - new_w) // 2
+        py = (target_h - new_h) // 2
+        canvas.paste(resized, (px, py), resized)
+
+        remapped = _remap_luminance(canvas, ENVIRONMENT_PALETTE)
+        assert remapped.size == (target_w, target_h), f"{out_name} wrong size: {remapped.size}"
+        save(remapped.convert("RGBA"), os.path.join(ROOT, "assets", out_name))
+
+
 def _load_live_palette():
     """Read CONFIG.PALETTE live from src/config.js via a node subprocess.
 
@@ -545,3 +609,5 @@ if __name__ == "__main__":
     for theme_id, palette in THEME_PALETTES.items():
         build_ground_theme(theme_id, palette["ground"])
         build_parallax_theme(theme_id, palette)
+    build_door()
+    build_enemies()
