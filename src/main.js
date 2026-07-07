@@ -89,6 +89,12 @@ loadSprite("bg-near", "../assets/parallax/near.png");
 // Shared title / level-select dark-grunge backdrop (Phase 18 ART-04)
 loadSprite("title-bg", "../assets/tiles/title-bg.png");
 
+// Baked "NOX RUN" wordmark (BRAND-01/BRAND-03; Phase 26 Plan 07) — hero size
+// for the title screen, badge size for level-select. Replaces the old
+// text("Math Lab") wordmark.
+loadSprite("logo-hero", "../assets/logo-hero.png");
+loadSprite("logo-badge", "../assets/logo-badge.png");
+
 // Per-level theme variants (VIS-03; Phase 26 Plan 05) — 8 baked themes, one
 // dedicated accent per level (26-03/26-12). Sprite names exactly match
 // parallax.js's layerName() template and build.js's groundSprite template

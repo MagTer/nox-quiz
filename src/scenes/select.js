@@ -73,6 +73,18 @@ export function selectScene(data) {
     return { id, i, state };
   });
 
+  // Baked "NOX RUN" badge logo (BRAND-01/BRAND-03; Phase 26 Plan 07) —
+  // small UI-badge size, sits just above the heading text (does not
+  // replace it).
+  add([
+    sprite("logo-badge"),
+    anchor("center"),
+    pos(center().x, S.ROW_Y - S.TILE_H - 28),
+    fixed(),
+    z(9000),
+    "select",
+  ]);
+
   // Heading.
   add([
     text("Select a Level", { size: S.HEADING_SIZE }),

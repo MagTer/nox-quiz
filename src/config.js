@@ -254,11 +254,13 @@ export const CONFIG = {
   },
 
   // --- Title scene layout (Phase 14 NAV-01; src/scenes/title.js consumes) ---
-  // Dark-grunge title screen: the centered "Math Lab" wordmark + a press-to-start
-  // prompt below it. No magic numbers live in the scene — every size/offset reads here.
-  // Real art is deferred to Phase 18; these are placeholder-but-tunable sizes.
+  // Dark-grunge title screen: the baked "NOX RUN" logo (BRAND-01/BRAND-03;
+  // Phase 26 Plan 07 — replaces the old plain-text "Math Lab" wordmark, so
+  // the old TITLE_SIZE text-size field is dead and removed alongside it) +
+  // a press-to-start prompt below it. No magic numbers live in the scene —
+  // every size/offset/duration reads here.
   TITLE: {
-    TITLE_SIZE: 64, // px — "Math Lab" wordmark text size (centered)
+    LOGO_REVEAL_MS: 400, // ms — one-shot, non-strobing logo-hero opacity 0->1 tween on scene-enter (comfortably under the 500ms cap; matches CONFIG.FX.BURST_MS's existing 400ms non-strobing precedent)
     PROMPT_SIZE: 20, // px — "press to start" prompt text size
     PROMPT_DY: 72, // px — vertical offset of the prompt BELOW the centered title
 

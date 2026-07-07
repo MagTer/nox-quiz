@@ -38,17 +38,24 @@ export function titleScene(data) {
   // behind everything; fixed() + low z() keeps it camera-immune and below UI.
   add([sprite("title-bg"), pos(0, 0), fixed(), z(CONFIG.TITLE_BG_Z), "title"]);
 
-  // Centered "Math Lab" wordmark — neon-green accent, fixed() + high z() so it floats
-  // in screen space (camera-immune). Minimal dark-grunge styling; real art is Phase 18.
-  add([
-    text("Math Lab", { size: T.TITLE_SIZE }),
+  // Baked "NOX RUN" logo (BRAND-01/BRAND-03; Phase 26 Plan 07) — dark-green
+  // fill + neon-green edge, baked via scripts/build-art-assets.py's
+  // build_logo() from the CC0 "monogram" font. fixed() + high z() so it
+  // floats in screen space (camera-immune), matching the old wordmark's
+  // placement. Mounts at opacity 0 and unconditionally reveals via a single
+  // non-strobing tween — no key press or click required to start it, and it
+  // is NEVER destroyed after the reveal (unlike the transient "Progress
+  // reset." banner below, this is a persistent UI element).
+  const logo = add([
+    sprite("logo-hero"),
     anchor("center"),
     pos(center()),
-    color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
+    opacity(0),
     fixed(),
     z(9000),
     "title",
   ]);
+  tween(0, 1, T.LOGO_REVEAL_MS / 1000, (v) => (logo.opacity = v), easings.easeOutQuad);
 
   // Press-to-start prompt — light-grey foreground, centered just below the wordmark.
   add([
