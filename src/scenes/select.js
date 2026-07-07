@@ -90,8 +90,8 @@ export function selectScene(data) {
   // UNLOCKED = bright accent, selectable. CLEARED = a check/done mark.
   const tileBoxes = []; // parallel to `tiles`; holds the rect entity per tile
   tiles.forEach((t) => {
-    const col = t.i % 4;
-    const row = Math.floor(t.i / 4);
+    const col = t.i % S.COLS;
+    const row = Math.floor(t.i / S.COLS);
     const x = S.START_X + col * (S.TILE_W + S.GAP);
     const y = S.ROW_Y + row * (S.TILE_H + S.ROW_GAP);
 
@@ -185,10 +185,10 @@ export function selectScene(data) {
   // Left/Right spill into an adjacent row, which CONTEXT.md's locked semantics forbid.
   function moveCursor(delta) {
     if (selectable.length === 0) return;
-    const currentRow = Math.floor(selectable[cursor] / 4);
+    const currentRow = Math.floor(selectable[cursor] / S.COLS);
     const rowCursorIdxs = selectable
       .map((_, ci) => ci)
-      .filter((ci) => Math.floor(selectable[ci] / 4) === currentRow);
+      .filter((ci) => Math.floor(selectable[ci] / S.COLS) === currentRow);
     const posInRow = rowCursorIdxs.indexOf(cursor);
     const nextPos =
       (posInRow + delta + rowCursorIdxs.length) % rowCursorIdxs.length;
@@ -201,26 +201,26 @@ export function selectScene(data) {
   // column in the target row if selectable there, else the nearest selectable column.
   function moveCursorRow(delta) {
     if (selectable.length === 0) return;
-    const currentRow = Math.floor(selectable[cursor] / 4);
-    const currentCol = selectable[cursor] % 4;
+    const currentRow = Math.floor(selectable[cursor] / S.COLS);
+    const currentCol = selectable[cursor] % S.COLS;
     const targetRow = currentRow + delta;
 
     const targetRowCursorIdxs = selectable
       .map((_, ci) => ci)
-      .filter((ci) => Math.floor(selectable[ci] / 4) === targetRow);
+      .filter((ci) => Math.floor(selectable[ci] / S.COLS) === targetRow);
     if (targetRowCursorIdxs.length === 0) return; // no cross-edge wrap — no-op
 
     const sameColCi = targetRowCursorIdxs.find(
-      (ci) => selectable[ci] % 4 === currentCol,
+      (ci) => selectable[ci] % S.COLS === currentCol,
     );
     if (sameColCi !== undefined) {
       cursor = sameColCi;
     } else {
       // Nearest selectable column in the target row (smallest |col - currentCol|).
       let best = targetRowCursorIdxs[0];
-      let bestDist = Math.abs((selectable[best] % 4) - currentCol);
+      let bestDist = Math.abs((selectable[best] % S.COLS) - currentCol);
       for (const ci of targetRowCursorIdxs) {
-        const dist = Math.abs((selectable[ci] % 4) - currentCol);
+        const dist = Math.abs((selectable[ci] % S.COLS) - currentCol);
         if (dist < bestDist) {
           best = ci;
           bestDist = dist;

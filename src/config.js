@@ -251,6 +251,8 @@ export const CONFIG = {
   // (cheap: the `Math.floor(i/4)` row math already generalizes) OR a paging scheme if the
   // grid outgrows the 640x360 canvas vertically.
   SELECT: {
+    COLS: 4, // grid column count — the single number that defines the 2x4 layout;
+    // referenced by select.js tile layout, row/col derivation, and cursor navigation.
     TILE_W: 96, // px — tile width
     TILE_H: 96, // px — tile height
     GAP: 24, // px — horizontal spacing between tiles
