@@ -242,7 +242,7 @@ Plans:
   5. **Superseded 2026-07-07 (26-CONTEXT.md):** the `mathlab_platformer_v2` localStorage key is explicitly NOT preserved — the user confirmed the save key may be freely renamed/changed as part of the rebrand, intentionally resetting pre-rebrand player progress. No pre-rebrand-save-resume check is required.
   6. **Added 2026-07-07 (VIS-04, 26-CONTEXT.md):** doors and enemies render with real CC0 sprite art (not the current flat-color rect + text-glyph placeholders — `config.js`'s enemy color is literally commented "placeholder"), sourced and licensed the same way as the existing player/tileset/parallax art, human-signed-off in the running game
 
-**Plans:** 10/12 plans executed
+**Plans:** 11/12 plans executed
 
 Plans:
 **Wave 1**
@@ -281,7 +281,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 26-10-PLAN.md — BRAND-02b: docs/README/Docker/CREDITS/script-docstring sweep + scripts/check-rebrand.sh permanent gate
+- [x] 26-10-PLAN.md — BRAND-02b: docs/README/Docker/CREDITS/script-docstring sweep + scripts/check-rebrand.sh permanent gate
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
@@ -349,7 +349,7 @@ Plans:
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
-| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 10/12 | In Progress|  |
+| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 11/12 | In Progress|  |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
 

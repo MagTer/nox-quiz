@@ -4,16 +4,16 @@ milestone: v5.0
 milestone_name: Nox Run — Real Levels
 current_phase: 26
 current_phase_name: Grunge Palette & Nox Run Rebrand
-status: executing
+status: verifying
 stopped_at: Completed 26-07-PLAN.md (Nox Run logo baked + wired, human-approved after 2 checkpoint rounds)
-last_updated: "2026-07-07T21:31:18.653Z"
+last_updated: "2026-07-07T21:37:36.314Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 26 execution started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 35
-  completed_plans: 33
+  completed_plans: 34
   percent: 57
 ---
 
@@ -38,7 +38,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 Phase: 26 (Grunge Palette & Nox Run Rebrand) — EXECUTING
 Plan: 11 of 11
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-07 — Phase 26 execution started
 
 Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, not yet executed)
@@ -104,6 +104,7 @@ Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, no
 | Phase 26 P07 | 18min | 3 tasks | 10 files |
 | Phase 26 P08 | 30min | 2 tasks | 20 files |
 | Phase 26 P09 | 12min | 3 tasks | 10 files |
+| Phase 26 P10 | 5min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 26]: [Phase 26-08]: Reused scripts/lib/mechanic-drive.mjs's proven driveToXPlanned/resolveIfBoxed driver for a new screenshot script instead of a bespoke timed-hold navigation -- level-01's enemy/door sit behind a mandatory gap-jump and multiple mandatory challenge encounters a bare ArrowRight timer cannot account for
 - [Phase 26]: [Phase 26-08]: Found and fixed a genuine mid-parallax-layer bug via the plan's own screenshot review (7 of 8 themes rendered an identical grey hill) -- _mid_accent_sub() now replaces the top two luminance-ranked slots instead of one, scoped exactly to the mid sub-palette per explicit human instruction; the near layer's identical unfixed defect and a pre-existing pink spike sprite (backlog 999.2) were both surfaced but deliberately left out of scope
 - [Phase 26-09]: Reworded comments referencing the old save key to avoid quoting it literally, so Task 3's own negative-literal verify (grep for zero mathlab_platformer_v2 occurrences in scripts/ + config.js) stays meaningful rather than self-defeated by Task 1's own documentation prose
+- [Phase ?]: [Phase 26-10]: check-rebrand.sh self-excludes its own file from the .sh raw-scan category — its own source necessarily contains the literal allowlist pattern text (mathlab_save) and explanatory prose, which would otherwise self-match and always FAIL, mirroring check-safety.sh's 'the audit never matches itself' precedent
+- [Phase ?]: [Phase 26-10]: .claude/CLAUDE.md carries 2 unallowlisted Math Lab mentions inherited verbatim from .planning/PROJECT.md's still-unrenamed Project heading — out of this plan's explicit files_modified/full-sweep scope, logged to deferred-items.md rather than auto-fixed
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -214,7 +217,7 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-07T21:30:35.064Z
+Last session: 2026-07-07T21:36:48.898Z
 Stopped at: Completed 26-07-PLAN.md (Nox Run logo baked + wired, human-approved after 2 checkpoint rounds)
 Resume file: None
 
