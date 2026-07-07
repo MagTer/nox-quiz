@@ -221,6 +221,13 @@ export const CONFIG = {
     // --- Reset Progress control (quick-260707-95c) ---
     RESET_SIZE: 14, // px — muted "press R to reset progress" prompt text size
     RESET_Y: 336, // px — near-bottom placement, clear of the start prompt (y+72=252) and canvas bottom (360)
+    // Backing chip behind the reset prompt (bug fix: RESET_FG 0x888888 is byte-identical
+    // to title-bg.png's castle/hill shapes — build-art-assets.py's ENVIRONMENT_PALETTE
+    // "light grey — strong edge/seam highlight" token — so the text was rendering but
+    // perfectly camouflaged wherever it overlapped the art. A dark chip guarantees
+    // contrast no matter what the backdrop art looks like.
+    RESET_CHIP_W: 210, // px — wide enough for "press R to reset progress" at RESET_SIZE
+    RESET_CHIP_H: 20, // px
     CONFIRM_PANEL_W: 420, // px — confirm overlay panel width (matches CONFIG.GATE's panel)
     CONFIRM_PANEL_H: 160, // px — confirm overlay panel height (three lines of text, not four answer boxes)
     CONFIRM_TITLE_SIZE: 22, // px — "Reset ALL progress?" heading text size

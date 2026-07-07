@@ -70,6 +70,22 @@ export function titleScene(data) {
     "title",
   ]);
 
+  // Dark backing chip behind the reset prompt — bug fix: RESET_FG (0x888888) is
+  // byte-identical to title-bg.png's castle/hill art (build-art-assets.py's
+  // ENVIRONMENT_PALETTE "strong edge/seam highlight" token), so the text rendered but
+  // was perfectly camouflaged wherever it sat over that shape. This chip guarantees
+  // contrast regardless of the backdrop; z sits just below the text's own z(9000).
+  add([
+    rect(T.RESET_CHIP_W, T.RESET_CHIP_H),
+    anchor("center"),
+    pos(center().x, T.RESET_Y),
+    color(PANEL_BG[0], PANEL_BG[1], PANEL_BG[2]),
+    opacity(0.85),
+    fixed(),
+    z(8999),
+    "title",
+  ]);
+
   // Muted "press R to reset progress" prompt — deliberately secondary (grey, small) to
   // the bright green start prompt above it, near the bottom edge of the canvas.
   add([
