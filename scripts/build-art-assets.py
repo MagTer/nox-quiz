@@ -223,6 +223,34 @@ def build_ground():
     save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", "ground.png"))
 
 
+def build_ground_theme(theme_id, palette):
+    """Per-level-theme variant of build_ground() (VIS-03; Phase 26 Plan 03).
+
+    Byte-identical body to build_ground() above (same source tiles, same
+    _remap_luminance call) except the sub-palette is a parameter and the
+    output path is suffixed — the original build_ground()/ground.png stays
+    an untouched fallback asset.
+    """
+    target_w, target_h = 16, 16
+    frame_source_tiles = [
+        "tile_0000.png",  # frame 0 — single
+        "tile_0001.png",  # frame 1 — left
+        "tile_0002.png",  # frame 2 — center
+        "tile_0003.png",  # frame 3 — right
+        "tile_0004.png",  # frame 4 — underside (plain dirt, no grass cap)
+    ]
+
+    sheet = Image.new("RGBA", (target_w * len(frame_source_tiles), target_h), (0, 0, 0, 0))
+    for i, fname in enumerate(frame_source_tiles):
+        im = Image.open(os.path.join(SRC, "pixel-platformer", fname)).convert("RGBA")
+        resized = im.resize((target_w, target_h), Image.NEAREST)
+        sheet.paste(resized, (i * target_w, 0), resized)
+
+    remapped = _remap_luminance(sheet, palette)
+    assert remapped.size == (80, 16), f"ground-{theme_id} sheet wrong size: {remapped.size}"
+    save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", f"ground-{theme_id}.png"))
+
+
 # Per-layer environment sub-palettes — all reused from ENVIRONMENT_PALETTE's
 # existing tokens (never invented). REVISED after real human sign-off feedback
 # (2026-07-04, see ENVIRONMENT_PALETTE's comment above): each layer now spans
@@ -249,6 +277,114 @@ ENVIRONMENT_PALETTE_TITLE = [
     ENVIRONMENT_PALETTE[5],
     ENVIRONMENT_PALETTE[6],
 ]
+
+
+# --- Per-level-theme accent hues (VIS-03; Phase 26 Plan 03) ---
+#
+# PALETTE_HEX mirror: these 3 RGB tuples MUST stay hand-synced with
+# src/config.js's CONFIG.PALETTE.ACCENT_MOSS/ACCENT_SLATE/ACCENT_RUST — there
+# is no cross-language import (Python has no path into the JS CONFIG
+# object), same convention already established for ENVIRONMENT_PALETTE /
+# PLAYER_PALETTE above. Values below match config.js's CURRENT hex literals
+# (post-Phase-26-Plan-02 WCAG brightening fix, not the plan's original
+# pre-fix literal picks — see 26-02-SUMMARY.md's deviation log).
+ACCENT_MOSS = (0x47, 0x68, 0x47)  # dark moss green — calm early-level accent
+ACCENT_SLATE = (0x4E, 0x64, 0x78)  # cold blue-grey — mid-level accent
+ACCENT_RUST = (0x8C, 0x50, 0x36)  # muted rust/umber — harsh late-level accent
+
+
+def _accent_sub(base, primary_color, secondary_color=None):
+    """Return a copy of `base` with an accent hue substituted into the
+    existing "mid grey / clearly-visible material highlight" slot (index 4
+    in the full 7-entry ENVIRONMENT_PALETTE), plus an optional second accent
+    at the next slot for a transitional blend (theme-5/theme-6).
+
+    ENVIRONMENT_PALETTE_FAR/_MID/_NEAR are shorter derived slices (3/5/4
+    entries) that don't all literally reach index 4/5 — when the target
+    index is out of range this appends the color as one extra luma bucket
+    instead of replacing an existing entry. This is functionally equivalent
+    either way: _remap_luminance (above) re-sorts every color list by
+    luminance before use, so neither the original index position nor exact
+    list length — only which colors are present — affects the rendered
+    pixels.
+    """
+    lst = list(base)
+
+    def _set(idx, color):
+        if idx < len(lst):
+            lst[idx] = color
+        else:
+            lst.append(color)
+
+    _set(4, primary_color)
+    if secondary_color is not None:
+        _set(5, secondary_color)
+    return lst
+
+
+# Theme-to-level mapping (calmer green early -> harsher rust late, per
+# 26-RESEARCH.md's Open Question 3 recommendation). Phase 26 Plan 06 reads
+# this table when it sets each level descriptor's `theme` field; keep this
+# comment block in sync with that plan rather than re-deriving the mapping:
+#   theme-1 -> level-01, theme-2 -> level-02   : ACCENT_MOSS
+#   theme-3 -> level-03, theme-4 -> level-04   : ACCENT_SLATE
+#   theme-5 -> level-05                        : ACCENT_SLATE primary, ACCENT_RUST hint on mid/near (transitional)
+#   theme-6 -> level-06                        : ACCENT_RUST primary, ACCENT_SLATE hint kept everywhere (rust-leaning transitional)
+#   theme-7 -> level-07, theme-8 -> level-08   : ACCENT_RUST
+THEME_PALETTES = {
+    "theme-1": {
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_MOSS),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_MOSS),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_MOSS),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_MOSS),
+    },
+    "theme-2": {
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_MOSS),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_MOSS),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_MOSS),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_MOSS),
+    },
+    "theme-3": {
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_SLATE),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_SLATE),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_SLATE),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_SLATE),
+    },
+    "theme-4": {
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_SLATE),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_SLATE),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_SLATE),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_SLATE),
+    },
+    "theme-5": {
+        # Transitional blend: far/ground stay pure slate; mid/near carry a
+        # rust hint at the secondary slot, foreshadowing theme-6+.
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_SLATE),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_SLATE, ACCENT_RUST),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_SLATE, ACCENT_RUST),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_SLATE),
+    },
+    "theme-6": {
+        # Rust-leaning transitional: rust now primary everywhere, slate kept
+        # as a secondary hint (mirrors theme-5's blend, flipped).
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_RUST, ACCENT_SLATE),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_RUST, ACCENT_SLATE),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_RUST, ACCENT_SLATE),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_RUST, ACCENT_SLATE),
+    },
+    "theme-7": {
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_RUST),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_RUST),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_RUST),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_RUST),
+    },
+    "theme-8": {
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_RUST),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_RUST),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_RUST),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_RUST),
+    },
+}
 
 
 def _load_be(fname):
@@ -301,6 +437,43 @@ def build_parallax():
     near_remapped = _remap_luminance(near, ENVIRONMENT_PALETTE_NEAR)
     assert near_remapped.size == (near_w, near_h), f"near layer wrong size: {near_remapped.size}"
     save(near_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", "near.png"))
+
+
+def build_parallax_theme(theme_id, palette):
+    """Per-level-theme variant of build_parallax() (VIS-03; Phase 26 Plan 03).
+
+    Byte-identical body to build_parallax() above (same source silhouette
+    elements, same compositing) except `palette` is a dict of far/mid/near
+    sub-palettes and the output paths are suffixed — the original
+    build_parallax()/{far,mid,near}.png stay untouched fallback assets.
+    """
+    far_w, far_h = 640, 120
+    far = Image.new("RGBA", (far_w, far_h), (0, 0, 0, 0))
+    mtn = _scale_to_width(_load_be("pointy_mountains.png"), far_w)
+    far.paste(mtn.crop((0, max(0, mtn.height - far_h), far_w, mtn.height)), (0, far_h - min(far_h, mtn.height)), mtn.crop((0, max(0, mtn.height - far_h), far_w, mtn.height)))
+    far_remapped = _remap_luminance(far, palette["far"])
+    assert far_remapped.size == (far_w, far_h), f"far-{theme_id} layer wrong size: {far_remapped.size}"
+    save(far_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"far-{theme_id}.png"))
+
+    mid_w, mid_h = 640, 144
+    mid = Image.new("RGBA", (mid_w, mid_h), (0, 0, 0, 0))
+    hills = _scale_to_width(_load_be("hills1.png"), mid_w)
+    mid.paste(hills.crop((0, max(0, hills.height - mid_h), mid_w, hills.height)), (0, mid_h - min(mid_h, hills.height)), hills.crop((0, max(0, hills.height - mid_h), mid_w, hills.height)))
+    for fname, x, scale in [("temple.png", 60, 0.55), ("castle.png", 280, 0.55), ("tower.png", 500, 0.55)]:
+        motif = _load_be(fname)
+        motif = motif.resize((max(1, round(motif.width * scale)), max(1, round(motif.height * scale))), Image.LANCZOS)
+        mid.paste(motif, (x, mid_h - motif.height), motif)
+    mid_remapped = _remap_luminance(mid, palette["mid"])
+    assert mid_remapped.size == (mid_w, mid_h), f"mid-{theme_id} layer wrong size: {mid_remapped.size}"
+    save(mid_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"mid-{theme_id}.png"))
+
+    near_w, near_h = 640, 90
+    near = Image.new("RGBA", (near_w, near_h), (0, 0, 0, 0))
+    hills2 = _scale_to_width(_load_be("hills2.png"), near_w)
+    near.paste(hills2.crop((0, max(0, hills2.height - near_h), near_w, hills2.height)), (0, near_h - min(near_h, hills2.height)), hills2.crop((0, max(0, hills2.height - near_h), near_w, hills2.height)))
+    near_remapped = _remap_luminance(near, palette["near"])
+    assert near_remapped.size == (near_w, near_h), f"near-{theme_id} layer wrong size: {near_remapped.size}"
+    save(near_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"near-{theme_id}.png"))
 
 
 def build_title_bg():
@@ -396,3 +569,6 @@ if __name__ == "__main__":
     build_parallax()
     build_title_bg()
     build_palette_swatch()
+    for theme_id, palette in THEME_PALETTES.items():
+        build_ground_theme(theme_id, palette["ground"])
+        build_parallax_theme(theme_id, palette)
