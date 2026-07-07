@@ -154,6 +154,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - `2026-07-07-review-levels-against-level-design-rules.md` — review the 8 shipped levels against the new `docs/LEVEL-DESIGN.md` SOFT rules (user: "down the road", not urgent; natural slot near Phase 28)
 - `2026-07-07-reconsider-secret-alcove-mechanic-discoverability-and-value.md` — user found the invisible/silent alcove reward "pointless... not what I was expecting" during Phase 25's sign-off; not actioned this milestone, revisit design before adding more content on the same pattern
 - `2026-07-07-add-automated-coverage-for-secretalcove-mechanic.md` — Phase 25 code review (WR-01/WR-06) found secretAlcove has zero automated reachability/trigger coverage in either verification harness; deliberately left unfixed (needs new detection/reachability logic, not a mechanical patch) — natural slot before/alongside Phase 28
+- `2026-07-07-fix-unreachable-pickups-ledges-and-level-07-08-repetition.md` — human full-playthrough UAT for Phase 25 found some pickups/ledges unreachable in levels 5-8 and level-07/08's end-climb sections are near-duplicates; user explicitly accepted as deferred/non-blocking ("it is playable... can be fixed later")
 
 ### Blockers/Concerns
 

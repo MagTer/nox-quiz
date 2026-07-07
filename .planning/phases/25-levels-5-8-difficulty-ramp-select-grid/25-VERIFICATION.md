@@ -1,7 +1,8 @@
 ---
 phase: 25-levels-5-8-difficulty-ramp-select-grid
 verified: 2026-07-07T16:22:04Z
-status: human_needed
+status: passed
+human_uat: 25-UAT.md (resolved 2026-07-07T16:32:00Z — accepted with reported issues deferred, see below)
 score: 7/9 must-haves verified
 behavior_unverified: 2
 overrides_applied: 0
@@ -120,6 +121,20 @@ Two items remain behavior-unverified by design of this repo's own tooling (not a
 Both gaps are already tracked as pending todos (`2026-07-07-add-automated-coverage-for-secretalcove-mechanic.md`, `2026-07-07-reconsider-secret-alcove-mechanic-discoverability-and-value.md`) rather than silently dropped, and Phase 26 does not depend on either being closed first.
 
 **Separately noted (not a phase-goal gap, a documentation-currency issue):** `.planning/STATE.md` still reads `status: executing` / "BLOCKED on Task 2 human-verify checkpoint" as of its last edit (commit `1114407`), even though Task 2 was closed in commit `87857b3` and the code review + review-fix + todo-capture commits landed afterward. `.planning/ROADMAP.md`'s Phase 25 plan checklist also still shows `25-07-PLAN.md` unchecked and "Plans: 6/7 plans executed." This is stale planning metadata, not a code defect — recommend syncing STATE.md/ROADMAP.md to reflect Phase 25's actual completed-with-human_needed status before proceeding to Phase 26.
+
+### Human UAT Resolution (2026-07-07T16:32:00Z)
+
+The two human-verification items above were closed via a real full-game playthrough
+(not a rubber-stamp) — see `25-UAT.md` for the complete record. The human did not
+report any alcove-mechanism failure (freeze, missing XP, stuck challenge) or any
+select-grid navigation/rendering complaint, but did report genuine, separate content
+issues: some pickups ("coins") and ledges are unreachable in the level 5-8 content,
+and level-07/08's end-climb verticality sections read as near-duplicates of each
+other. The human explicitly judged the game "playable through all 8 levels" and
+elected to defer fixing these rather than block Phase 25 — captured as a new pending
+todo (`.planning/todos/pending/2026-07-07-fix-unreachable-pickups-ledges-and-level-07-08-repetition.md`)
+rather than silently dropped. Status upgraded to `passed` on this explicit,
+human-authorized basis.
 
 ---
 
