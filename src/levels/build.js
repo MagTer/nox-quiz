@@ -30,12 +30,11 @@ import { CONFIG } from "../config.js";
 const T = CONFIG.TILE_SIZE; // 16px — floor visual-tile grid step (pure config read, safe at top level)
 const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run (pure config read, safe at top level)
 
-// Dark-grunge palette per CLAUDE.md — matches src/scenes/select.js's own LABEL_FG exactly
-// (21-RESEARCH.md Finding 1 convention). Plain data literal, safe at module top level (no
-// engine global call). Applied to the door/math-gate/enemy glyph text() calls below as
-// defensive codebase-convention cleanup (uncolored text() already defaults to opaque white
-// per 21-RESEARCH.md, so this is not a bug fix — Finding 1 was REFUTED as the live cause).
-const LABEL_FG = [0xe8, 0xe8, 0xe8];
+// Dark-grunge palette per CLAUDE.md — matches src/scenes/select.js's own text color exactly
+// (21-RESEARCH.md Finding 1 convention), now read from CONFIG.PALETTE.TEXT (VIS-01; Phase 26
+// Plan 01). Applied to the door/math-gate/enemy glyph text() calls below as defensive
+// codebase-convention cleanup (uncolored text() already defaults to opaque white per
+// 21-RESEARCH.md, so this is not a bug fix — Finding 1 was REFUTED as the live cause).
 
 // buildLevel(levelData) instantiates the level body from a descriptor's geometry.
 //
@@ -185,7 +184,7 @@ export function buildLevel(levelData) {
       text("X", { size: CONFIG.DOOR.GLYPH_SIZE }),
       anchor("center"),
       pos(d.x + CONFIG.DOOR.W / 2, d.y + CONFIG.DOOR.H / 2),
-      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       "door-glyph",
     ]);
 
@@ -224,7 +223,7 @@ export function buildLevel(levelData) {
       text("?", { size: CONFIG.MATH_GATE.GLYPH_SIZE }),
       anchor("center"),
       pos(mg.x + CONFIG.MATH_GATE.W / 2, mg.y + CONFIG.MATH_GATE.H / 2),
-      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       "math-gate-glyph",
     ]);
 
@@ -261,7 +260,7 @@ export function buildLevel(levelData) {
       text("!", { size: CONFIG.ENEMY.GLYPH_SIZE }),
       anchor("center"),
       pos(e.x + CONFIG.ENEMY.W / 2, e.y + CONFIG.ENEMY.H / 2),
-      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       "enemy-glyph",
     ]);
 

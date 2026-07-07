@@ -39,15 +39,10 @@ import { createBrain } from "../math/brain.js"; // the ONLY consumer of the brai
 import { CONFIG } from "../config.js"; // GATE tuning constants (dim opacity, panel size)
 
 // Dark-grunge palette per CLAUDE.md (bg near-black, #333 borders, neon red accent, NO pink).
-const PANEL_BG = [20, 20, 20];
-const PANEL_BORDER = [0x33, 0x33, 0x33];
-const BOX_BG = [30, 30, 30];
-const BOX_BORDER = [0x44, 0x44, 0x44];
-const ACCENT_RED = [0xff, 0x44, 0x33]; // wrong nudge
-const LABEL_FG = [0xe8, 0xe8, 0xe8]; // question-prompt + answer-box text (#e8e8e8, ~18:1) —
-// matches src/scenes/select.js's own LABEL_FG exactly (21-RESEARCH.md Finding 1 convention;
-// Finding 1 was REFUTED as the live bug's cause — uncolored text() already defaults to opaque
-// white — but explicit color() is still applied here as defensive codebase-convention cleanup)
+// Colors read from the single source of truth, CONFIG.PALETTE (VIS-01; Phase 26 Plan 01):
+// panel bg -> SURFACE, panel border -> BORDER, answer-box bg -> SURFACE_ALT,
+// answer-box border -> MUTED, wrong-nudge accent -> DANGER, question-prompt + answer-box
+// text -> TEXT (matches src/scenes/select.js's own text color exactly).
 
 /**
  * Open the shared in-world challenge overlay over the (already paused) level.
@@ -161,8 +156,8 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
       rect(CONFIG.GATE.PANEL_W, CONFIG.GATE.PANEL_H),
       anchor("center"),
       pos(center()),
-      color(PANEL_BG[0], PANEL_BG[1], PANEL_BG[2]),
-      outline(2, rgb(PANEL_BORDER[0], PANEL_BORDER[1], PANEL_BORDER[2])),
+      color(CONFIG.PALETTE.SURFACE[0], CONFIG.PALETTE.SURFACE[1], CONFIG.PALETTE.SURFACE[2]),
+      outline(2, rgb(CONFIG.PALETTE.BORDER[0], CONFIG.PALETTE.BORDER[1], CONFIG.PALETTE.BORDER[2])),
       fixed(),
       z(9991),
       "challenge",
@@ -182,7 +177,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
       text(label, { size: 22 }),
       anchor("center"),
       pos(center().x, center().y - 82),
-      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       fixed(),
       z(9992),
       "challenge",
@@ -192,7 +187,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
       text(arithmetic),
       anchor("center"),
       pos(center().x, center().y - 44),
-      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       fixed(),
       z(9992),
       "challenge",
@@ -203,7 +198,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
       text(display),
       anchor("center"),
       pos(center().x, center().y - 60),
-      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       fixed(),
       z(9992),
       "challenge",
@@ -237,8 +232,8 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
         area(),
         anchor("center"),
         pos(bx, rowY),
-        color(BOX_BG[0], BOX_BG[1], BOX_BG[2]),
-        outline(2, rgb(BOX_BORDER[0], BOX_BORDER[1], BOX_BORDER[2])),
+        color(CONFIG.PALETTE.SURFACE_ALT[0], CONFIG.PALETTE.SURFACE_ALT[1], CONFIG.PALETTE.SURFACE_ALT[2]),
+        outline(2, rgb(CONFIG.PALETTE.MUTED[0], CONFIG.PALETTE.MUTED[1], CONFIG.PALETTE.MUTED[2])),
         fixed(),
         z(9992),
         "challenge",
@@ -252,7 +247,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
         text(i + 1 + ") " + choice, { size: 22 }),
         anchor("center"),
         pos(bx, rowY),
-        color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+        color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
         fixed(),
         z(9993),
         "challenge",
@@ -293,7 +288,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
     if (!correct) {
       // WRONG (GATE-04 forgiving): nudge + redden the chosen box, KEEP the same question,
       // leave the challenge open and input live. No run-ending state, no success, no close.
-      if (box) box.color = rgb(ACCENT_RED[0], ACCENT_RED[1], ACCENT_RED[2]);
+      if (box) box.color = rgb(CONFIG.PALETTE.DANGER[0], CONFIG.PALETTE.DANGER[1], CONFIG.PALETTE.DANGER[2]);
       shake(6);
       return;
     }

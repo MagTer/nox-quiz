@@ -11,10 +11,7 @@
 // function body only — they are NOT imported.
 
 import { openChallenge } from "./challenge.js";
-import { CONFIG } from "../config.js"; // still needed for the banner dim opacity
-
-// Neon-green accent used ONLY by this file's end-of-level completion celebration.
-const ACCENT_GREEN = [0x00, 0xff, 0x88];
+import { CONFIG } from "../config.js"; // banner dim opacity + CONFIG.PALETTE.REWARD (VIS-01)
 
 /**
  * Open the end-of-level math gate over the (already paused) level.
@@ -49,7 +46,7 @@ export function openMathGate({ brain, onClear } = {}) {
         text("LEVEL CLEAR", { size: 30 }),
         anchor("center"),
         pos(center().x, center().y),
-        color(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2]),
+        color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
         fixed(),
         z(9994),
         "gate-cleared",

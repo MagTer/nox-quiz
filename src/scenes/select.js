@@ -11,7 +11,7 @@
 // EVERY Kaplay primitive (add, text, rect, color, outline, rgb, pos, anchor, center,
 // fixed, z, go) is referenced ONLY inside the factory body. They exist only AFTER
 // kaplay() runs — a module-TOP-LEVEL reference would throw at import and blank the
-// canvas. Module scope here is limited to imports and plain color-array literals.
+// canvas. Module scope here is limited to imports only.
 //
 // IN-WORLD, NOT THE DOM (CLAUDE.md canon): every visual is a Kaplay canvas object
 // (text()/rect()) — no markup-string sink, so no injection path. The scene NEVER reads
@@ -33,20 +33,20 @@ import { CONFIG } from "../config.js";
 import { LEVEL_ORDER, isUnlocked } from "../levels/index.js";
 import { createProgress, loadSave } from "../progress.js";
 
-// Dark-grunge palette per CLAUDE.md (NO pink). Plain data literals — safe at module
-// scope because they call no engine global (a727c13).
-const ACCENT_GREEN = [0x00, 0xff, 0x88]; // unlocked/cleared tile border + selectable outline
-const UNLOCKED_FILL = [0x11, 0x11, 0x11]; // unlocked/cleared tile fill (dark surface)
-const LOCKED_GREY = [0x44, 0x44, 0x44]; // locked tile (dimmed, not selectable)
-const CLEARED_BLUE = [0x66, 0xcc, 0xff]; // cleared tile border + check glyph (distinct from accent)
-const LABEL_FG = [0xe8, 0xe8, 0xe8]; // tile number + heading text (#e8e8e8, ~18:1)
-const SELECTABLE_BORDER = [0x00, 0xff, 0x88]; // outline for selectable (unlocked) tiles (accent)
-const LOCKED_BORDER = [0x55, 0x55, 0x55]; // IN-01: dim neutral outline for LOCKED tiles —
-// a non-selectable tile must NOT wear the accent-green "selectable" frame, or the locked
-// affordance is muddied for a 12-year-old. Distinct from the grey fill so the edge still reads.
-const CURSOR_BORDER = [0xff, 0xff, 0xff]; // IN-02: bright white outline for the ACTIVE keyboard
-// cursor — distinguishes the focused tile by COLOR (not just width), so the cursor position is
-// unmissable on a single-tile row where a width-only change is near-invisible.
+// Dark-grunge palette per CLAUDE.md (NO pink). Colors read from the single source of
+// truth, CONFIG.PALETTE (VIS-01; Phase 26 Plan 01):
+// - CONFIG.PALETTE.REWARD: unlocked/cleared tile border + selectable outline
+// - CONFIG.PALETTE.SURFACE_UNLOCKED: unlocked/cleared tile fill (dark surface)
+// - CONFIG.PALETTE.MUTED: locked tile (dimmed, not selectable)
+// - CONFIG.PALETTE.CLEARED: cleared tile border + check glyph (distinct from accent)
+// - CONFIG.PALETTE.TEXT: tile number + heading text
+// - CONFIG.PALETTE.MUTED_BORDER: IN-01 dim neutral outline for LOCKED tiles — a
+//   non-selectable tile must NOT wear the accent-green "selectable" frame, or the
+//   locked affordance is muddied for a 12-year-old. Distinct from the grey fill so
+//   the edge still reads.
+// - CONFIG.PALETTE.CURSOR: IN-02 bright white outline for the ACTIVE keyboard cursor —
+//   distinguishes the focused tile by COLOR (not just width), so the cursor position is
+//   unmissable on a single-tile row where a width-only change is near-invisible.
 
 /**
  * selectScene — NAV-02. Read registry + progress fresh, render three-state tiles,
@@ -78,7 +78,7 @@ export function selectScene(data) {
     text("Select a Level", { size: S.HEADING_SIZE }),
     anchor("center"),
     pos(center().x, S.ROW_Y - S.TILE_H),
-    color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+    color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
     fixed(),
     z(9000),
     "select",
@@ -95,17 +95,17 @@ export function selectScene(data) {
     const x = S.START_X + col * (S.TILE_W + S.GAP);
     const y = S.ROW_Y + row * (S.TILE_H + S.ROW_GAP);
 
-    const fillColor = t.state === "locked" ? LOCKED_GREY : UNLOCKED_FILL;
+    const fillColor = t.state === "locked" ? CONFIG.PALETTE.MUTED : CONFIG.PALETTE.SURFACE_UNLOCKED;
 
     // IN-01: locked tiles get the dim neutral border; unlocked tiles get the accent
     // green border; cleared tiles get the blue border. paintCursor() later overrides
     // ONLY the active selectable tile's outline (color + width) — locked tiles are never touched.
     const borderColor =
       t.state === "locked"
-        ? LOCKED_BORDER
+        ? CONFIG.PALETTE.MUTED_BORDER
         : t.state === "cleared"
-          ? CLEARED_BLUE
-          : SELECTABLE_BORDER;
+          ? CONFIG.PALETTE.CLEARED
+          : CONFIG.PALETTE.REWARD;
 
     const box = add([
       rect(S.TILE_W, S.TILE_H),
@@ -126,7 +126,7 @@ export function selectScene(data) {
       text(String(t.i + 1), { size: S.LABEL_SIZE }),
       anchor("center"),
       pos(x, y),
-      color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
       fixed(),
       z(9001),
       "select",
@@ -139,7 +139,7 @@ export function selectScene(data) {
         text(glyph, { size: S.GLYPH_SIZE }),
         anchor("center"),
         pos(x, y + S.TILE_H / 2 - S.GLYPH_SIZE),
-        color(LABEL_FG[0], LABEL_FG[1], LABEL_FG[2]),
+        color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
         fixed(),
         z(9001),
         "select",
@@ -172,7 +172,7 @@ export function selectScene(data) {
       // Resting border per state (IN-01): locked stays dim, unlocked stays accent,
       // cleared stays blue. Use the border stored at creation so cleared tiles keep
       // their blue border when the cursor moves elsewhere.
-      const border = isActive ? CURSOR_BORDER : box.restingBorder;
+      const border = isActive ? CONFIG.PALETTE.CURSOR : box.restingBorder;
       box.outline.width = isActive ? 5 : 2;
       box.outline.color = rgb(border[0], border[1], border[2]);
     });
