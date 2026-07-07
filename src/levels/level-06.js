@@ -104,6 +104,6 @@ export const LEVEL_06 = {
   },
 
   mechanics: [],
-  theme: null,
+  theme: "theme-6", // VIS-03 theme assignment — warm clay, level 6 of 8
   parallax: null,
 };

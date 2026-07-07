@@ -141,6 +141,6 @@ export const LEVEL_08 = {
   },
 
   mechanics: [],
-  theme: null,
+  theme: "theme-8", // VIS-03 theme assignment — ember, level 8 of 8
   parallax: null,
 };

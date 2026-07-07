@@ -130,6 +130,6 @@ export const LEVEL_03 = {
   },
 
   mechanics: [],
-  theme: null,
+  theme: "theme-3", // VIS-03 theme assignment — teal, level 3 of 8
   parallax: null,
 };

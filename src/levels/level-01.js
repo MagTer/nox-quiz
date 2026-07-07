@@ -160,6 +160,6 @@ export const LEVEL_01 = {
 
   // --- Forward-looking optional slots (buildLevel ignores them when unset) ---
   mechanics: [], // Phase 15/16 placeholder — mid-game math mechanics
-  theme: null, // Phase 18 placeholder — visual theming
+  theme: "theme-1", // VIS-03 theme assignment — calm moss green, level 1 of 8
   parallax: null, // Phase 18 placeholder — parallax background layers
 };

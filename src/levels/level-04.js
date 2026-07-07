@@ -133,6 +133,6 @@ export const LEVEL_04 = {
   },
 
   mechanics: [],
-  theme: null,
+  theme: "theme-4", // VIS-03 theme assignment — blue-grey slate, level 4 of 8
   parallax: null,
 };

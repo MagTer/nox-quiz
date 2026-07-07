@@ -144,6 +144,6 @@ export const LEVEL_07 = {
   },
 
   mechanics: [],
-  theme: null,
+  theme: "theme-7", // VIS-03 theme assignment — harsh rust, level 7 of 8
   parallax: null,
 };
