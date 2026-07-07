@@ -200,9 +200,9 @@ export const CONFIG = {
 
   // --- Save / persistence (Phase 26 Nox Run rebrand CLEAN-RESET key — new namespace, no migration) ---
   // The Phase 26 Nox Run rebrand deliberately starts a FRESH save under a NEW key. The prior
-  // key (mathlab_platformer_v2, itself a v4.0 clean-reset key) is NOT migrated and NOT deleted —
-  // it is simply orphaned/made invisible by this new key, per the explicit user-confirmed
-  // decision in 26-CONTEXT.md (the rebrand intentionally resets pre-rebrand player progress).
+  // pre-rebrand v4.0 clean-reset key is NOT migrated and NOT deleted — it is simply orphaned/
+  // made invisible by this new key, per the explicit user-confirmed decision in 26-CONTEXT.md
+  // (the rebrand intentionally resets pre-rebrand player progress).
   // CONFIG.SAVE.KEY is the single source of truth, also read by scripts/check-progress.sh's
   // grep assertion and every Playwright script's SAVE_KEY const — all updated together
   // whenever this key changes. The old key is never read or written anywhere.

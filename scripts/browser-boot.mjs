@@ -70,7 +70,7 @@ const MIME = {
   ".mp3": "audio/mpeg",
 };
 
-const SAVE_KEY = "mathlab_platformer_v2";
+const SAVE_KEY = "noxrun_platformer_v1";
 // WR-02: derive the unlocked-levels blob from the live LEVEL_ORDER import instead of a
 // hardcoded 3-level literal, matching audit-phase21-mechanics.mjs's own fixed version —
 // so this script can never silently drift out of sync (and silently skip visiting a new

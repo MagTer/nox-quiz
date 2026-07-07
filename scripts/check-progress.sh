@@ -47,10 +47,11 @@ done
 # 1. Persistence seam present — the guarded quota catch + the versioned save key.
 grep -q 'QuotaExceededError' "$ROOT/src/progress.js" \
   || fail "missing 'QuotaExceededError' guard in src/progress.js (writeSave must tolerate a full quota)"
-# Phase 13 clean-reset key bump: the NEW versioned key (v2), NOT the v3.0 v1 key. This grep
-# and CONFIG.SAVE.KEY in src/config.js must agree (the canonical grep-coupling trap, Pitfall 6).
-grep -q 'mathlab_platformer_v2' "$ROOT/src/config.js" \
-  || fail "missing NEW versioned save key 'mathlab_platformer_v2' in src/config.js (Phase 13 clean reset)"
+# Phase 26 Nox Run rebrand clean-reset key: the NEW branded key, NOT the old pre-rebrand key.
+# This grep and CONFIG.SAVE.KEY in src/config.js must agree (the canonical grep-coupling
+# trap, Pitfall 6 / 26-RESEARCH.md Pitfall A).
+grep -q 'noxrun_platformer_v1' "$ROOT/src/config.js" \
+  || fail "missing NEW branded save key 'noxrun_platformer_v1' in src/config.js (Phase 26 Nox Run rebrand clean reset)"
 
 # 2. Brain seeding wired BOTH ends — accuracy resume (SAVE-03).
 grep -q 'seedAccuracy' "$ROOT/src/scenes/game.js" \

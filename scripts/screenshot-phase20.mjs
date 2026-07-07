@@ -65,7 +65,7 @@ const MIME = {
   ".json": "application/json",
 };
 
-const SAVE_KEY = "mathlab_platformer_v2";
+const SAVE_KEY = "noxrun_platformer_v1";
 const SAVE_BLOB = {
   version: 2,
   xp: 0,

@@ -83,7 +83,7 @@ const MIME = {
   ".json": "application/json",
 };
 
-const SAVE_KEY = "mathlab_platformer_v2";
+const SAVE_KEY = "noxrun_platformer_v1";
 // Derive the unlocked-levels blob from the live LEVEL_ORDER import (browser-boot.mjs's
 // own WR-02 idiom) so this script can never silently drift if a level is added/removed.
 const SAVE_BLOB = {
