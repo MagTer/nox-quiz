@@ -141,4 +141,17 @@ fi
 # 16. Final step — invoke the headless math/seed smoke.
 node "$ROOT/scripts/smoke-progress.mjs" || fail "smoke-progress failed (pure XP/level + seed adaptation)"
 
+# 17. Reset Progress control (quick-260707-95c) — the guarded resetSave() seam exists and
+#     is wired into the title screen.
+grep -q 'export function resetSave' "$ROOT/src/progress.js" \
+  || fail "missing 'export function resetSave' in src/progress.js (Reset Progress control needs the guarded seam)"
+grep -q 'resetSave' "$ROOT/src/scenes/title.js" \
+  || fail "missing 'resetSave' wiring in src/scenes/title.js (Reset Progress control must call the seam)"
+
+# 18. NEGATIVE — the Reset Progress control must remove ONLY CONFIG.SAVE.KEY, never wipe
+#     all of localStorage.
+if grep -q 'localStorage.clear()' "$ROOT/src/progress.js"; then
+  fail "localStorage.clear() found in src/progress.js — resetSave() must remove ONLY CONFIG.SAVE.KEY, never wipe all of localStorage"
+fi
+
 echo "progress checks: PASS"

@@ -217,6 +217,16 @@ export const CONFIG = {
     TITLE_SIZE: 64, // px — "Math Lab" wordmark text size (centered)
     PROMPT_SIZE: 20, // px — "press to start" prompt text size
     PROMPT_DY: 72, // px — vertical offset of the prompt BELOW the centered title
+
+    // --- Reset Progress control (quick-260707-95c) ---
+    RESET_SIZE: 14, // px — muted "press R to reset progress" prompt text size
+    RESET_Y: 336, // px — near-bottom placement, clear of the start prompt (y+72=252) and canvas bottom (360)
+    CONFIRM_PANEL_W: 420, // px — confirm overlay panel width (matches CONFIG.GATE's panel)
+    CONFIRM_PANEL_H: 160, // px — confirm overlay panel height (three lines of text, not four answer boxes)
+    CONFIRM_TITLE_SIZE: 22, // px — "Reset ALL progress?" heading text size
+    CONFIRM_BODY_SIZE: 16, // px — confirm overlay body text size
+    CONFIRM_HINT_SIZE: 14, // px — "Y = yes / N = cancel" hint text size
+    RESET_FLASH_MS: 900, // ms — self-destroying "Progress reset." confirmation duration
   },
 
   // --- Level-select scene layout (Phase 14 NAV-02; src/scenes/select.js consumes) ---
