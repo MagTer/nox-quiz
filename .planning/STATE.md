@@ -5,10 +5,10 @@ milestone_name: Nox Run — Real Levels
 current_phase: 25
 current_phase_name: Levels 5–8, Difficulty Ramp & Select Grid
 status: executing
-stopped_at: Completed 25-06-PLAN.md
-last_updated: "2026-07-06T21:19:42.262Z"
-last_activity: 2026-07-06
-last_activity_desc: Phase 25 execution started
+stopped_at: 25-07 Task 1 complete (full 8-level suite green, fix commits 9e84a88/61f2169 landed); BLOCKED on Task 2 human-verify checkpoint (secret-alcove walkthrough + select-grid feel)
+last_updated: "2026-07-07T00:00:00.000Z"
+last_activity: 2026-07-07
+last_activity_desc: 25-07 Task 1 done; awaiting human sign-off checkpoint
 progress:
   total_phases: 7
   completed_phases: 3
@@ -37,13 +37,13 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 25 (Levels 5–8, Difficulty Ramp & Select Grid) — EXECUTING
-Plan: 7 of 7
-Status: Ready to execute
-Last activity: 2026-07-06 — Phase 25 execution started
+Plan: 7 of 7 (25-07 Task 1 complete; Task 2 human-verify checkpoint PENDING)
+Status: Blocked on human sign-off — secret-alcove walkthrough (all 8 levels) + 2×4 select-grid navigation feel. Tip: serve with `?debug=1` to see the invisible alcoves/colliders during the walkthrough.
+Last activity: 2026-07-07 — 25-07 Task 1 suite green; fix commits 9e84a88/61f2169 landed
 
-Progress: [███░░░░░░░] 29% (2/7 phases)
+Progress: [████░░░░░░] 43% (3/7 phases)
 
-**Next:** `/gsd-discuss-phase 24` (optional: `/gsd-verify-work 23` for human UAT pass, `/gsd-secure-phase 23` for security enforcement)
+**Next:** Complete 25-07 Task 2 (human walkthrough per 25-07-PLAN.md), fill 25-FINDINGS.md section (d), write 25-07-SUMMARY.md, then `/gsd-plan-phase 26`
 
 ## v5.0 Roadmap Summary
 
@@ -63,7 +63,36 @@ Progress: [███░░░░░░░] 29% (2/7 phases)
 
 **Velocity (through v4.1):** 21 phases, 62 plans completed across 5 shipped milestones (2026-06-20 → 2026-07-04). Per-plan history archived in `.planning/milestones/`.
 
-**v5.0:** 10 plans completed across Phases 22–23 (2026-07-05 → 2026-07-06).
+**v5.0:** 22 plans completed across Phases 22–25 (2026-07-05 → 2026-07-07).
+
+<details>
+<summary>v5.0 per-plan timing (moved out of the Deferred Items table, where these rows had been mis-appended)</summary>
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 22 P01 | 15min | 2 tasks | 2 files |
+| Phase 22 P02 | 24min | 3 tasks | 4 files |
+| Phase 22 P03 | 18min | 2 tasks | 1 files |
+| Phase 22 P04 | 13min | 3 tasks | 3 files |
+| Phase 22 P05 | 35min | 3 tasks | 3 files |
+| Phase 23 P01 | 12min | 2 tasks | 2 files |
+| Phase 23 P02 | 25min | 2 tasks | 3 files |
+| Phase 23 P03 | 13min | 2 tasks | 2 files |
+| Phase 23 P04 | 18min | 2 tasks | 1 files |
+| Phase 23 P05 | 8min | 2 tasks | 2 files |
+| Phase 24 P01 | 12min | 2 tasks | 1 files |
+| Phase 24 P02 | 10min | 2 tasks | 1 files |
+| Phase 24 P03 | 9min | 2 tasks | 1 files |
+| Phase 24 P04 | 5min | 2 tasks | 1 files |
+| Phase 24 P05 | 10min | 2 tasks | 1 files |
+| Phase 25 P01 | 3min | 2 tasks | 5 files |
+| Phase 25 P02 | 6min | 2 tasks | 2 files |
+| Phase 25 P03 | 12min | 2 tasks | 5 files |
+| Phase 25 P04 | 5min | 2 tasks | 6 files |
+| Phase 25 P05 | 5min | 2 tasks | 2 files |
+| Phase 25 P06 | 8min | 2 tasks | 1 files |
+
+</details>
 
 ## Accumulated Context
 
@@ -122,6 +151,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 ### Pending Todos
 
 - `2026-07-04-drop-tables-1-and-10-from-practice-rotation.md` — covered by MATH-01/MATH-02 (Phase 25); move to completed when Phase 25 ships
+- `2026-07-07-review-levels-against-level-design-rules.md` — review the 8 shipped levels against the new `docs/LEVEL-DESIGN.md` SOFT rules (user: "down the road", not urgent; natural slot near Phase 28)
 
 ### Blockers/Concerns
 
@@ -141,27 +171,6 @@ Carried forward from previous milestone closes:
 | deploy | SETUP-02 live Dokploy URL playthrough confirmation (container curl-proven locally) | pending (DEPLOY-FUT-01) | v3.0 |
 | uat | MOVE-05 throttled/non-60Hz empirical feel check (code verified dt-correct) | pending, low-risk | v3.0 |
 | test-tooling | 6/16 encounter audit blind spot | resolved for levels 1-4 in Phase 23 (16/16); full 8-level closure remains Phase 28 (VALID-03) | v4.1 |
-| Phase 22 P01 | 15min | 2 tasks | 2 files |
-| Phase 22 P02 | 24min | 3 tasks | 4 files |
-| Phase 22 P03 | 18min | 2 tasks | 1 files |
-| Phase 22 P04 | 13min | 3 tasks | 3 files |
-| Phase 22 P05 | 35min | 3 tasks | 3 files |
-| Phase 23 P01 | 12min | 2 tasks | 2 files |
-| Phase 23 P02 | 25min | 2 tasks | 3 files |
-| Phase 23 P03 | 13min | 2 tasks | 2 files |
-| Phase 23 P04 | 18min | 2 tasks | 1 files |
-| Phase 23 P05 | 8min | 2 tasks | 2 files |
-| Phase 24 P01 | 12min | 2 tasks | 1 files |
-| Phase 24 P02 | 10min | 2 tasks | 1 files |
-| Phase 24 P03 | 9min | 2 tasks | 1 files |
-| Phase 24 P04 | 5min | 2 tasks | 1 files |
-| Phase 24 P05 | 10min | 2 tasks | 1 files |
-| Phase 25 P01 | 3min | 2 tasks | 5 files |
-| Phase 25 P02 | 6min | 2 tasks | 2 files |
-| Phase 25 P03 | 12min | 2 tasks | 5 files |
-| Phase 25 P04 | 5min | 2 tasks | 6 files |
-| Phase 25 P05 | 5min | 2 tasks | 2 files |
-| Phase 25 P06 | 8min | 2 tasks | 1 files |
 
 ## Quick Tasks Completed
 
@@ -172,11 +181,11 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-06T21:19:42.252Z
-Stopped at: Completed 25-06-PLAN.md
+Last session: 2026-07-07
+Stopped at: 25-07 Task 1 complete; awaiting Task 2 human-verify checkpoint
 Resume file: None
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-07-06 (Phase 23 complete, transitioned to Phase 24)
+**Last updated:** 2026-07-07 (mid-25-07 — Task 1 suite green, human sign-off pending)
