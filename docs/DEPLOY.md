@@ -1,6 +1,6 @@
-# Deploying Math Lab to a web URL (Dokploy)
+# Deploying Nox Run to a web URL (Dokploy)
 
-Math Lab ships as **static files served by an nginx container** — no backend, no
+Nox Run ships as **static files served by an nginx container** — no backend, no
 database, no server-side logic. This document is the deploy checklist you run
 **once the Dokploy host is provisioned**.
 
@@ -73,10 +73,10 @@ Before any remote deploy, the container is proven locally — Python's
 the **container** with curl:
 
 ```bash
-docker build -f docker/Dockerfile -t mathlab:phase7 .
-docker run -d --rm -p 8080:80 --name mathlab mathlab:phase7
+docker build -f docker/Dockerfile -t noxrun:local .
+docker run -d --rm -p 8080:80 --name noxrun noxrun:local
 sleep 1.5
 curl -sI http://localhost:8080/                 # 200, text/html
 curl -sI http://localhost:8080/lib/kaplay.mjs   # 200, application/javascript
-docker stop mathlab
+docker stop noxrun
 ```

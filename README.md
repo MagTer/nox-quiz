@@ -1,4 +1,4 @@
-# Math Lab v3.0 — The Platformer
+# Nox Run — The Platformer
 
 A 2D platformer (built with [Kaplay](https://kaplayjs.com/)) where multiplication is
 the gate to progress. Dark/grunge aesthetic, keyboard-controlled, no pink, no timers.

@@ -1,4 +1,4 @@
-# Single-stage static file server for Math Lab.
+# Single-stage static file server for Nox Run.
 # No build step: the game is plain HTML + vendored ESM + assets.
 FROM nginx:alpine
 
