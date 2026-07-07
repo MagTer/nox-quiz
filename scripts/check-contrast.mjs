@@ -82,8 +82,13 @@ const PAIRINGS = [
   { role: "MUTED_BORDER", on: "BG", threshold: 3.0 }, // UI outline
   { role: "BORDER", on: "BG", threshold: 3.0 }, // UI outline
   { role: "ACCENT_MOSS", on: "BG", threshold: 3.0 }, // UI-component/background-tint role, not text
+  { role: "ACCENT_FERN", on: "BG", threshold: 3.0 }, // added Plan 26-12 (8-accent expansion)
+  { role: "ACCENT_TEAL", on: "BG", threshold: 3.0 },
   { role: "ACCENT_SLATE", on: "BG", threshold: 3.0 },
+  { role: "ACCENT_STEEL", on: "BG", threshold: 3.0 },
+  { role: "ACCENT_CLAY", on: "BG", threshold: 3.0 },
   { role: "ACCENT_RUST", on: "BG", threshold: 3.0 },
+  { role: "ACCENT_EMBER", on: "BG", threshold: 3.0 },
 ];
 
 function toHex([r, g, b]) {

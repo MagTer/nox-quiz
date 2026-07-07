@@ -32,15 +32,22 @@ const PALETTE = {
   REWARD: [0x00, 0xff, 0x88],
   CLEARED: [0x66, 0xcc, 0xff],
   CURSOR: [0xff, 0xff, 0xff],
-  // --- Hue-tinted dark accents (VIS-02; Phase 26 Plan 02) ---
-  // Brightened from the plan's initial literal picks (0x2a3d2a/0x2c3844/0x5a3322,
-  // ~1.7:1 contrast) to clear scripts/check-contrast.mjs's 3.0:1 UI-component
-  // threshold against BG — see 26-CONTRAST.md and 26-02-SUMMARY.md's deviation
-  // log. Zero consumers exist yet (per-level theming lands in a later Phase 26
-  // plan), so this is a safe same-plan correction, not a shipped-art change.
-  ACCENT_MOSS: [0x47, 0x68, 0x47], // dark moss green — calm early-level accent (~3.15:1 vs BG)
-  ACCENT_SLATE: [0x4e, 0x64, 0x78], // cold blue-grey — mid-level accent (~3.22:1 vs BG)
-  ACCENT_RUST: [0x8c, 0x50, 0x36], // muted rust/umber — harsh late-level accent (~3.13:1 vs BG)
+  // --- Hue-tinted dark accents (VIS-02; Phase 26 Plan 02, expanded Plan 26-12) ---
+  // MOSS/SLATE/RUST brightened from the plan's initial literal picks
+  // (0x2a3d2a/0x2c3844/0x5a3322, ~1.7:1 contrast) to clear scripts/check-contrast.mjs's
+  // 3.0:1 UI-component threshold against BG — see 26-CONTRAST.md and 26-02-SUMMARY.md's
+  // deviation log. Byte-unchanged since 26-02 (already human-signed-off, reused as-is).
+  // FERN/TEAL/STEEL/CLAY/EMBER added in Plan 26-12 (mid-execution revision, 2026-07-07):
+  // expanded from 3 shared accents to 8 — one dedicated accent per level — after Wave 3's
+  // bake exposed identical themes for level pairs 1/2, 3/4, 7/8. See 26-CONTEXT.md addendum.
+  ACCENT_MOSS: [0x47, 0x68, 0x47], // dark moss green — calm early-level accent (~3.15:1 vs BG) — level 1
+  ACCENT_FERN: [0x4a, 0x70, 0x58], // warm mid-green, between moss and teal — level 2
+  ACCENT_TEAL: [0x45, 0x70, 0x70], // green-to-blue transitional — level 3
+  ACCENT_SLATE: [0x4e, 0x64, 0x78], // cold blue-grey — mid-level accent (~3.22:1 vs BG) — level 4
+  ACCENT_STEEL: [0x52, 0x5e, 0x82], // cooler blue-grey than slate — level 5 (brightened from initial 0x4a5668, ~2.66:1, to clear 3.0:1 WCAG)
+  ACCENT_CLAY: [0x70, 0x5a, 0x48], // warm grey-brown, transitional toward rust — level 6
+  ACCENT_RUST: [0x8c, 0x50, 0x36], // muted rust/umber — harsh late-level accent (~3.13:1 vs BG) — level 7
+  ACCENT_EMBER: [0xa8, 0x50, 0x2c], // harshest/most saturated stop, past rust — level 8
 };
 
 export const CONFIG = {
