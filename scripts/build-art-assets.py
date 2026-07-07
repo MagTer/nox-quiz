@@ -279,34 +279,37 @@ ENVIRONMENT_PALETTE_TITLE = [
 ]
 
 
-# --- Per-level-theme accent hues (VIS-03; Phase 26 Plan 03) ---
+# --- Per-level-theme accent hues (VIS-02/VIS-03; Phase 26 Plans 02/03/12) ---
 #
-# PALETTE_HEX mirror: these 3 RGB tuples MUST stay hand-synced with
-# src/config.js's CONFIG.PALETTE.ACCENT_MOSS/ACCENT_SLATE/ACCENT_RUST — there
-# is no cross-language import (Python has no path into the JS CONFIG
-# object), same convention already established for ENVIRONMENT_PALETTE /
-# PLAYER_PALETTE above. Values below match config.js's CURRENT hex literals
-# (post-Phase-26-Plan-02 WCAG brightening fix, not the plan's original
-# pre-fix literal picks — see 26-02-SUMMARY.md's deviation log).
-ACCENT_MOSS = (0x47, 0x68, 0x47)  # dark moss green — calm early-level accent
-ACCENT_SLATE = (0x4E, 0x64, 0x78)  # cold blue-grey — mid-level accent
-ACCENT_RUST = (0x8C, 0x50, 0x36)  # muted rust/umber — harsh late-level accent
+# PALETTE_HEX mirror: these 8 RGB tuples MUST stay hand-synced with
+# src/config.js's CONFIG.PALETTE.ACCENT_* tokens — there is no cross-language
+# import (Python has no path into the JS CONFIG object), same convention
+# already established for ENVIRONMENT_PALETTE / PLAYER_PALETTE above. Values
+# below match config.js's CURRENT hex literals (MOSS/SLATE/RUST unchanged
+# since Plan 26-02's WCAG brightening fix; FERN/TEAL/STEEL/CLAY/EMBER added
+# in Plan 26-12's 3->8 accent expansion — see 26-12-SUMMARY.md).
+ACCENT_MOSS = (0x47, 0x68, 0x47)  # dark moss green — level 1
+ACCENT_FERN = (0x4A, 0x70, 0x58)  # warm mid-green — level 2
+ACCENT_TEAL = (0x45, 0x70, 0x70)  # green-to-blue transitional — level 3
+ACCENT_SLATE = (0x4E, 0x64, 0x78)  # cold blue-grey — level 4
+ACCENT_STEEL = (0x52, 0x5E, 0x82)  # cooler blue-grey than slate — level 5
+ACCENT_CLAY = (0x70, 0x5A, 0x48)  # warm grey-brown, toward rust — level 6
+ACCENT_RUST = (0x8C, 0x50, 0x36)  # muted rust/umber — level 7
+ACCENT_EMBER = (0xA8, 0x50, 0x2C)  # harshest/most saturated stop — level 8
 
 
-def _accent_sub(base, primary_color, secondary_color=None):
+def _accent_sub(base, primary_color):
     """Return a copy of `base` with an accent hue substituted into the
     existing "mid grey / clearly-visible material highlight" slot (index 4
-    in the full 7-entry ENVIRONMENT_PALETTE), plus an optional second accent
-    at the next slot for a transitional blend (theme-5/theme-6).
+    in the full 7-entry ENVIRONMENT_PALETTE).
 
     ENVIRONMENT_PALETTE_FAR/_MID/_NEAR are shorter derived slices (3/5/4
-    entries) that don't all literally reach index 4/5 — when the target
-    index is out of range this appends the color as one extra luma bucket
-    instead of replacing an existing entry. This is functionally equivalent
-    either way: _remap_luminance (above) re-sorts every color list by
-    luminance before use, so neither the original index position nor exact
-    list length — only which colors are present — affects the rendered
-    pixels.
+    entries) that don't all literally reach index 4 — when the target index
+    is out of range this appends the color as one extra luma bucket instead
+    of replacing an existing entry. This is functionally equivalent either
+    way: _remap_luminance (above) re-sorts every color list by luminance
+    before use, so neither the original index position nor exact list
+    length — only which colors are present — affects the rendered pixels.
     """
     lst = list(base)
 
@@ -317,73 +320,43 @@ def _accent_sub(base, primary_color, secondary_color=None):
             lst.append(color)
 
     _set(4, primary_color)
-    if secondary_color is not None:
-        _set(5, secondary_color)
     return lst
 
 
-# Theme-to-level mapping (calmer green early -> harsher rust late, per
-# 26-RESEARCH.md's Open Question 3 recommendation). Phase 26 Plan 06 reads
-# this table when it sets each level descriptor's `theme` field; keep this
-# comment block in sync with that plan rather than re-deriving the mapping:
-#   theme-1 -> level-01, theme-2 -> level-02   : ACCENT_MOSS
-#   theme-3 -> level-03, theme-4 -> level-04   : ACCENT_SLATE
-#   theme-5 -> level-05                        : ACCENT_SLATE primary, ACCENT_RUST hint on mid/near (transitional)
-#   theme-6 -> level-06                        : ACCENT_RUST primary, ACCENT_SLATE hint kept everywhere (rust-leaning transitional)
-#   theme-7 -> level-07, theme-8 -> level-08   : ACCENT_RUST
+# Theme-to-level mapping — one dedicated accent per level (Plan 26-12
+# mid-execution revision, 2026-07-07: previously 3 shared accents produced
+# identical baked output for level pairs 1/2, 3/4, 7/8, undercutting VIS-03's
+# distinctness requirement; see 26-CONTEXT.md addendum). Phase 26 Plan 06
+# reads this table when it sets each level descriptor's `theme` field; keep
+# this comment block in sync with that plan rather than re-deriving the
+# mapping:
+#   theme-1 -> level-01 : ACCENT_MOSS
+#   theme-2 -> level-02 : ACCENT_FERN
+#   theme-3 -> level-03 : ACCENT_TEAL
+#   theme-4 -> level-04 : ACCENT_SLATE
+#   theme-5 -> level-05 : ACCENT_STEEL
+#   theme-6 -> level-06 : ACCENT_CLAY
+#   theme-7 -> level-07 : ACCENT_RUST
+#   theme-8 -> level-08 : ACCENT_EMBER
+_THEME_ACCENTS = {
+    "theme-1": ACCENT_MOSS,
+    "theme-2": ACCENT_FERN,
+    "theme-3": ACCENT_TEAL,
+    "theme-4": ACCENT_SLATE,
+    "theme-5": ACCENT_STEEL,
+    "theme-6": ACCENT_CLAY,
+    "theme-7": ACCENT_RUST,
+    "theme-8": ACCENT_EMBER,
+}
+
 THEME_PALETTES = {
-    "theme-1": {
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_MOSS),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_MOSS),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_MOSS),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_MOSS),
-    },
-    "theme-2": {
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_MOSS),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_MOSS),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_MOSS),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_MOSS),
-    },
-    "theme-3": {
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_SLATE),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_SLATE),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_SLATE),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_SLATE),
-    },
-    "theme-4": {
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_SLATE),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_SLATE),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_SLATE),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_SLATE),
-    },
-    "theme-5": {
-        # Transitional blend: far/ground stay pure slate; mid/near carry a
-        # rust hint at the secondary slot, foreshadowing theme-6+.
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_SLATE),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_SLATE, ACCENT_RUST),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_SLATE, ACCENT_RUST),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_SLATE),
-    },
-    "theme-6": {
-        # Rust-leaning transitional: rust now primary everywhere, slate kept
-        # as a secondary hint (mirrors theme-5's blend, flipped).
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_RUST, ACCENT_SLATE),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_RUST, ACCENT_SLATE),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_RUST, ACCENT_SLATE),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_RUST, ACCENT_SLATE),
-    },
-    "theme-7": {
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_RUST),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_RUST),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_RUST),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_RUST),
-    },
-    "theme-8": {
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, ACCENT_RUST),
-        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, ACCENT_RUST),
-        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, ACCENT_RUST),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, ACCENT_RUST),
-    },
+    theme_id: {
+        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, accent),
+        "mid": _accent_sub(ENVIRONMENT_PALETTE_MID, accent),
+        "near": _accent_sub(ENVIRONMENT_PALETTE_NEAR, accent),
+        "ground": _accent_sub(ENVIRONMENT_PALETTE, accent),
+    }
+    for theme_id, accent in _THEME_ACCENTS.items()
 }
 
 
