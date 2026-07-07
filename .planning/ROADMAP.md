@@ -235,6 +235,7 @@ Plans:
 
   1. Every duplicated color literal lives in `CONFIG.PALETTE` before expansion, and the expanded palette adds hue-tinted darks (moss green, blue-grey, rust) with WCAG AA contrast recorded per role and zero pink anywhere
      **Revised 2026-07-07 (26-12-PLAN.md):** expanded to 8 total accent hues (one per level) — see 26-CONTEXT.md addendum.
+
   2. Each of the 8 levels has a distinct background/accent theme tint produced through the art pipeline, human-signed-off in the running game
   3. The title screen shows the Nox Run dark-green/black pixel wordmark (CC0 font, Pillow-baked PNG) with a light/neon separation element, revealed in a ≤500ms non-strobing animation and human-signed-off at real sizes
   4. No user-facing "Math Lab" string remains (HTML title, title screen, docs, Docker, README) — enforced by a grep sweep with an explicit allowlist for historical school-game comments
@@ -348,7 +349,7 @@ Plans:
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
-| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 3/11 | In Progress|  |
+| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 4/12 | In Progress|  |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
 

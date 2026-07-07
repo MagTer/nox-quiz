@@ -5,15 +5,15 @@ milestone_name: Nox Run — Real Levels
 current_phase: 26
 current_phase_name: Grunge Palette & Nox Run Rebrand
 status: executing
-stopped_at: Phase 26 fully planned (11 plans, 9 waves) and plan-checker verified; ready to execute
-last_updated: "2026-07-07T19:05:33.709Z"
+stopped_at: Completed 26-12-PLAN.md (mid-execution palette expansion, 3->8 accents)
+last_updated: "2026-07-07T20:02:38.638Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 26 execution started
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 34
-  completed_plans: 26
+  total_plans: 35
+  completed_plans: 27
   percent: 57
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 26 (Grunge Palette & Nox Run Rebrand) — EXECUTING
-Plan: 4 of 11
+Plan: 5 of 11
 Status: Ready to execute
 Last activity: 2026-07-07 — Phase 26 execution started
 
@@ -97,6 +97,7 @@ Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, no
 | Phase 26 P01 | 7min | 3 tasks | 8 files |
 | Phase 26 P02 | 27min | 5 tasks | 6 files |
 | Phase 26 P03 | 6min | 2 tasks | 33 files |
+| Phase 26 P12 | 9min | 5 tasks | 25 files |
 
 ## Accumulated Context
 
@@ -152,6 +153,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase 26-02]: Pre-existing locked tokens BORDER (#333333) and MUTED_BORDER (#555555) also failed the 3.0:1 WCAG threshold (1.57:1/2.66:1); brightened to #5e5e5e/#707070, explicitly flagged beyond Task 5's stated pink/magenta-only scope, and approved by human review of the swatch image ("Changes noticed. Seems to be working. Not pink. Keep going.")
 - [Phase 26-03]: Python art-pipeline accent hex constants must mirror CONFIG.PALETTE's CURRENT (post-26-02-brightening) values, not the plan's stale literal picks -- resolved via reading src/config.js live
 - [Phase 26-03]: Resolved plan's index[4]/index[5] theme sub-palette substitution ambiguity via a graceful-degrade helper (replace if index exists, else append) -- functionally equivalent since _remap_luminance re-sorts by luminance internally, list order/length never affects rendered pixels
+- [Phase 26-12]: Expanded CONFIG.PALETTE from 3 to 8 accent hues (one dedicated accent per level), mid-execution, after Wave 3's bake exposed theme-1==theme-2/theme-3==theme-4/theme-7==theme-8 duplication — User requested more color variety after reviewing Wave 3's output; the 3-shared-accent scheme undercut VIS-03's own distinctness requirement
+- [Phase 26-12]: ACCENT_STEEL brightened from initial pick 0x4a5668 (~2.66:1) to 0x525e82 (~3.09:1) to clear the 3.0:1 WCAG threshold; human explicitly approved this exact value including its blue-purple lean — check-contrast.mjs's real formula run caught the WCAG gap before the human checkpoint, same pattern 26-02 used
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -195,8 +198,8 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-07T19:04:27.482Z
-Stopped at: Phase 26 fully planned and verified, ready to execute (user requested a context reset here)
+Last session: 2026-07-07T20:02:38.627Z
+Stopped at: Completed 26-12-PLAN.md (mid-execution palette expansion, 3->8 accents)
 Resume file: None
 
 ---
