@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Nox Run — Real Levels
-current_phase: 26
-current_phase_name: Grunge Palette & Nox Run Rebrand
+current_phase: 27
+current_phase_name: Audio & ADHD-Safe Sound
 status: verifying
 stopped_at: Completed 26-11-PLAN.md (Phase 26 closing verification — combined gate suite + 3x interactive mechanic audit, zero regressions confirmed)
-last_updated: "2026-07-07T21:55:44.956Z"
+last_updated: "2026-07-07T22:29:30.616Z"
 last_activity: 2026-07-07
-last_activity_desc: Phase 26 execution started
+last_activity_desc: Phase 26 complete, transitioned to Phase 27
 progress:
   total_phases: 7
   completed_phases: 5
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 26 — Grunge Palette & Nox Run Rebrand
+**Current Focus:** Phase 27 — Audio & ADHD-Safe Sound
 
 **Shipped State (v4.1):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion — with real curated CC0 art under human sign-off and interactively-audited mechanics. All prior milestone requirements satisfied.
 
@@ -36,14 +36,14 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 26 (Grunge Palette & Nox Run Rebrand) — EXECUTING
-Plan: 11 of 11
-Status: Phase complete — ready for verification
-Last activity: 2026-07-07 — Phase 26 execution started
+Phase: 27 — Audio & ADHD-Safe Sound
+Plan: Not started
+Status: Not started — ready to discuss/plan
+Last activity: 2026-07-07 — Phase 26 complete and verified (7/7 must-haves passed); transitioned to Phase 27
 
-Progress: [██████░░░░] 57% (4/7 phases; Phase 26 planned, not yet executed)
+Progress: [███████░░░] 71% (5/7 phases; Phase 26 shipped — palette centralization/expansion, 8 per-level themes, real door/enemy sprites, Nox Run logo, full rebrand string sweep + save-key rename)
 
-**Next:** `/gsd-execute-phase 26`
+**Next:** `/gsd-discuss-phase 27` (or `/gsd-autonomous --from 27` to resume the autonomous run)
 
 ## v5.0 Roadmap Summary
 
@@ -177,6 +177,10 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - [Phase ?]: [Phase 26-10]: .claude/CLAUDE.md carries 2 unallowlisted Math Lab mentions inherited verbatim from .planning/PROJECT.md's still-unrenamed Project heading — out of this plan's explicit files_modified/full-sweep scope, logged to deferred-items.md rather than auto-fixed
 - [Phase 26-11]: check-progress.sh's smoke-progress.mjs level-01/03/04 geometry-pin failure confirmed pre-existing (Phase 25-04), not a Phase 26 regression -- left unfixed per Scope Boundary rule — Cross-referenced against deferred-items.md and STATE.md's own decision log, both already recording this exact failure class before this plan ran
 - [Phase 26-11]: Interactive mechanic audit run 3x for confidence; all 3 runs independently confirmed 37/37 triggered:true, 0 triggered:false across all 8 levels -- direct proof VIS-04's sprite swap is collision-neutral — Harness has documented headless-timing nondeterminism (STATE.md Phase 22-01); repeated runs isolate flakiness to post-trigger resolved status only, never the trigger/collision layer itself
+- [Phase 26]: Code review (26-REVIEW.md) found a genuine CR-01 regression — 26-06's new enemy `variant` fields on levels 01/03/04 broke smoke-progress.mjs's golden geometry fixtures (confirmed by re-running the gate at pre-phase commit 68afd72: passes there, fails on HEAD) — fixed by syncing the fixture, re-verified green
+- [Phase 26]: Code review fix pass also resolved WR-01 (main.js now derives background from CONFIG.PALETTE.BG instead of a hardcoded hex), WR-02 (screenshot-phase20.mjs ported the path-traversal guard + loopback-only bind its sibling scripts already had), and WR-03 (near parallax layer had the identical luma-clustering bug as the already-fixed mid layer — confirmed via pixel-sampling, fixed with a mirrored _near_accent_sub, all 8 near-theme PNGs rebaked) — re-review after fixes came back clean (0 critical, 0 warning, 1 info)
+- [Phase 26]: Two items surfaced during checkpoint review were deliberately NOT fixed in-phase, captured to ROADMAP.md backlog instead: 999.1 (reconsider/remove the collect-the-answer mechanic — user found it confusing during playtesting, present in 5/8 levels, would affect Phase 24-25's tuned math pacing) and 999.2 (assets/spike.png is genuinely pink/rose via direct pixel scan, not red as previously assumed — pre-existing v4.1 art, violates CLAUDE.md's no-pink rule, untouched by this phase)
+- [Phase 26]: User set direction mid-phase for a future v6.0 milestone (SEED-001, `.planning/seeds/SEED-001-v6-snes-fidelity-world-overhaul.md`) that will replace this phase's tint-based per-level theming with real sourced biome art at SNES fidelity — v5.0's remaining phases (27, 28) should wrap lean; do not gold-plate palette/theme richness further in this milestone
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -199,6 +203,7 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 - **[Phase 22] 22-REVIEW.md latent warnings (advisory, none live on shipped content):** collect.js zone→slots→choices contract unvalidated — becomes live with Phase 25 multi-zone content
 - **[Phase 23] validate-levels.mjs WR-03 (deferred, non-blocking):** Playwright static-server + path-traversal guard code is duplicated verbatim across `browser-boot.mjs`, `audit-phase21-mechanics.mjs`, and `calibrate-jump-envelope.mjs` by deliberate project convention ("copy verbatim, do not simplify") — a future guard fix must be applied identically in all three places by hand; extracting to a shared module is a reasonable future cleanup, not urgent
 - **[Phase 23] reachability.mjs WARN-tier precision gap (deferred, non-blocking):** `marginRatio` is mathematically pinned to ~1.000 for every flat-or-downward hop (documented in-code and in 23-FINDINGS.md) — the WARN tier currently cannot distinguish "trivially easy" from "near the calibrated ceiling" for the common case. Not a correctness bug (no false PASS/HARD-FAIL), but worth revisiting if the WARN tier needs finer signal before Phase 28's final sign-off.
+- **[Phase 26] Tooling: worktree parallel execution disabled for this repo.** `git worktree.base-check` reports `shouldDegrade: true, reason: "fork-ref-unknown"` — `refs/remotes/origin/HEAD` was never set locally, AND `origin/main` on GitHub is far behind local `main` (~150+ commits, last synced ~2026-06-22) since this repo is developed locally without regular pushes. Phase 26 ran fully sequential (no parallel worktree isolation) as a result — correct but slower. Fix: run `gsd-tools worktree set-baseref` (writes `worktree.baseRef: "head"` to `.claude/settings.local.json`, local-only, safe) so future phases fork worktrees from live local HEAD instead of the stale/unresolved `origin/HEAD`. Offered to the user 2026-07-08, not yet actioned as of this write.
 
 ## Deferred Items
 
@@ -220,11 +225,11 @@ Carried forward from previous milestone closes:
 
 ## Session Continuity
 
-Last session: 2026-07-07T21:55:39.172Z
-Stopped at: Completed 26-11-PLAN.md (Phase 26 closing verification — combined gate suite + 3x interactive mechanic audit, zero regressions confirmed)
+Last session: 2026-07-08T00:00:00.000Z
+Stopped at: Phase 26 complete and verified (7/7 must-haves passed) — code review found and fixed a real regression (CR-01) plus 3 warnings, re-review came back clean, transitioned to Phase 27. User asked to stop the autonomous run here and restart in a fresh session.
 Resume file: None
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-07-07 (Phase 25 complete — code review + human UAT resolved, transitioned to Phase 26)
+**Last updated:** 2026-07-08 (Phase 26 complete — grunge palette/theme/sprite/logo/rebrand shipped and verified, transitioned to Phase 27)

@@ -349,7 +349,7 @@ Plans:
 | 23. Level Validation Harness | v5.0 | 5/5 | Complete    | 2026-07-05 |
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
-| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | Complete   | 2026-07-07 |
+| 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | Complete    | 2026-07-07 |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
 
