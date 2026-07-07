@@ -27,12 +27,27 @@
 import { createRequire } from "module";
 import { createServer } from "http";
 import { readFile } from "fs/promises";
+import { existsSync, readdirSync } from "fs";
 import { extname, join, resolve, sep } from "path";
 import { CONFIG } from "../src/config.js";
 
 // --- Playwright resolution (copied verbatim from scripts/browser-boot.mjs) ---
-const FALLBACK_PLAYWRIGHT_PATH =
-  "/home/magnus/.nvm/versions/node/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs";
+const FALLBACK_PLAYWRIGHT_PATH = (() => {
+  // gsd-pi's bundled playwright moves whenever gsd-pi is (re)installed under a
+  // different nvm node version (the previously pinned v22.22.2 copy vanished on
+  // 2026-07-07 after gsd-pi landed under v20.20.0), so search EVERY installed node
+  // version, newest first, instead of pinning one path that silently goes stale.
+  const base = `${process.env.HOME}/.nvm/versions/node`;
+  try {
+    for (const v of readdirSync(base).sort().reverse()) {
+      const p = `${base}/${v}/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs`;
+      if (existsSync(p)) return p;
+    }
+  } catch {
+    // ~/.nvm missing entirely — fall through to the historical pin below
+  }
+  return `${base}/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs`;
+})();
 
 async function resolvePlaywright() {
   const require = createRequire(import.meta.url);

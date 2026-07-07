@@ -5,10 +5,50 @@
 // distinct from browser-boot.mjs (8765) and screenshot-phase18.mjs (8766) so all
 // three scripts stay safe to run independently without colliding.
 
-import { chromium } from "/home/magnus/.nvm/versions/node/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs";
+import { createRequire } from "module";
 import { createServer } from "http";
 import { readFile } from "fs/promises";
+import { existsSync, readdirSync } from "fs";
 import { extname, join } from "path";
+
+// WR-02 (ported from browser-boot.mjs): resolve playwright dynamically instead of a
+// hardcoded, machine-specific absolute path. Tries (1) normal project-relative
+// resolution, then (2) PLAYWRIGHT_MJS_PATH env override, then (3) this machine's
+// known global install location as a last-resort fallback.
+const FALLBACK_PLAYWRIGHT_PATH = (() => {
+  // gsd-pi's bundled playwright moves whenever gsd-pi is (re)installed under a
+  // different nvm node version (the previously pinned v22.22.2 copy vanished on
+  // 2026-07-07 after gsd-pi landed under v20.20.0), so search EVERY installed node
+  // version, newest first, instead of pinning one path that silently goes stale.
+  const base = `${process.env.HOME}/.nvm/versions/node`;
+  try {
+    for (const v of readdirSync(base).sort().reverse()) {
+      const p = `${base}/${v}/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs`;
+      if (existsSync(p)) return p;
+    }
+  } catch {
+    // ~/.nvm missing entirely — fall through to the historical pin below
+  }
+  return `${base}/v22.22.2/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs`;
+})();
+
+async function resolvePlaywright() {
+  const require = createRequire(import.meta.url);
+  try {
+    return await import(require.resolve("playwright"));
+  } catch {
+    // not resolvable as a normal project dependency — fall through
+  }
+  const overridePath = process.env.PLAYWRIGHT_MJS_PATH;
+  if (overridePath) return await import(overridePath);
+  console.warn(
+    `playwright not resolvable as a project dependency; falling back to ${FALLBACK_PLAYWRIGHT_PATH}. ` +
+      "Set PLAYWRIGHT_MJS_PATH to override on other machines."
+  );
+  return await import(FALLBACK_PLAYWRIGHT_PATH);
+}
+
+const { chromium } = await resolvePlaywright();
 
 const ROOT = new URL("../", import.meta.url);
 const PORT = 8767;
