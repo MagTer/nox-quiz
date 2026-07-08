@@ -49,10 +49,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Audio
 
-- [ ] **AUD-01**: Core SFX set (jump, land, pickup, correct, soft-neutral wrong, door/gate, level-clear) wired at the shared mechanic seams; CC0 with license proofs
-- [ ] **AUD-02**: Calm ambient music loop(s) — seamless OGG, gesture-gated start on the title screen
-- [ ] **AUD-03**: M-key mute toggle, persisted in its own localStorage key (not the progress save)
-- [ ] **AUD-04**: Designed ADHD-safe mix — music well below SFX, no buzzers or startle stingers, no music stacking/leaking across scenes (idempotent music manager), human sound sign-off
+- [x] **AUD-01**: Core SFX set (jump, land, pickup, correct, soft-neutral wrong, door/gate, level-clear) wired at the shared mechanic seams; CC0 with license proofs
+- [x] **AUD-02**: Calm ambient music loop(s) — seamless OGG, gesture-gated start on the title screen
+- [x] **AUD-03**: M-key mute toggle, persisted in its own localStorage key (not the progress save)
+- [x] **AUD-04**: Designed ADHD-safe mix — music well below SFX, no buzzers or startle stingers, no music stacking/leaking across scenes (idempotent music manager), human sound sign-off
 
 ## Future Requirements
 
@@ -120,10 +120,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BRAND-01 | Phase 26 | Complete |
 | BRAND-02 | Phase 26 | Complete |
 | BRAND-03 | Phase 26 | Complete |
-| AUD-01 | Phase 27 | Pending |
-| AUD-02 | Phase 27 | Pending |
-| AUD-03 | Phase 27 | Pending |
-| AUD-04 | Phase 27 | Pending |
+| AUD-01 | Phase 27 | Complete |
+| AUD-02 | Phase 27 | Complete |
+| AUD-03 | Phase 27 | Complete |
+| AUD-04 | Phase 27 | Complete |
 
 **Coverage:**
 

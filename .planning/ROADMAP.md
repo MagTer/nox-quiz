@@ -89,7 +89,7 @@ Replaced Phase 18's procedurally-generated placeholder art (player, tileset, par
 - [x] **Phase 24: Fix & Lengthen Levels 1–4** - Fix the known structural defects and lengthen the four kid-validated levels with scaled checkpoint density, gated by the new validator (completed 2026-07-06)
 - [x] **Phase 25: Levels 5–8, Difficulty Ramp & Select Grid** - Four new pure-data levels with verticality and secret alcoves, gentle 8-level ramp, 2×4 select grid, tables 1 and ×10 dropped (completed 2026-07-07)
 - [x] **Phase 26: Grunge Palette & Nox Run Rebrand** - Centralized then expanded grunge palette with per-level themes, Nox Run logo and full string sweep (save key intentionally NOT preserved — user confirmed 2026-07-07) (completed 2026-07-07)
-- [ ] **Phase 27: Audio & ADHD-Safe Sound** - Core SFX set, calm gesture-gated ambient music, persisted M-key mute, designed ADHD-safe mix
+- [x] **Phase 27: Audio & ADHD-Safe Sound** - Core SFX set, calm gesture-gated ambient music, persisted M-key mute, designed ADHD-safe mix (completed 2026-07-08)
 - [ ] **Phase 28: Full Verification & Interactive Sign-off** - Interactive audit start→goal on all 8 levels, all automated gates green in one run, human sign-off on levels/art/audio
 
 **Build-order rationale (from research):** review first (clean base before content doubles) → validator before any level authoring (structural correctness becomes free on every edit) → lengthen the existing 4 (authoring conventions established on known ground) → author 5–8 with the full ramp → palette before the logo (logo designed against final tokens) → rebrand isolated (save key stated as a non-goal with a resume check) → audio last (SFX hooks land on the final mechanics set) → closing verification pass (v4.0's lesson: checks that don't play the game lie).
@@ -302,7 +302,7 @@ Plans:
   4. Dying twice or exiting to level select never stacks or leaks music — exactly one music handle exists at all times (idempotent music manager)
   5. The mix is ADHD-safe by design — music clearly below SFX, no buzzers or startle stingers — with human sound sign-off recorded
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 
 Plans:
 **Wave 1**
@@ -322,7 +322,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 27-07-PLAN.md — Human ADHD-safe sound mix sign-off (checkpoint)
+- [x] 27-07-PLAN.md — Human ADHD-safe sound mix sign-off (checkpoint)
 
 ### Phase 28: Full Verification & Interactive Sign-off
 
@@ -370,7 +370,7 @@ Plans:
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | Complete    | 2026-07-07 |
-| 27. Audio & ADHD-Safe Sound | v5.0 | 6/7 | In Progress|  |
+| 27. Audio & ADHD-Safe Sound | v5.0 | 7/7 | Complete    | 2026-07-08 |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
 
 ---
