@@ -39,10 +39,17 @@ export function makePlayer(startX, startY) {
   // (tween().onEnd(destroy), no timer). Registered after the entity exists (engine init
   // done — globals safe). A closure-local isGrounded() rising-edge in onUpdate below is the
   // documented fallback if this body config ever misses a landing (RESEARCH Open Q1 / A1).
+  //
+  // No land SFX (27-07 human sound sign-off, 2026-07-08): onGround() reads as a clean
+  // rising-edge in isolation, but across real level geometry (many adjacent floor/platform
+  // colliders) it fires often enough during ordinary walking to sound like erratic,
+  // rapid-fire footsteps — the opposite of ADHD-safe. 27-CONTEXT.md/27-RESEARCH.md always
+  // treated land SFX as optional judgment-call, defaulting to skip it unless sign-off asked
+  // for one; the human sign-off asked to remove it instead. Visual juice (squash/dust) is
+  // unaffected — only the sound was flagged as the problem.
   player.onGround(() => {
     fx.squash(player);
     fx.dust(player.pos);
-    audio.playSfx("land");
   });
 
   // Game-feel timers — CLOSURE-LOCAL (anti-leak: never module-level), in seconds.
