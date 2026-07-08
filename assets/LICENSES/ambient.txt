@@ -1,20 +1,24 @@
-Asset:        assets/music/ambient.ogg  (calm ambient loop, 19.4s, entire game)
-Source track: "Calm Loop"
-Author:       wipics
-Source URL:   https://opengameart.org/content/calm-loop
-Source file:  https://opengameart.org/sites/default/files/Relaxing_0.mp3
-License:      CC0 (Creative Commons Zero / Public Domain)
+Asset:        assets/music/ambient.ogg  (calm ambient loop, ~30.8s, entire game)
+Source track: "Flowing Rocks"
+Source pack:  "Music Loops" (1.1)
+Author:       Kenney (Kenney Vleugels)
+Source URL:   https://gamesounds.xyz/?dir=Kenney%27s+Sound+Pack%2FMusic+Loops%2FLoops
+              (Kenney's own kenney.nl catalog no longer lists this pack under
+              its current asset slugs as of 2026-07-08; gamesounds.xyz is a
+              CC0-permitted redistribution mirror of Kenney's own historical
+              packs — content unmodified, same files Kenney originally shipped)
+License:      CC0 (Creative Commons Zero, CC0)
 
-Quoted license declaration from the asset's own OpenGameArt page:
-    "License(s): CC0"
-    (OpenGameArt's License(s) metadata field is the creator's authoritative
-     license declaration for the submission. The field links directly to
-     https://creativecommons.org/publicdomain/zero/1.0/ and shows the CC0
-     badge/name, not any CC-BY or CC-BY-SA variant.)
-
-Art Type: Music. Tags on the source page: relaxing, loop, chill, Ambient,
-calm, synths, percussion — directly matches AUD-02/AUD-04's "calm ambient"
-brief.
+Quoted license declaration from the pack's own readme.txt (vendored at
+assets/_kenney-src/music-loops/readme.txt, fetched directly from the mirror
+this session):
+    "Music Loops (1.1)
+     Created/distributed by Kenney (www.kenney.nl)
+     Creation date: 31-07-2015
+     License: (Creative Commons Zero, CC0)
+     http://creativecommons.org/publicdomain/zero/1.0/
+     This content is free to use in personal, educational and commercial
+     projects."
 
 CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
     "...dedicated the work to the public domain by waiving all of his or her
@@ -22,27 +26,27 @@ CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
      distribute and perform the work, even for commercial purposes, all without
      asking permission."
 
-Verification: License page opened and the "License(s): CC0" field confirmed
-this session (2026-07-08). NOT merely "free" and NOT CC-BY. Selection path:
-Kenney's "Music Jingles" pack (assets/_kenney-src interface-sounds-adjacent
-candidate, per 27-RESEARCH.md Assumption A3) was downloaded and its longest
-file measured at 1.76s — genuinely too short for a persistent ambient loop, so
-this project fell through to the OpenGameArt.org fallback per the plan's
-documented decision tree. "Calm Loop" was found via OpenGameArt's advanced
-search filtered to Music art type, keyword "calm ambient loop", and its
-License(s) field verified CC0 directly on its own content page before
-vendoring — mirroring this project's existing spike.png/goal.png/coin.png/
-door.png sourcing discipline (see CREDITS.md's note on the rejected
-CC-BY-SA "spinning-coin-0" candidate).
+Verification: readme.txt fetched directly from the mirror and its CC0
+declaration quoted above, matching the exact verification discipline used for
+every other vendored asset in this project.
 
-Processing note: source is a 19.4s MP3 (128kbps, 44.1kHz) with no detected
-silence/dead-air blocks at start or end (ffmpeg silencedetect at -40dB/0.3s
-threshold: zero hits) — no trim applied. Waveform/spectrogram reviewed this
-session and shows a steady, evenly-pulsing rhythmic synth+percussion bed with
-no dramatic dynamic swings — reads as calm/non-intense, not combat/horror/
-tense. Run through ffmpeg loudnorm (I=-20:TP=-1.5:LRA=11) then encoded
-libvorbis -q:a 5 to assets/music/ambient.ogg. Loaded via Kaplay's
-loadMusic()/HTMLAudioElement `loop: true` streaming path (not loadSound()),
-per 27-RESEARCH.md's two-backend-dispatch finding.
+History (2026-07-08 human sound sign-off, 27-07):
+  1. Original pick: "Calm Loop" by wipics (OpenGameArt, CC0) — 19.4s. Human
+     sign-off found it "very short and feels repetitive" on loop.
+  2. Final pick (this file): "Flowing Rocks" from Kenney's "Music Loops" pack
+     — ~30.8s, ~59% longer. 27-01-PLAN.md's original research had flagged a
+     "Music Loops" pack as a promising candidate (RESEARCH.md Assumption A3)
+     but 27-01's execution actually checked Kenney's "Music Jingles" pack
+     instead (85 files, max 1.76s — short stingers, not loops) and fell
+     through to OpenGameArt without ever trying the real "Music Loops" pack.
+     Chosen by ear from 2 longer candidates ("Flowing Rocks" ~31s, "Italian
+     Mom" ~30s) sent to the human directly.
+
+Processing note: source is a ~30.8s OGG (Kenney's own encode). Run through
+ffmpeg loudnorm (I=-20:TP=-1.5:LRA=11) then re-encoded libvorbis -q:a 5 to
+assets/music/ambient.ogg — same processing parameters as the superseded "Calm
+Loop" pick, for mix consistency. Loaded via Kaplay's loadMusic()/
+HTMLAudioElement `loop: true` streaming path (not loadSound()), per
+27-RESEARCH.md's two-backend-dispatch finding — unchanged by this re-pick.
 
 Vendor logo / brand art: none.

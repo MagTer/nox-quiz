@@ -31,7 +31,7 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 | Interface Sounds (open_001) | `assets/sfx/door.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Door/gate-unlock SFX — short distinct upward sweep |
 | Interface Sounds (maximize_002) | `assets/sfx/clear.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Level-clear SFX — calm, non-fanfare resolve swell |
 | Interface Sounds (pluck_001) | `assets/sfx/pickup.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Pickup/collect SFX — light plucked pop |
-| Calm Loop | `assets/music/ambient.ogg` | wipics | https://opengameart.org/content/calm-loop | CC0 | Ambient music loop — the one calm bed for the entire game |
+| Music Loops (Flowing Rocks) | `assets/music/ambient.ogg` | Kenney (Kenney Vleugels) | https://gamesounds.xyz/?dir=Kenney%27s+Sound+Pack%2FMusic+Loops%2FLoops | CC0 | Ambient music loop — the one calm bed for the entire game (supersedes "Calm Loop" by wipics, ~19.4s; re-picked at the 27-07 human sign-off for a longer ~30.8s loop) |
 
 ## Notes
 
@@ -66,9 +66,16 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 - **Phase 27 (audio):** Kenney's "Music Jingles" pack (CC0, 85 files) was
   downloaded and inventoried as the first candidate for `assets/music/ambient.ogg`
   but **rejected** — its longest file measured 1.76s, far too short for a
-  persistent ambient loop. The OpenGameArt.org fallback ("Calm Loop" by wipics,
-  see row above) was used instead, per the same "verify License(s) on the
-  asset's own page before vendoring" discipline used throughout this file.
+  persistent ambient loop. The OpenGameArt.org fallback ("Calm Loop" by wipics)
+  was used instead at ship time, per the same "verify License(s) on the
+  asset's own page before vendoring" discipline used throughout this file. At
+  the 27-07 human sound sign-off, "Calm Loop" (19.4s) was found to feel
+  repetitive on loop; Kenney's actual "Music Loops" pack — the pack
+  27-RESEARCH.md had originally flagged as a candidate before Music Jingles
+  was checked instead — was located via the gamesounds.xyz CC0 mirror (Kenney's
+  current site no longer lists this pack under its old slug) and "Flowing
+  Rocks" (~30.8s, CC0, license verified) was picked by ear from 2 longer
+  candidates and now ships instead (see row above).
 
 ## License reference
 
