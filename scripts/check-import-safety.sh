@@ -62,7 +62,7 @@ strip_comments() { sed -E 's://.*$::' "$1"; }
 # isUnlocked, getLevel, buildLevel, makePlayer, mountHud, openMathGate, createBrain, …) or
 # pure-JS builtins (Math./Object./String/Array/Number/JSON/…) — those are legitimate at
 # module scope. Only true Kaplay engine globals belong here.
-ENGINE_GLOBALS='add|scene|go|loadSprite|loadSound|play|text|rect|sprite|circle|vec2|rgb|color|pos|anchor|scale|rotate|outline|fixed|z|opacity|area|body|move|offscreen|center|setGravity|getGravity|camPos|camScale|shake|destroy|destroyAll|wait|loop|tween|onKeyPress|onKeyDown|onKeyRelease|onClick|onMousePress|onUpdate|onDraw|onCollide|onHide|onShow|onSceneLeave|onAdd|onDestroy|drawRect|drawText|drawSprite|addLevel'
+ENGINE_GLOBALS='add|scene|go|loadSprite|loadSound|loadMusic|play|text|rect|sprite|circle|vec2|rgb|color|pos|anchor|scale|rotate|outline|fixed|z|opacity|area|body|move|offscreen|center|setGravity|getGravity|setVolume|getVolume|camPos|camScale|shake|destroy|destroyAll|wait|loop|tween|onKeyPress|onKeyDown|onKeyRelease|onClick|onMousePress|onUpdate|onDraw|onCollide|onHide|onShow|onSceneLeave|onAdd|onDestroy|drawRect|drawText|drawSprite|addLevel'
 
 # The module-TOP-LEVEL a727c13 trap pattern (anchored — used by Section 2 and the
 # calibration). Three forms:
@@ -86,7 +86,7 @@ for f in \
   "src/scenes/game.js" "src/main.js" "src/parallax.js" \
   "src/ui/challenge.js" "src/mechanics/door.js" \
   "src/mechanics/gates.js" "src/mechanics/enemy.js" "src/mechanics/collect.js" \
-  "src/mechanics/secretAlcove.js"; do
+  "src/mechanics/secretAlcove.js" "src/audio.js"; do
   [ -f "$ROOT/$f" ] || fail "missing module: $f"
   node --check "$ROOT/$f" || fail "node --check failed (syntax error in $f)"
 done
@@ -129,7 +129,7 @@ fi
 for f in "src/scenes/title.js" "src/scenes/select.js" "src/parallax.js" \
   "src/ui/challenge.js" "src/mechanics/door.js" \
   "src/mechanics/gates.js" "src/mechanics/enemy.js" "src/mechanics/collect.js" \
-  "src/mechanics/secretAlcove.js"; do
+  "src/mechanics/secretAlcove.js" "src/audio.js"; do
   if strip_comments "$ROOT/$f" | grep -Eq "$TOPLEVEL_TRAP"; then
     fail "engine global referenced at MODULE TOP LEVEL in $f — scenes must be a727c13-safe (engine globals only INSIDE the factory body; a top-level ref throws at import and blanks the game)"
   fi
