@@ -85,6 +85,23 @@ const SAVE_BLOB = {
   levels: Object.fromEntries(LEVEL_ORDER.slice(0, -1).map((id) => [id, { cleared: true }])),
 };
 
+// AUD-04: audio-element-count ceiling. Evaluates document.querySelectorAll('audio').length
+// in the live page and pushes a typed entry into the existing `errors` array (mirroring this
+// script's own { type, message } shape already used for mechanic-drive failures below) if more
+// than one <audio> element exists at a scene-transition stop — proving the ensureMusicPlaying()
+// idempotency guard (Plan 27-02) actually holds under real browser conditions, not just code
+// review. Pushing into `errors` (rather than throwing) means one failed check does not abort
+// the rest of the drive.
+async function assertAudioElementCount(page, errors, stopLabel) {
+  const count = await page.evaluate(() => document.querySelectorAll("audio").length);
+  if (count > 1) {
+    errors.push({
+      type: "audio",
+      message: `${stopLabel}: expected at most 1 <audio> element, found ${count}`,
+    });
+  }
+}
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let reqPath = decodeURIComponent(url.pathname);
@@ -142,6 +159,29 @@ try {
   // Title scene -> select scene.
   await page.keyboard.press("Space");
   await page.waitForTimeout(800);
+  await assertAudioElementCount(page, errors, "title->select");
+
+  // AUD-04 functional mute-toggle proof: the M key must actually reach the master gain
+  // (audio.js's toggleMute -> setVolume), not just flip a UI label. Press M once and confirm
+  // getVolume() reaches 0; press M again and confirm it returns to 1.
+  await page.keyboard.press("m");
+  await page.waitForTimeout(200);
+  const mutedVolume = await page.evaluate(() => getVolume());
+  if (mutedVolume !== 0) {
+    errors.push({
+      type: "audio",
+      message: `mute toggle: expected getVolume() === 0 after pressing M, got ${mutedVolume}`,
+    });
+  }
+  await page.keyboard.press("m");
+  await page.waitForTimeout(200);
+  const unmutedVolume = await page.evaluate(() => getVolume());
+  if (unmutedVolume !== 1) {
+    errors.push({
+      type: "audio",
+      message: `mute toggle: expected getVolume() === 1 after pressing M again, got ${unmutedVolume}`,
+    });
+  }
 
   // Visit every level in order: cursor starts at the first unlocked tile.
   // WR-02: derive from the live LEVEL_ORDER import instead of a hardcoded 4-level literal.
@@ -166,6 +206,7 @@ try {
     // Enter loads the selected level.
     await page.keyboard.press("Enter");
     await page.waitForTimeout(1500); // let game scene build the level
+    await assertAudioElementCount(page, errors, `${LEVEL_ORDER[i]}: level entry`);
 
     // VERIFY-03 (all 4 levels, generalized from the retired level-01-only special case):
     // hold real directional input to actually reach and fully resolve at least one
@@ -215,6 +256,7 @@ try {
     if (i < levels.length - 1) {
       await page.keyboard.press("Escape");
       await page.waitForTimeout(800);
+      await assertAudioElementCount(page, errors, `${LEVEL_ORDER[i]}: back to select`);
     }
   }
 
@@ -224,6 +266,7 @@ try {
   await page.waitForTimeout(800);
   await page.keyboard.press("Space");
   await page.waitForTimeout(800);
+  await assertAudioElementCount(page, errors, "round-trip: title->select re-entry");
 
   if (errors.length > 0) {
     console.error("Browser boot encountered errors:");
