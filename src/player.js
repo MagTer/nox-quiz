@@ -18,6 +18,7 @@
 
 import { CONFIG } from "./config.js";
 import * as fx from "./fx.js"; // engine-side juice (squash/stretch/dust) — JUICE-01
+import * as audio from "./audio.js"; // SFX seam (Phase 27 AUD-01) — jump/land call sites
 
 // Jump keys: arrow-up, space, and W (consistent with the run WASD/arrows scheme).
 const JUMP_KEYS = ["space", "up", "w"];
@@ -41,6 +42,7 @@ export function makePlayer(startX, startY) {
   player.onGround(() => {
     fx.squash(player);
     fx.dust(player.pos);
+    audio.playSfx("land");
   });
 
   // Game-feel timers — CLOSURE-LOCAL (anti-leak: never module-level), in seconds.
@@ -83,6 +85,7 @@ export function makePlayer(startX, startY) {
   // write while paused keeps the freeze airtight without affecting normal jump feel.
   onKeyPress(JUMP_KEYS, () => {
     if (player.paused) return; // do not queue jumps while the run is frozen
+    audio.playSfx("jump");
     buffer = CONFIG.BUFFER_MS / 1000;
   });
 
