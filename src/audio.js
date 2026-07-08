@@ -117,10 +117,12 @@ export function toggleMute() {
 
 /**
  * Wire the per-scene audio UI: re-sync actual output to the persisted mute flag, register
- * the M-key toggle, and mount a small mute-state icon. Must be called fresh from EVERY
- * scene body (title.js, select.js, game.js) — go() clears the app-wide input bus
- * (Phase 22-03 engine-verified finding), so a boot-time-only registration would silently
- * stop firing after the first scene transition.
+ * the M-key toggle AND a click on the icon itself (2026-07-08 human sign-off: the icon
+ * read as a plain label, not a control — clicking it should also work, mirroring
+ * select.js's box.onClick() pattern), and mount a small mute-state icon. Must be called
+ * fresh from EVERY scene body (title.js, select.js, game.js) — go() clears the app-wide
+ * input bus (Phase 22-03 engine-verified finding), so a boot-time-only registration would
+ * silently stop firing after the first scene transition.
  */
 export function wireAudioUI() {
   applyMuteState(); // re-sync master gain to the persisted flag on every scene mount
@@ -133,12 +135,16 @@ export function wireAudioUI() {
       CONFIG.PALETTE.TEXT_DIM[1],
       CONFIG.PALETTE.TEXT_DIM[2],
     ),
+    area(), // required for onClick() below — text() alone has no clickable hitbox
     fixed(),
     z(9000),
   ]);
 
-  onKeyPress(CONFIG.AUDIO.MUTE_KEY, () => {
+  const handleToggle = () => {
     toggleMute();
     icon.text = isMuted() ? "MUTE" : "SND"; // update in place — never create a new icon per press
-  });
+  };
+
+  onKeyPress(CONFIG.AUDIO.MUTE_KEY, handleToggle);
+  icon.onClick(handleToggle); // object-scoped — only fires when the icon itself is clicked
 }

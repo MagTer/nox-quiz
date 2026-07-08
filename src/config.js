@@ -332,6 +332,7 @@ export const CONFIG = {
   AUDIO: {
     MUSIC_VOLUME: 0.35, // unitless (0..1) — ~30-40% of SFX gain per 27-CONTEXT.md; tunable at human sign-off
     SFX_VOLUME: 1.0, // unitless (0..1) — default per-SFX gain when playSfx() is called with no explicit vol
+    JUMP_VOLUME: 0.45, // unitless (0..1) — per-SFX override (27-07 human sign-off: the retro jump1.ogg boing read as "too loud and too intrusive" at the default SFX_VOLUME)
     MUTE_KEY: "m", // confirmed unused via codebase-wide onKeyPress grep (27-RESEARCH.md)
     MUTE_STORAGE_KEY: "noxrun_mute_v1", // OWN localStorage key — distinct from CONFIG.SAVE.KEY above; never read/written by src/progress.js
     ICON_SIZE: 14, // px — mute icon text size

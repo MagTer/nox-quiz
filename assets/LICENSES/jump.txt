@@ -1,14 +1,23 @@
-Asset:        assets/sfx/jump.ogg  (short soft blip cue — jump SFX)
-Source pack:  "Interface Sounds"
+Asset:        assets/sfx/jump.ogg  (short faint spring "boing" cue — jump SFX)
+Source pack:  "Retro Sounds"
 Author:       Kenney (Kenney Vleugels)
-Source URL:   https://kenney.nl/assets/interface-sounds
-Source file:  https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip
-Source track: Audio/select_001.ogg (100-file pack, this project's pick)
+Source URL:   https://gamesounds.xyz/?dir=Kenney%27s+Sound+Pack%2FRetro+Sounds+1
+              (Kenney's own kenney.nl catalog no longer lists this pack under its
+              current asset slugs as of 2026-07-08; gamesounds.xyz is a
+              CC0-permitted redistribution mirror of Kenney's own historical
+              packs — content unmodified, same files Kenney originally shipped)
+Source file:  jump1.ogg (part of Retro Sounds' jump1.ogg-jump5.ogg set, this
+              project's pick — 4 sibling variants vendored alongside it for
+              reference, unused)
 License:      CC0 (Creative Commons Zero, CC0)
 
-Quoted license declaration from the pack's own vendored License.txt
-(assets/_kenney-src/interface-sounds/License.txt):
-    "License: (Creative Commons Zero, CC0)
+Quoted license declaration from the pack's own readme.txt (vendored at
+assets/_kenney-src/retro-sounds-1/readme.txt, fetched directly from the mirror
+this session):
+    "Retro Sounds (1.0)
+     Created/distributed by Kenney (www.kenney.nl)
+     Creation date: 19-08-2014
+     License: (Creative Commons Zero, CC0)
      http://creativecommons.org/publicdomain/zero/1.0/
      This content is free to use in personal, educational and commercial
      projects."
@@ -19,23 +28,28 @@ CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
      distribute and perform the work, even for commercial purposes, all without
      asking permission."
 
-Verification: License.txt bundled inside the pack zip itself opened and the
-"License: (Creative Commons Zero, CC0)" line confirmed this session
-(2026-07-08). Same pack (interface-sounds) also supplies assets/sfx/correct.ogg,
-assets/sfx/wrong.ogg, assets/sfx/door.ogg, assets/sfx/clear.ogg, and
-assets/sfx/pickup.ogg — provenance established once per pack, re-confirmed
-per-asset here.
+Verification: readme.txt fetched directly from the mirror and its CC0
+declaration quoted above, matching the exact verification discipline used for
+every other vendored asset in this project.
 
-Processing note: select_001.ogg (0.04s natural length, under the 1.5s ceiling —
-no trim applied) run through ffmpeg loudnorm (I=-16:TP=-1.5:LRA=11) then
-encoded libvorbis -q:a 4 to assets/sfx/jump.ogg.
+History (2026-07-08 human sound sign-off, 27-07):
+  1. Original pick: click_001.ogg from Kenney's "Interface Sounds" pack —
+     selected via spectrogram/waveform review, not by ear. Real-ear checkpoint
+     found it read as a harsh metallic click ("tapping a nail on a plastic
+     cup"), not a soft blip.
+  2. First re-pick: select_001.ogg from the same "Interface Sounds" pack —
+     an improvement (softer), but the human still described it as "a short
+     tap" rather than the desired "faint boing, like a spring."
+  3. Final pick (this file): jump1.ogg from Kenney's "Retro Sounds" pack — a
+     dedicated 8-bit rising-pitch jump/boing sound, purpose-built for exactly
+     this use case (unlike Interface Sounds, a generic UI-click pack). Chosen
+     by ear from 5 candidates (jump1.ogg-jump5.ogg) sent to the human directly.
+  Lesson recorded: neither spectral analysis nor "closest available category
+  in an already-vendored pack" reliably substitutes for (a) an actual listen
+  and (b) sourcing from a pack built for the specific sound character wanted.
 
-SUPERSEDES the original click_001.ogg pick (2026-07-08 human sound sign-off,
-27-07): click_001 was selected via spectrogram/waveform review, not by ear, and
-the real-ear checkpoint confirmed it read as a harsh, metallic click ("tapping
-a nail on a plastic cup") rather than the intended soft blip. select_001 was
-sent to the human as one of four re-sourced candidates and chosen by ear as the
-replacement. Lesson recorded: for this asset class, spectral/waveform proxies
-are not a substitute for an actual listen before shipping a pick.
+Processing note: jump1.ogg (0.14s natural length, under the 1.5s ceiling — no
+trim applied) run through ffmpeg loudnorm (I=-16:TP=-1.5:LRA=11) then encoded
+libvorbis -q:a 4 to assets/sfx/jump.ogg.
 
 Vendor logo / brand art: none.

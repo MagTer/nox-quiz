@@ -92,7 +92,7 @@ export function makePlayer(startX, startY) {
   // write while paused keeps the freeze airtight without affecting normal jump feel.
   onKeyPress(JUMP_KEYS, () => {
     if (player.paused) return; // do not queue jumps while the run is frozen
-    audio.playSfx("jump");
+    audio.playSfx("jump", CONFIG.AUDIO.JUMP_VOLUME);
     buffer = CONFIG.BUFFER_MS / 1000;
   });
 
