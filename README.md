@@ -27,12 +27,11 @@ local file is blocked by the browser (ES modules and asset fetches fail under th
 `file://` opaque origin). `src/index.html` includes a guard that shows a "run via a
 web server" message instead of a blank canvas if you open it directly.
 
-From inside the `src/` directory, start the dev server and open the URL:
+From the **repo root**, start the dev server and open the URL:
 
 ```bash
-cd src
 python3 -m http.server 8000
-# then open http://localhost:8000/
+# then open http://localhost:8000/src/index.html
 ```
 
 ### Web-root / path parity (dev vs. production)
@@ -42,18 +41,20 @@ This is the convention the layout depends on — keep it in mind when serving:
 - `src/index.html` loads `main.js` with a **relative** path, and `main.js` imports the
   engine with `import kaplay from "../lib/kaplay.mjs"` — i.e. one directory **up** from
   `src/` into `lib/`.
-- **In development**, serve from `src/` (`cd src && python3 -m http.server 8000`). The
-  `../lib/kaplay.mjs` import resolves to the sibling `lib/` directory, so
-  `index.html` is at `/` and the engine is at `/../lib/...` relative to the page.
-  *(Equivalently you may serve from the repo root and open `http://localhost:8000/src/`;
-  both keep the `index.html` → `../lib/kaplay.mjs` relationship intact.)*
+- **In development**, serve from the **repo root** (`python3 -m http.server 8000`) and
+  open `http://localhost:8000/src/index.html`. `lib/` being a sibling of `src/` at the
+  repo root is exactly why a repo-root docroot resolves `../lib/kaplay.mjs` correctly —
+  `index.html` is served at `/src/index.html` and the engine import resolves up to
+  `/lib/kaplay.mjs`. Serving from *inside* `src/` is the broken case: there is no `lib/`
+  underneath that docroot, so the request 404s (confirmed empirically).
 - **In production** (plan 07-02), the container **flattens `src/` to the nginx web root**
   and copies `lib/` to `/lib/` beside it — so `index.html` sits at `/` and
   `../lib/kaplay.mjs` resolves to `/lib/kaplay.mjs`. This is the **same relationship** as
-  serving from `src/` in dev, which is why the relative import is identical in both.
+  serving from the repo root in dev, which is why the relative import is identical in both.
 
-The takeaway: serve so that `index.html` is the served root and `lib/` is its sibling.
-Dev (`cd src`) and the container (flatten `src/` to web root) produce the same paths.
+The takeaway: the server must be started from the **repo root**, not from inside `src/`.
+This matches the Dockerfile's production layout and `scripts/browser-boot.mjs`'s existing
+serving convention.
 
 ## Production play path
 
