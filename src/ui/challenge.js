@@ -37,6 +37,7 @@
 
 import { createBrain } from "../math/brain.js"; // the ONLY consumer of the brain (one-way)
 import { CONFIG } from "../config.js"; // GATE tuning constants (dim opacity, panel size)
+import * as audio from "../audio.js"; // SFX seam (Phase 27 AUD-01) — the ONE correct/wrong call site
 
 // Dark-grunge palette per CLAUDE.md (bg near-black, #333 borders, neon red accent, NO pink).
 // Colors read from the single source of truth, CONFIG.PALETTE (VIS-01; Phase 26 Plan 01):
@@ -288,6 +289,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
     if (!correct) {
       // WRONG (GATE-04 forgiving): nudge + redden the chosen box, KEEP the same question,
       // leave the challenge open and input live. No run-ending state, no success, no close.
+      audio.playSfx("wrong"); // soft/neutral tick, never a buzzer (CONTEXT.md hard requirement)
       if (box) box.color = rgb(CONFIG.PALETTE.DANGER[0], CONFIG.PALETTE.DANGER[1], CONFIG.PALETTE.DANGER[2]);
       shake(6);
       return;
@@ -296,6 +298,8 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
     // CORRECT: tear down the interactive overlay and hand off to the caller. The challenge
     // itself carries NO end-of-level vocabulary — any celebration UI is the caller's job.
     cleared = true;
+
+    audio.playSfx("correct"); // the ONE seam every mechanic (door/gates/mathGate/collect) shares
 
     close(); // cancel key controllers + destroyAll(instanceTag) this session's objects
 
