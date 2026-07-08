@@ -302,7 +302,7 @@ Plans:
   4. Dying twice or exiting to level select never stacks or leaks music — exactly one music handle exists at all times (idempotent music manager)
   5. The mix is ADHD-safe by design — music clearly below SFX, no buzzers or startle stingers — with human sound sign-off recorded
 
-**Plans:** 2/7 plans executed
+**Plans:** 5/7 plans executed
 
 Plans:
 **Wave 1**
@@ -312,9 +312,9 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 27-03-PLAN.md — Boot loads + jump/land SFX + shared correct/wrong seam (main.js, player.js, challenge.js)
-- [ ] 27-04-PLAN.md — Mechanic-specific SFX: door/gate unlock, level-clear, pickup
-- [ ] 27-05-PLAN.md — Gesture-gated music start + per-scene mute UI (title.js, select.js, game.js)
+- [x] 27-03-PLAN.md — Boot loads + jump/land SFX + shared correct/wrong seam (main.js, player.js, challenge.js)
+- [x] 27-04-PLAN.md — Mechanic-specific SFX: door/gate unlock, level-clear, pickup
+- [x] 27-05-PLAN.md — Gesture-gated music start + per-scene mute UI (title.js, select.js, game.js)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -370,7 +370,7 @@ Plans:
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | Complete    | 2026-07-07 |
-| 27. Audio & ADHD-Safe Sound | v5.0 | 2/7 | In Progress|  |
+| 27. Audio & ADHD-Safe Sound | v5.0 | 5/7 | In Progress|  |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
 
 ---
