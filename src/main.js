@@ -116,6 +116,21 @@ loadSprite("enemy-1", "../assets/enemy-1.png");
 loadSprite("enemy-2", "../assets/enemy-2.png");
 loadSprite("enemy-3", "../assets/enemy-3.png");
 
+// Audio loads (Phase 27 AUD-01/AUD-02) — 7 CC0 SFX + 1 ambient music loop, registered
+// here before any go() so the audio.js seam (src/audio.js) never plays against a
+// not-yet-loaded asset. Same `../assets/...` web-root convention as every loadSprite()
+// above. loadMusic() only prefetches (constructs a throwaway Audio element and stores
+// the URL) — it never calls .play() itself, so this is safe pre-user-gesture, same as
+// every SFX load below.
+loadSound("jump", "../assets/sfx/jump.ogg");
+loadSound("land", "../assets/sfx/land.ogg");
+loadSound("correct", "../assets/sfx/correct.ogg");
+loadSound("wrong", "../assets/sfx/wrong.ogg");
+loadSound("door", "../assets/sfx/door.ogg");
+loadSound("clear", "../assets/sfx/clear.ogg");
+loadSound("pickup", "../assets/sfx/pickup.ogg");
+loadMusic("ambient", "../assets/music/ambient.ogg");
+
 // Register the real platformer scene and boot it. Seed data is passed via
 // go(name, data) — the CONTEXT-locked anti-leak mechanism: the scene reads its
 // start position from this payload instead of any module-level state.
