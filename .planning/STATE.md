@@ -222,6 +222,7 @@ Carried forward from previous milestone closes:
 |------|------|---------|
 | 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540); internal 640×360 unchanged |
 | 2026-07-07 | add-a-reset-progress-button-that-clears- | Keyboard-only (R) Reset Progress control on title screen with Y/N confirm overlay; new guarded `resetSave()` seam in progress.js clears only `mathlab_platformer_v2` |
+| 2026-07-08 | fix-dev-serving-instructions-in-claude-m | Corrected the standing dev-serving doc defect (CLAUDE.md, STACK.md, README.md all said `cd src && python3 -m http.server`, which 404s on `lib/kaplay.mjs`); now correctly documents serving from the repo root and browsing to `/src/index.html`, matching production's Docker layout and `browser-boot.mjs`'s own convention |
 
 ## Session Continuity
 
