@@ -324,4 +324,18 @@ export const CONFIG = {
     Y: 330, // px — bottom-left anchor Y (near LEVEL_BOTTOM:360, clear of the top HUD)
     SIZE: 12, // px — hint text size (small, unobtrusive)
   },
+
+  // --- Audio (AUD-02/AUD-03/AUD-04; Phase 27 Plan 02; src/audio.js consumes) ---
+  // The ONE audio seam's tunables: SFX/music gain, the mute key binding, the mute
+  // persistence key, and the mute-icon layout. Per the "all tunables live in config.js"
+  // binding rule, no magic numbers live in src/audio.js itself.
+  AUDIO: {
+    MUSIC_VOLUME: 0.35, // unitless (0..1) — ~30-40% of SFX gain per 27-CONTEXT.md; tunable at human sign-off
+    SFX_VOLUME: 1.0, // unitless (0..1) — default per-SFX gain when playSfx() is called with no explicit vol
+    MUTE_KEY: "m", // confirmed unused via codebase-wide onKeyPress grep (27-RESEARCH.md)
+    MUTE_STORAGE_KEY: "noxrun_mute_v1", // OWN localStorage key — distinct from CONFIG.SAVE.KEY ("noxrun_platformer_v1"); never read/written by src/progress.js
+    ICON_SIZE: 14, // px — mute icon text size
+    ICON_X: 600, // px — top-right corner, clear of CONFIG.HUD (top-left, X:16/Y:16) and CONFIG.HINT (bottom-left, X:16/Y:330)
+    ICON_Y: 8, // px — top-right corner Y
+  },
 };
