@@ -1,9 +1,9 @@
-Asset:        assets/sfx/jump.ogg  (short soft click cue — jump SFX)
+Asset:        assets/sfx/jump.ogg  (short soft blip cue — jump SFX)
 Source pack:  "Interface Sounds"
 Author:       Kenney (Kenney Vleugels)
 Source URL:   https://kenney.nl/assets/interface-sounds
 Source file:  https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip
-Source track: Audio/click_001.ogg (100-file pack, this project's pick)
+Source track: Audio/select_001.ogg (100-file pack, this project's pick)
 License:      CC0 (Creative Commons Zero, CC0)
 
 Quoted license declaration from the pack's own vendored License.txt
@@ -26,11 +26,16 @@ assets/sfx/wrong.ogg, assets/sfx/door.ogg, assets/sfx/clear.ogg, and
 assets/sfx/pickup.ogg — provenance established once per pack, re-confirmed
 per-asset here.
 
-Processing note: click_001.ogg (0.10s natural length, under the 1.5s ceiling —
+Processing note: select_001.ogg (0.04s natural length, under the 1.5s ceiling —
 no trim applied) run through ffmpeg loudnorm (I=-16:TP=-1.5:LRA=11) then
-encoded libvorbis -q:a 4 to assets/sfx/jump.ogg. Candidate selected (over the
-pack's other click/select/toggle variants) for reading as a short, soft blip
-rather than a harsh alarm — confirmed via spectrogram/waveform review before
-selection, not by ear alone.
+encoded libvorbis -q:a 4 to assets/sfx/jump.ogg.
+
+SUPERSEDES the original click_001.ogg pick (2026-07-08 human sound sign-off,
+27-07): click_001 was selected via spectrogram/waveform review, not by ear, and
+the real-ear checkpoint confirmed it read as a harsh, metallic click ("tapping
+a nail on a plastic cup") rather than the intended soft blip. select_001 was
+sent to the human as one of four re-sourced candidates and chosen by ear as the
+replacement. Lesson recorded: for this asset class, spectral/waveform proxies
+are not a substitute for an actual listen before shipping a pick.
 
 Vendor logo / brand art: none.

@@ -24,7 +24,7 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 | 6 Color Dungeon 16x16 (gate/archway) | `assets/door.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Locked door barrier sprite |
 | New Platformer Pack (saw/barnacle/fly enemies) | `assets/enemy-1.png, assets/enemy-2.png, assets/enemy-3.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/new-platformer-pack | CC0 | Defeat-enemy encounter sprites — 3 variants |
 | monogram (pixel font) | `assets/_font-src/monogram.ttf` | datagoblin | https://datagoblin.itch.io/monogram | CC0 | Baked into `assets/logo-hero.png`/`assets/logo-badge.png` — the "NOX RUN" title/select wordmark |
-| Interface Sounds (click_001) | `assets/sfx/jump.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Jump SFX — short soft click on the player's jump-key press |
+| Interface Sounds (select_001) | `assets/sfx/jump.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Jump SFX — short soft blip on the player's jump-key press (supersedes click_001, re-picked at the 27-07 human sound sign-off) |
 | Impact Sounds (footstep_grass_001) | `assets/sfx/land.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/impact-sounds | CC0 | Landing SFX — soft footstep thud |
 | Interface Sounds (confirmation_002) | `assets/sfx/correct.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Correct-answer SFX — bright-but-soft ascending chime, the one shared challenge seam |
 | Interface Sounds (back_001) | `assets/sfx/wrong.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Wrong-answer SFX — soft, neutral decaying-tick tone (never a buzzer/alarm) |
