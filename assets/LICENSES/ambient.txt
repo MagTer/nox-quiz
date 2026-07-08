@@ -1,0 +1,48 @@
+Asset:        assets/music/ambient.ogg  (calm ambient loop, 19.4s, entire game)
+Source track: "Calm Loop"
+Author:       wipics
+Source URL:   https://opengameart.org/content/calm-loop
+Source file:  https://opengameart.org/sites/default/files/Relaxing_0.mp3
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the asset's own OpenGameArt page:
+    "License(s): CC0"
+    (OpenGameArt's License(s) metadata field is the creator's authoritative
+     license declaration for the submission. The field links directly to
+     https://creativecommons.org/publicdomain/zero/1.0/ and shows the CC0
+     badge/name, not any CC-BY or CC-BY-SA variant.)
+
+Art Type: Music. Tags on the source page: relaxing, loop, chill, Ambient,
+calm, synths, percussion — directly matches AUD-02/AUD-04's "calm ambient"
+brief.
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+    "...dedicated the work to the public domain by waiving all of his or her
+     rights to the work worldwide under copyright law... You can copy, modify,
+     distribute and perform the work, even for commercial purposes, all without
+     asking permission."
+
+Verification: License page opened and the "License(s): CC0" field confirmed
+this session (2026-07-08). NOT merely "free" and NOT CC-BY. Selection path:
+Kenney's "Music Jingles" pack (assets/_kenney-src interface-sounds-adjacent
+candidate, per 27-RESEARCH.md Assumption A3) was downloaded and its longest
+file measured at 1.76s — genuinely too short for a persistent ambient loop, so
+this project fell through to the OpenGameArt.org fallback per the plan's
+documented decision tree. "Calm Loop" was found via OpenGameArt's advanced
+search filtered to Music art type, keyword "calm ambient loop", and its
+License(s) field verified CC0 directly on its own content page before
+vendoring — mirroring this project's existing spike.png/goal.png/coin.png/
+door.png sourcing discipline (see CREDITS.md's note on the rejected
+CC-BY-SA "spinning-coin-0" candidate).
+
+Processing note: source is a 19.4s MP3 (128kbps, 44.1kHz) with no detected
+silence/dead-air blocks at start or end (ffmpeg silencedetect at -40dB/0.3s
+threshold: zero hits) — no trim applied. Waveform/spectrogram reviewed this
+session and shows a steady, evenly-pulsing rhythmic synth+percussion bed with
+no dramatic dynamic swings — reads as calm/non-intense, not combat/horror/
+tense. Run through ffmpeg loudnorm (I=-20:TP=-1.5:LRA=11) then encoded
+libvorbis -q:a 5 to assets/music/ambient.ogg. Loaded via Kaplay's
+loadMusic()/HTMLAudioElement `loop: true` streaming path (not loadSound()),
+per 27-RESEARCH.md's two-backend-dispatch finding.
+
+Vendor logo / brand art: none.
