@@ -24,6 +24,14 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 | 6 Color Dungeon 16x16 (gate/archway) | `assets/door.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Locked door barrier sprite |
 | New Platformer Pack (saw/barnacle/fly enemies) | `assets/enemy-1.png, assets/enemy-2.png, assets/enemy-3.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/new-platformer-pack | CC0 | Defeat-enemy encounter sprites — 3 variants |
 | monogram (pixel font) | `assets/_font-src/monogram.ttf` | datagoblin | https://datagoblin.itch.io/monogram | CC0 | Baked into `assets/logo-hero.png`/`assets/logo-badge.png` — the "NOX RUN" title/select wordmark |
+| Interface Sounds (click_001) | `assets/sfx/jump.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Jump SFX — short soft click on the player's jump-key press |
+| Impact Sounds (footstep_grass_001) | `assets/sfx/land.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/impact-sounds | CC0 | Landing SFX — soft footstep thud |
+| Interface Sounds (confirmation_002) | `assets/sfx/correct.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Correct-answer SFX — bright-but-soft ascending chime, the one shared challenge seam |
+| Interface Sounds (back_001) | `assets/sfx/wrong.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Wrong-answer SFX — soft, neutral decaying-tick tone (never a buzzer/alarm) |
+| Interface Sounds (open_001) | `assets/sfx/door.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Door/gate-unlock SFX — short distinct upward sweep |
+| Interface Sounds (maximize_002) | `assets/sfx/clear.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Level-clear SFX — calm, non-fanfare resolve swell |
+| Interface Sounds (pluck_001) | `assets/sfx/pickup.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Pickup/collect SFX — light plucked pop |
+| Calm Loop | `assets/music/ambient.ogg` | wipics | https://opengameart.org/content/calm-loop | CC0 | Ambient music loop — the one calm bed for the entire game |
 
 ## Notes
 
@@ -55,6 +63,12 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
   licensed CC0 art from Kenney (see rows above and `assets/LICENSES/player.txt` /
   `ground.txt`), built through a reproducible pipeline
   (`scripts/build-art-assets.py`) instead of drawn procedurally.
+- **Phase 27 (audio):** Kenney's "Music Jingles" pack (CC0, 85 files) was
+  downloaded and inventoried as the first candidate for `assets/music/ambient.ogg`
+  but **rejected** — its longest file measured 1.76s, far too short for a
+  persistent ambient loop. The OpenGameArt.org fallback ("Calm Loop" by wipics,
+  see row above) was used instead, per the same "verify License(s) on the
+  asset's own page before vendoring" discipline used throughout this file.
 
 ## License reference
 

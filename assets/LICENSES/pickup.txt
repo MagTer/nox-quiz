@@ -1,0 +1,36 @@
+Asset:        assets/sfx/pickup.ogg  (light pluck/pop pickup cue — collect SFX)
+Source pack:  "Interface Sounds"
+Author:       Kenney (Kenney Vleugels)
+Source URL:   https://kenney.nl/assets/interface-sounds
+Source file:  https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip
+Source track: Audio/pluck_001.ogg (100-file pack, this project's pick)
+License:      CC0 (Creative Commons Zero, CC0)
+
+Quoted license declaration from the pack's own vendored License.txt
+(assets/_kenney-src/interface-sounds/License.txt):
+    "License: (Creative Commons Zero, CC0)
+     http://creativecommons.org/publicdomain/zero/1.0/
+     This content is free to use in personal, educational and commercial
+     projects."
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+    "...dedicated the work to the public domain by waiving all of his or her
+     rights to the work worldwide under copyright law... You can copy, modify,
+     distribute and perform the work, even for commercial purposes, all without
+     asking permission."
+
+Verification: License.txt bundled inside the pack zip itself opened and the
+"License: (Creative Commons Zero, CC0)" line confirmed this session
+(2026-07-08). Same pack (interface-sounds) also supplies assets/sfx/jump.ogg,
+assets/sfx/correct.ogg, assets/sfx/wrong.ogg, assets/sfx/door.ogg, and
+assets/sfx/clear.ogg — provenance established once per pack, re-confirmed
+per-asset here.
+
+Processing note: pluck_001.ogg (0.10s natural length, under the 1.5s
+ceiling — no trim applied) run through ffmpeg loudnorm (I=-16:TP=-1.5:LRA=11)
+then encoded libvorbis -q:a 4 to assets/sfx/pickup.ogg. Picked over
+pluck_002.ogg for a slightly crisper pluck-decay shape; audibly distinct from
+correct.ogg's ascending chime family (this is a decaying pluck, not a
+multi-step tone).
+
+Vendor logo / brand art: none.
