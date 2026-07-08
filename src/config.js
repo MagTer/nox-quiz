@@ -333,7 +333,7 @@ export const CONFIG = {
     MUSIC_VOLUME: 0.35, // unitless (0..1) — ~30-40% of SFX gain per 27-CONTEXT.md; tunable at human sign-off
     SFX_VOLUME: 1.0, // unitless (0..1) — default per-SFX gain when playSfx() is called with no explicit vol
     MUTE_KEY: "m", // confirmed unused via codebase-wide onKeyPress grep (27-RESEARCH.md)
-    MUTE_STORAGE_KEY: "noxrun_mute_v1", // OWN localStorage key — distinct from CONFIG.SAVE.KEY ("noxrun_platformer_v1"); never read/written by src/progress.js
+    MUTE_STORAGE_KEY: "noxrun_mute_v1", // OWN localStorage key — distinct from CONFIG.SAVE.KEY above; never read/written by src/progress.js
     ICON_SIZE: 14, // px — mute icon text size
     ICON_X: 600, // px — top-right corner, clear of CONFIG.HUD (top-left, X:16/Y:16) and CONFIG.HINT (bottom-left, X:16/Y:330)
     ICON_Y: 8, // px — top-right corner Y
