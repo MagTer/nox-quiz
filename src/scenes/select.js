@@ -32,6 +32,7 @@
 import { CONFIG } from "../config.js";
 import { LEVEL_ORDER, isUnlocked } from "../levels/index.js";
 import { createProgress, loadSave } from "../progress.js";
+import * as audio from "../audio.js"; // per-scene mute UI + belt-and-braces music re-assert (AUD-02/AUD-03)
 
 // Dark-grunge palette per CLAUDE.md (NO pink). Colors read from the single source of
 // truth, CONFIG.PALETTE (VIS-01; Phase 26 Plan 01):
@@ -56,6 +57,14 @@ import { createProgress, loadSave } from "../progress.js";
  */
 export function selectScene(data) {
   const S = CONFIG.SELECT;
+
+  // AUD-03: re-register the M-key + mute icon fresh for this scene (mirrors the nav-key
+  // re-registration pattern below) — go() clears the app-wide input bus on every scene
+  // transition. AUD-02 belt-and-braces: ensureMusicPlaying() is a no-op if music is
+  // already playing (the normal case, since title.js's start() already started it), and
+  // only matters as a defensive fallback if this scene is ever entered directly.
+  audio.wireAudioUI();
+  audio.ensureMusicPlaying();
 
   // Shared dark-grunge backdrop (Phase 18 ART-04). Added first so it renders
   // behind tiles and heading; fixed() + low z() keeps it camera-immune.
