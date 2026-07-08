@@ -33,10 +33,19 @@ import { wireSecretAlcove } from "../mechanics/secretAlcove.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
 import { mountHud } from "../ui/hud.js";
 import * as fx from "../fx.js"; // engine-side juice (coin pop + clear burst) — JUICE-02/03
+import * as audio from "../audio.js"; // per-scene mute UI + belt-and-braces music re-assert (AUD-02/AUD-03)
 
 export function gameScene(data) {
   // Engine gravity for this scene (px/s^2). Set once on scene entry.
   setGravity(CONFIG.GRAVITY);
+
+  // AUD-03: re-register the M-key + mute icon fresh for this scene — the game scene is
+  // entered/re-entered on every level play (and every respawn-via-select-and-back-in), so
+  // this must run on every gameScene() call, not once. go() clears the app-wide input bus
+  // on every scene transition. AUD-02 belt-and-braces: ensureMusicPlaying() is a no-op if
+  // music is already playing (the normal case).
+  audio.wireAudioUI();
+  audio.ensureMusicPlaying();
 
   // ALL run state lives HERE (closure), seeded via the go() data payload with default
   // guards. lastCheckpoint is the respawn point — seeded at the start position and
