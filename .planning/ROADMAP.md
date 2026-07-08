@@ -302,7 +302,27 @@ Plans:
   4. Dying twice or exiting to level select never stacks or leaks music — exactly one music handle exists at all times (idempotent music manager)
   5. The mix is ADHD-safe by design — music clearly below SFX, no buzzers or startle stingers — with human sound sign-off recorded
 
-**Plans**: TBD
+**Plans:** 7 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 27-01-PLAN.md — Source/vendor 7 SFX + 1 ambient music loop (CC0, license-proven) + new scripts/check-audio.sh gate
+- [ ] 27-02-PLAN.md — Core audio module: CONFIG.AUDIO + src/audio.js (SFX/music/mute) + check-import-safety.sh extension
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 27-03-PLAN.md — Boot loads + jump/land SFX + shared correct/wrong seam (main.js, player.js, challenge.js)
+- [ ] 27-04-PLAN.md — Mechanic-specific SFX: door/gate unlock, level-clear, pickup
+- [ ] 27-05-PLAN.md — Gesture-gated music start + per-scene mute UI (title.js, select.js, game.js)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 27-06-PLAN.md — browser-boot.mjs audio-count + mute-toggle assertions + full gate suite green
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 27-07-PLAN.md — Human ADHD-safe sound mix sign-off (checkpoint)
 
 ### Phase 28: Full Verification & Interactive Sign-off
 
