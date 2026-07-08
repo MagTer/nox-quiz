@@ -302,13 +302,13 @@ Plans:
   4. Dying twice or exiting to level select never stacks or leaks music — exactly one music handle exists at all times (idempotent music manager)
   5. The mix is ADHD-safe by design — music clearly below SFX, no buzzers or startle stingers — with human sound sign-off recorded
 
-**Plans:** 7 plans
+**Plans:** 2/7 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 27-01-PLAN.md — Source/vendor 7 SFX + 1 ambient music loop (CC0, license-proven) + new scripts/check-audio.sh gate
-- [ ] 27-02-PLAN.md — Core audio module: CONFIG.AUDIO + src/audio.js (SFX/music/mute) + check-import-safety.sh extension
+- [x] 27-01-PLAN.md — Source/vendor 7 SFX + 1 ambient music loop (CC0, license-proven) + new scripts/check-audio.sh gate
+- [x] 27-02-PLAN.md — Core audio module: CONFIG.AUDIO + src/audio.js (SFX/music/mute) + check-import-safety.sh extension
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -370,7 +370,7 @@ Plans:
 | 24. Fix & Lengthen Levels 1–4 | v5.0 | 6/6 | Complete    | 2026-07-06 |
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | Complete    | 2026-07-07 |
-| 27. Audio & ADHD-Safe Sound | v5.0 | 0/TBD | Not started | - |
+| 27. Audio & ADHD-Safe Sound | v5.0 | 2/7 | In Progress|  |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 0/TBD | Not started | - |
 
 ---
