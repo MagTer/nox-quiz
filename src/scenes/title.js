@@ -21,6 +21,7 @@
 
 import { CONFIG } from "../config.js"; // title layout constants
 import { resetSave } from "../progress.js"; // guarded storage-clearing seam (Reset Progress)
+import * as audio from "../audio.js"; // gesture-gated music start + per-scene mute UI (AUD-02/AUD-03)
 
 // Dark-grunge palette per CLAUDE.md (neon-green accent, light-grey foreground, NO pink).
 // Colors read from the single source of truth, CONFIG.PALETTE (VIS-01; Phase 26 Plan 01).
@@ -33,6 +34,14 @@ import { resetSave } from "../progress.js"; // guarded storage-clearing seam (Re
  */
 export function titleScene(data) {
   const T = CONFIG.TITLE;
+
+  // AUD-03: mount the mute key + icon fresh on every title-scene entry (mirrors the
+  // onKeyPress("r", openResetConfirm) bare-call convention below) — go() clears the
+  // app-wide input bus on every scene transition (Phase 22-03 engine-verified finding),
+  // so a boot-time-only registration would silently stop firing after the first
+  // transition. Also immediately re-applies any persisted mute flag to actual audio
+  // output, before the player has even pressed start.
+  audio.wireAudioUI();
 
   // Shared dark-grunge backdrop (Phase 18 ART-04). Added first so it renders
   // behind everything; fixed() + low z() keeps it camera-immune and below UI.
@@ -102,7 +111,15 @@ export function titleScene(data) {
   // able to cancel/re-arm them for its lifetime — Kaplay's global onClick has no
   // z-order occlusion, so a click on the confirm panel would ALSO fire "start" unless
   // it is disarmed while the overlay is open (see module header + T-260707-01).
-  const start = () => go("select");
+  // AUD-02: ensureMusicPlaying() MUST be the literal first statement — browser
+  // autoplay policy requires AudioContext.resume() to happen synchronously within the
+  // original user-gesture call stack. Do NOT wrap this in .then()/a tween callback/
+  // anything deferred; `start` is invoked directly and synchronously by
+  // onKeyPress("enter"|"space", start) and onClick(start) below.
+  const start = () => {
+    audio.ensureMusicPlaying();
+    go("select");
+  };
   let startCtrls = [onKeyPress("enter", start), onKeyPress("space", start), onClick(start)];
 
   // --- Reset Progress control (quick-260707-95c) ---
