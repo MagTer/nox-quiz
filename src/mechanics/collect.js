@@ -21,6 +21,7 @@
 import { openChallenge } from "../ui/challenge.js";
 import { CONFIG } from "../config.js";
 import * as fx from "../fx.js";
+import * as audio from "../audio.js";
 
 /**
  * Wire the player to "answer-zone" triggers and "answer-pickup-slot" entities.
@@ -119,6 +120,7 @@ export function wireCollect({ player, brain }) {
     brain.reportResult(q.a, correct);
 
     if (correct) {
+      audio.playSfx("pickup");
       cleared.add(zoneObj);
       challenge.close();
       destroyPickups(zoneObj);
