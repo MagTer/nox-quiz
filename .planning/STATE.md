@@ -4,11 +4,11 @@ milestone: v5.0
 milestone_name: Nox Run — Real Levels
 current_phase: 27
 current_phase_name: Audio & ADHD-Safe Sound
-status: executing
-stopped_at: Completed 26-11-PLAN.md (Phase 26 closing verification — combined gate suite + 3x interactive mechanic audit, zero regressions confirmed)
-last_updated: "2026-07-08T05:27:08.532Z"
+status: verification_deferred_human
+stopped_at: Phase 27 waves 1-3 complete (plans 27-01..27-06, all automated gates green); Wave 4's plan 27-07 human sound sign-off checkpoint explicitly deferred by user, not approved — dev server left running at localhost:8000
+last_updated: "2026-07-08T05:57:00.000Z"
 last_activity: 2026-07-08
-last_activity_desc: Phase 27 execution started
+last_activity_desc: Phase 27 execution paused awaiting human sound sign-off (27-07)
 progress:
   total_phases: 7
   completed_phases: 5
@@ -198,12 +198,12 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 
 ### Blockers/Concerns
 
-- **Research flags:** Phase 27 (audio) — re-verify exact Kaplay 3001 `play()` handle/volume/autoplay semantics against `lib/kaplay.mjs` before implementing
+- **[Phase 27] AWAITING HUMAN SIGN-OFF — plan 27-07's checkpoint:human-verify was explicitly deferred, not approved.** All 6 automated plans (27-01..27-06) are complete and every automated gate is green (check-safety/check-import-safety/check-audio/check-gate/check-progress + browser-boot.mjs with new audio-count/mute assertions). The dev server is running at `http://localhost:8000` (`cd src && python3 -m http.server 8000`) for whenever the human is ready to listen through the 12-step verification in `27-07-PLAN.md`'s `<how-to-verify>`. Per CLAUDE.md's standing rule and this project's explicit `never-rubber-stamp-checkpoints` precedent (Phase 25), this was NOT auto-approved despite `workflow.auto_advance=true`. Resume with `/gsd-execute-phase 27` (or answer directly in-session) once the sound has actually been checked. Phase 27 is NOT complete until this closes.
 - **Audit blind spot:** RESOLVED for levels 1-4 in Phase 23 (16/16 triggered) and extended to all 8 levels in Phase 25 (36/36 triggered, zero triggered:false — see 25-FINDINGS.md (b)). Phase 28's VALID-03 is still the milestone's final, formal human-signed-off closure — this just means the automated audit itself already covers all 8 levels going in. Note: `secretAlcove` remains outside both the audit's and the static validator's coverage by design — see the dedicated pending todo.
 - **[Phase 22] 22-REVIEW.md latent warnings (advisory, none live on shipped content):** collect.js zone→slots→choices contract unvalidated — becomes live with Phase 25 multi-zone content
 - **[Phase 23] validate-levels.mjs WR-03 (deferred, non-blocking):** Playwright static-server + path-traversal guard code is duplicated verbatim across `browser-boot.mjs`, `audit-phase21-mechanics.mjs`, and `calibrate-jump-envelope.mjs` by deliberate project convention ("copy verbatim, do not simplify") — a future guard fix must be applied identically in all three places by hand; extracting to a shared module is a reasonable future cleanup, not urgent
 - **[Phase 23] reachability.mjs WARN-tier precision gap (deferred, non-blocking):** `marginRatio` is mathematically pinned to ~1.000 for every flat-or-downward hop (documented in-code and in 23-FINDINGS.md) — the WARN tier currently cannot distinguish "trivially easy" from "near the calibrated ceiling" for the common case. Not a correctness bug (no false PASS/HARD-FAIL), but worth revisiting if the WARN tier needs finer signal before Phase 28's final sign-off.
-- **[Phase 26] Tooling: worktree parallel execution disabled for this repo.** `git worktree.base-check` reports `shouldDegrade: true, reason: "fork-ref-unknown"` — `refs/remotes/origin/HEAD` was never set locally, AND `origin/main` on GitHub is far behind local `main` (~150+ commits, last synced ~2026-06-22) since this repo is developed locally without regular pushes. Phase 26 ran fully sequential (no parallel worktree isolation) as a result — correct but slower. Fix: run `gsd-tools worktree set-baseref` (writes `worktree.baseRef: "head"` to `.claude/settings.local.json`, local-only, safe) so future phases fork worktrees from live local HEAD instead of the stale/unresolved `origin/HEAD`. Offered to the user 2026-07-08, not yet actioned as of this write.
+- **[Phase 26] RESOLVED 2026-07-08:** worktree parallel execution was disabled (`shouldDegrade: true, reason: "fork-ref-unknown"`) as of Phase 26. `worktree.baseRef: "head"` has since been set — Phase 27 confirmed `shouldDegrade: false, reason: "baseref-head"` and ran both its Wave 1 (2 plans) and Wave 2 (3 plans) in genuine parallel worktree isolation.
 
 ## Deferred Items
 
