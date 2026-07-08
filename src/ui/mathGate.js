@@ -12,6 +12,7 @@
 
 import { openChallenge } from "./challenge.js";
 import { CONFIG } from "../config.js"; // banner dim opacity + CONFIG.PALETTE.REWARD (VIS-01)
+import * as audio from "../audio.js"; // audio.js lives in src/, mathGate.js in src/ui/ — sibling of config.js, not challenge.js
 
 /**
  * Open the end-of-level math gate over the (already paused) level.
@@ -51,6 +52,8 @@ export function openMathGate({ brain, onClear } = {}) {
         z(9994),
         "gate-cleared",
       ]);
+
+      audio.playSfx("clear");
 
       onClear?.({ table }); // carry the cleared table (q.a) so the scene awards its XP
     },
