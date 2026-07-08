@@ -17,6 +17,7 @@
 
 import { openChallenge } from "../ui/challenge.js";
 import * as fx from "../fx.js";
+import * as audio from "../audio.js";
 
 /**
  * Wire the player to every "math-gate"-tagged entity created by buildLevel().
@@ -60,6 +61,7 @@ export function wireGates({ player, brain }) {
         busy = false;
 
         fx.clearBurst();
+        audio.playSfx("door");
 
         // Destroy the touched collider, its visible panel, and its glyph BEFORE unfreezing.
         // CR-02: gateObj is now the invisible tall anti-jump-over blocker (mirrors door.js);

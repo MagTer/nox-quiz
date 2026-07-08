@@ -22,6 +22,7 @@
 
 import { openChallenge } from "../ui/challenge.js";
 import * as fx from "../fx.js";
+import * as audio from "../audio.js";
 
 /**
  * Wire the player to every "door"-tagged entity created by buildLevel().
@@ -68,6 +69,7 @@ export function wireDoor({ player, brain }) {
         busy = false;
 
         fx.clearBurst();
+        audio.playSfx("door");
 
         // Destroy the touched collider, its visible panel, and its glyph BEFORE unfreezing.
         // This ordering is load-bearing: the collider must not exist when player.paused
