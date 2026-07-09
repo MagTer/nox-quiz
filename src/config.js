@@ -233,6 +233,12 @@ export const CONFIG = {
     // BELOW the "LEVEL CLEAR" banner (mathGate.js z 9994) so it never covers that text.
     // 9993 is the only slot above the 9990 dim and below the 9994 banner (WR-01).
     BURST_Z: 9993, // z-order — above gate dim (9990), below "LEVEL CLEAR" banner (9994)
+
+    // --- Secret-alcove discovery popup (MECH-03; Phase 29 Plan 02) ---
+    // World-space rising/fading "+5 XP" text, mirrors DUST's rise/fade idiom.
+    XP_POPUP_SIZE: 14, // px — "+5 XP" alcove popup text size
+    XP_POPUP_RISE: 24, // px — how far the popup rises before fading out
+    XP_POPUP_MS: 600, // ms — popup rise + fade duration (one smooth easeOutQuad fade, non-strobing)
   },
 
   // --- Title scene layout (Phase 14 NAV-01; src/scenes/title.js consumes) ---
@@ -293,6 +299,10 @@ export const CONFIG = {
     LABEL_SIZE: 28, // px — tile number label text size
     GLYPH_SIZE: 22, // px — lock/check state-glyph text size
     HEADING_SIZE: 24, // px — "Select a Level" heading text size
+
+    // --- Secret-found star marker (MECH-06; Phase 29 Plan 02) ---
+    SECRET_SIZE: 14, // px — secret-found star marker text size
+    SECRET_INSET: 10, // px — inset from a tile's top-right corner for the star marker
   },
 
   // --- Persistent controls hint (Phase 12; Plan 02 consumes — SAFE-02 always-visible hint) ---
