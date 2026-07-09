@@ -21,9 +21,8 @@
 // on every attempt would multiply runtime ~5x for no benefit, since most encounters are
 // already stably reached on attempt 1. This wrapper skips re-driving (not re-reloading —
 // the level itself is stateful/sequential, so a fresh reload is still required every
-// attempt) any encounter already recorded as FULLY DONE (triggered AND resolved, or
-// triggered for a renderChoices:false zone with no resolution step) from an earlier
-// attempt, and exits the attempts loop early the moment every encounter is done.
+// attempt) any encounter already recorded as FULLY DONE (triggered AND resolved) from an
+// earlier attempt, and exits the attempts loop early the moment every encounter is done.
 //
 // Phase 24 close-out fix: an encounter that TRIGGERED but whose answer-key resolution
 // failed used to be skipped on every subsequent attempt too (the original condition
@@ -75,15 +74,14 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
       const previous = results.get(key);
 
       // Pitfall 5's cost guard skips re-driving an encounter whose outcome is already
-      // known-good — but "known-good" means FULLY resolved (or a renderChoices:false
-      // zone, which has no resolution step at all), not merely triggered. An
+      // known-good — but "known-good" means FULLY resolved, not merely triggered. An
       // encounter that triggered but whose answer-key resolution failed is exactly
       // the class this retry wrapper exists for (22-FINDINGS.md's "timing-sensitive"
       // encounters) — skipping it here silently discarded every later attempt's
       // chance to resolve it, so a resolution that failed once could never recover
       // even though the whole point of OR-across-attempts is that it might succeed
       // on attempt 2. The level reload above still happened this attempt regardless.
-      if (previous?.triggered && (previous.resolved === true || !encounter.renderChoices)) {
+      if (previous?.triggered && previous.resolved === true) {
         continue;
       }
 
@@ -100,8 +98,8 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
       // once ANY attempt actually resolves it (never regresses true -> false).
       const everTriggered = triggered || (previous?.triggered ?? false);
       let resolved = previous?.resolved ?? null;
-      if (everTriggered && encounter.renderChoices && resolved !== true) {
-        ({ resolved } = await resolveIfBoxed(page, true));
+      if (everTriggered && resolved !== true) {
+        ({ resolved } = await resolveIfBoxed(page));
         resolved = resolved || (previous?.resolved ?? false);
       }
 
@@ -125,12 +123,11 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
     // retries; exiting on triggered-only would reintroduce the exact bug just fixed.
     const everyEncounterDone = encounters.every((encounter) => {
       const r = results.get(`${encounter.tag}@${encounter.x}`);
-      return r?.triggered && (r.resolved === true || !encounter.renderChoices);
+      return r?.triggered && r.resolved === true;
     });
     if (everyEncounterDone) {
-      // Early exit — every encounter is fully resolved (or, for renderChoices:false
-      // zones, triggered — their only outcome); do not spend remaining attempts (or
-      // call reloadLevel again) proving nothing new.
+      // Early exit — every encounter is fully resolved; do not spend remaining
+      // attempts (or call reloadLevel again) proving nothing new.
       break;
     }
   }

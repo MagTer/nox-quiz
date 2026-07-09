@@ -175,63 +175,23 @@ try {
     if (levelId === "level-01") {
       const level = getLevel(levelId);
       const encounters = deriveEncounters(level.geometry); // ascending-x sorted: mathGate@150,
-      // collectZone@300, enemy@1000, mathGate@1360, door@1400, mathGate@3120
+      // enemy@1000, mathGate@1360, door@1400, mathGate@3120 (Phase 29: collect.js's
+      // collectZone@300 removed per MECH-01 — every remaining encounter is boxed).
       const enemyEnc = encounters.find((e) => e.tag === "enemy");
       const doorEnc = encounters.find((e) => e.tag === "door");
 
-      // collect.js's answer-zone challenge (renderChoices:false) is deliberately left
-      // OPEN by resolveIfBoxed — its resolution path is walking into the correct
-      // numeric pickup, not a key press. Left unresolved, its prompt banner ("Collect
-      // the answer to N × M") stays rendered at the top of every subsequent screenshot
-      // (found via an initial run of this script — Rule 1 fix). Since the pickup's
-      // correct value isn't exposed as a flag, parse it from the SAME arithmetic text
-      // the prompt itself displays (q.a × q.b, computed once, matches challenge.js's
-      // own `${q.a} × ${q.b}` display exactly), find the matching "answer-pickup-slot"
-      // entity, and reposition the player onto it directly — Kaplay's per-frame
-      // collision pass then fires the normal onCollide("answer-pickup-slot", ...)
-      // path next tick, exactly as a real walk-in would, just without the intermediate
-      // jump/walk motion (purely a screenshot-cleanliness aid, not a gameplay-proof
-      // step — collectZone's real interactive resolution is already covered by
-      // scripts/audit-phase21-mechanics.mjs and browser-boot.mjs elsewhere).
-      async function autoResolveCollectZone() {
-        const slot = await page.evaluate(() => {
-          const promptObj = get("challenge").find((o) => typeof o.text === "string" && /Collect the answer to/.test(o.text));
-          if (!promptObj) return null;
-          const m = promptObj.text.match(/(\d+)\s*×\s*(\d+)/);
-          if (!m) return null;
-          const answer = parseInt(m[1], 10) * parseInt(m[2], 10);
-          const s = get("answer-pickup-slot").find((sl) => sl.value === answer);
-          return s ? { x: s.pos.x, y: s.pos.y } : null;
-        });
-        if (!slot) return false;
-        await page.evaluate(({ x, y }) => {
-          const p = get("player")[0];
-          if (p) {
-            p.pos.x = x + 8;
-            p.pos.y = y + 8;
-            p.vel = vec2(0, 0);
-          }
-        }, slot);
-        await page.waitForTimeout(300);
-        return true;
-      }
-
       // Walk through + resolve every encounter STRICTLY before `beforeX`, in order —
-      // e.g. level-01's opening mathGate@150 and collectZone@300 both sit BEFORE the
-      // enemy at x:1000 and would otherwise open a challenge (and freeze the player,
-      // for the boxed mathGate) long before the enemy is ever reached (Rule 1 fix: a
-      // naive single driveToXPlanned(page, enemyX-100, ...) call stops at the FIRST
-      // challenge it meets, which is this mathGate, not the enemy).
+      // e.g. level-01's opening mathGate@150 sits BEFORE the enemy at x:1000 and would
+      // otherwise open a challenge (and freeze the player) long before the enemy is
+      // ever reached (Rule 1 fix: a naive single driveToXPlanned(page, enemyX-100, ...)
+      // call stops at the FIRST challenge it meets, which is this mathGate, not the
+      // enemy).
       async function passEncountersBefore(beforeX) {
         for (const enc of encounters) {
           if (enc.x >= beforeX) break;
           const { triggered } = await driveToXPlanned(page, enc.x, level.geometry);
           if (!triggered) continue;
-          if (enc.renderChoices) {
-            await resolveIfBoxed(page, true);
-          } else {
-            await autoResolveCollectZone();
-          }
+          await resolveIfBoxed(page);
         }
       }
 
@@ -252,7 +212,7 @@ try {
       // without touching the door's own blocker.
       {
         const { triggered } = await driveToXPlanned(page, enemyEnc.x, level.geometry);
-        if (triggered) await resolveIfBoxed(page, true);
+        if (triggered) await resolveIfBoxed(page);
       }
       await passEncountersBefore(doorEnc.x);
       await page.waitForTimeout(400);
