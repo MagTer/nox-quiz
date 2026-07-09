@@ -284,7 +284,6 @@ const BARRIER_WIDTH = {
   doors: CONFIG.DOOR.W,
   mathGates: CONFIG.MATH_GATE.W,
   enemies: CONFIG.ENEMY.W,
-  collectZones: CONFIG.COLLECT.ZONE_W,
 };
 
 /**
@@ -355,8 +354,8 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
     }
   }
 
-  // --- mechanic-reachability: doors / mathGates / enemies / collectZones ---
-  for (const kind of ["doors", "mathGates", "enemies", "collectZones"]) {
+  // --- mechanic-reachability: doors / mathGates / enemies ---
+  for (const kind of ["doors", "mathGates", "enemies"]) {
     for (const e of geometry[kind] ?? []) {
       const w = BARRIER_WIDTH[kind];
       // CR-03: require BOTH the barrier's near edge (e.x) AND its far edge
@@ -578,7 +577,7 @@ if (isMain) {
   }
 
   // Additional Task 2 acceptance check: mechanic-reachability loop is ?? []-guarded
-  // — an omitted doors/mathGates/enemies/collectZones array produces zero rows, no throw.
+  // — an omitted doors/mathGates/enemies array produces zero rows, no throw.
   {
     const geometry = { floors: [{ x: 0, w: 200 }], goal: { x: 100, y: 320 } };
     let threw = false;
@@ -588,7 +587,7 @@ if (isMain) {
     } catch {
       threw = true;
     }
-    check(!threw, "checkLevelReachability must never throw when doors/mathGates/enemies/collectZones are all omitted");
+    check(!threw, "checkLevelReachability must never throw when doors/mathGates/enemies are all omitted");
     const mechRows = result?.rows.filter((r) => r.check === "mechanic-reachability") ?? [];
     check(mechRows.length === 0, `expected zero mechanic-reachability rows when all barrier arrays are omitted, got ${mechRows.length}`);
   }

@@ -113,17 +113,6 @@ export const LEVEL_04 = {
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }, // enemy-1 (saw)
     ],
 
-    collectZones: [
-      { x: 160, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
-    ],
-
-    answerPickupSlots: [
-      { x: 130, y: FLOOR_Y - 100 },
-      { x: 190, y: FLOOR_Y - 100 },
-      { x: 130, y: FLOOR_Y - 40 },
-      { x: 190, y: FLOOR_Y - 40 },
-    ],
-
     // Phase 25 retrofit (LVL-06) — purely additive, does not touch any existing
     // floor/platform/checkpoint geometry. A short extra hop UP from the opening
     // platform (x:240, y:232, w:112) — not signposted, not gating.

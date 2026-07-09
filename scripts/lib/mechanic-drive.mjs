@@ -36,7 +36,6 @@ export function deriveEncounters(geometry) {
     ...(geometry.doors ?? []).map((d) => ({ x: d.x, tag: "door", renderChoices: true })),
     ...(geometry.mathGates ?? []).map((g) => ({ x: g.x, tag: "math-gate", renderChoices: true })),
     ...(geometry.enemies ?? []).map((e) => ({ x: e.x, tag: "enemy", renderChoices: true })),
-    ...(geometry.collectZones ?? []).map((c) => ({ x: c.x, tag: "answer-zone", renderChoices: false })),
   ];
   entries.sort((a, b) => a.x - b.x);
   return entries;

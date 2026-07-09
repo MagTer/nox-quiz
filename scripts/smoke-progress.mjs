@@ -328,8 +328,8 @@ const deepEqual = (a, b) => {
 {
   // The v4.2 (post-Phase-24) geometry lifted verbatim from src/levels/level-01.js: floors
   // 40-46, platforms 50-57, coins 67-84, spikes 87-92, goal 97, checkpoints 108-115,
-  // doors 120-122, mathGates 126-130, enemies 133-135, collectZones 138-140,
-  // answerPickupSlots 143-148.
+  // doors 120-122, mathGates 126-130, enemies 133-135 (Phase 29: collectZones/
+  // answerPickupSlots removed per MECH-01).
   const FLOOR_Y = CONFIG.FLOOR_Y; // 320
   const expectedGeometry = {
     floors: [
@@ -390,15 +390,6 @@ const deepEqual = (a, b) => {
     ],
     enemies: [
       { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
-    ],
-    collectZones: [
-      { x: 300, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
-    ],
-    answerPickupSlots: [
-      { x: 270, y: FLOOR_Y - 100 },
-      { x: 330, y: FLOOR_Y - 100 },
-      { x: 270, y: FLOOR_Y - 40 },
-      { x: 330, y: FLOOR_Y - 40 },
     ],
     secretAlcove: [
       { x: 400, y: 170 },
@@ -607,15 +598,6 @@ const deepEqual = (a, b) => {
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 },
       { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 },
     ],
-    collectZones: [
-      { x: 200, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
-    ],
-    answerPickupSlots: [
-      { x: 170, y: FLOOR_Y - 100 },
-      { x: 230, y: FLOOR_Y - 100 },
-      { x: 170, y: FLOOR_Y - 40 },
-      { x: 230, y: FLOOR_Y - 40 },
-    ],
     secretAlcove: [
       { x: 310, y: 170 },
     ],
@@ -745,15 +727,6 @@ const deepEqual = (a, b) => {
     ],
     enemies: [
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
-    ],
-    collectZones: [
-      { x: 160, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
-    ],
-    answerPickupSlots: [
-      { x: 130, y: FLOOR_Y - 100 },
-      { x: 190, y: FLOOR_Y - 100 },
-      { x: 130, y: FLOOR_Y - 40 },
-      { x: 190, y: FLOOR_Y - 40 },
     ],
     secretAlcove: [
       { x: 270, y: 162 },

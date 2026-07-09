@@ -126,10 +126,4 @@ ENEMY="$ROOT/src/mechanics/enemy.js"
 [ "$(strip_comments "$ENEMY" | grep -c 'openChallenge')" -gt 0 ] \
   || fail "src/mechanics/enemy.js does not call openChallenge — the enemy mechanic must reuse the shared seam"
 
-# 13. THIN CALLER — src/mechanics/collect.js must reuse the shared seam (MECH-03).
-COLLECT="$ROOT/src/mechanics/collect.js"
-[ -f "$COLLECT" ] || fail "missing src/mechanics/collect.js — the collect mechanic must reuse the shared seam"
-[ "$(strip_comments "$COLLECT" | grep -c 'openChallenge')" -gt 0 ] \
-  || fail "src/mechanics/collect.js does not call openChallenge — the collect mechanic must reuse the shared seam"
-
 echo "gate checks: PASS"

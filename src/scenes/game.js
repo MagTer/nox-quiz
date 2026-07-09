@@ -28,7 +28,6 @@ import { openMathGate } from "../ui/mathGate.js";
 import { wireDoor } from "../mechanics/door.js";
 import { wireGates } from "../mechanics/gates.js";
 import { wireEnemy } from "../mechanics/enemy.js";
-import { wireCollect } from "../mechanics/collect.js";
 import { wireSecretAlcove } from "../mechanics/secretAlcove.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
 import { mountHud } from "../ui/hud.js";
@@ -266,11 +265,10 @@ export function gameScene(data) {
   // Phase 15 MECH-02 wiring: every "door" entity routes through the shared challenge seam.
   wireDoor({ player, brain });
 
-  // Phase 16 MECH-03/04/05 wiring: collect zone, checkpoint gates, and enemy each use the
-  // same shared challenge seam and the same closure-local brain instance.
+  // Phase 16 MECH-04/05 wiring: checkpoint gates and enemy each use the same shared
+  // challenge seam and the same closure-local brain instance.
   wireGates({ player, brain });
   wireEnemy({ player, brain });
-  wireCollect({ player, brain });
 
   // LVL-06: the secret XP alcove is the ONLY mechanic call site wired with `progress`
   // instead of `brain` — it awards a flat XP bonus, never opens a challenge. `hud` is

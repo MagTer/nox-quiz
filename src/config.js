@@ -162,27 +162,6 @@ export const CONFIG = {
     SPRITES: ["enemy-1", "enemy-2", "enemy-3"], // real sprite art (VIS-04; Phase 26 Plan 05) — replaces the flat-color rect+glyph placeholder
   },
 
-  // --- Collect-the-answer zone + pickups (MECH-03) ---
-  // Invisible trigger zone + numeric pickup badges. (CORRECT_GLOW/WRONG_GLOW were
-  // removed in 22-04: zero consumers — the shipped feedback is challenge-close on
-  // correct and a fx.pop nudge on wrong; any glow redesign is Phase 26 palette scope.)
-  COLLECT: {
-    ZONE_W: 64, // px — invisible answer-zone width
-    ZONE_H: 64, // px — invisible answer-zone height
-    PICKUP_W: 28, // px — pickup badge width
-    PICKUP_H: 28, // px — pickup badge height
-    PICKUP_SIZE: 18, // px — pickup number text size
-    // PICKUP_BG/BORDER/FG: neither the pickup badge nor its number label had a color()
-    // component before this fix — both silently fell back to the SAME engine default fill,
-    // making every number invisible against its own badge (found via headless playtest:
-    // labels existed with correct values but were visually unreadable). Reuses the same
-    // dark-grunge box/label palette as challenge.js's answer boxes (BOX_BG/BOX_BORDER) and
-    // select.js's tile labels (LABEL_FG, ~18:1 contrast, WCAG AA) for visual consistency.
-    PICKUP_BG: PALETTE.SURFACE_ALT,
-    PICKUP_BORDER: PALETTE.MUTED,
-    PICKUP_FG: PALETTE.TEXT,
-  },
-
   // --- Progression / XP (ported VERBATIM from archive/math-lab.html 604-619 — DO NOT re-tune) ---
   // The XP-per-table amounts and the level-threshold curve are the validated v1/v2 values.
   // Read by src/progress.js (Phase 11 Wave 1) only. HARD_TABLES/EASY_TABLES are intentionally

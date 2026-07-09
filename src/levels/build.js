@@ -251,34 +251,6 @@ export function buildLevel(levelData) {
     enemyObj.panelObj = panel;
   }
 
-  // --- Collect-the-answer zones (MECH-03) ---
-  for (const z of g.collectZones ?? []) {
-    const zoneObj = add([
-      rect(CONFIG.COLLECT.ZONE_W, CONFIG.COLLECT.ZONE_H),
-      pos(z.x, z.y),
-      area(),
-      opacity(HIDDEN),
-      "answer-zone",
-    ]);
-
-    zoneObj.slots = z.slots;
-  }
-
-  // --- Collect-the-answer pickup slots (MECH-03) ---
-  for (const [i, s] of (g.answerPickupSlots ?? []).entries()) {
-    const slotObj = add([
-      rect(CONFIG.COLLECT.PICKUP_W, CONFIG.COLLECT.PICKUP_H),
-      pos(s.x, s.y),
-      area(),
-      opacity(HIDDEN),
-      color(...CONFIG.COLLECT.PICKUP_BG),
-      outline(2, rgb(...CONFIG.COLLECT.PICKUP_BORDER)),
-      "answer-pickup-slot",
-    ]);
-
-    slotObj.slotIndex = i;
-  }
-
   // --- Secret XP alcoves (LVL-06 — optional, silent, walk-through-only bonus) ---
   // No blocker collider, no visible panel, no glyph: this is a walk-through bonus, not
   // a barrier, unlike every other mechanic block above. Guarded with ?? [] so every
