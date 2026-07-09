@@ -122,17 +122,6 @@ export const LEVEL_08 = {
       { x: 1600, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 }, // enemy-3 (fly); floor-2 (1160..1680)
     ],
 
-    collectZones: [
-      { x: 150, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] }, // floor-0 (0..420)
-    ],
-
-    answerPickupSlots: [
-      { x: 120, y: FLOOR_Y - 100 },
-      { x: 180, y: FLOOR_Y - 100 },
-      { x: 120, y: FLOOR_Y - 40 },
-      { x: 180, y: FLOOR_Y - 40 },
-    ],
-
     // Secret XP alcove (LVL-06) — a sideways detour to the left of tier 4's
     // start, roughly at tier-4 height, off the main net-rightward climb path.
     secretAlcove: [

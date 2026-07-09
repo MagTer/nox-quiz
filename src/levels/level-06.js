@@ -84,17 +84,6 @@ export const LEVEL_06 = {
       { x: 2150, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 }, // enemy-2 (barnacle); floor-3 (2040..2660)
     ],
 
-    collectZones: [
-      { x: 200, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] }, // floor-0 (0..480)
-    ],
-
-    answerPickupSlots: [
-      { x: 170, y: FLOOR_Y - 100 },
-      { x: 230, y: FLOOR_Y - 100 },
-      { x: 170, y: FLOOR_Y - 40 },
-      { x: 230, y: FLOOR_Y - 40 },
-    ],
-
     // Secret XP alcove (LVL-06) — a short off-path detour: an extra 70px hop UP
     // from the gap-3 bridging platform (x:1960, y:250) instead of continuing
     // straight across to floor-3. Not signposted, not gating.

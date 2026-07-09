@@ -136,19 +136,6 @@ export const LEVEL_01 = {
       { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }, // enemy-1 (saw)
     ],
 
-    // MECH-03: one collect-the-answer zone near the start.
-    collectZones: [
-      { x: 300, y: FLOOR_Y - CONFIG.COLLECT.ZONE_H, slots: [0, 1, 2, 3] },
-    ],
-
-    // MECH-03: four pickup slot positions around the zone.
-    answerPickupSlots: [
-      { x: 270, y: FLOOR_Y - 100 },
-      { x: 330, y: FLOOR_Y - 100 },
-      { x: 270, y: FLOOR_Y - 40 },
-      { x: 330, y: FLOOR_Y - 40 },
-    ],
-
     // Phase 25 retrofit (LVL-06) — purely additive, does not touch any existing
     // floor/platform/checkpoint geometry. A short extra hop UP from the gap-1
     // stepping-stone platform (x:360, y:240, w:160) instead of continuing across
