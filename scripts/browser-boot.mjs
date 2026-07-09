@@ -102,6 +102,137 @@ async function assertAudioElementCount(page, errors, stopLabel) {
   }
 }
 
+// VALID-03 (Phase 28): AudioContext-state gesture-gate proof, stricter than
+// assertAudioElementCount's <=1 ceiling above. That ceiling guards against
+// music-stacking regressions at every scene-transition stop; THIS asserts the actual
+// browser-autoplay-policy signal at a specific gesture boundary.
+//
+// Deviation from the original plan text (Rule 1 — wrong query, root-caused via live
+// probe before landing this fix): the plan's literal spec called for asserting
+// document.querySelectorAll('audio').length, on the assumption that Kaplay attaches a
+// DOM <audio> element when music starts. Reading the vendored engine (lib/kaplay.mjs)
+// shows this is false for Kaplay 3001.0.19 — its music playback path (`ia()`, backing
+// `play()` for a loadMusic()-registered asset) does `new Audio(url)` but NEVER calls
+// appendChild/attaches it to the document (the only appendChild in the whole vendored
+// bundle is the game canvas itself); SFX play via raw AudioBufferSourceNode, which
+// never touches an <audio> element either. document.querySelectorAll('audio') is
+// therefore PROVABLY always 0 in this game, gesture or not — a check against it can
+// never fail even on a genuine regression (running node scripts/browser-boot.mjs
+// confirmed this empirically: found 0 both pre- and post-gesture). The actual
+// browser-autoplay-policy signal this codebase's own "Audio gesture gate" cross-cutting
+// mitigation (STATE.md) depends on is the shared Web Audio API AudioContext's `.state`
+// — Kaplay exposes it globally as `audioCtx` (confirmed via kaplay.mjs's exported
+// k-object and a live page.evaluate probe: "suspended" before any gesture, "running"
+// immediately after the title screen's Space press, matching ia()'s internal
+// `audio.ctx.resume()` call gated behind the play-on-gesture chain). Asserting on
+// audioCtx.state is a strictly stronger proof of the same claim than DOM-audio-element
+// counting would ever have been — it checks the actual mechanism, not an engine
+// implementation detail this build doesn't use. Pushed into the shared `errors` array
+// (never throws) so a real regression fails the run without aborting the rest of the
+// drive.
+async function assertAudioContextState(page, errors, stopLabel, expectedState) {
+  const state = await page.evaluate(() => (typeof audioCtx !== "undefined" ? audioCtx.state : null));
+  if (state !== expectedState) {
+    errors.push({
+      type: "audio-gesture",
+      message: `${stopLabel}: expected audioCtx.state === "${expectedState}", got "${state}"`,
+    });
+  }
+}
+
+// VALID-03 (Phase 28): a save written under the CURRENT key (SAVE_KEY) persists and
+// resumes correctly across a real page.reload() -- byte-for-byte AND into genuinely
+// reachable gameplay, not just a JSON string round-trip. Runs in its OWN isolated
+// browser context (never the primary drive's `context`/`page`) so a mid-script
+// page.reload() here can never disturb the primary per-level loop's state. References
+// the module-scope `browser` constant via closure -- safe because this function is
+// only ever CALLED (not merely declared) after `browser` is assigned below, from
+// inside the main try block.
+async function runSaveResumeAcrossReloadProof(errors) {
+  const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(`http://localhost:${PORT}/src/index.html`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1500); // let Kaplay init and title scene paint
+
+    // A deliberately PARTIAL unlock prefix (unlike the primary drive's near-full
+    // SAVE_BLOB, which clears every level but the last): only level-01 and level-02
+    // cleared. A fresh/empty save would leave only level-01 open, so level-03
+    // (unlocked ONLY because level-02 is cleared here) becoming reachable after the
+    // reload is a meaningful proof that the derived-unlock state was genuinely carried
+    // across the reload, not a vacuous one.
+    const RESUME_SAVE_BLOB = {
+      version: 2,
+      xp: 0,
+      level: 1,
+      accuracy: {},
+      history: {},
+      levels: { "level-01": { cleared: true }, "level-02": { cleared: true } },
+    };
+
+    await page.evaluate(({ key, blob }) => {
+      localStorage.setItem(key, JSON.stringify(blob));
+    }, { key: SAVE_KEY, blob: RESUME_SAVE_BLOB });
+
+    // Capture the actual written STRING immediately -- comparing the literal string
+    // (not re-deriving JSON) sidesteps any key-ordering concerns.
+    const preReloadValue = await page.evaluate((key) => localStorage.getItem(key), SAVE_KEY);
+
+    // Harmless; also exercises the gesture gate a second time.
+    await page.keyboard.press("Space");
+    await page.waitForTimeout(800);
+
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForTimeout(1500); // let Kaplay reinit -- mirrors the initial boot wait
+
+    const postReloadValue = await page.evaluate((key) => localStorage.getItem(key), SAVE_KEY);
+    if (postReloadValue !== preReloadValue) {
+      errors.push({
+        type: "save-resume",
+        message: `save blob under ${SAVE_KEY} did not survive page.reload() byte-for-byte (pre and post localStorage values differ)`,
+      });
+    }
+
+    // Post-reload title -> select.
+    await page.keyboard.press("Space");
+    await page.waitForTimeout(800);
+
+    // RESUME_SAVE_BLOB's cleared prefix leaves tiles 0/1/2 (level-01/02/03)
+    // contiguously selectable in row 0 (level-04+ stay locked); the cursor starts at
+    // tile 0 (level-01), so two ArrowRight presses lands on tile index 2 = level-03 --
+    // mirrors the row/col stepping math the primary per-level loop already uses
+    // (verified against select.js's row-scoped moveCursor).
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(150);
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(150);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(1500); // let the game scene build the level
+
+    // Behavioral proof: "resumes correctly" means real gameplay reachability, not
+    // just a localStorage byte check -- level-03 is unlocked ONLY by the resumed save
+    // (never cleared this session), so its first encounter triggering is proof the
+    // derived-unlock state was genuinely honored after the reload, via the SAME
+    // deriveEncounters/driveToXPlanned helpers the primary per-level drive uses.
+    const level = getLevel("level-03");
+    const encounters = deriveEncounters(level.geometry);
+    const { triggered } = await driveToXPlanned(page, encounters[0].x, level.geometry);
+    if (!triggered) {
+      errors.push({
+        type: "save-resume",
+        message: "level-03 (resumed-unlock-only) encounter never triggered after reload",
+      });
+    }
+  } catch (e) {
+    errors.push({
+      type: "save-resume",
+      message: `runSaveResumeAcrossReloadProof failed: ${e.message}`,
+    });
+  } finally {
+    await context.close();
+  }
+}
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let reqPath = decodeURIComponent(url.pathname);
@@ -151,6 +282,13 @@ try {
   await page.goto(`http://localhost:${PORT}/src/index.html`, { waitUntil: "networkidle" });
   await page.waitForTimeout(1500); // let Kaplay init and title scene paint
 
+  // VALID-03 gesture-gate proof (Phase 28): confirm the AudioContext is genuinely
+  // "suspended" purely from page load, before any interaction or storage seed -- the
+  // "silent until gesture" half of the audio-gesture-gate claim (see
+  // assertAudioContextState's header for why this is the correct signal, not a DOM
+  // audio-element count).
+  await assertAudioContextState(page, errors, "page-load (pre-gesture)", "suspended");
+
   // Seed a save that unlocks all four levels (derived unlock: clearing level-N unlocks N+1).
   await page.evaluate(({ key, blob }) => {
     localStorage.setItem(key, JSON.stringify(blob));
@@ -160,6 +298,12 @@ try {
   await page.keyboard.press("Space");
   await page.waitForTimeout(800);
   await assertAudioElementCount(page, errors, "title->select");
+  // VALID-03 gesture-gate proof (Phase 28): the STRICTER floor half of the claim --
+  // audio genuinely STARTED (AudioContext resumed) as a direct result of this one
+  // gesture, not merely "never more than one <audio> element" (the existing
+  // assertAudioElementCount call above only enforces that <=1 ceiling and stays as-is;
+  // this is an additional, stricter check at the same stop, not a replacement).
+  await assertAudioContextState(page, errors, "title->select (post-gesture)", "running");
 
   // AUD-04 functional mute-toggle proof: the M key must actually reach the master gain
   // (audio.js's toggleMute -> setVolume), not just flip a UI label. Press M once and confirm
@@ -267,6 +411,12 @@ try {
   await page.keyboard.press("Space");
   await page.waitForTimeout(800);
   await assertAudioElementCount(page, errors, "round-trip: title->select re-entry");
+
+  // VALID-03 (Phase 28): save-under-current-key persistence + resumed-unlock
+  // reachability proof, in its own isolated browser context. Runs after the primary
+  // per-level drive and round-trip check complete so its failures fold into the same
+  // single PASS/FAIL determination below without disturbing the primary drive's state.
+  await runSaveResumeAcrossReloadProof(errors);
 
   if (errors.length > 0) {
     console.error("Browser boot encountered errors:");
