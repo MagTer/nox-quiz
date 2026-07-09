@@ -4,17 +4,17 @@ milestone: v5.0
 milestone_name: Nox Run — Real Levels
 current_phase: 28
 current_phase_name: Full Verification & Interactive Sign-off
-status: executing
-stopped_at: Phase 26 complete and verified (7/7 must-haves passed) — code review found and fixed a real regression (CR-01) plus 3 warnings, re-review came back clean, transitioned to Phase 27. User asked to stop the autonomous run here and restart in a fresh session.
-last_updated: "2026-07-09T05:34:28.183Z"
+status: complete
+stopped_at: Phase 28 complete and verified (4/4 must-haves passed) — code review found and fixed 1 blocker (CR-01) plus 2 warnings, re-review came back clean (info-only remainder). All 7 v5.0 phases (22-28) complete; milestone ready for audit/completion. Backlog items 999.1/999.2 are captured ideas outside the v5.0 phase sequence (see "## Backlog" in ROADMAP.md) — they do not block milestone completion and require explicit promotion via /gsd-review-backlog before becoming real phases.
+last_updated: "2026-07-09T08:35:00.000Z"
 last_activity: 2026-07-09
-last_activity_desc: Phase 28 execution started
+last_activity_desc: Phase 28 complete and verified — v5.0 milestone's 7 phases all done, proceeding to milestone lifecycle (audit/complete/cleanup)
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 45
-  completed_plans: 42
-  percent: 86
+  completed_plans: 45
+  percent: 100
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,14 +36,14 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 28 (Full Verification & Interactive Sign-off) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 28
-Last activity: 2026-07-09 — Phase 28 execution started
+Phase: 28 — Full Verification & Interactive Sign-off — COMPLETE
+Plan: 3/3 complete
+Status: v5.0 milestone phases (22–28) all complete — proceeding to milestone lifecycle
+Last activity: 2026-07-09 — Phase 28 verified passed (4/4 must-haves); code review found+fixed CR-01/WR-01/WR-02, re-review clean
 
-Progress: [███████░░░] 71% (5/7 phases; Phase 26 shipped — palette centralization/expansion, 8 per-level themes, real door/enemy sprites, Nox Run logo, full rebrand string sweep + save-key rename)
+Progress: [██████████] 100% (7/7 phases)
 
-**Next:** `/gsd-discuss-phase 27` (or `/gsd-autonomous --from 27` to resume the autonomous run)
+**Next:** Milestone lifecycle (audit → complete → cleanup) via `/gsd-autonomous` or `/gsd-audit-milestone`. Backlog items 999.1 (reconsider collect-the-answer mechanic) and 999.2 (fix pink spike sprite) remain captured for future triage via `/gsd-review-backlog` — not part of v5.0's phase sequence.
 
 ## v5.0 Roadmap Summary
 
@@ -57,7 +57,7 @@ Progress: [███████░░░] 71% (5/7 phases; Phase 26 shipped —
 | 27. Audio & ADHD-Safe Sound | SFX + calm ambient music + persisted mute, ADHD-safe mix | AUD-01..04 |
 | 28. Full Verification & Interactive Sign-off | Interactive proof across all 8 levels + human sign-off | VALID-03 |
 
-**Coverage:** 24/24 v5.0 requirements mapped, no orphans, no duplicates. (REQUIREMENTS.md's coverage block previously said 23 — actual ID count is 24.)
+**Coverage:** 25/25 v5.0 requirements mapped and complete, no orphans, no duplicates (VALID-03 closed in Phase 28, the milestone's last pending requirement).
 
 ## Performance Metrics
 
@@ -199,8 +199,8 @@ Full log in PROJECT.md Key Decisions. Binding for v5.0:
 
 ### Blockers/Concerns
 
-- **[Phase 27] AWAITING HUMAN SIGN-OFF — plan 27-07's checkpoint:human-verify was explicitly deferred, not approved.** All 6 automated plans (27-01..27-06) are complete and every automated gate is green (check-safety/check-import-safety/check-audio/check-gate/check-progress + browser-boot.mjs with new audio-count/mute assertions). The dev server is running at `http://localhost:8000/src/index.html` (served from the repo root — see the 2026-07-08 quick-task fix to CLAUDE.md's dev-serving instructions) for whenever the human is ready to listen through the 12-step verification in `27-07-PLAN.md`'s `<how-to-verify>`. Per CLAUDE.md's standing rule and this project's explicit `never-rubber-stamp-checkpoints` precedent (Phase 25), this was NOT auto-approved despite `workflow.auto_advance=true`. Resume with `/gsd-execute-phase 27` (or answer directly in-session) once the sound has actually been checked. Phase 27 is NOT complete until this closes.
-- **Audit blind spot:** RESOLVED for levels 1-4 in Phase 23 (16/16 triggered) and extended to all 8 levels in Phase 25 (36/36 triggered, zero triggered:false — see 25-FINDINGS.md (b)). Phase 28's VALID-03 is still the milestone's final, formal human-signed-off closure — this just means the automated audit itself already covers all 8 levels going in. Note: `secretAlcove` remains outside both the audit's and the static validator's coverage by design — see the dedicated pending todo.
+- **[Phase 27] RESOLVED 2026-07-08:** plan 27-07's human sound sign-off closed after 5 iterative fix rounds (land SFX removed, jump SFX re-sourced twice + gain-tuned, ambient music re-sourced, mute icon made clickable), ending in an explicit "audio approved." AUD-01..04 complete.
+- **Audit blind spot:** RESOLVED for levels 1-4 in Phase 23 (16/16 triggered) and extended to all 8 levels in Phase 25 (36/36 triggered, zero triggered:false — see 25-FINDINGS.md (b)). **Phase 28 RESOLVED 2026-07-09:** VALID-03's formal human-signed-off closure is done — 28-02's consolidated checkpoint recorded a genuine full 8-level playthrough sign-off, and 28-VERIFICATION.md independently re-verified all 4 ROADMAP success criteria (4/4 passed). `secretAlcove` remains outside both the audit's and the static validator's coverage by design (unchanged, tracked in the dedicated pending todo above — explicitly out of Phase 28's scope per 28-CONTEXT.md).
 - **[Phase 22] 22-REVIEW.md latent warnings (advisory, none live on shipped content):** collect.js zone→slots→choices contract unvalidated — becomes live with Phase 25 multi-zone content
 - **[Phase 23] validate-levels.mjs WR-03 (deferred, non-blocking):** Playwright static-server + path-traversal guard code is duplicated verbatim across `browser-boot.mjs`, `audit-phase21-mechanics.mjs`, and `calibrate-jump-envelope.mjs` by deliberate project convention ("copy verbatim, do not simplify") — a future guard fix must be applied identically in all three places by hand; extracting to a shared module is a reasonable future cleanup, not urgent
 - **[Phase 23] reachability.mjs WARN-tier precision gap (deferred, non-blocking):** `marginRatio` is mathematically pinned to ~1.000 for every flat-or-downward hop (documented in-code and in 23-FINDINGS.md) — the WARN tier currently cannot distinguish "trivially easy" from "near the calibrated ceiling" for the common case. Not a correctness bug (no false PASS/HARD-FAIL), but worth revisiting if the WARN tier needs finer signal before Phase 28's final sign-off.
