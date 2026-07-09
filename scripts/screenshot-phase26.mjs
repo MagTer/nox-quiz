@@ -87,7 +87,7 @@ const SAVE_KEY = "noxrun_platformer_v1";
 // Derive the unlocked-levels blob from the live LEVEL_ORDER import (browser-boot.mjs's
 // own WR-02 idiom) so this script can never silently drift if a level is added/removed.
 const SAVE_BLOB = {
-  version: 2,
+  version: 3,
   xp: 0,
   level: 1,
   accuracy: {},
