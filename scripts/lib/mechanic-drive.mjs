@@ -26,38 +26,33 @@ import { CONFIG } from "../../src/config.js";
 
 /**
  * Merge every mechanic type present in geometry into one ascending-x-sorted list,
- * each tagged with its Kaplay collision tag and whether challenge.js renders an
- * answer-box grid for it (door/mathGate/enemy: true; collect zone: false).
+ * each tagged with its Kaplay collision tag. Every entry challenge.js renders an
+ * answer-box grid for (door/mathGate/enemy — the only mechanics left after Phase 29
+ * removed collect.js's answer-zone mechanic).
  *
  * Moved VERBATIM from the retired scripts/audit-phase21-mechanics.mjs implementation.
  */
 export function deriveEncounters(geometry) {
   const entries = [
-    ...(geometry.doors ?? []).map((d) => ({ x: d.x, tag: "door", renderChoices: true })),
-    ...(geometry.mathGates ?? []).map((g) => ({ x: g.x, tag: "math-gate", renderChoices: true })),
-    ...(geometry.enemies ?? []).map((e) => ({ x: e.x, tag: "enemy", renderChoices: true })),
+    ...(geometry.doors ?? []).map((d) => ({ x: d.x, tag: "door" })),
+    ...(geometry.mathGates ?? []).map((g) => ({ x: g.x, tag: "math-gate" })),
+    ...(geometry.enemies ?? []).map((e) => ({ x: e.x, tag: "enemy" })),
   ];
   entries.sort((a, b) => a.x - b.x);
   return entries;
 }
 
 /**
- * Resolve an already-triggered challenge if it renders an answer-box grid
- * (renderChoices:true — door/math-gate/enemy). collect.js's zone renders
- * renderChoices:false and has NO key handlers per challenge.js — never press a
- * numeric key for it; movement stays live so the outer loop continues past it.
+ * Resolve an already-triggered challenge by cycling answer keys 1-4 until the shared
+ * challenge count drops. Every encounter deriveEncounters() produces (door/math-gate/
+ * enemy) renders an answer-box grid, so this is unconditional.
  *
  * Moved VERBATIM from the retired scripts/audit-phase21-mechanics.mjs implementation
  * (including the CR-01-derived "decrease from baseline, not absolute-zero" comparison
- * — a still-open collect-zone challenge left over from an earlier, unresolved encounter
- * must never cause a false "already resolved" reading for a DIFFERENT challenge
- * instance).
+ * — a still-open challenge left over from an earlier, unresolved encounter must never
+ * cause a false "already resolved" reading for a DIFFERENT challenge instance).
  */
-export async function resolveIfBoxed(page, renderChoices) {
-  if (!renderChoices) {
-    return { resolved: null };
-  }
-
+export async function resolveIfBoxed(page) {
   // Bug fix (Rule 1, carried forward): if the challenge was never actually reached,
   // get("challenge").length is already 0 here. Cycling 1-4 anyway and reading
   // `left === 0` as "resolved" on the very first check would be vacuously true, since
@@ -70,10 +65,9 @@ export async function resolveIfBoxed(page, renderChoices) {
   }
 
   // CR-01 fix (carried forward): an absolute `left === 0` check is invalid whenever a
-  // prior challenge was deliberately left open (collect.js's renderChoices:false zones
-  // stay open by design). `initial` here already reflects that leftover count, so this
-  // SPECIFIC challenge resolves once the shared tag count drops BELOW `initial`, not
-  // only when it hits zero.
+  // prior challenge is still open when this one is checked. `initial` here already
+  // reflects that leftover count, so this SPECIFIC challenge resolves once the shared
+  // tag count drops BELOW `initial`, not only when it hits zero.
   for (const k of ["1", "2", "3", "4"]) {
     await page.keyboard.press(k);
     await page.waitForTimeout(200);
@@ -270,9 +264,9 @@ export async function driveToXClimbing(page, targetX, opts = {}) {
 
 /**
  * Geometry-informed replacement for driveToXClimbing (Phase 24 close-out): WALK by
- * default — so ground-level triggers (checkpoints, collect zones, gates, doors,
- * enemies) all register naturally — and jump ONLY at takeoff points planned by
- * route-planner.mjs from the same level.geometry the structural validator models.
+ * default — so ground-level triggers (checkpoints, gates, doors, enemies) all
+ * register naturally — and jump ONLY at takeoff points planned by route-planner.mjs
+ * from the same level.geometry the structural validator models.
  *
  * Takeoff matching is positional and stateless-per-window: each takeoff fires once
  * per approach (a `consumed` set), and a detected death (a large backward x warp —

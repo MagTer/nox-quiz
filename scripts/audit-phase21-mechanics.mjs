@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // Phase 21 (VERIFY-01/02) interactive mechanic audit — drives REAL player movement
 // (held ArrowRight + tapped Space over authored gaps) and REAL answer-key input
-// (keys 1-4) against door.js/gates.js/enemy.js/mathGate.js/collect.js across all 4
-// levels. This is NOT a teleport-only or save-seeded pre-clear check — every mechanic
-// is actually approached and actually triggered/resolved via the same input surface a
-// real player uses, mirroring the rigor of the v4.0 post-ship collect.js diagnostic.
+// (keys 1-4) against door.js/gates.js/enemy.js/mathGate.js across all levels. This is
+// NOT a teleport-only or save-seeded pre-clear check — every mechanic is actually
+// approached and actually triggered/resolved via the same input surface a real player
+// uses. (Phase 29: collect.js and its answer-zone mechanic were removed; this audit
+// now covers only the door/math-gate/enemy trio.)
 //
 // Reuses scripts/screenshot-phase20.mjs's server/MIME/chromium/try-finally skeleton
 // and scripts/browser-boot.mjs's title->select->level navigation + SAVE_KEY/SAVE_BLOB
@@ -266,19 +267,18 @@ try {
 
   // WR-01: the previous `allGood` computation here was dead (never read) and referenced a
   // non-existent `r.renderChoices` field on the pushed result objects — removed. Pass/fail
-  // is driven entirely by `allResolvedOrCollect`/`failing` below, keyed off `r.tag`.
-  const allResolvedOrCollect = results.every((r) => {
-    if (r.tag === "answer-zone") return r.triggered === true;
-    return r.triggered === true && r.resolved === true;
-  });
+  // is driven entirely by `allResolved`/`failing` below.
+  //
+  // WR-03 (Phase 29 review): the `r.tag === "answer-zone"` special case was dropped —
+  // deriveEncounters() (scripts/lib/mechanic-drive.mjs) never produces that tag any more
+  // (collect.js and its answer-zone mechanic are gone); every encounter is now door/
+  // math-gate/enemy and must be both triggered AND resolved to pass.
+  const allResolved = results.every((r) => r.triggered === true && r.resolved === true);
 
-  if (allResolvedOrCollect) {
+  if (allResolved) {
     console.log("AUDIT: ALL MECHANICS RESOLVED");
   } else {
-    const failing = results.filter((r) => {
-      if (r.tag === "answer-zone") return r.triggered !== true;
-      return r.triggered !== true || r.resolved !== true;
-    });
+    const failing = results.filter((r) => r.triggered !== true || r.resolved !== true);
     console.log("AUDIT: FAILURES DETECTED");
     console.log(JSON.stringify(failing, null, 2));
   }

@@ -414,11 +414,7 @@ try {
         });
         break;
       }
-      if (!encounter.renderChoices) {
-        // Collect zone: no answer-box grid to resolve; keep walking to the next encounter.
-        continue;
-      }
-      const { resolved } = await resolveIfBoxed(page, true);
+      const { resolved } = await resolveIfBoxed(page);
       if (!resolved) {
         errors.push({
           type: "mechanic",
