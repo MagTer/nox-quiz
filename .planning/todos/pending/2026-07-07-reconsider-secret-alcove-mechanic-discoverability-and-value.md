@@ -2,6 +2,7 @@
 created: 2026-07-07T16:00:00.000Z
 title: Reconsider secret-alcove mechanic's discoverability and value
 area: level-design
+resolves_phase: 29
 files:
   - src/mechanics/secretAlcove.js
   - src/levels/build.js

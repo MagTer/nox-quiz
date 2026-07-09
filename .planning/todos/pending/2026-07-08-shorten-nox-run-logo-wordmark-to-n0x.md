@@ -2,6 +2,7 @@
 created: 2026-07-08T20:40:57.704Z
 title: Shorten Nox Run logo wordmark to "n0x"
 area: ui
+resolves_phase: 38
 files:
   - src/scenes/title.js (logo reveal tween, ~Phase 26-07)
   - src/scenes/select.js (logo badge)

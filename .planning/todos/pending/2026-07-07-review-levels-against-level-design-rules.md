@@ -2,6 +2,7 @@
 created: 2026-07-07T00:00:00.000Z
 title: Review all 8 shipped levels against docs/LEVEL-DESIGN.md
 area: level-design
+resolves_phase: 34
 files:
   - docs/LEVEL-DESIGN.md
   - src/levels/level-01.js

@@ -2,7 +2,7 @@
 created: 2026-07-07T16:32:00.000Z
 title: Fix unreachable pickups/ledges and level-07/08 end-climb repetition
 area: level-design
-resolves_phase: null
+resolves_phase: 34
 files:
   - src/levels/level-05.js
   - src/levels/level-06.js

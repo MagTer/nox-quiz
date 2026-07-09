@@ -2,6 +2,7 @@
 created: 2026-07-07T16:00:00.000Z
 title: Add automated reachability/trigger coverage for secretAlcove
 area: testing
+resolves_phase: 30
 files:
   - scripts/lib/mechanic-drive.mjs
   - scripts/validate-levels.mjs
