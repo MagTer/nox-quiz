@@ -2,13 +2,17 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-status: planning
-last_updated: "2026-07-09"
+current_phase: 29
+current_phase_name: Mechanic Cleanup
+status: executing
+stopped_at: v6.0 roadmap revised per user resize request (10 phases, 29–38, Sonnet-5 executor sizing); REQUIREMENTS.md traceability updated to the new numbering
+last_updated: "2026-07-09T20:17:02.740Z"
 last_activity: 2026-07-09
+last_activity_desc: Phase 29 execution started
 progress:
   total_phases: 10
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
   percent: 0
 ---
@@ -32,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 
 ## Current Position
 
-Phase: 29 of 29–38 (Mechanic Cleanup)
-Plan: — (not yet planned)
-Status: Roadmap created — ready to plan Phase 29
-Last activity: 2026-07-09 — v6.0 roadmap created and revised same day (resized 8 → 10 phases for a Sonnet-5 executor; 31/31 requirements mapped)
+Phase: 29 (Mechanic Cleanup) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 29
+Last activity: 2026-07-09 — Phase 29 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -88,6 +92,7 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 ### Pending Todos
 
 All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (2026-07-09):
+
 - alcove automated coverage → MECH-04 · alcove discoverability/value → MECH-03/05/06 · unreachable pickups + 07/08 repetition → LVL-01/02 · LEVEL-DESIGN.md soft-rules review → LVL-03 · "n0x" logo shortening → BRAND-01
 
 ### Blockers/Concerns
