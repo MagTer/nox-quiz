@@ -188,7 +188,7 @@ export const CONFIG = {
   // (allowedTables et al. are level DATA, not config — they live in the level registry.)
   SAVE: {
     KEY: "noxrun_platformer_v1", // Phase 26 Nox Run rebrand clean-reset localStorage key for the platformer progression
-    VERSION: 2, // save-format version (gate: a foreign/older blob → safe defaults)
+    VERSION: 3, // save-format version (gate: a foreign/older blob → safe defaults) — bumped 2→3 for MECH-06's secretFound field (deliberate, no-migration reset)
   },
 
   // --- HUD layout (level badge + XP bar + level-up flash; Wave 3 consumes; Phase 12 retunes) ---
