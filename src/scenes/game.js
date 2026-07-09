@@ -273,8 +273,17 @@ export function gameScene(data) {
   // LVL-06: the secret XP alcove is the ONLY mechanic call site wired with `progress`
   // instead of `brain` — it awards a flat XP bonus, never opens a challenge. `hud` is
   // passed so the bonus visibly moves the XP bar (fix: was silently updating progress
-  // with no on-screen feedback — found via manual playtest).
-  wireSecretAlcove({ player, progress, hud, levelId: level.id });
+  // with no on-screen feedback — found via manual playtest). `save` mirrors the
+  // goal-clear persist pattern below (writeSave(progress.serialize(brain.snapshot())))
+  // so a secret found and then Escaped away from (NAV-03, which does not itself save)
+  // is not silently lost (CR-02).
+  wireSecretAlcove({
+    player,
+    progress,
+    hud,
+    levelId: level.id,
+    save: () => writeSave(progress.serialize(brain.snapshot())),
+  });
 
   // --- Escape → level-select (NAV-03 agency) ---
   // Lets her bail back to select mid-level with no forced replay of earlier levels.

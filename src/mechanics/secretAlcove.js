@@ -31,8 +31,12 @@ import * as audio from "../audio.js";
  *   touching the alcove appeared to do nothing at all.
  * @param {string} args.levelId    the current level's id — threaded through so the
  *   cross-run persisted secretFound fact (MECH-06) is recorded against the right level.
+ * @param {() => void} [args.save] optional immediate-persist callback (mirrors game.js's
+ *   own `writeSave(progress.serialize(brain.snapshot()))` pattern used on goal-clear and
+ *   tab-hide). Called synchronously right after a genuinely NEW secret is recorded so the
+ *   discovery survives an Escape-to-select bail, which does not otherwise trigger a save.
  */
-export function wireSecretAlcove({ player, progress, hud, levelId }) {
+export function wireSecretAlcove({ player, progress, hud, levelId, save }) {
   // Fire-once latch keyed by the touched alcove object. Closure-local (never
   // module-level) so it is garbage-collected with the scene and cannot leak across
   // replays — same anti-leak discipline as enemy.js's `defeated` Set. This is the
@@ -43,6 +47,20 @@ export function wireSecretAlcove({ player, progress, hud, levelId }) {
   player.onCollide("secret-alcove", (alcoveObj) => {
     if (found.has(alcoveObj)) return;
     found.add(alcoveObj);
+
+    // CR-01 guard: the in-run `found` Set above only stops a double-award within the
+    // SAME scene instance. Without checking the cross-run persisted fact too, replaying
+    // an already-cleared level (levels stay selectable after clear — select.js) and
+    // touching the alcove again would re-award XP_ALCOVE indefinitely. If it was already
+    // earned in a prior playthrough, still play the discovery feedback (a replay should
+    // feel rewarding, not silently do nothing) but never re-award XP or re-persist.
+    if (progress.hasSecretFound(levelId)) {
+      fx.pop(alcoveObj.pos.clone());
+      audio.playSfx("pickup");
+      destroy(alcoveObj);
+      return;
+    }
+
     const leveledUp = progress.addBonusXp(CONFIG.PROGRESS.XP_ALCOVE);
     hud.refresh();
     if (leveledUp) hud.flashLevelUp();
@@ -52,6 +70,15 @@ export function wireSecretAlcove({ player, progress, hud, levelId }) {
     // .pos before the object is destroyed, mirroring game.js's own coin-collision
     // handler convention (fx.pop(c.pos.clone()); destroy(c);).
     progress.markSecretFound(levelId);
+
+    // CR-02: persist immediately, mirroring the goal-clear save pattern. Escape back to
+    // level-select (NAV-03) is a fully supported bail path that does NOT otherwise save
+    // (only goal-clear and tab-hide call writeSave in game.js) — without this call, a
+    // secret found and then Escaped away from is silently lost: select.js re-reads
+    // createProgress(loadSave()) fresh on every entry, so the star marker would never
+    // appear even though the alcove was genuinely touched.
+    if (save) save();
+
     fx.pop(alcoveObj.pos.clone());
     fx.popupText(alcoveObj.pos.clone(), "+5 XP");
     audio.playSfx("pickup");
