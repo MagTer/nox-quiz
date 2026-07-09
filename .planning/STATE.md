@@ -215,7 +215,21 @@ Carried forward from previous milestone closes:
 | uat | SAFE-05 kid-UAT live sign-off (platforming feel, non-over-stimulation) — protocol in `.planning/milestones/v4.0-phases/19-polish-consolidated-kid-uat/19-UAT.md` | pending (UAT-FUT-01 in REQUIREMENTS.md) | v4.0/v4.1 |
 | deploy | SETUP-02 live Dokploy URL playthrough confirmation (container curl-proven locally) | pending (DEPLOY-FUT-01) | v3.0 |
 | uat | MOVE-05 throttled/non-60Hz empirical feel check (code verified dt-correct) | pending, low-risk | v3.0 |
-| test-tooling | 6/16 encounter audit blind spot | resolved for levels 1-4 in Phase 23 (16/16); extended to all 8 levels in Phase 25 (36/36); Phase 28 (VALID-03) remains the milestone's formal human-signed-off closure | v4.1 |
+| test-tooling | 6/16 encounter audit blind spot | resolved for levels 1-4 in Phase 23 (16/16); extended to all 8 levels in Phase 25 (36/36); Phase 28 (VALID-03) closed the formal human-signed-off closure — RESOLVED | v4.1 |
+
+Items acknowledged and deferred at v5.0 milestone close on 2026-07-09 (pre-close artifact audit — user chose "Acknowledge all"):
+
+| Category | Item | Status |
+|----------|------|--------|
+| todo | 2026-07-07-add-automated-coverage-for-secretalcove-mechanic.md (testing) | pending — needs new detection/reachability logic, not a mechanical patch |
+| todo | 2026-07-07-fix-unreachable-pickups-ledges-and-level-07-08-repetition.md (level-design) | pending — accepted non-blocking per 25-UAT.md |
+| todo | 2026-07-07-reconsider-secret-alcove-mechanic-discoverability-and-value.md (level-design) | pending — revisit design before adding more content on the same pattern |
+| todo | 2026-07-07-review-levels-against-level-design-rules.md (level-design) | pending — user: "down the road", not urgent |
+| todo | 2026-07-08-shorten-nox-run-logo-wordmark-to-n0x.md (ui) | pending — needs clarification before scoping |
+| seed | SEED-001-v6-snes-fidelity-world-overhaul (dormant) | future v6.0 milestone material — "SNES-Fidelity World" visual + world-motion overhaul |
+| seed | SEED-002-mobile-touch-controls (dormant) | future milestone material — touch controls + responsive canvas for mobile/tablet play |
+
+Known verification overrides: 0 (all 7 v5.0 phases passed verification cleanly; these 7 items are acknowledged deferred scope, not verification gaps).
 
 ## Quick Tasks Completed
 
