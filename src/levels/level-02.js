@@ -92,8 +92,6 @@ export const LEVEL_02 = {
     ],
 
     enemies: [],
-    collectZones: [],
-    answerPickupSlots: [],
 
     // Phase 25 retrofit (LVL-06) — purely additive, does not touch any existing
     // floor/platform/checkpoint geometry. A short extra hop UP from the early

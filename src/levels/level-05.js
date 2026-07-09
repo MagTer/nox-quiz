@@ -85,8 +85,6 @@ export const LEVEL_05 = {
     ],
 
     enemies: [],
-    collectZones: [],
-    answerPickupSlots: [],
 
     // Secret XP alcove (LVL-06) — a short off-path detour: an extra 70px hop UP
     // from the gap-1 bridging platform (x:560, y:250) instead of continuing

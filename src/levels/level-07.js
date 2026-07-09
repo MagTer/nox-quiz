@@ -133,8 +133,6 @@ export const LEVEL_07 = {
     ],
 
     enemies: [],
-    collectZones: [],
-    answerPickupSlots: [],
 
     // Secret XP alcove (LVL-06) — a sideways detour to the left of tier 4's
     // start, roughly at tier-4 height, off the main net-rightward climb path.

@@ -485,8 +485,6 @@ const deepEqual = (a, b) => {
       { x: 3760, y: FLOOR_Y - CONFIG.MATH_GATE.H },
     ],
     enemies: [],
-    collectZones: [],
-    answerPickupSlots: [],
     secretAlcove: [
       { x: 320, y: 170 },
     ],
