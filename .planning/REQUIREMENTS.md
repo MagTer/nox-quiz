@@ -9,8 +9,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Mechanic Cleanup
 
-- [ ] **MECH-01**: Collect-the-answer mechanic fully removed — code (`src/mechanics/collect.js`, builder blocks, config), level data (all 8 descriptors), and every defending gate/fixture (`check-gate.sh` #13, smoke-progress golden geometry, audit expectations, validator entries) updated atomically in one change
-- [ ] **MECH-02**: Math pacing rebalanced in the 5 affected levels (01/03/04/06/08) using the remaining mechanics — rhythm over 1:1 quota (≥2 mid-level encounters + end gate per level), XP economy re-checked
+- [x] **MECH-01**: Collect-the-answer mechanic fully removed — code (`src/mechanics/collect.js`, builder blocks, config), level data (all 8 descriptors), and every defending gate/fixture (`check-gate.sh` #13, smoke-progress golden geometry, audit expectations, validator entries) updated atomically in one change
+- [x] **MECH-02**: Math pacing rebalanced in the 5 affected levels (01/03/04/06/08) using the remaining mechanics — rhythm over 1:1 quota (≥2 mid-level encounters + end gate per level), XP economy re-checked
 - [ ] **MECH-03**: Secret alcove gives on-touch discovery feedback — particle burst + chime + "+5 XP" popup, one-shot per run, revealed only AFTER discovery (never pre-signposted, no secrets counter)
 - [ ] **MECH-04**: Secret alcove has automated coverage — point-vs-jump-reach reachability in the validator and an entity-destroy/XP-delta trigger signal in the interactive audit (never the challenge-open signal)
 - [ ] **MECH-05**: Discovered alcove leaves a persistent in-level ambient change for the rest of the run (e.g. torch lights up) — positive-only reinforcement
@@ -86,8 +86,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MECH-01 | Phase 29 | Pending |
-| MECH-02 | Phase 29 | Pending |
+| MECH-01 | Phase 29 | Complete |
+| MECH-02 | Phase 29 | Complete |
 | MECH-03 | Phase 29 | Pending |
 | MECH-04 | Phase 30 | Pending |
 | MECH-05 | Phase 36 | Pending |
@@ -119,6 +119,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VER-04 | Phase 38 | Pending |
 
 **Coverage:**
+
 - v6.0 requirements: 31 total
 - Mapped to phases: 31 ✓
 - Unmapped: 0
