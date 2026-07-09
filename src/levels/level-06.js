@@ -2,9 +2,9 @@
 //
 // Second of the Phase 25 four-level ramp: "one step harder" than level-05, table
 // pool [4,5,6,7]. Still single-screen-tall (no verticality), but introduces mixed
-// mechanic variety beyond level-05's door+mathGate — an enemy encounter AND a
-// collect-the-answer zone, mirroring level-01's mechanic mix. Carries exactly one
-// hidden secretAlcove (LVL-06), a short off-path detour above the gap-3 bridge.
+// mechanic variety beyond level-05's door+mathGate — an enemy encounter, mirroring
+// level-01's mechanic mix. Carries exactly one hidden secretAlcove (LVL-06), a
+// short off-path detour above the gap-3 bridge.
 
 import { CONFIG } from "../config.js";
 
@@ -63,7 +63,7 @@ export const LEVEL_06 = {
     // One near-start checkpoint + one 64-80px before EVERY hazard/mechanic.
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 }, // start
-      { x: 130, y: FLOOR_Y - 48 }, // before collectZone@200 (lead 70)
+      { x: 130, y: FLOOR_Y - 48 }, // before the mid-run approach (lead 70; no mechanic sits at this exact x any more)
       { x: 650, y: FLOOR_Y - 48 }, // before door@720 (lead 70)
       { x: 830, y: FLOOR_Y - 48 }, // before spike@900 (lead 70)
       { x: 1330, y: FLOOR_Y - 48 }, // before mathGate@1400 (lead 70)

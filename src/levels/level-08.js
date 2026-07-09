@@ -2,7 +2,7 @@
 //
 // Capstone of the Phase 25 four-level ramp: table pool [6,7,8,9] (the hardest),
 // verticality (LVL-05) mirroring level-07's climb pattern, and the densest
-// mechanic mix (door + mathGate + enemy + collectZone), mirroring level-04's
+// mechanic mix (door + mathGate + enemy), mirroring level-04's
 // density. Same climb rules as level-07: 6 ascending, net-rightward, full-width
 // platform tiers (never `floors` — those are pinned to FLOOR_Y in build.js), a
 // COMPLETE 4-field `bounds` object (never partial — Pitfall 2), uniform 70px-band
@@ -92,7 +92,7 @@ export const LEVEL_08 = {
     // it sits on: FLOOR_Y-48 on the floors, tier.y-48 on each climb tier.
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 }, // start
-      { x: 130, y: FLOOR_Y - 48 }, // before collectZone@150 (lead 20)
+      { x: 130, y: FLOOR_Y - 48 }, // before the mid-run approach (lead 20; no mechanic sits at this exact x any more)
       { x: 630, y: FLOOR_Y - 48 }, // before door@700 (lead 70)
       { x: 780, y: FLOOR_Y - 48 }, // before spike@850 (lead 70)
       { x: 1230, y: FLOOR_Y - 48 }, // before mathGate@1300 (lead 70)

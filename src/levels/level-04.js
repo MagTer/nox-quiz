@@ -2,7 +2,7 @@
 //
 // The hardest platforming and table pool ([6..9]) of the four-level set. Longest
 // runs, the smallest/most offset stepping-stones, and the densest seasoning:
-// one door, two checkpoint gates, one enemy, one collect zone, and seven spikes.
+// doors, checkpoint gates, one enemy, a hidden secret alcove (LVL-06), and seven spikes.
 
 import { CONFIG } from "../config.js";
 

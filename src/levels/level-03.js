@@ -1,8 +1,8 @@
 // src/levels/level-03.js — "The Hollow" descriptor.
 //
 // Mixed table pool [3..9] with platforming slightly harder than level-02: some
-// gaps need higher stepping-stones and the run layout is longer. Includes one
-// enemy encounter, one collect-the-answer zone, and one checkpoint gate.
+// gaps need higher stepping-stones and the run layout is longer. Includes two
+// enemy encounters, two checkpoint gates, and a hidden secret alcove (LVL-06).
 
 import { CONFIG } from "../config.js";
 
