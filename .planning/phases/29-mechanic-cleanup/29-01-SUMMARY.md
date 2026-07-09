@@ -169,6 +169,13 @@ None - no external service configuration required.
 - Phase 30 (Harness Extensions) can now safely add alcove/mover coverage to the same harness modules touched here without any collect-related dead code in the way.
 - Phase 34 (Level Quality Pass) inherits levels 01/03/04/06/08 with their collect data cleanly removed and no dead stretches — confirmed via direct position inspection in 29-CONTEXT.md, no further geometry fix needed from this removal.
 
+## Self-Check: PASSED
+
+- FOUND (deleted as expected): `src/mechanics/collect.js`
+- FOUND: `.planning/phases/29-mechanic-cleanup/29-01-SUMMARY.md`
+- FOUND: commit `47b1912` (feat: atomic collect removal)
+- FOUND: commit `99f9343` (docs: SUMMARY.md)
+
 ---
 *Phase: 29-mechanic-cleanup*
 *Completed: 2026-07-09*
