@@ -3,8 +3,10 @@
 // This module wires the "secret-alcove" tagged walk-through area() entities created by
 // src/levels/build.js onto the player. Unlike every other mechanic in this directory,
 // touching an alcove NEVER pauses the player and NEVER opens a challenge — it is a
-// silent, flat XP bonus (CONFIG.PROGRESS.XP_ALCOVE) awarded exactly once per alcove
-// object, deliberately below XP_EASY so it reads as a bonus, not a shortcut.
+// silent, flat XP bonus (CONFIG.PROGRESS.XP_ALCOVE) awarded exactly once per LEVEL
+// (not per alcove object — see progress.hasSecretFound/markSecretFound below), deliberately
+// below XP_EASY so it reads as a bonus, not a shortcut. If a level ever authors more than one
+// secretAlcove entry, only the first one touched pays out; author accordingly.
 //
 // ENGINE-GLOBAL DISCIPLINE (a727c13): `destroy` is referenced ONLY inside the exported
 // function body, after kaplay({ global }) runs. mechanics/ is one directory below src/,
