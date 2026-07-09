@@ -128,7 +128,10 @@ Rebranded Math Lab → Nox Run; doubled the game to 8 levels (levels 1–4 fixed
   2. Each of the 5 formerly-collect levels (01/03/04/06/08) still plays with a satisfying math rhythm — at least 2 mid-level encounters plus the end gate using the remaining mechanics — and the XP economy checks out
   3. Touching a secret alcove produces immediate discovery feedback (particle burst + chime + "+5 XP" popup), exactly once per run, revealed only AFTER discovery — never pre-signposted, no secrets counter
   4. Level select shows a positive-only secret-found marker on levels where the secret was discovered (no "0/1" missing-framing), with the save version bump handled through the guarded progress seam
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 29-01-PLAN.md — Atomically remove the collect-the-answer mechanic (code, config, level data, harness fixtures) — MECH-01, MECH-02
+- [ ] 29-02-PLAN.md — Secret-alcove discovery feedback + level-select marker via a version-bumped save seam — MECH-03, MECH-06
 
 ### Phase 30: Harness Extensions
 **Goal**: The verification harness can genuinely see every new v6.0 dynamic before any level ships one — alcoves become fully covered, and the validator stops being blind to movers a full phase-boundary before Phase 36 places any
