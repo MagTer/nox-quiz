@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v5.0
-milestone_name: Nox Run — Real Levels
-current_phase: 0
-status: Awaiting next milestone
-stopped_at: Phase 26 complete and verified (7/7 must-haves passed) — code review found and fixed a real regression (CR-01) plus 3 warnings, re-review came back clean, transitioned to Phase 27. User asked to stop the autonomous run here and restart in a fresh session.
-last_updated: "2026-07-09T08:18:59.922Z"
+milestone: v6.0
+milestone_name: SNES-Fidelity World
+status: planning
+last_updated: "2026-07-09T10:40:39.465Z"
 last_activity: 2026-07-09
-last_activity_desc: Milestone v5.0 completed and archived
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 45
-  completed_plans: 45
-  percent: 100
-current_phase_name: Full Verification & Interactive Sign-off
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,10 +32,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: Milestone v5.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-09 — Milestone v5.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-09 — Milestone v6.0 started
 
 ## v5.0 Roadmap Summary
 

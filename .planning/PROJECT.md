@@ -20,6 +20,24 @@ This milestone: reviewed and auto-fixed the entire v4.1 codebase before doubling
 
 **What it isn't yet:** live Dokploy URL playthrough confirmation (deferred since v3.0), kid-UAT live sign-off for platforming feel (deferred since v4.0/v4.1), a worlds/level-pack grouping screen, mobile/touch controls (SEED-002), and the "SNES-fidelity" richer sourced-art visual tier the user's ambition is pointing toward (SEED-001, v6.0 candidate). Also carried forward as known, accepted, non-blocking gaps: `secretAlcove` remains outside both the interactive audit's and the static validator's automated coverage by design; some pickups/ledges are unreachable in levels 5–8 and level-07/08's end-climb sections read as near-duplicates; the secret alcove's silent reward reads as low-discoverability; and a "n0x" logo-shortening ask awaits scoping clarification.
 
+## Current Milestone: v6.0 SNES-Fidelity World
+
+**Goal:** Take Nox Run from "tinted minimal art" to a genuinely SNES-fidelity dark world with motion in it, clean up the mechanics that didn't land, and make it playable on mobile — closing the long-deferred live-deploy and kid-UAT loops.
+
+**Target features:**
+- **Art overhaul (SEED-001 A):** sourced dark pixel-art biomes (3–4 biomes covering the 8 levels, ansimuz Gothicvania as the scouted anchor), filled terrain with real autotiling, real multi-layer parallax, fully animated player, real art for doors/gates/enemies/math-gate — style-board human sign-off BEFORE any integration; pink spike sprite (backlog 999.2) dies with the old art
+- **World motion (SEED-001 B):** patrolling cosmetic enemies, moving platforms (validator learns them), ambient animation — all dt-based, no timers, built on the spike-proven Kaplay idioms (`patrol()`, `stickToPlatform`, chunked tiled fill)
+- **Mechanic cleanup:** remove collect-the-answer (backlog 999.1) from all 5 levels it's in and rebalance math pacing; secret alcove gets an on-touch discovery feedback cue plus automated reachability/trigger coverage
+- **Level quality pass:** fix unreachable pickups/ledges in levels 5–8, differentiate the level-07/08 end climbs, review all 8 levels against LEVEL-DESIGN.md soft rules — folded into the biome re-dress work
+- **"n0x" logo:** new visual treatment (not a text swap), designed as part of the SNES identity, same human sign-off standard as Phase 26's logo
+- **Mobile (SEED-002):** touch input layer (virtual movement/jump, tappable answers, touch mute/reset) + responsive canvas scaling — a conscious reversal of the former "Windows laptop only" scope line; keyboard stays primary
+- **Closing verification:** live Dokploy URL playthrough confirmation (open since v3.0), kid-UAT live sign-off (open since v4.0), MOVE-05 non-60Hz feel check
+
+**Key context:**
+- SEED-001's four decisions locked 2026-07-07 stand: visuals + world motion (no new play mechanics like stomping/power-ups), dark-SNES art direction (Castlevania IV / Demon's Crest register), CC0/CC-BY sourcing, and the pre-work in `.planning/research/v6-scouting/` (ASSET-SCOUTING.md, SPIKE-FINDINGS.md) is consumed as verified fact — not re-researched
+- Guardrails unchanged: all gates stay green, kid-validated level geometry re-dressed not rebuilt, no new runtime deps, no Kaplay upgrade, math brain locked, no timers, no pink
+- Mechanic decisions (collect removal, alcove cue) land BEFORE the level re-dress so no content gets dressed that's about to change
+
 ## Shipped Milestone: v5.0 Nox Run — Real Levels (2026-07-09)
 
 **Goal:** Take the working game from "functioning" to "next-level experience" — rebrand it as **Nox Run**, double and lengthen the level content with guaranteed-playable structure, enrich the grunge visuals, and add audio.
@@ -34,7 +52,7 @@ This milestone: reviewed and auto-fixed the entire v4.1 codebase before doubling
 - ✓ Dropped tables 1 & 10 from the practice rotation (Phase 25)
 - ✓ Milestone-closing verification: consolidated automated gate suite + genuine human sign-off across all 8 levels (Phase 28)
 
-Next milestone not yet started — see Deferred/Future Requirements below and `.planning/seeds/` for SEED-001 (v6.0 SNES-fidelity visual candidate) and SEED-002 (mobile touch controls).
+Both seeds (SEED-001 SNES-fidelity overhaul, SEED-002 mobile touch controls) and all pending open threads were reviewed and absorbed into v6.0 at its 2026-07-09 kickoff — see Current Milestone above.
 
 ## Requirements
 
@@ -72,7 +90,19 @@ Next milestone not yet started — see Deferred/Future Requirements below and `.
 
 ### Active
 
-None — v5.0's full requirement set (25/25) is validated and complete as of Phase 28. Milestone ready for audit/completion.
+<!-- v6.0 SNES-Fidelity World — scoped in .planning/REQUIREMENTS.md -->
+
+- [ ] SNES-fidelity sourced biome art: cohesive CC0/CC-BY collection (3–4 biomes), style-board human sign-off before integration
+- [ ] Filled terrain (autotiled ground mass), real multi-layer parallax backgrounds per biome
+- [ ] Fully animated player (idle/run/jump/fall/land) and real animated art for mechanic entities
+- [ ] Props layer (visual-only, validator-neutral)
+- [ ] World motion: patrolling cosmetic enemies, moving platforms (validator-aware), ambient animation
+- [ ] Collect-the-answer mechanic removed; math pacing rebalanced in affected levels
+- [ ] Secret alcove on-touch discovery feedback cue + automated reachability/trigger coverage
+- [ ] Level quality pass: unreachable pickups/ledges fixed, level-07/08 end climbs differentiated, LEVEL-DESIGN.md soft-rules review
+- [ ] New "n0x" logo treatment under human sign-off
+- [ ] Mobile: touch input layer + responsive canvas scaling (keyboard stays primary)
+- [ ] Live Dokploy URL playthrough confirmed; kid-UAT live sign-off; MOVE-05 feel check
 
 
 ### Out of Scope
@@ -80,7 +110,7 @@ None — v5.0's full requirement set (25/25) is validated and complete as of Pha
 - Backend / server-side logic, accounts, databases, data collection — static hosting only (a container that *serves* files is fine; no app server, nothing leaves her browser)
 - Pink or "girly" visual design — explicitly excluded
 - Timed pressure mechanics — ADHD context, stress must be avoided
-- Mobile-only UI — Windows laptop is the target device
+- ~~Mobile-only UI — Windows laptop is the target device~~ — consciously reversed at v6.0 kickoff (2026-07-09): touch controls + responsive canvas are in scope (SEED-002); keyboard/desktop stays primary
 - Leaderboards or social comparison — shame spiral risk; solo practice only
 - Typed input answers — multiple choice chosen to reduce friction
 
@@ -158,4 +188,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 — v5.0 "Nox Run: Real Levels" milestone shipped (7 phases, 45 plans, 25/25 requirements); full review completed at milestone close*
+*Last updated: 2026-07-09 — v6.0 "SNES-Fidelity World" milestone started: both seeds + all open threads absorbed; mobile Out-of-Scope line consciously reversed*
