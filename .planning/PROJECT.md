@@ -38,6 +38,9 @@ This milestone: reviewed and auto-fixed the entire v4.1 codebase before doubling
 - Guardrails unchanged: all gates stay green, kid-validated level geometry re-dressed not rebuilt, no new runtime deps, no Kaplay upgrade, math brain locked, no timers, no pink
 - Mechanic decisions (collect removal, alcove cue) land BEFORE the level re-dress so no content gets dressed that's about to change
 
+**Delivered so far:**
+- ✓ Validated in Phase 29 — Mechanic cleanup: collect-the-answer removed atomically from all 5 affected levels (code + level data + every defending harness fixture, one commit), math pacing re-verified rhythm-intact with zero XP-path disturbance; secret alcove now gives real on-touch discovery feedback (particle burst + chime + "+5 XP" popup, one-shot per level with anti-farming + anti-loss-on-escape guards) and a positive-only star marker on level-select backed by a save-format version bump — closes the long-open "alcove feels like nothing happened" todo from Phase 25
+
 ## Shipped Milestone: v5.0 Nox Run — Real Levels (2026-07-09)
 
 **Goal:** Take the working game from "functioning" to "next-level experience" — rebrand it as **Nox Run**, double and lengthen the level content with guaranteed-playable structure, enrich the grunge visuals, and add audio.
@@ -188,4 +191,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 — v6.0 "SNES-Fidelity World" milestone started: both seeds + all open threads absorbed; mobile Out-of-Scope line consciously reversed*
+*Last updated: 2026-07-10 — Phase 29 (Mechanic Cleanup) complete: MECH-01/02/03/06 satisfied*
