@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Nox Run — Real Levels
-current_phase: 28
-current_phase_name: Full Verification & Interactive Sign-off
-status: complete
-stopped_at: Phase 28 complete and verified (4/4 must-haves passed) — code review found and fixed 1 blocker (CR-01) plus 2 warnings, re-review came back clean (info-only remainder). All 7 v5.0 phases (22-28) complete; milestone ready for audit/completion. Backlog items 999.1/999.2 are captured ideas outside the v5.0 phase sequence (see "## Backlog" in ROADMAP.md) — they do not block milestone completion and require explicit promotion via /gsd-review-backlog before becoming real phases.
-last_updated: "2026-07-09T08:35:00.000Z"
+current_phase: 0
+status: Awaiting next milestone
+stopped_at: Phase 26 complete and verified (7/7 must-haves passed) — code review found and fixed a real regression (CR-01) plus 3 warnings, re-review came back clean, transitioned to Phase 27. User asked to stop the autonomous run here and restart in a fresh session.
+last_updated: "2026-07-09T08:18:59.922Z"
 last_activity: 2026-07-09
-last_activity_desc: Phase 28 complete and verified — v5.0 milestone's 7 phases all done, proceeding to milestone lifecycle (audit/complete/cleanup)
+last_activity_desc: Milestone v5.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
   total_plans: 45
   completed_plans: 45
   percent: 100
+current_phase_name: Full Verification & Interactive Sign-off
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,14 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 28 — Full Verification & Interactive Sign-off — COMPLETE
-Plan: 3/3 complete
-Status: v5.0 milestone phases (22–28) all complete — proceeding to milestone lifecycle
-Last activity: 2026-07-09 — Phase 28 verified passed (4/4 must-haves); code review found+fixed CR-01/WR-01/WR-02, re-review clean
-
-Progress: [██████████] 100% (7/7 phases)
-
-**Next:** Milestone lifecycle (audit → complete → cleanup) via `/gsd-autonomous` or `/gsd-audit-milestone`. Backlog items 999.1 (reconsider collect-the-answer mechanic) and 999.2 (fix pink spike sprite) remain captured for future triage via `/gsd-review-backlog` — not part of v5.0's phase sequence.
+Phase: Milestone v5.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-09 — Milestone v5.0 completed and archived
 
 ## v5.0 Roadmap Summary
 
@@ -249,3 +245,7 @@ Resume file: None
 
 **State initialized:** 2026-06-20
 **Last updated:** 2026-07-08 (Phase 26 complete — grunge palette/theme/sprite/logo/rebrand shipped and verified, transitioned to Phase 27)
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

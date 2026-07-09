@@ -1,5 +1,36 @@
 # Milestones: Math Lab
 
+## v5.0 Nox Run — Real Levels (Shipped: 2026-07-09)
+
+**Phases completed:** 7 phases (22-28), 45 plans, 98 tasks
+
+**Delivered:**
+Rebranded Math Lab → Nox Run, doubled the game to 8 levels with guaranteed-playable structure, added a rich per-level grunge visual identity, and shipped a full ADHD-safe audio layer — closing with a genuinely-proven, non-rubber-stamped verification pass.
+
+**Key Accomplishments:**
+
+1. Clean, reviewed base before content doubled: all 24 game entities/surfaces audited with autonomous in-boundary fixes, zero regressions vs baseline, structural defects inventoried for validator calibration (Phase 22)
+2. Level validation harness built and proven RED-first against real known bugs; jump envelope empirically calibrated against the live engine (not closed-form theory); interactive audit blind spot closed from 6/16 to 16/16 (Phase 23)
+3. Levels 1-4 structurally fixed and lengthened 52.9-63%; game doubled to 8 levels total with a gentle difficulty ramp, late-game verticality, secret XP alcoves, and a scaling 2×4 select grid; tables 1 and ×10 dropped from the math (Phases 24-25)
+4. Rich Nox Run visual identity: centralized/expanded grunge palette (19 named roles, WCAG AA-proven, no pink), 8 distinct per-level baked themes, real CC0 door/3-variant-enemy sprite art, a signed-off pixel-wordmark logo with non-strobing reveal, full Math Lab → Nox Run rebrand sweep with an intentional save-key reset (Phase 26)
+5. Full audio layer: 7 CC0 SFX + calm gesture-gated ambient music + persisted M-key mute, ADHD-safe mix closed via a genuine 5-round iterative human sound sign-off (Phase 27)
+6. Milestone-closing verification: consolidated 8-gate automated suite green in one run, two new automated proofs (audio-gesture-gate via `AudioContext.state`, save-resume-across-reload), and a genuine (non-rubber-stamped) human sign-off across all 8 levels closing VALID-03 — the milestone's requirement set (25/25) fully complete (Phase 28)
+
+**Stats:**
+
+- 563 files changed, +32,195/-746 lines (git range 18a1615..HEAD)
+- ~10,268 LOC across `src/`, `scripts/`, `docker/`
+- Timeline: 5 days (2026-07-05 → 2026-07-09)
+- Requirements: 25/25 v5.0 requirements satisfied
+
+**Milestone Audit:** tech_debt status (25/25 requirements, 7/7 phases, 0 integration breaks; 10 tracked non-blocking deferred items, all already human-accepted or existing tracking notes) — accepted by user 2026-07-09.
+
+**Known Deferred Items at Close:** 7 (see STATE.md Deferred Items) — 5 pending todos (secretAlcove automated coverage + discoverability redesign, levels 5-8 pickup/ledge reachability + level-07/08 repetition, LEVEL-DESIGN.md soft-rules review, "n0x" logo shortening) and 2 dormant seeds (SEED-001 v6.0 SNES-fidelity visual overhaul, SEED-002 mobile touch controls).
+
+**Archive:** `.planning/milestones/v5.0-ROADMAP.md`, `.planning/milestones/v5.0-REQUIREMENTS.md`, `.planning/milestones/v5.0-MILESTONE-AUDIT.md`
+
+---
+
 ## v4.1 Art Rework (Shipped: 2026-07-04)
 
 **Phases completed:** 2 phases, 10 plans, 22 tasks
