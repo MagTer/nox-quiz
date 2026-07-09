@@ -11,10 +11,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **MECH-01**: Collect-the-answer mechanic fully removed — code (`src/mechanics/collect.js`, builder blocks, config), level data (all 8 descriptors), and every defending gate/fixture (`check-gate.sh` #13, smoke-progress golden geometry, audit expectations, validator entries) updated atomically in one change
 - [x] **MECH-02**: Math pacing rebalanced in the 5 affected levels (01/03/04/06/08) using the remaining mechanics — rhythm over 1:1 quota (≥2 mid-level encounters + end gate per level), XP economy re-checked
-- [ ] **MECH-03**: Secret alcove gives on-touch discovery feedback — particle burst + chime + "+5 XP" popup, one-shot per run, revealed only AFTER discovery (never pre-signposted, no secrets counter)
+- [x] **MECH-03**: Secret alcove gives on-touch discovery feedback — particle burst + chime + "+5 XP" popup, one-shot per run, revealed only AFTER discovery (never pre-signposted, no secrets counter)
 - [ ] **MECH-04**: Secret alcove has automated coverage — point-vs-jump-reach reachability in the validator and an entity-destroy/XP-delta trigger signal in the interactive audit (never the challenge-open signal)
 - [ ] **MECH-05**: Discovered alcove leaves a persistent in-level ambient change for the rest of the run (e.g. torch lights up) — positive-only reinforcement
-- [ ] **MECH-06**: Level-select shows a positive-only secret-found marker per cleared level (no "0/1" missing-framing; save version bump handled through the guarded progress seam)
+- [x] **MECH-06**: Level-select shows a positive-only secret-found marker per cleared level (no "0/1" missing-framing; save version bump handled through the guarded progress seam)
 
 ### Art Foundation
 
@@ -88,10 +88,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | MECH-01 | Phase 29 | Complete |
 | MECH-02 | Phase 29 | Complete |
-| MECH-03 | Phase 29 | Pending |
+| MECH-03 | Phase 29 | Complete |
 | MECH-04 | Phase 30 | Pending |
 | MECH-05 | Phase 36 | Pending |
-| MECH-06 | Phase 29 | Pending |
+| MECH-06 | Phase 29 | Complete |
 | ART-01 | Phase 31 | Pending |
 | ART-02 | Phase 32 | Pending |
 | ART-03 | Phase 32 | Pending |

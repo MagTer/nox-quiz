@@ -167,6 +167,23 @@ export function selectScene(data) {
       ]);
     }
 
+    // Secret-found star marker (MECH-06): positive-only, shown independent of the tile's
+    // locked/unlocked/cleared state — gated ONLY on progress.hasSecretFound. A small
+    // neon-green star in the tile's top-right corner, clear of the centered number label
+    // and the center-bottom lock/check glyph above. Purely additive: never replaces or
+    // repositions either existing label.
+    if (progress.hasSecretFound(t.id)) {
+      add([
+        text("★", { size: S.SECRET_SIZE }),
+        anchor("center"),
+        pos(x + S.TILE_W / 2 - S.SECRET_INSET, y - S.TILE_H / 2 + S.SECRET_INSET),
+        color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
+        fixed(),
+        z(9001),
+        "select",
+      ]);
+    }
+
     // Mouse path: ONLY unlocked/cleared (i.e. unlocked) tiles get a click handler.
     // Locked tiles get NO handler and are never selectable (NAV-02). Object-scoped
     // onClick is auto-cleaned when the tile is destroyed on go() teardown.

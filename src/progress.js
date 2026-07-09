@@ -47,6 +47,8 @@ import { CONFIG } from "./config.js"; // leaf constants — CONFIG.PROGRESS / SA
  *   addXp: (table: number) => boolean,
  *   isLevelCleared: (id: string) => boolean,
  *   markCleared: (id: string) => void,
+ *   hasSecretFound: (id: string) => boolean,
+ *   markSecretFound: (id: string) => void,
  *   serialize: (brainSnapshot?: { accuracy?: object, history?: object }) =>
  *     { version: number, xp: number, level: number, accuracy: object, history: object, levels: object }
  * }}
@@ -83,10 +85,16 @@ export function createProgress(saved) {
   // ONLY the cleared facts — derived unlock (isUnlocked) lives in the registry (Plan 03), which
   // owns LEVEL_ORDER; progress.js imports no registry/engine (firewall).
   const cleared = {};
+  // Sibling closure-local map for the secret-alcove discovery FACT (MECH-06). Seeded from
+  // the SAME saved.levels loop as `cleared` above, with the identical strict `=== true`
+  // coercion guard — a non-boolean/missing secretFound flag seeds NOT-found. Own keys only
+  // (never the prototype), same prototype-pollution discipline as `cleared`.
+  const secretFound = {};
   if (saved && saved.levels && typeof saved.levels === "object") {
     for (const id of Object.keys(saved.levels)) {
       const rec = saved.levels[id];
       if (rec != null && rec.cleared === true) cleared[id] = true;
+      if (rec != null && rec.secretFound === true) secretFound[id] = true;
     }
   }
 
@@ -148,6 +156,18 @@ export function createProgress(saved) {
       cleared[id] = true;
     },
 
+    // Per-level secret-alcove-found FACTS (MECH-06). Same shape as isLevelCleared/
+    // markCleared above, byte-for-byte, mirroring the cross-run persisted marker the
+    // level-select screen reads via hasSecretFound. Distinct from secretAlcove.js's own
+    // in-run closure-local `found` Set (the one-shot-per-run feedback latch) — this map is
+    // the SEPARATE cross-run persisted fact.
+    hasSecretFound(id) {
+      return secretFound[id] === true;
+    },
+    markSecretFound(id) {
+      secretFound[id] = true;
+    },
+
     threshold,
     nextThreshold: () => threshold(level),
 
@@ -175,10 +195,18 @@ export function createProgress(saved) {
     // brain's accuracy/history come from brain.snapshot(); a missing snapshot defaults
     // them to empty objects so serialize() never throws on a null brain.
     serialize(brainSnapshot) {
-      // Build the persistable per-level map from the closure cleared FACTS: ONLY { cleared: true }
-      // entries, never an `unlocked` flag (one source of truth — unlock is derived in the registry).
+      // Build the persistable per-level map from the closure cleared + secretFound FACTS:
+      // iterate the UNION of both key sets (a level whose secret was found but which isn't
+      // yet cleared still gets an entry), then conditionally set each true fact — never an
+      // `unlocked` flag (one source of truth — unlock is derived in the registry), and never
+      // an explicit `false` (sparse output shape preserved for both facts).
       const levels = {};
-      for (const id of Object.keys(cleared)) levels[id] = { cleared: true };
+      const ids = new Set([...Object.keys(cleared), ...Object.keys(secretFound)]);
+      for (const id of ids) {
+        levels[id] = {};
+        if (cleared[id] === true) levels[id].cleared = true;
+        if (secretFound[id] === true) levels[id].secretFound = true;
+      }
       return {
         version: CONFIG.SAVE.VERSION,
         xp,
@@ -251,16 +279,20 @@ function validate(data) {
     });
   }
 
-  // Per-level cleared map (SAVE-06). Mirrors the named-key, range-checked accuracy idiom
-  // above: copy ONLY into the fresh `out.levels` (from defaults()), never spread/Object.assign
-  // the untrusted blob (prototype-pollution mitigation T-13-03 / T-01-01). Each cleared flag is
-  // STRICTLY coerced with `=== true` — a "yes"/1/non-boolean validates to NOT-cleared. Unknown
-  // / junk ids (including __proto__) are tolerated and written as plain own keys on `out.levels`;
-  // a junk id can never unlock a real level because unlock is derived from LEVEL_ORDER in the
-  // registry, never from this map. We store ONLY `cleared`, never `unlocked`.
+  // Per-level cleared + secretFound map (SAVE-06 / MECH-06 / T-29-03). Mirrors the named-key,
+  // range-checked accuracy idiom above: copy ONLY into the fresh `out.levels` (from defaults()),
+  // never spread/Object.assign the untrusted blob (prototype-pollution mitigation T-13-03 /
+  // T-01-01). Each of cleared/secretFound is STRICTLY coerced with `=== true` — a "yes"/1/
+  // non-boolean validates to NOT-cleared / NOT-found. Unknown / junk ids (including __proto__)
+  // are tolerated and written as plain own keys on `out.levels`; a junk id can never unlock a
+  // real level or fake a secret because unlock is derived from LEVEL_ORDER in the registry,
+  // never from this map. We store ONLY `cleared`/`secretFound`, never `unlocked`.
   if (data.levels && typeof data.levels === "object") {
     Object.entries(data.levels).forEach(([id, rec]) => {
-      out.levels[id] = { cleared: rec != null && rec.cleared === true };
+      out.levels[id] = {
+        cleared: rec != null && rec.cleared === true,
+        secretFound: rec != null && rec.secretFound === true,
+      };
     });
   }
 

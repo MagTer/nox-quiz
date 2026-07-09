@@ -759,6 +759,27 @@ const deepEqual = (a, b) => {
     `SAVE-07: the serialized levels map should record level-01 as cleared`);
 }
 
+// --- MECH-06: secretFound round-trips through markSecretFound/hasSecretFound + serialize ---
+{
+  const brain = createBrain();
+  const p = createProgress();
+  check(p.hasSecretFound("level-01") === false,
+    `MECH-06: a fresh progress should report level-01's secret NOT found`);
+  p.markSecretFound("level-01");
+  check(p.hasSecretFound("level-01") === true,
+    `MECH-06: markSecretFound("level-01") should flip hasSecretFound to true`);
+  check(p.hasSecretFound("level-02") === false,
+    `MECH-06: marking level-01's secret found should NOT affect level-02 (per-id, not global)`);
+
+  const blob = p.serialize(brain.snapshot());
+  check(blob.levels["level-01"] && blob.levels["level-01"].secretFound === true,
+    `MECH-06: the serialized levels map should record level-01's secretFound as true`);
+
+  const restored = createProgress(blob);
+  check(restored.hasSecretFound("level-01") === true,
+    `MECH-06: secretFound fact for level-01 should survive serialize → createProgress`);
+}
+
 if (failures > 0) {
   console.error(`smoke-progress: FAIL — ${failures} assertion(s) failed`);
   process.exit(1);

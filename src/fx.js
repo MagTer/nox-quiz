@@ -131,6 +131,44 @@ export function dust(at) {
 }
 
 /**
+ * A world-space rising/fading text popup at `at` (typically an alcove's position), then
+ * self-destroy. Mirrors dust()'s rise/fade tween idiom exactly, using a text() label
+ * instead of a rect(). World-space (NO fixed()) — this floats at `at` and scrolls with
+ * the camera, unlike the HUD's screen-space "LEVEL UP" banner (src/ui/hud.js). One smooth
+ * easeOutQuad fade — no strobe. Tagged "fx" so it is swept by game.js's destroyAll("fx")
+ * on scene leave, same as every other effect in this file.
+ *
+ * @param {Vec2} at  the world position to float up from (pass a .clone() if the source
+ *   entity is about to be destroyed).
+ * @param {string} label  the text to display, e.g. "+5 XP".
+ */
+export function popupText(at, label) {
+  const F = CONFIG.FX;
+
+  const marker = add([
+    text(label, { size: F.XP_POPUP_SIZE }),
+    pos(at.x, at.y),
+    anchor("center"),
+    color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]), // neon-green
+    opacity(1),
+    z(60),
+    "fx",
+  ]);
+
+  const startY = at.y;
+  tween(
+    0,
+    1,
+    F.XP_POPUP_MS / 1000,
+    (v) => {
+      marker.pos.y = startY - F.XP_POPUP_RISE * v;
+      marker.opacity = 1 - v;
+    },
+    easings.easeOutQuad,
+  ).onEnd(() => destroy(marker));
+}
+
+/**
  * A quick neon-green scale-pop + fade at `at` (world-space), then self-destroy.
  *
  * Fired on coin collect at the coin's spot — coins stay count-only, so there is NO

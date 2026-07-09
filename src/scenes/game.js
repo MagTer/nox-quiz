@@ -274,7 +274,7 @@ export function gameScene(data) {
   // instead of `brain` — it awards a flat XP bonus, never opens a challenge. `hud` is
   // passed so the bonus visibly moves the XP bar (fix: was silently updating progress
   // with no on-screen feedback — found via manual playtest).
-  wireSecretAlcove({ player, progress, hud });
+  wireSecretAlcove({ player, progress, hud, levelId: level.id });
 
   // --- Escape → level-select (NAV-03 agency) ---
   // Lets her bail back to select mid-level with no forced replay of earlier levels.

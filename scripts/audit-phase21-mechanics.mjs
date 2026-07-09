@@ -95,7 +95,7 @@ const SAVE_KEY = "noxrun_platformer_v1";
 // level roster if a level is added or removed (unlock is derived: clearing level-N
 // unlocks N+1, so marking every level except the last "cleared" unlocks all of them).
 const SAVE_BLOB = {
-  version: 2,
+  version: 3,
   xp: 0,
   level: 1,
   accuracy: {},
