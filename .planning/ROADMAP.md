@@ -384,7 +384,7 @@ Plans:
 | 25. Levels 5–8, Difficulty Ramp & Select Grid | v5.0 | 7/7 | Complete    | 2026-07-07 |
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | Complete    | 2026-07-07 |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 7/7 | Complete    | 2026-07-08 |
-| 28. Full Verification & Interactive Sign-off | v5.0 | 3/3 | Complete   | 2026-07-09 |
+| 28. Full Verification & Interactive Sign-off | v5.0 | 3/3 | Complete    | 2026-07-09 |
 
 ---
 
