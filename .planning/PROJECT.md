@@ -98,10 +98,10 @@ Both seeds (SEED-001 SNES-fidelity overhaul, SEED-002 mobile touch controls) and
 - [ ] Props layer (visual-only, validator-neutral)
 - [ ] World motion: patrolling cosmetic enemies, moving platforms (validator-aware), ambient animation
 - [ ] Collect-the-answer mechanic removed; math pacing rebalanced in affected levels
-- [ ] Secret alcove on-touch discovery feedback cue + automated reachability/trigger coverage
+- [ ] Secret alcove on-touch discovery feedback cue + automated reachability/trigger coverage; discovered alcoves leave a persistent ambient change and a positive-only secret-found marker on level select
 - [ ] Level quality pass: unreachable pickups/ledges fixed, level-07/08 end climbs differentiated, LEVEL-DESIGN.md soft-rules review
 - [ ] New "n0x" logo treatment under human sign-off
-- [ ] Mobile: touch input layer + responsive canvas scaling (keyboard stays primary)
+- [ ] Mobile: touch input layer + responsive canvas scaling (keyboard stays primary); touch layout validated with the kid on a real device
 - [ ] Live Dokploy URL playthrough confirmed; kid-UAT live sign-off; MOVE-05 feel check
 
 
