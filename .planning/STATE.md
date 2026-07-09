@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
 status: planning
-last_updated: "2026-07-09T10:40:39.465Z"
+last_updated: "2026-07-09"
 last_activity: 2026-07-09
 progress:
-  total_phases: 0
+  total_phases: 10
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,231 +17,100 @@ progress:
 
 **Project:** Nox Run — Gamified Math Practice for Kids
 **Initialized:** 2026-06-20
-**Current Milestone:** v5.0 Nox Run — Real Levels (Phases 22–28)
+**Current Milestone:** v6.0 SNES-Fidelity World (Phases 29–38)
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-06)
+See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 28 — Full Verification & Interactive Sign-off
+**Current Focus:** Phase 29 — Mechanic Cleanup
 
-**Shipped State (v4.1):** Replayable multi-level Kaplay platformer — title → level-select → four hand-built dark-grunge levels → four forgiving in-world math mechanics → persisted XP/leveling + per-level completion — with real curated CC0 art under human sign-off and interactively-audited mechanics. All prior milestone requirements satisfied.
+**Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
-**Tech Stack:** Multi-file, no JS build step — HTML + vanilla ES2020 modules + vendored Kaplay 3001.0.19 (pinned), static files via Docker (nginx) + Dokploy, versioned localStorage persistence. v5.0 confirmed by research to need **zero new runtime dependencies** (Kaplay's built-in audio API covers SFX/music).
+**Tech Stack:** Vanilla ES2020 + vendored Kaplay 3001.0.19 (pinned, no upgrade), no build step, nginx Docker static via Dokploy, localStorage only. v6.0 research confirmed **zero new dependencies** — letterbox canvas, touch API, `patrol()`, `stickToPlatform` all exist in the vendored engine; Pillow + Playwright already installed.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-09 — Milestone v6.0 started
+Phase: 29 of 29–38 (Mechanic Cleanup)
+Plan: — (not yet planned)
+Status: Roadmap created — ready to plan Phase 29
+Last activity: 2026-07-09 — v6.0 roadmap created and revised same day (resized 8 → 10 phases for a Sonnet-5 executor; 31/31 requirements mapped)
 
-## v5.0 Roadmap Summary
+Progress: [░░░░░░░░░░] 0%
+
+## v6.0 Roadmap Summary
 
 | Phase | Goal | Requirements |
 |-------|------|--------------|
-| 22. Implementation Review & Auto-Fix | Clean, reviewed base before content doubles | FIX-01, FIX-02 |
-| 23. Level Validation Harness | Static validator + upgraded interactive audit, proven RED-first | VALID-01, VALID-02 |
-| 24. Fix & Lengthen Levels 1–4 | Structural defects fixed; longer levels with scaled checkpoints | VALID-04, LVL-01 |
-| 25. Levels 5–8, Difficulty Ramp & Select Grid | 8 levels, gentle ramp, 2×4 grid, tables 1 & ×10 dropped | LVL-02..06, MATH-01, MATH-02 |
-| 26. Grunge Palette & Nox Run Rebrand | Expanded palette, per-level themes, logo, string sweep, save intact | VIS-01..03, BRAND-01..03 |
-| 27. Audio & ADHD-Safe Sound | SFX + calm ambient music + persisted mute, ADHD-safe mix | AUD-01..04 |
-| 28. Full Verification & Interactive Sign-off | Interactive proof across all 8 levels + human sign-off | VALID-03 |
+| 29. Mechanic Cleanup | Collect removed atomically, pacing rebalanced, alcove discovery cue + positive-only select marker | MECH-01..03, MECH-06 |
+| 30. Harness Extensions | Validator/audit learn alcoves + movers RED-first, before any level uses them | MECH-04, MOT-04 |
+| 31. Asset Bake & Style-Board Sign-off | Gothicvania biome art vendored + conformed; style-board sign-off hard-gates ALL downstream art; pink-scan gate | ART-01 |
+| 32. Terrain & Parallax Rendering | Solid autotiled ground + real multi-layer parallax, geometry byte-frozen, manifest gate | ART-02, ART-03 |
+| 33. Player & Entity Animation | Fully animated player + entity art on locked 16×32 collider | ART-04, ART-05 |
+| 34. Level Quality Pass | 5–8 reachability fixed, 07/08 climbs differentiated, soft-rules review, motion rules written | LVL-01..03 |
+| 35. Biome Re-dress & Props | All 8 levels dressed in their biomes + visual-only props layer, geometry byte-frozen | ART-06, ART-07 |
+| 36. World Motion & Ambient Life | Patrols, moving platforms, ambient animation, alcove torch — dt-based, ADHD-safe | MOT-01..03, MECH-05 |
+| 37. Mobile — Responsive Canvas & Touch | RED-first letterbox probe, touch buttons with hold semantics, tappable answers/mute/reset | MOB-01..05 |
+| 38. n0x Logo & Closing Verification | n0x mark, live Dokploy playthrough, kid-UAT, MOVE-05, consolidated gate suite | BRAND-01, MOB-06, VER-01..04 |
 
-**Coverage:** 25/25 v5.0 requirements mapped and complete, no orphans, no duplicates (VALID-03 closed in Phase 28, the milestone's last pending requirement).
+**Coverage:** 31/31 v6.0 requirements mapped, no orphans, no duplicates. Ordering constraints: cleanup (29) before any re-dress; Phase 31 sign-off hard-gates 32/33/35; validator learns movers (30) a full phase-boundary before any level ships one (36); quality-pass geometry (34) settles before re-dress (35); mobile probe before touch layer; verification last. Parallel tracks: 31 ∥ 29–30, 33 ∥ 32, 37 ∥ (31–36) after 29.
 
 ## Performance Metrics
 
-**Velocity (through v4.1):** 21 phases, 62 plans completed across 5 shipped milestones (2026-06-20 → 2026-07-04). Per-plan history archived in `.planning/milestones/`.
+**Velocity (through v5.0):** 28 phases, 107 plans completed across 6 shipped milestones (2026-06-20 → 2026-07-09). Per-plan history archived in `.planning/milestones/`.
 
-**v5.0:** 23 plans completed across Phases 22–25 (2026-07-05 → 2026-07-07).
-
-<details>
-<summary>v5.0 per-plan timing (moved out of the Deferred Items table, where these rows had been mis-appended)</summary>
-
-| Plan | Duration | Tasks | Files |
-|------|----------|-------|-------|
-| Phase 22 P01 | 15min | 2 tasks | 2 files |
-| Phase 22 P02 | 24min | 3 tasks | 4 files |
-| Phase 22 P03 | 18min | 2 tasks | 1 files |
-| Phase 22 P04 | 13min | 3 tasks | 3 files |
-| Phase 22 P05 | 35min | 3 tasks | 3 files |
-| Phase 23 P01 | 12min | 2 tasks | 2 files |
-| Phase 23 P02 | 25min | 2 tasks | 3 files |
-| Phase 23 P03 | 13min | 2 tasks | 2 files |
-| Phase 23 P04 | 18min | 2 tasks | 1 files |
-| Phase 23 P05 | 8min | 2 tasks | 2 files |
-| Phase 24 P01 | 12min | 2 tasks | 1 files |
-| Phase 24 P02 | 10min | 2 tasks | 1 files |
-| Phase 24 P03 | 9min | 2 tasks | 1 files |
-| Phase 24 P04 | 5min | 2 tasks | 1 files |
-| Phase 24 P05 | 10min | 2 tasks | 1 files |
-| Phase 25 P01 | 3min | 2 tasks | 5 files |
-| Phase 25 P02 | 6min | 2 tasks | 2 files |
-| Phase 25 P03 | 12min | 2 tasks | 5 files |
-| Phase 25 P04 | 5min | 2 tasks | 6 files |
-| Phase 25 P05 | 5min | 2 tasks | 2 files |
-| Phase 25 P06 | 8min | 2 tasks | 1 files |
-| Phase 25 P07 | spans 2 sessions (~16h wall-clock, mostly idle) | 2 tasks | 10 files |
-
-</details>
-| Phase 26 P01 | 7min | 3 tasks | 8 files |
-| Phase 26 P02 | 27min | 5 tasks | 6 files |
-| Phase 26 P03 | 6min | 2 tasks | 33 files |
-| Phase 26 P12 | 9min | 5 tasks | 25 files |
-| Phase 26 P04 | 12min | 3 tasks | 12 files |
-| Phase 26 P05 | 18min | 3 tasks | 5 files |
-| Phase 26 P06 | 4min | 2 tasks | 8 files |
-| Phase 26 P07 | 18min | 3 tasks | 10 files |
-| Phase 26 P08 | 30min | 2 tasks | 20 files |
-| Phase 26 P09 | 12min | 3 tasks | 10 files |
-| Phase 26 P10 | 5min | 3 tasks | 7 files |
-| Phase 26 P11 | 18min | 2 tasks | 0 files |
+**v6.0:** 0 plans completed.
 
 ## Accumulated Context
 
 ### Decisions
 
-Full log in PROJECT.md Key Decisions. Binding for v5.0:
+Full log in PROJECT.md Key Decisions. Binding for v6.0:
 
-- **Brain is LOCKED** — difficulty via per-level table pools only; the single authorized exception is MATH-02's one-literal roll change (1–10 → 1–9); verify zero other diff in `src/math/`
-- **`mathlab_platformer_v2` save key is NOT part of the brand** — SUPERSEDED 2026-07-07: user confirmed the save key may be freely renamed/changed as part of the Phase 26 rebrand, intentionally resetting her current pre-rebrand progress (no migration required)
-- **Zero new runtime dependencies** — no Howler.js, no npm, no Kaplay upgrade; use vendored Kaplay's audio API (`setVolume`, not deprecated `volume()`)
-- **Validator trusted only after catching the known live bugs** (door-over-hole, unreachable areas) — Phase 22 inventories them but leaves them in place for Phase 23's RED calibration; Phase 24 fixes them
-- **v4.1 verification standard holds** — no phase closes on greps/automation alone; interactive proof + human sign-off where claimed
-- [Phase 22-01]: Audit baseline nondeterministic on 3 rows (L1 mg1300, L1 door1400, L3 mg420); Plan 22-05 must diff against stable cores (5 always-unreached, 8 always-reached), not the naive 6-unreached shape — Two identical-code audit runs produced different unreached sets; recorded in 22-FINDINGS.md Baseline
-- [Phase 22-01]: check-gate.sh assertions converted to read-to-EOF grep count form (pipefail-safe); patterns, fail messages, and assertion order byte-preserved — Fixes ~30% SIGPIPE flake diagnosed in Phase 21 deferred-items.md
-- [Phase 22-02]: door/gates got the WR-03 busy guard (not a why-unneeded comment) — Engine source proves the same-frame double-fire window: the collision pass re-checks only the partner's paused flag per pair, and the player is traversed after buildLevel's barriers
-- [Phase 22-02]: collect.js multi-zone corruption fixed as zero-behavior-change hardening (zone re-entrancy + pickup-ownership guards), not escalated — Provably inert on single-zone shipped levels; confirmed by the Cluster A audit row diff
-- [Phase 22-02]: challenge.js close() dead-object hazard REFUTED behaviorally; no liveness guard added — .hidden is a plain data property so the restore write on a destroyed object is benign, and gameplay cannot destroy a hidden prior object while a stacked challenge is open
-- [Phase 22-03]: Kaplay 3001.0.19 go() teardown engine-verified: app.events.clear() + root.clearEvents() auto-clean app-bus controllers and global tweens — manual onSceneLeave cancels are belt-and-braces, kept per no-speculative-refactor rule (Finding 6)
-- [Phase 22-03]: Cluster B reviewed entirely clean (zero fix commits): 6 verdict rows final; IN-03 select overflow deferred-to-phase-25; main.js scale transform documented load-bearing, untouched
-- [Phase 22-04]: parallax.js latent partial-bounds NaN fixed as zero-behavior-change per-key defaulting (camera.js idiom) — Silent-invisibility auto-fix class at the descriptor trust boundary; control probe byte-identical pre/post, inert on shipped descriptors
-- [Phase 22-04]: Dead COLLECT.CORRECT_GLOW/WRONG_GLOW tokens removed; PROGRESS.EASY_TABLES kept as documented decision token — Sweep-proven zero consumers with stale usage comments; the verbatim-port block records the BRAIN/PROGRESS duplication as intentional (T-22-07 guard)
-- [Phase 22-04]: Structural defect inventory delivered (3 over-hole gates exact, 8 platform heuristic candidates), ALL deferred-to-phase-24; descriptors diff-proven byte-identical to baseline 5eedee8 — Preserves Phase 23's validator RED-first proof per the binding roadmap sequencing decision
-- [Phase 22-05]: FIX-02 round: glyph clarity REJECTED (deferred to Phase 26); same-time-open prevention REJECTED (hide/restore kept, prevention is a soft-lock hazard); answer-box constants APPROVED (CONFIG.GATE.BOX_W/BOX_H/BOX_GAP lift e4e0d2e, after decisions anchor 45edda5)
-- [Phase 22-05]: Phase 22 closed zero-regression: final audit diffed against stable cores per the 22-01 nondeterminism rule (only timing-sensitive rows flipped, within envelope); LOCKED surfaces diff-proven byte-identical to baseline 5eedee8
-- [Phase 23]: marginPct floored at 5% (larger computed relative spread of 3.75% rounds up to 4%, still below the 5% floor) — the margin must never be zero per the exact flaw 22-FINDINGS.md documented in the closed-form CONFIG heuristic
-- [Phase 23-02]: Interactive audit retry harness (auditLevelWithRetries, maxAttempts=5) closes the previously-documented 6/16 blind spot completely on levels 1-4 (16/16 triggered, every previously-flaky row converged within 2 attempts) — mechanic-drive.mjs/browser-boot.mjs verified byte-identical to pre-plan state
-- [Phase 23-03]: over-hole-check.mjs promoted byte-for-byte from Phase 22's proven scratchpad — no platform-membership test added since every shipped barrier is floor-mounted
-- [Phase 23-04]: Δy-aware jump-edge BFS reachability graph built consuming Wave 1's calibrated JUMP_ENVELOPE (never a re-derived closed-form cutoff); proven multi-hop via a 3-node chain fixture a direct single-hop test cannot cross; checkLevelReachability composes spawn-goal/gap-width/mechanic-reachability rows with HARD-FAIL/WARN/PASS tiering, WARN never incrementing hardFailCount
-- [Phase 23-05]: scripts/validate-levels.mjs composes findOverHoleBarriers + checkLevelReachability into the real VALID-01 gate; RED-first proof against untouched levels 1-4 names all 3 known over-hole defects and individually arbitrates all 8 Phase-22 heuristic-candidate platforms to HARD-FAIL (each requires 104-144px rise vs the calibrated 88.331px maxRise) — zero level-descriptor edits landed anywhere in Phase 23
-- [Phase 24-01]: level-01's 2 over-hole mathGates repositioned onto nearest solid floor edge (x600->528, x1300->1360), not the floor reshaped to chase them
-- [Phase 24-01]: level-01 extended +1400px (2240->3640, goal 2160->3560) via pure appends only; no bounds field added (dynamic camera clamp derivation confirmed)
-- [Phase 24-02]: level-02 required zero structural defect fixes (23-FINDINGS.md's Post-Plan Correction confirms level-02 has none) — this plan was extension-only, unlike Plan 24-01's fix+extend combination
-- [Phase 24-02]: level-02 extended +1480px (2800->4280 floor extent, goal 2720->4200) via pure appends; zero edits inside the original 0..2800 kid-validated geometry
-- [Phase 24-02]: bounds.right manually bumped 2800->4280 — level-02 carries an explicit bounds field that src/scenes/game.js uses AS-IS, unlike level-01's dynamically-derived camera clamp
-- [Phase 24]: [Phase 24-03]: level-03's 2 fixed platforms (x:1880, x:2640) used a narrower 60px rise target (not the wider 65-75px band) per 24-RESEARCH.md's narrow-40px-overlap-window physics caveat; new bridging platforms used 65px rise (wider touching windows)
-- [Phase 24]: level-04's over-hole mathGate and all 6 known-unreachable platforms fixed with a uniform 70px rise (wide 80-128px span windows tolerate this uniformly, unlike level-03's narrower 40px-window platforms); level-04 extended 55% (goal 3920->6120, bounds.right 4000->6200) via pure appends after x:4000
-- [Phase ?]: [Phase 24-05]: All 4 scripts/smoke-progress.mjs geometry blocks re-baselined (not just level-01's) with old pre-Phase-24 values retained in comments; full suite green (validate-levels PASS zero HARD-FAILs, smoke PASS, check-progress PASS) and LOCKED surfaces (src/math, lib/kaplay.mjs) diff-proven byte-identical to baseline 5eedee8
-- [Phase 25-01]: addBonusXp is a new sibling method on createProgress(), not a call-site reuse of addXp(table) — calculateXp(table) can only ever yield XP_EASY/XP_HARD (10/20), never an arbitrary flat amount like the alcove's 5
-- [Phase 25-01]: secretAlcove.js is the only mechanic wired with progress instead of brain in game.js — it never opens a challenge or freezes the player, so it has no need for the brain's math-selection state
-- [Phase 25]: Applied the select-nav row/col fix identically at all 3 call sites (browser-boot.mjs's 1 occurrence, audit-phase21-mechanics.mjs's 2 occurrences) rather than extracting a shared helper, per project convention of fixing duplicated Playwright code by hand in each copy
-- [Phase 25]: Left scripts/lib/audit-retry.mjs and scripts/lib/mechanic-drive.mjs untouched -- full retry-hardened 8-level closure sign-off is scoped to Phase 28 (VALID-03)
-- [Phase 25-03]: Verticality climb tiers must be authored as platforms (not floors, which are pinned to fixed FLOOR_Y in build.js), with ~70px x-overlap between consecutive tiers so the rising-jump reachability model's short-time-of-flight root lands inside the overlap window -- a 20-30px overlap produced false spawn-goal HARD-FAILs on both level-07 and level-08
-- [Phase 25-04]: check-progress.sh's final smoke-progress.mjs invocation was already RED before this plan due to Plan 25-03's LEVEL_ORDER bump to 8 (not yet re-baselined) -- confirmed pre-existing/out of scope, deferred to Plan 25-06
-- [Phase 25-04]: Each of levels 1-4's secretAlcove placed as a short ~70px extra hop above that level's earliest existing platform, mirroring levels 5-8's established alcove pattern -- off the required path, not signposted, not gating
-- [Phase 25-05]: ROW_GAP:16 chosen well under the 36px derived ceiling; moveCursor's row-scoping filters selectable cursor-indices by matching row rather than reusing the whole-list wrap, keeping Left/Right from spilling into an adjacent row
-- [Phase 25-06]: secretAlcove key inserted immediately after answerPickupSlots in each expectedGeometry literal, matching the real level files' own key order
-- [Phase 25-06]: Both new Task 2 assertions pin already-implemented behavior from prior plans (25-01 addBonusXp, 25-03 8-level registry) -- no production code changed, zero RED phase, per the plan's explicit regression-pin purpose
-- [Phase 25-07]: 25-07's human-verify checkpoint (secret alcove + select-grid sign-off) was closed on an explicitly reduced scope (level-01's alcove only) by the human's own choice, honestly recorded rather than treated as a full pass -- see 25-FINDINGS.md (d)
-- [Phase 25]: Code review (25-REVIEW.md) found 6 warnings; 4 fixed (config magic number, stale comments in level-08/brain.js, progress.js DRY), 2 (secretAlcove has zero automated reachability/trigger coverage) deliberately left unfixed rather than risk false HARD-FAILs on shipped content -- tracked as a pending todo, not silently dropped
-- [Phase 25]: Phase-level UAT (25-UAT.md) closed via a real full-playthrough that surfaced genuine, separate issues (some pickups/ledges unreachable in levels 5-8, level-07/08 end-climb sections near-duplicates); user explicitly accepted these as non-blocking/deferrable rather than reopening Wave 2 plans -- VERIFICATION.md status upgraded human_needed -> passed on this explicit basis, new issues captured as a pending todo
-- [Phase 26-01]: PALETTE ships with 13 named color-role keys (plan prose miscounted as 12; kept all 13 as literally specified since 12 are required consumer mappings and BG is a legitimate forward-looking token) — Plan 26-01's action text said 'exactly 12 keys' but its own key list enumerated 13; dropping one would break Task 2/3 consumer mappings
-- [Phase 26-02]: Task 1's initial literal accent hex values (ACCENT_MOSS/SLATE/RUST) measured only ~1.7:1 contrast against BG; brightened within this plan to clear the 3.0:1 WCAG UI-component threshold since zero downstream consumers existed yet
-- [Phase 26-02]: Pre-existing locked tokens BORDER (#333333) and MUTED_BORDER (#555555) also failed the 3.0:1 WCAG threshold (1.57:1/2.66:1); brightened to #5e5e5e/#707070, explicitly flagged beyond Task 5's stated pink/magenta-only scope, and approved by human review of the swatch image ("Changes noticed. Seems to be working. Not pink. Keep going.")
-- [Phase 26-03]: Python art-pipeline accent hex constants must mirror CONFIG.PALETTE's CURRENT (post-26-02-brightening) values, not the plan's stale literal picks -- resolved via reading src/config.js live
-- [Phase 26-03]: Resolved plan's index[4]/index[5] theme sub-palette substitution ambiguity via a graceful-degrade helper (replace if index exists, else append) -- functionally equivalent since _remap_luminance re-sorts by luminance internally, list order/length never affects rendered pixels
-- [Phase 26-12]: Expanded CONFIG.PALETTE from 3 to 8 accent hues (one dedicated accent per level), mid-execution, after Wave 3's bake exposed theme-1==theme-2/theme-3==theme-4/theme-7==theme-8 duplication — User requested more color variety after reviewing Wave 3's output; the 3-shared-accent scheme undercut VIS-03's own distinctness requirement
-- [Phase 26-12]: ACCENT_STEEL brightened from initial pick 0x4a5668 (~2.66:1) to 0x525e82 (~3.09:1) to clear the 3.0:1 WCAG threshold; human explicitly approved this exact value including its blue-purple lean — check-contrast.mjs's real formula run caught the WCAG gap before the human checkpoint, same pattern 26-02 used
-- [Phase ?]: [Phase 26-04]: door.png/enemy-*.png saved with alpha preserved (RGBA) rather than flattened to RGB like build_player()/build_ground() -- matches the spike.png/goal.png foreground-sprite precedent since these sit over textured level backgrounds, not flush against the near-black stage bg
-- [Phase ?]: [Phase 26-04]: Each of the 3 enemy sprites (saw/barnacle/fly) scaled independently to a shared 28px max-bbox target rather than one shared scale factor -- correct since these are 3 unrelated single-frame sprites, not a walk-cycle pose set needing consistent proportions
-- [Phase 26-05]: theme threading uses a graceful string-template fallback (base sprite name when levelData.theme unset) rather than a hard requirement, so build.js/parallax.js stay usable before 26-06 sets any level's theme field — verified end-to-end via browser-boot.mjs exercising the fallback path on all 8 currently-themeless levels
-- [Phase ?]: [Phase 26-06] Followed the plan's exact 1:1 level-order -> theme-N mapping and exact enemy variant-cycling values verbatim, matching 26-03/26-12's THEME_PALETTES assignment
-- [Phase ?]: [Phase 26-07]: Vendored monogram.ttf via the itch.io product page's own embedded @font-face direct URL (monogram-extended.ttf, an officially-listed companion file) instead of the interactive purchase-flow-gated base file -- verified via PIL font-name-table lookup before trusting it
-- [Phase ?]: [Phase 26-07]: Named Python logo-color constants LOGO_FILL/LOGO_STROKE rather than reusing ACCENT_MOSS -- that name already exists as a distinct Plan 26-12 per-level-theme constant, and redefining it would silently collide
-- [Phase ?]: [Phase 26-07]: Human-verify checkpoint round 1 found two real defects (reveal too fast, letters too tight especially on the select badge); both fixed (LOGO_REVEAL_MS 400->500, per-character letter-spacing + upscale-only bake) and re-verified before re-presenting -- approved on round 2
-- [Phase 26]: [Phase 26-08]: Reused scripts/lib/mechanic-drive.mjs's proven driveToXPlanned/resolveIfBoxed driver for a new screenshot script instead of a bespoke timed-hold navigation -- level-01's enemy/door sit behind a mandatory gap-jump and multiple mandatory challenge encounters a bare ArrowRight timer cannot account for
-- [Phase 26]: [Phase 26-08]: Found and fixed a genuine mid-parallax-layer bug via the plan's own screenshot review (7 of 8 themes rendered an identical grey hill) -- _mid_accent_sub() now replaces the top two luminance-ranked slots instead of one, scoped exactly to the mid sub-palette per explicit human instruction; the near layer's identical unfixed defect and a pre-existing pink spike sprite (backlog 999.2) were both surfaced but deliberately left out of scope
-- [Phase 26-09]: Reworded comments referencing the old save key to avoid quoting it literally, so Task 3's own negative-literal verify (grep for zero mathlab_platformer_v2 occurrences in scripts/ + config.js) stays meaningful rather than self-defeated by Task 1's own documentation prose
-- [Phase ?]: [Phase 26-10]: check-rebrand.sh self-excludes its own file from the .sh raw-scan category — its own source necessarily contains the literal allowlist pattern text (mathlab_save) and explanatory prose, which would otherwise self-match and always FAIL, mirroring check-safety.sh's 'the audit never matches itself' precedent
-- [Phase ?]: [Phase 26-10]: .claude/CLAUDE.md carries 2 unallowlisted Math Lab mentions inherited verbatim from .planning/PROJECT.md's still-unrenamed Project heading — out of this plan's explicit files_modified/full-sweep scope, logged to deferred-items.md rather than auto-fixed
-- [Phase 26-11]: check-progress.sh's smoke-progress.mjs level-01/03/04 geometry-pin failure confirmed pre-existing (Phase 25-04), not a Phase 26 regression -- left unfixed per Scope Boundary rule — Cross-referenced against deferred-items.md and STATE.md's own decision log, both already recording this exact failure class before this plan ran
-- [Phase 26-11]: Interactive mechanic audit run 3x for confidence; all 3 runs independently confirmed 37/37 triggered:true, 0 triggered:false across all 8 levels -- direct proof VIS-04's sprite swap is collision-neutral — Harness has documented headless-timing nondeterminism (STATE.md Phase 22-01); repeated runs isolate flakiness to post-trigger resolved status only, never the trigger/collision layer itself
-- [Phase 26]: Code review (26-REVIEW.md) found a genuine CR-01 regression — 26-06's new enemy `variant` fields on levels 01/03/04 broke smoke-progress.mjs's golden geometry fixtures (confirmed by re-running the gate at pre-phase commit 68afd72: passes there, fails on HEAD) — fixed by syncing the fixture, re-verified green
-- [Phase 26]: Code review fix pass also resolved WR-01 (main.js now derives background from CONFIG.PALETTE.BG instead of a hardcoded hex), WR-02 (screenshot-phase20.mjs ported the path-traversal guard + loopback-only bind its sibling scripts already had), and WR-03 (near parallax layer had the identical luma-clustering bug as the already-fixed mid layer — confirmed via pixel-sampling, fixed with a mirrored _near_accent_sub, all 8 near-theme PNGs rebaked) — re-review after fixes came back clean (0 critical, 0 warning, 1 info)
-- [Phase 26]: Two items surfaced during checkpoint review were deliberately NOT fixed in-phase, captured to ROADMAP.md backlog instead: 999.1 (reconsider/remove the collect-the-answer mechanic — user found it confusing during playtesting, present in 5/8 levels, would affect Phase 24-25's tuned math pacing) and 999.2 (assets/spike.png is genuinely pink/rose via direct pixel scan, not red as previously assumed — pre-existing v4.1 art, violates CLAUDE.md's no-pink rule, untouched by this phase)
-- [Phase 26]: User set direction mid-phase for a future v6.0 milestone (SEED-001, `.planning/seeds/SEED-001-v6-snes-fidelity-world-overhaul.md`) that will replace this phase's tint-based per-level theming with real sourced biome art at SNES fidelity — v5.0's remaining phases (27, 28) should wrap lean; do not gold-plate palette/theme richness further in this milestone
+- **Sonnet 5 executes this milestone's implementation — phases sized accordingly:** small and single-concern (user decision, 2026-07-09; roadmap resized 8 → 10 phases at user request before approval)
+- **SEED-001's four locked decisions stand (2026-07-07):** visuals + cosmetic world motion only (no new play mechanics), dark-SNES register (Castlevania IV / Demon's Crest), CC0/CC-BY sourcing, and `.planning/research/v6-scouting/` (ASSET-SCOUTING.md, SPIKE-FINDINGS.md, styleboard.py) consumed as verified fact — not re-researched
+- **Guardrails unchanged:** all gates stay green; kid-validated geometry re-dressed not rebuilt (byte-frozen outside sanctioned Phase-34 fixes); no new runtime deps; no Kaplay upgrade; math brain LOCKED; no timers; no pink (new automated pink-scan gate in Phase 31)
+- **The CSS `transform: scale(1.5)` trick and touch input are mutually exclusive** (source-verified): mouse reads `offsetX` (transform-immune), touch reads `clientX − rect()` (transform-affected). Phase 37 opens with a RED-first Playwright touch probe; `letterbox: true` is the primary fix candidate, DOM overlay the fallback — the probe decides
+- **Check-safety-compliant motion idioms come from `spike-code/` ONLY** — web Kaplay examples use banned `wait()`/`loop()`
+- **Player sprite swap must lock the collider explicitly** via `area({ shape: 16×32 })` — a bare swap silently resizes the physics body and invalidates the calibrated jump envelope + kid-validated feel
+- **Never rubber-stamp `checkpoint:human-verify` gates** (standing precedent, Phases 25/27/28) — style board (31), player art (33), hazard placement (36), n0x logo (38), kid-UAT (38) all require genuine sign-off
+- **v5.0 backlog absorbed:** 999.1 collect-the-answer → MECH-01/02 (Phase 29); 999.2 pink spike sprite → subsumed by ART-01's art replacement + pink-scan gate (Phase 31)
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
-1. **a727c13 rule** — no Kaplay global at module top level; engine refs only inside function bodies (audio.js gets a documented anti-leak exception like game.js's `onHide`)
-2. **Anti-leak** — closure-local run state; cancel global controllers on `onSceneLeave`; `playMusic()` must be idempotent (kills music-stacking and cross-scene leaks)
-3. **No-timer / forgiving / no-game-over** — wrong answers re-ask penalty-free; nothing counts down; no buzzers or startle stingers in audio
-4. **Audio gesture gate** — this Kaplay build has no gesture-unlock hook; start music + `audioCtx.resume()` inside the title screen's press-to-start handler, never at module load
+1. **a727c13 rule** — no Kaplay global at module top level; engine refs inside function bodies only
+2. **Anti-leak** — closure-local run state; app-bus controllers cancelled on `onSceneLeave`
+3. **No-timer / forgiving / no-game-over** — delayed effects via `tween().onEnd()`; patrols/movers dt-based, telegraphed, zero punishment wiring
+4. **Geometry-frozen art diffs** — level geometry arrays byte-identical in re-dress commits; sanctioned fixes land separately in Phase 34, validator-gated
+5. **Spike perf cliffs** — chunked `{tiled:true}` fill (≤~40 cols/chunk); never per-tile fill (15fps) or one giant tiled quad (renders nothing, silently)
 
 ### Pending Todos
 
-- `2026-07-07-review-levels-against-level-design-rules.md` — review the 8 shipped levels against the new `docs/LEVEL-DESIGN.md` SOFT rules (user: "down the road", not urgent; natural slot near Phase 28)
-- `2026-07-07-reconsider-secret-alcove-mechanic-discoverability-and-value.md` — user found the invisible/silent alcove reward "pointless... not what I was expecting" during Phase 25's sign-off; not actioned this milestone, revisit design before adding more content on the same pattern
-- `2026-07-07-add-automated-coverage-for-secretalcove-mechanic.md` — Phase 25 code review (WR-01/WR-06) found secretAlcove has zero automated reachability/trigger coverage in either verification harness; deliberately left unfixed (needs new detection/reachability logic, not a mechanical patch) — natural slot before/alongside Phase 28
-- `2026-07-07-fix-unreachable-pickups-ledges-and-level-07-08-repetition.md` — human full-playthrough UAT for Phase 25 found some pickups/ledges unreachable in levels 5-8 and level-07/08's end-climb sections are near-duplicates; user explicitly accepted as deferred/non-blocking ("it is playable... can be fixed later")
-- `2026-07-08-shorten-nox-run-logo-wordmark-to-n0x.md` — user asked to shorten the logo/wordmark to "n0x"; deliberately deferred mid-Phase-27, exact treatment needs clarification before scoping
+All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (2026-07-09):
+- alcove automated coverage → MECH-04 · alcove discoverability/value → MECH-03/05/06 · unreachable pickups + 07/08 repetition → LVL-01/02 · LEVEL-DESIGN.md soft-rules review → LVL-03 · "n0x" logo shortening → BRAND-01
 
 ### Blockers/Concerns
 
-- **[Phase 27] RESOLVED 2026-07-08:** plan 27-07's human sound sign-off closed after 5 iterative fix rounds (land SFX removed, jump SFX re-sourced twice + gain-tuned, ambient music re-sourced, mute icon made clickable), ending in an explicit "audio approved." AUD-01..04 complete.
-- **Audit blind spot:** RESOLVED for levels 1-4 in Phase 23 (16/16 triggered) and extended to all 8 levels in Phase 25 (36/36 triggered, zero triggered:false — see 25-FINDINGS.md (b)). **Phase 28 RESOLVED 2026-07-09:** VALID-03's formal human-signed-off closure is done — 28-02's consolidated checkpoint recorded a genuine full 8-level playthrough sign-off, and 28-VERIFICATION.md independently re-verified all 4 ROADMAP success criteria (4/4 passed). `secretAlcove` remains outside both the audit's and the static validator's coverage by design (unchanged, tracked in the dedicated pending todo above — explicitly out of Phase 28's scope per 28-CONTEXT.md).
-- **[Phase 22] 22-REVIEW.md latent warnings (advisory, none live on shipped content):** collect.js zone→slots→choices contract unvalidated — becomes live with Phase 25 multi-zone content
-- **[Phase 23] validate-levels.mjs WR-03 (deferred, non-blocking):** Playwright static-server + path-traversal guard code is duplicated verbatim across `browser-boot.mjs`, `audit-phase21-mechanics.mjs`, and `calibrate-jump-envelope.mjs` by deliberate project convention ("copy verbatim, do not simplify") — a future guard fix must be applied identically in all three places by hand; extracting to a shared module is a reasonable future cleanup, not urgent
-- **[Phase 23] reachability.mjs WARN-tier precision gap (deferred, non-blocking):** `marginRatio` is mathematically pinned to ~1.000 for every flat-or-downward hop (documented in-code and in 23-FINDINGS.md) — the WARN tier currently cannot distinguish "trivially easy" from "near the calibrated ceiling" for the common case. Not a correctness bug (no false PASS/HARD-FAIL), but worth revisiting if the WARN tier needs finer signal before Phase 28's final sign-off.
-- **[Phase 26] RESOLVED 2026-07-08:** worktree parallel execution was disabled (`shouldDegrade: true, reason: "fork-ref-unknown"`) as of Phase 26. `worktree.baseRef: "head"` has since been set — Phase 27 confirmed `shouldDegrade: false, reason: "baseref-head"` and ran both its Wave 1 (2 plans) and Wave 2 (3 plans) in genuine parallel worktree isolation.
+- **Letterbox vs DOM-overlay touch strategy** — the one open technical decision; Phase 37's opening probe resolves it (letterbox primary, overlay fallback)
+- **Real-device facts can't be pre-verified:** touch audio activation (`touchstart` is not activation-triggering) and phone-GPU parallax feel — must be proven on device in Phases 37–38, not assumed
+- **[Phase 23, carried] Playwright script duplication convention** — server/guard code copied verbatim across audit scripts; any fix must be applied by hand in every copy (new touch-audit script follows the same convention)
 
 ## Deferred Items
 
-Carried forward from previous milestone closes:
+All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dokploy playthrough → VER-01; SAFE-05 kid-UAT live sign-off → VER-02; MOVE-05 non-60Hz feel check → VER-03.
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| uat | SAFE-05 kid-UAT live sign-off (platforming feel, non-over-stimulation) — protocol in `.planning/milestones/v4.0-phases/19-polish-consolidated-kid-uat/19-UAT.md` | pending (UAT-FUT-01 in REQUIREMENTS.md) | v4.0/v4.1 |
-| deploy | SETUP-02 live Dokploy URL playthrough confirmation (container curl-proven locally) | pending (DEPLOY-FUT-01) | v3.0 |
-| uat | MOVE-05 throttled/non-60Hz empirical feel check (code verified dt-correct) | pending, low-risk | v3.0 |
-| test-tooling | 6/16 encounter audit blind spot | resolved for levels 1-4 in Phase 23 (16/16); extended to all 8 levels in Phase 25 (36/36); Phase 28 (VALID-03) closed the formal human-signed-off closure — RESOLVED | v4.1 |
-
-Items acknowledged and deferred at v5.0 milestone close on 2026-07-09 (pre-close artifact audit — user chose "Acknowledge all"):
-
-| Category | Item | Status |
-|----------|------|--------|
-| todo | 2026-07-07-add-automated-coverage-for-secretalcove-mechanic.md (testing) | pending — needs new detection/reachability logic, not a mechanical patch |
-| todo | 2026-07-07-fix-unreachable-pickups-ledges-and-level-07-08-repetition.md (level-design) | pending — accepted non-blocking per 25-UAT.md |
-| todo | 2026-07-07-reconsider-secret-alcove-mechanic-discoverability-and-value.md (level-design) | pending — revisit design before adding more content on the same pattern |
-| todo | 2026-07-07-review-levels-against-level-design-rules.md (level-design) | pending — user: "down the road", not urgent |
-| todo | 2026-07-08-shorten-nox-run-logo-wordmark-to-n0x.md (ui) | pending — needs clarification before scoping |
-| seed | SEED-001-v6-snes-fidelity-world-overhaul (dormant) | future v6.0 milestone material — "SNES-Fidelity World" visual + world-motion overhaul |
-| seed | SEED-002-mobile-touch-controls (dormant) | future milestone material — touch controls + responsive canvas for mobile/tablet play |
-
-Known verification overrides: 0 (all 7 v5.0 phases passed verification cleanly; these 7 items are acknowledged deferred scope, not verification gaps).
-
-## Quick Tasks Completed
-
-| Date | Slug | Summary |
-|------|------|---------|
-| 2026-06-28 | make-the-game-window-render-50-bigger-sc | Display-only +50% canvas scale (960×540); internal 640×360 unchanged |
-| 2026-07-07 | add-a-reset-progress-button-that-clears- | Keyboard-only (R) Reset Progress control on title screen with Y/N confirm overlay; new guarded `resetSave()` seam in progress.js clears only `mathlab_platformer_v2` |
-| 2026-07-08 | fix-dev-serving-instructions-in-claude-m | Corrected the standing dev-serving doc defect (CLAUDE.md, STACK.md, README.md all said `cd src && python3 -m http.server`, which 404s on `lib/kaplay.mjs`); now correctly documents serving from the repo root and browsing to `/src/index.html`, matching production's Docker layout and `browser-boot.mjs`'s own convention |
+| *(none — all absorbed into v6.0 scope)* | | | |
 
 ## Session Continuity
 
-Last session: 2026-07-08T00:00:00.000Z
-Stopped at: Phase 26 complete and verified (7/7 must-haves passed) — code review found and fixed a real regression (CR-01) plus 3 warnings, re-review came back clean, transitioned to Phase 27. User asked to stop the autonomous run here and restart in a fresh session.
+Last session: 2026-07-09
+Stopped at: v6.0 roadmap revised per user resize request (10 phases, 29–38, Sonnet-5 executor sizing); REQUIREMENTS.md traceability updated to the new numbering
 Resume file: None
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-07-08 (Phase 26 complete — grunge palette/theme/sprite/logo/rebrand shipped and verified, transitioned to Phase 27)
-
-## Operator Next Steps
-
-- Start the next milestone with /gsd-new-milestone
+**Last updated:** 2026-07-09 (v6.0 roadmap revised to 10 phases — next: `/gsd-plan-phase 29`)

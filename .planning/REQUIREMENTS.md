@@ -86,13 +86,43 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmap) | | |
+| MECH-01 | Phase 29 | Pending |
+| MECH-02 | Phase 29 | Pending |
+| MECH-03 | Phase 29 | Pending |
+| MECH-04 | Phase 30 | Pending |
+| MECH-05 | Phase 36 | Pending |
+| MECH-06 | Phase 29 | Pending |
+| ART-01 | Phase 31 | Pending |
+| ART-02 | Phase 32 | Pending |
+| ART-03 | Phase 32 | Pending |
+| ART-04 | Phase 33 | Pending |
+| ART-05 | Phase 33 | Pending |
+| ART-06 | Phase 35 | Pending |
+| ART-07 | Phase 35 | Pending |
+| MOT-01 | Phase 36 | Pending |
+| MOT-02 | Phase 36 | Pending |
+| MOT-03 | Phase 36 | Pending |
+| MOT-04 | Phase 30 | Pending |
+| LVL-01 | Phase 34 | Pending |
+| LVL-02 | Phase 34 | Pending |
+| LVL-03 | Phase 34 | Pending |
+| BRAND-01 | Phase 38 | Pending |
+| MOB-01 | Phase 37 | Pending |
+| MOB-02 | Phase 37 | Pending |
+| MOB-03 | Phase 37 | Pending |
+| MOB-04 | Phase 37 | Pending |
+| MOB-05 | Phase 37 | Pending |
+| MOB-06 | Phase 38 | Pending |
+| VER-01 | Phase 38 | Pending |
+| VER-02 | Phase 38 | Pending |
+| VER-03 | Phase 38 | Pending |
+| VER-04 | Phase 38 | Pending |
 
 **Coverage:**
 - v6.0 requirements: 31 total
-- Mapped to phases: 0
-- Unmapped: 31 ⚠️ (pre-roadmap)
+- Mapped to phases: 31 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-09*
-*Last updated: 2026-07-09 after initial definition*
+*Last updated: 2026-07-09 — traceability renumbered to Phases 29–38 (roadmap revision: resized 8 → 10 phases for a Sonnet-5 executor)*
