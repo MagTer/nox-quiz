@@ -229,12 +229,22 @@ async function runSaveResumeAcrossReloadProof(errors) {
     // deriveEncounters/driveToXPlanned helpers the primary per-level drive uses.
     const level = getLevel("level-03");
     const encounters = deriveEncounters(level.geometry);
-    const { triggered } = await driveToXPlanned(page, encounters[0].x, level.geometry);
-    if (!triggered) {
+    // WR-01: guard the empty-encounters case with a specific message instead of letting
+    // `encounters[0].x` throw a TypeError that the generic catch below would report as
+    // an opaque "Cannot read properties of undefined (reading 'x')".
+    if (encounters.length === 0) {
       errors.push({
         type: "save-resume",
-        message: "level-03 (resumed-unlock-only) encounter never triggered after reload",
+        message: "level-03 has no encounters to drive to -- cannot prove resumed-unlock reachability",
       });
+    } else {
+      const { triggered } = await driveToXPlanned(page, encounters[0].x, level.geometry);
+      if (!triggered) {
+        errors.push({
+          type: "save-resume",
+          message: "level-03 (resumed-unlock-only) encounter never triggered after reload",
+        });
+      }
     }
   } catch (e) {
     errors.push({
