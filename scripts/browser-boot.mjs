@@ -151,6 +151,19 @@ async function assertAudioContextState(page, errors, stopLabel, expectedState) {
 async function runSaveResumeAcrossReloadProof(errors) {
   const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
   const page = await context.newPage();
+  // CR-01: wire the same error listeners the primary drive's page uses (lines
+  // 269-278) so a genuine runtime crash inside this isolated context -- e.g. an
+  // uncaught exception while Kaplay builds level-03 from the resumed save, or a
+  // 404/500 asset load -- is actually caught instead of silently producing PASS.
+  page.on("pageerror", (err) =>
+    errors.push({ type: "save-resume-pageerror", message: err.message, stack: err.stack?.split("\n")?.[0] })
+  );
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push({ type: "save-resume-console.error", text: msg.text() });
+  });
+  page.on("response", (resp) => {
+    if (resp.status() >= 400) errors.push({ type: "save-resume-http", status: resp.status(), url: resp.url() });
+  });
   try {
     await page.goto(`http://localhost:${PORT}/src/index.html`, { waitUntil: "networkidle" });
     await page.waitForTimeout(1500); // let Kaplay init and title scene paint
