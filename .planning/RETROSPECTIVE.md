@@ -152,6 +152,51 @@ runtime in a prior session that lost continuity before a retrospective was writt
 
 ---
 
+## Milestone: v5.0 — Nox Run: Real Levels
+
+**Shipped:** 2026-07-09
+**Phases:** 7 (22–28) | **Plans:** 45 | **Timeline:** 5 days (2026-07-05 → 2026-07-09)
+
+### What Was Built
+
+1. Clean, reviewed base: all 24 game entities/surfaces audited with autonomous in-boundary fixes, zero regressions vs baseline, structural defects inventoried for validator calibration (Phase 22)
+2. Level validation harness proven RED-first against real known bugs; jump envelope empirically calibrated against the live engine; interactive audit blind spot closed from 6/16 to 16/16 (Phase 23)
+3. Levels 1–4 fixed and lengthened 53–63%; game doubled to 8 levels with a gentle ramp, late-game verticality, secret XP alcoves, a scaling 2×4 select grid, and tables 1/×10 dropped from the math (Phases 24–25)
+4. Rich Nox Run visual identity: centralized/expanded grunge palette (19 roles, WCAG AA), 8 distinct per-level baked themes, real CC0 door/enemy sprite art, a signed-off logo, full Math Lab → Nox Run rebrand sweep with an intentional save-key reset (Phase 26)
+5. Full audio layer: 7 CC0 SFX + calm gesture-gated ambient music + persisted mute, ADHD-safe mix closed via a genuine 5-round iterative human sound sign-off (Phase 27)
+6. Milestone-closing verification: consolidated 8-gate automated suite green in one run, two new automated proofs (audio-gesture-gate via `AudioContext.state`, save-resume-across-reload), and a genuine, non-rubber-stamped human sign-off across all 8 levels closing VALID-03 — the milestone's requirement set (25/25) fully complete (Phase 28)
+
+### What Worked
+
+- **Excluding backlog (999.x) items from the milestone phase-execution loop, based on ROADMAP.md's own "Execution Order: 22 → 23 → 24 → 25 → 26 → 27 → 28" statement and the two 999.1/999.2 directories containing nothing but an empty `.gitkeep`.** This judgment call, made early in the run, was later independently confirmed correct: `complete-milestone.md`'s own `ALL_PHASES_VERIFIED` check explicitly filters out phases matching `^999(\.|$)` before computing milestone readiness. The tooling's own authoritative gate agreed with the reasoning applied by hand.
+- **Recovering an interrupted phase-27→28 transition cleanly at session start** — found uncommitted STATE/ROADMAP/REQUIREMENTS changes plus a fully-written-but-uncommitted `27-VERIFICATION.md` left over from a prior session. Read the content in full to confirm it was legitimate (5/5 must-haves genuinely verified) before committing it, rather than either discarding it or blindly trusting it.
+- **`never-rubber-stamp-checkpoints` held on the milestone's final human-verify gate.** Plan 28-02's checkpoint got a bare "Approved" as the first response; per the plan's own resume-signal spec and this project's standing precedent, that wasn't accepted at face value — one targeted follow-up question got a real, specific confirmation ("Yes, just played all 8, nothing notable") before the sign-off was recorded as closing.
+- **Code review's fix-and-re-review loop caught a genuine blocker** (CR-01: the isolated save-resume proof's browser context had no error listeners, so a real crash inside it could have silently reported `Browser boot: PASS`) before it shipped as a false-positive-capable gap in the milestone's own closing proof.
+
+### What Was Inefficient
+
+- **A background executor agent sent a `completed` task-notification while it had not actually finished.** Plan 28-01's executor returned with an unusual, non-terminal-sounding message ("I'll pause all tool activity now and wait for the Monitor's completion notification before continuing") after committing only Task 1. Following the documented safe-resume-gate guidance (commits exist, SUMMARY.md missing → don't blindly redispatch), the orchestrator inspected the worktree and manually ran Task 2's exact verify command directly — but a second, delayed notification then arrived showing the same agent had in fact completed for real in the interim (committed `f9a7fd1`, wrote its own correct SUMMARY.md). No harm resulted only because the Write tool's "must Read before overwrite" guard caught the near-duplicate before it landed. Cost a few minutes of redundant work and very nearly created a conflicting SUMMARY.md.
+- **Sub-agent-written artifacts landed on disk without being committed by the agent that wrote them, twice more after the initial interrupted-transition recovery** — the pattern-mapper's `28-PATTERNS.md` and the code-fixer's `28-REVIEW-FIX.md` both required the orchestrator to notice and commit them manually.
+- **`gsd-tools`' generic `phase.complete` next-phase resolver advanced STATE.md's Current Position into backlog item 999.1 after Phase 28 closed** — a manual STATE.md correction was needed. The same tooling's `complete-milestone.md` gate correctly excludes 999.x phases from readiness checks, but the `phase.complete` verb's "what's next" field does not apply the same filter.
+
+### Patterns Established
+
+- **Backlog items (999.x numbering) are excluded from milestone phase-execution and completion checks by design.** Confirmed via `complete-milestone.md`'s own filter: `select((.number | tostring | test("^999(\\.|$)") | not))`. Future autonomous runs should apply the same exclusion rather than trusting a raw `init.manager` phase list at face value — and should expect (and manually correct) STATE.md's "next phase" field to need the same correction, since not every query verb applies this filter.
+- **A background agent's `completed` task-notification is a strong signal, not an infallible one.** When the returned result text reads oddly or non-terminally, spot-check the worktree's actual git log / SUMMARY.md state directly (per `execute-phase.md`'s own documented completion-signal fallback) before intervening — a second, delayed notification may follow showing the agent finished correctly on its own.
+
+### Key Lessons
+
+- **Trust the codebase's own authoritative gate over a generic aggregator when they might disagree.** `init.manager`'s raw phase array and `complete-milestone.md`'s `ALL_PHASES_VERIFIED` filter told different stories about whether backlog items counted toward "all phases done" — the more specific, purpose-built check (the actual milestone-completion gate) was the one to trust, and it validated the manual reasoning applied earlier in the run.
+- **"Completed" is not always final under race conditions with backgrounded agents.** Design the recovery path (spot-check disk state, don't blindly redispatch) so that even a false-negative "still working" read costs at most a few minutes, not duplicated or conflicting work.
+
+### Cost Observations
+
+- Model mix: Sonnet 5 orchestrator throughout this `/gsd-autonomous` run; subagents (planner/checker/pattern-mapper/executor/reviewer/fixer/verifier/integration-checker) on default model resolution
+- Sessions: one continuous autonomous run covering Phase 28 execution through the full milestone lifecycle (audit → complete → cleanup)
+- Notable: the milestone-closing phase (28) required disproportionately more orchestrator judgment calls — backlog scoping, stray-artifact recovery, a background-agent race condition — relative to its plan count (3) than any earlier phase in this milestone, appropriate given it's the project's final integrity gate before shipping
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | LOC | Duration | Requirements |
@@ -160,3 +205,4 @@ runtime in a prior session that lost continuity before a retrospective was writt
 | v2.0 Dungeon Crawler | 5 | 12 | 1,976 | 2 days | 27/27 |
 | v3.0 The Platformer | 6 | 18 | ~1,944 (src/, excl. vendored Kaplay) | 7 days | 33/33 |
 | v4.1 Art Rework | 2 | 10 | ~3,625 (src/, excl. vendored Kaplay) | ~1 day | 10/10 |
+| v5.0 Nox Run — Real Levels | 7 (22–28) | 45 | ~10,268 (src/, scripts/, docker/) | 5 days | 25/25 |
