@@ -106,7 +106,7 @@ Rebranded Math Lab → Nox Run; doubled the game to 8 levels (levels 1–4 fixed
 
 **Ordering constraints (binding, from research):** mechanic cleanup before any re-dress; ART-01's style-board human sign-off is a hard blocking gate for all downstream art phases; the validator learns movers RED-first (Phase 30) a full phase-boundary before any level ships one (Phase 36); mobile's letterbox/coordinate probe before its input layer; closing verification last. Per project convention, no phase closes on greps/automation alone — interactive proof, and genuine (never rubber-stamped) human sign-off where claimed.
 
-- [ ] **Phase 29: Mechanic Cleanup** - Collect-the-answer removed everywhere atomically, math pacing rebalanced, and the secret alcove finally feels like finding a secret — cue on touch, positive-only marker on select
+- [x] **Phase 29: Mechanic Cleanup** - Collect-the-answer removed everywhere atomically, math pacing rebalanced, and the secret alcove finally feels like finding a secret — cue on touch, positive-only marker on select (completed 2026-07-09)
 - [ ] **Phase 30: Harness Extensions** - The validator and interactive audit learn every new dynamic RED-first — alcove reachability + trigger signal, mover worst-case-extreme rule — before any level uses them
 - [ ] **Phase 31: Asset Bake & Style-Board Sign-off** - Gothicvania-anchored biome art vendored, conformed, and human-approved on a style board before one pixel is integrated
 - [ ] **Phase 32: Terrain & Parallax Rendering** - Solid autotiled ground and real multi-layer parallax replace floating strips and flat triangles — geometry byte-frozen
@@ -131,11 +131,11 @@ Rebranded Math Lab → Nox Run; doubled the game to 8 levels (levels 1–4 fixed
   3. Touching a secret alcove produces immediate discovery feedback (particle burst + chime + "+5 XP" popup), exactly once per run, revealed only AFTER discovery — never pre-signposted, no secrets counter
   4. Level select shows a positive-only secret-found marker on levels where the secret was discovered (no "0/1" missing-framing), with the save version bump handled through the guarded progress seam
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 Plans:
 
 - [x] 29-01-PLAN.md — Atomically remove the collect-the-answer mechanic (code, config, level data, harness fixtures) — MECH-01, MECH-02
-- [ ] 29-02-PLAN.md — Secret-alcove discovery feedback + level-select marker via a version-bumped save seam — MECH-03, MECH-06
+- [x] 29-02-PLAN.md — Secret-alcove discovery feedback + level-select marker via a version-bumped save seam — MECH-03, MECH-06
 
 ### Phase 30: Harness Extensions
 
@@ -302,7 +302,7 @@ Plans:
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | ✅ Complete | 2026-07-07 |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 7/7 | ✅ Complete | 2026-07-08 |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 3/3 | ✅ Complete | 2026-07-09 |
-| 29. Mechanic Cleanup | v6.0 | 1/2 | In Progress|  |
+| 29. Mechanic Cleanup | v6.0 | 2/2 | Complete   | 2026-07-09 |
 | 30. Harness Extensions | v6.0 | 0/TBD | Not started | - |
 | 31. Asset Bake & Style-Board Sign-off | v6.0 | 0/TBD | Not started | - |
 | 32. Terrain & Parallax Rendering | v6.0 | 0/TBD | Not started | - |
