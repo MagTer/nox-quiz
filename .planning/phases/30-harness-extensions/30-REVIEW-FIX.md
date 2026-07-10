@@ -1,73 +1,69 @@
 ---
 phase: 30-harness-extensions
-fixed_at: 2026-07-10T00:00:00Z
+fixed_at: 2026-07-10T09:34:18Z
 review_path: .planning/phases/30-harness-extensions/30-REVIEW.md
-iteration: 1
-findings_in_scope: 4
-fixed: 4
+iteration: 2
+findings_in_scope: 2
+fixed: 2
 skipped: 0
 status: all_fixed
 ---
 
 # Phase 30: Code Review Fix Report
 
-**Fixed at:** 2026-07-10
+**Fixed at:** 2026-07-10T09:34:18Z
 **Source review:** .planning/phases/30-harness-extensions/30-REVIEW.md
-**Iteration:** 1
+**Iteration:** 2
 
 **Summary:**
-- Findings in scope: 4 (1 critical, 3 warning — `critical_warning` scope)
-- Fixed: 4
+- Findings in scope: 2 (CR-01 residual, WR-04 — `critical_warning` scope)
+- Fixed: 2
 - Skipped: 0
+
+This is iteration 2, addressing the re-review's findings against iteration 1's fix commits (`11cbdd1`, `deb05c1`, `7f06b78`, `0592444`). Iteration 1's REVIEW-FIX.md is preserved in git history (superseded by this file — see `git log -- .planning/phases/30-harness-extensions/30-REVIEW-FIX.md`).
 
 ## Fixed Issues
 
-### CR-01: Secret-alcove retry masking — a failed reward verification silently "passes" on the very next attempt
+### CR-01: CR-01's own `localStorage` clear ran too late to un-poison the retry attempt it was meant to fix
 
-**Files modified:** `scripts/lib/audit-retry.mjs`, `scripts/lib/mechanic-drive.mjs`
-**Commit:** `11cbdd1`
-**Applied fix:** Root-cause fix at the harness level (not touching `src/mechanics/secretAlcove.js` or `src/progress.js`, per the task's explicit instruction — both are correct as-is):
+**Files modified:** `scripts/lib/audit-retry.mjs`
+**Commit:** `adf18b4`
+**Applied fix:** Reordered the two steps inside `auditLevelWithRetries`'s per-attempt block so the `secretFound` `localStorage` clear-patch runs **before** `reloadLevel()`, not after. Root cause confirmed by reading the full call chain: `reloadLevel()`'s `Enter` press synchronously triggers `src/scenes/select.js:275`'s `go("game", { levelId })` → `src/scenes/game.js:80-81`'s `createProgress(loadSave())`, which is a **pure, one-shot snapshot** of `localStorage` taken at that exact instant (`src/progress.js:59-99`) and never re-read afterward. `src/mechanics/secretAlcove.js`'s `onCollide` handler branches on that frozen in-memory `progress.hasSecretFound(levelId)` (`src/progress.js:164-166`), never on live storage. With the old (iteration-1) ordering, the clear ran *after* the new scene's snapshot was already taken from the stale, still-poisoned value — silently forcing every even-numbered retry attempt onto the "already found, zero-delta" no-op replay branch regardless of whether the real award mechanism was broken. Moving the clear before `reloadLevel()` is safe because it operates on `localStorage` directly (never a live scene object) — it only needs to land before the *next* scene's `loadSave()` call, and running it while the previous attempt's scene is still active is harmless.
 
-- `scripts/lib/audit-retry.mjs`: at the start of every retry attempt (`attempt > 1`, right after `reloadLevel()`), the wrapper now reads the persisted save blob and deletes ONLY `blob.levels[level.id].secretFound` before writing it back — never touching `cleared`, `xp`, `level`, `accuracy`, or `history`. This restores `driveAndDetectAlcove`'s own documented "every attempt starts unseeded for this fact" assumption, which `reloadLevel()` alone does not provide (it re-enters the level fresh but never clears `localStorage`). Guarded to only run when the level actually authors a `secretAlcove` (`(level.geometry.secretAlcove ?? []).length > 0`), and wrapped in the standard forgiving `try/catch` so a malformed/missing blob is a no-op, never a throw.
-- `scripts/lib/mechanic-drive.mjs`: `driveAndDetectAlcove` now takes a `levelId` parameter (threaded through from `audit-retry.mjs`'s `level.id`) and reads the pre-touch `alreadyFoundBefore = beforeBlob?.levels?.[levelId]?.secretFound === true` state before driving anywhere. The `delta === 0` "already found" resolution branch is now gated on `alreadyFoundBefore` — a zero-delta touch is only accepted as a legitimate re-touch if the persisted fact was ALREADY true before this specific attempt began, never merely because `delta` happens to be `0`.
+**Verification (beyond the standard 3-tier check):** Per this finding's explicit re-review brief, built an executable before/after proof at `scratchpad/cr01-residual-verify.mjs` that models the exact race the mock-based iteration-1 proof (`scratchpad/cr01-verify.mjs`) could not — a `reloadLevel()` mock that snapshots `secretFound` from `localStorage` **once, synchronously**, mirroring `createProgress()`'s real one-shot-at-construction contract, with the touch handler branching on that frozen snapshot rather than live storage.
+- Run against the pre-fix (iteration-1) `audit-retry.mjs`: per-attempt snapshot-at-touch sequence was `[false, true, false, true, false]` — attempts 2 and 4 were confirmed poisoned no-ops, exactly matching the review's predicted "even-numbered attempts are guaranteed no-ops" defect, for a scenario that simulates a persistent (every-touch) XP-award regression.
+- Run against the fixed `audit-retry.mjs`: per-attempt sequence is `[false, false, false, false, false]` — all 5 attempts are now genuine, unseeded re-tests of the award path. The persistent-regression scenario still correctly resolves `false` (no false-pass reopened) and spends the full 5-attempt budget. The healthy-award control case is unchanged (`resolved: true`, `attempts: 1`).
+- Full verification suite additionally re-run end-to-end afterward (see below) — `node scripts/audit-phase21-mechanics.mjs` against all 8 real shipped levels reports `AUDIT: ALL MECHANICS RESOLVED` with every encounter (including every level's secret alcove) resolving on `attempts: 1`, confirming no regression against real content.
 
-Together these two changes mean: (a) the persisted `secretFound` residue that used to survive a retry's reload is now cleared before every fresh attempt, so a genuine attempt-1 failure can no longer "self-heal" via the already-found branch on attempt 2; and (b) even in the legitimate same-attempt multi-alcove-per-level case (per `secretAlcove.js`'s own "only the first one touched pays out" content allowance — not used by any of the 8 shipped levels today, all of which author exactly one `secretAlcove` entry), the `alreadyFoundBefore` gate still correctly recognizes a real second-touch-in-the-same-attempt as resolved.
+### WR-04: `predictAward` in `mechanic-drive.mjs` was a hand-duplicated, unexported, untested reimplementation of `progress.js`'s `awardAndCarry`
 
-**How the fix was verified (beyond the standard 3-tier check):** Built a throwaway, real-code-driven test harness (`scratchpad/cr01-verify.mjs`, not committed) that imports the ACTUAL `auditLevelWithRetries` from the edited `scripts/lib/audit-retry.mjs` and drives it through a synthetic `page` mock (no real browser needed — the bug and its fix live entirely in post-trigger decision logic and cross-attempt `localStorage` handling, not in physics/rendering). The mock faithfully reproduces `src/mechanics/secretAlcove.js`'s real contract: on first touch it unconditionally destroys the entity and persists `secretFound: true`, regardless of whether the XP award itself was correct — exactly the CR-01 precondition.
+**Files modified:** `src/progress.js`, `scripts/lib/mechanic-drive.mjs`
+**Commit:** `f832399`
+**Applied fix:** Applied option (a) from the review — the cleaner extraction, since `src/progress.js`'s own header explicitly documents itself as import-nothing/engine-free (firewall #2), so exporting a pure function does not violate the a727c13 firewall or any "LOCKED math" convention (the header's "MUST NOT be re-tuned" warning is about the XP *values*/curve *numbers*, not about refactoring the calculation into an exported function — the formula itself is preserved byte-for-byte).
+- Exported `threshold(lvl)` and a new pure `predictAward(state, delta)` from `src/progress.js` as the module's single source of truth for the XP-award threshold/carry-over math.
+- `createProgress()`'s internal `awardAndCarry` closure now **delegates to** the exported `predictAward` instead of re-deriving the while-loop locally, so the real game's live progression tracker and any external caller are provably backed by the identical code path (not just identical-looking duplicated code).
+- `scripts/lib/mechanic-drive.mjs`'s `driveAndDetectAlcove` now imports `predictAward` from `src/progress.js` directly and removed its hand-duplicated local `threshold`/`predictAward` definitions entirely.
 
-- **Regression scenario:** every touch on a fresh alcove genuinely awards `+2` XP instead of `CONFIG.PROGRESS.XP_ALCOVE` (`5`), simulating a persistent real-world regression in `addBonusXp`.
-  - Against the **pre-fix** code (reconstructed from `git show HEAD:scripts/lib/{mechanic-drive,audit-retry}.mjs` before this fix, run through the identical mock): `{ triggered: true, resolved: true, attempts: 2 }` — the exact false pass CR-01 describes. Attempt 1 correctly reported `resolved: false` (delta `2` matches neither `XP_ALCOVE` nor `0`); attempt 2's reload left `secretFound: true` persisted from attempt 1, so the "already found" branch fired with a genuine `delta === 0` (no XP awarded because `hasSecretFound` now read `true`) and the pre-fix code accepted it unconditionally — laundering the still-broken award into `resolved: true`.
-  - Against the **fixed** code (this commit): `{ triggered: true, resolved: false, attempts: 5 }` — the wrapper now exhausts all 5 retry attempts and correctly reports the encounter as unresolved, because the per-attempt `localStorage` clear means `alreadyFoundBefore` is `false` at the start of every attempt, so every attempt's broken `+2` award is independently (and correctly) rejected by the `delta === CONFIG.PROGRESS.XP_ALCOVE` check, never laundered through the zero-delta branch.
-- **Control scenario:** every touch genuinely awards the correct `XP_ALCOVE` amount. Both pre-fix and post-fix code correctly report `{ triggered: true, resolved: true, attempts: 1 }` — confirming the fix does not introduce any false negative for the healthy case.
+**Verification (beyond the standard 3-tier check):** Ran a direct equivalence check comparing a live `createProgress().addBonusXp()` call against the exported `predictAward()` for the same seed across 6 levels x 11 xp seeds (66 combinations spanning multiple level-up boundaries) — all matched exactly (`xp`, `level`, and `leveledUp`), confirming the two code paths can no longer silently diverge (they are now literally the same function, not two independently-maintained copies). Also re-ran the CR-01 residual proof (`scratchpad/cr01-residual-verify.mjs`) after this change to confirm `driveAndDetectAlcove`'s behavior is unaffected by switching its internals to the imported function.
 
-This was then re-confirmed end-to-end against the real, unmocked harness: `node scripts/audit-phase21-mechanics.mjs` (the actual Phase 21/23/30 interactive audit, run in a real Playwright browser against all 8 shipped levels) reports `AUDIT: ALL MECHANICS RESOLVED` with every `secret-alcove` encounter showing `triggered: true, resolved: true, attempts: 1` — i.e., the fix does not introduce any flakiness or false negatives against real game content, and the retry-clearing logic is a correct no-op when the mechanic is genuinely healthy (which it is — Phase 29 already verified `secretAlcove.js`/`progress.js` deliberately).
+## Post-Fix Verification Suite
 
-### WR-02: Alcove XP-delta equality check doesn't account for `addBonusXp`'s level-up carry-over branch
+All gates run against the fixed worktree, in the order requested:
 
-**Files modified:** `scripts/lib/mechanic-drive.mjs`
-**Commit:** `deb05c1`
-**Applied fix:** Replaced the bare `delta === CONFIG.PROGRESS.XP_ALCOVE` equality with a `predictAward(beforeBlob, XP_ALCOVE)` helper that mirrors `src/progress.js`'s `awardAndCarry` threshold/carry-over math byte-for-byte (`xp -= threshold(level)`, `level += 1`, looped) using the same `CONFIG.PROGRESS.BASE_XP`/`LEVEL_MULT` curve. `resolved` now checks whether `afterBlob.xp`/`afterBlob.level` match the predicted post-award state exactly (`freshAwardCorrect`), so a genuinely correct award that happens to cross a level-up boundary is still recognized, instead of silently reporting `resolved: false` for a perfectly correct mechanic.
-
-**Verification:** A second throwaway harness (`scratchpad/wr02-verify.mjs`) seeded the persisted blob's `xp` at exactly `threshold(1) - XP_ALCOVE + 1` (196, with `threshold(1) = 200` and `XP_ALCOVE = 5`) so a correct alcove award crosses the level-1→2 boundary (`afterBlob = { xp: 1, level: 2 }`, `delta = -195`, nowhere near `XP_ALCOVE`). Against the fixed code: `{ triggered: true, resolved: true, attempts: 1 }` — correctly recognized deterministically on the very first attempt. Against the CR-01-only (pre-WR-02) commit run through the identical scenario: `{ triggered: true, resolved: true, attempts: 2 }` — it eventually self-corrects via a second retry (because CR-01's per-attempt clearing happens to re-roll the award away from the boundary), but only by accident of the specific seed value, not deterministically; a persistently-close-to-boundary seed could in principle require additional retries. WR-02 removes that latent flakiness by making the check exact and correct on attempt 1, matching the review's characterization of the pre-fix check as "fragile... a future retune... would silently start producing spurious `resolved: false` results."
-
-### WR-01: Mover-reachability comment contradicts its own code (`Math.max` picked, but documented as "lower marginRatio")
-
-**Files modified:** `scripts/lib/reachability.mjs`
-**Commit:** `7f06b78`
-**Applied fix:** Corrected the comment above the `mover-reachability` check (previously said "reports the WORSE (lower marginRatio, more likely to fail)") to match the code's actual `Math.max(r1.marginRatio, r2.marginRatio)` and this file's own established convention (a HIGHER `marginRatio` means a tighter/harder hop, per `WARN_MARGIN_RATIO`'s own header comment and every other tiering decision in `checkLevelReachability`). Verified via `node --check` and the module's own self-test (`node scripts/lib/reachability.mjs` → `reachability-selftest: PASS`) — comment-only change, no logic touched.
-
-### WR-03: New mover-reachability rule's "rightward-travel-only" modeling limit is undocumented outside code comments
-
-**Files modified:** `docs/LEVEL-DESIGN.md`
-**Commit:** `0592444`
-**Applied fix:** Added a new "6a. Movers (`geometry.movers`) — preview ahead of Phase 36" section to `docs/LEVEL-DESIGN.md`, between the existing "Secret alcove" and "Camera bounds" sections, documenting: the worst-case-extreme ping-pong-endpoint testing model, the HARD rightward-travel-only constraint (each endpoint must be reachable via a hop launched from a node whose span sits at or before that endpoint's x position — mirroring the same simplification already applied to `secretAlcove` reachability), and practical placement guidance for whoever authors the first `geometry.movers` content in Phase 36.
+- `bash scripts/check-gate.sh` — PASS
+- `bash scripts/check-safety.sh` — PASS
+- `bash scripts/check-import-safety.sh` — PASS (re-checked after `src/progress.js` changed — no top-level engine-global refs introduced)
+- `bash scripts/check-progress.sh` — PASS (includes `smoke-progress.mjs`, which exercises `createProgress`'s XP/level math headlessly)
+- `node scripts/validate-levels.mjs` — PASS, zero HARD-FAIL across all 8 real levels + both RED-first fixtures (`bad-level.js`, `bad-level-mover.js`); only informational WARNs (expected, unrelated to this fix)
+- `node scripts/browser-boot.mjs` — PASS — title → select → all levels loaded with no runtime errors
+- `node scripts/audit-phase21-mechanics.mjs` — PASS — `AUDIT: ALL MECHANICS RESOLVED` across all 8 levels; every encounter (door/math-gate/enemy/secret-alcove) triggered and resolved on `attempts: 1`, confirming the CR-01 residual fix introduced no regression against real, already-correct content
 
 ## Skipped Issues
 
-None — all 4 in-scope findings were fixed.
+None — both in-scope findings were fixed.
 
 ---
 
-_Fixed: 2026-07-10_
+_Fixed: 2026-07-10T09:34:18Z_
 _Fixer: Claude (gsd-code-fixer)_
-_Iteration: 1_
+_Iteration: 2_
