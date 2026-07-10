@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 30
-current_phase_name: Harness Extensions
+current_phase: 31
+current_phase_name: Asset Bake & Style-Board Sign-off
 status: executing
-stopped_at: v6.0 roadmap revised per user resize request (10 phases, 29–38, Sonnet-5 executor sizing); REQUIREMENTS.md traceability updated to the new numbering
-last_updated: "2026-07-10T07:30:45.214Z"
+stopped_at: Phase 29 (Mechanic Cleanup) complete — both plans executed, 2-iteration code-review/fix cycle closed 2 blockers + 4 warnings, genuine human sign-off on the alcove-discovery checkpoint, verification passed 4/4 must-haves. Ready to plan Phase 30.
+last_updated: "2026-07-10T09:58:21.417Z"
 last_activity: 2026-07-10
-last_activity_desc: Phase 30 execution started
+last_activity_desc: Phase 30 complete, transitioned to Phase 31
 progress:
   total_phases: 10
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 2
-  percent: 10
+  completed_plans: 5
+  percent: 20
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 
 ## Current Position
 
-Phase: 30 (Harness Extensions) — EXECUTING
-Plan: 1 of 3
+Phase: 31 — Asset Bake & Style-Board Sign-off
+Plan: Not started
 Status: Executing Phase 30
-Last activity: 2026-07-10 — Phase 30 execution started
+Last activity: 2026-07-10 — Phase 30 complete, transitioned to Phase 31
 
 Progress: [█░░░░░░░░░] 10%
 
