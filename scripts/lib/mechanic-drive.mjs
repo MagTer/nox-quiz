@@ -37,6 +37,10 @@ export function deriveEncounters(geometry) {
     ...(geometry.doors ?? []).map((d) => ({ x: d.x, tag: "door" })),
     ...(geometry.mathGates ?? []).map((g) => ({ x: g.x, tag: "math-gate" })),
     ...(geometry.enemies ?? []).map((e) => ({ x: e.x, tag: "enemy" })),
+    // Phase 30 (MECH-04): secret alcoves are a non-blocking walk-through bonus, never a
+    // challenge-opening mechanic — see driveAndDetectAlcove below for their distinct
+    // entity-destroy/XP-delta detection signal (never get("challenge").length).
+    ...(geometry.secretAlcove ?? []).map((a) => ({ x: a.x, y: a.y, tag: "secret-alcove" })),
   ];
   entries.sort((a, b) => a.x - b.x);
   return entries;
@@ -320,7 +324,11 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
   // pos.y is the top-left corner, so feet = pos.y + 32).
   const FROM_Y_TOL = 30;
 
-  const { takeoffs } = planTakeoffs(geometry, targetX);
+  // Phase 30 (MECH-04): opts.targetY (default undefined) threads through to
+  // planTakeoffs' own optional 4th param — a no-op for every existing caller that
+  // never sets it, and the mechanism driveAndDetectAlcove below relies on to correctly
+  // target a platform node instead of an overlapping floor node.
+  const { takeoffs } = planTakeoffs(geometry, targetX, undefined, opts.targetY);
   const baseline = await page.evaluate(() => get("challenge").length);
 
   await page.keyboard.down("ArrowRight");
@@ -358,11 +366,26 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
         // false "unreached"; +8 guarantees real overlap before giving up.
         await page.keyboard.up("ArrowRight");
         await page.keyboard.down("ArrowLeft");
+        // Phase 30 (MECH-04) fix: floors are listed before platforms, and a plain
+        // `.find()` always returns the FIRST x-span match — for a targetX whose x
+        // sits inside BOTH an overlapping floor's span AND a platform's span (e.g. a
+        // secret alcove floating above a stepping-stone platform, level-01's real
+        // case), this always picked the floor even when the player just landed on
+        // the platform, so backLimit anchored to the floor's own (much lower) left
+        // edge — the back-walk then retreated the player clean off the platform's
+        // left edge and back down to the floor below, missing the elevated target
+        // entirely. Disambiguate by the player's CURRENT feet height (s.y + 32,
+        // captured this same loop iteration, before the overshoot check) — mirrors
+        // this same function's own FROM_Y_TOL surface-matching convention used for
+        // takeoff firing, and nodeContaining's targetY-closest-match convention.
+        const feetY = s.y + 32;
         const surfaces = [
-          ...(geometry.floors ?? []).map((f) => ({ x0: f.x, x1: f.x + f.w })),
-          ...(geometry.platforms ?? []).map((p) => ({ x0: p.x, x1: p.x + p.w })),
+          ...(geometry.floors ?? []).map((f) => ({ x0: f.x, x1: f.x + f.w, y: CONFIG.FLOOR_Y })),
+          ...(geometry.platforms ?? []).map((p) => ({ x0: p.x, x1: p.x + p.w, y: p.y })),
         ];
-        const targetSurface = surfaces.find((sf) => targetX >= sf.x0 && targetX <= sf.x1);
+        const targetSurface = surfaces
+          .filter((sf) => targetX >= sf.x0 && targetX <= sf.x1)
+          .sort((a, b) => Math.abs(a.y - feetY) - Math.abs(b.y - feetY))[0];
         const backLimit = Math.max(targetX - 40, (targetSurface?.x0 ?? targetX - 40) + 8);
         for (let j = 0; j < 14; j++) {
           await page.waitForTimeout(110);
@@ -469,4 +492,107 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
   }
 
   return { reachedX: x, triggered };
+}
+
+/**
+ * Phase 30 (MECH-04): drive to and detect a secret-alcove encounter using the
+ * entity-destroy/XP-delta signal — NEVER get("challenge").length, which is
+ * contractually always false for alcoves (src/mechanics/secretAlcove.js never opens a
+ * challenge, by design; see that file's own header contract).
+ *
+ * Reuses driveToXPlanned (the already-proven planned-navigation system that handles
+ * gap-crossing/platform-mounting reliably across all 8 levels for every other
+ * mechanic) rather than inventing new movement code — its own returned `triggered` is
+ * ignored (it is challenge-based and meaningless here). `encounter.y` is threaded
+ * through as `opts.targetY` so planTakeoffs correctly targets the platform node the
+ * alcove floats above, not an overlapping floor node beneath it.
+ *
+ * driveToXPlanned's own arrival x is approximate, not exact — its jump arcs commonly
+ * over- or under-shoot a small point target like an alcove (unlike a ~32px-wide floor
+ * trigger it can walk directly into), and its "well past the target" back-walk
+ * recovery is tuned for re-CONTACTING a wide collider, not for standing precisely
+ * beneath a separate elevated point above the landing surface. So after arrival, a
+ * short bounded horizontal nudge (grounded-only, capped at nudgeMaxMs) walks the
+ * player onto the alcove's own x-span (encounter.x .. encounter.x + CONFIG.ALCOVE_SIZE,
+ * with the tolerance the player's own 16px width provides) before the vertical hop —
+ * this never leaves the already-reached platform/floor (it only nudges left/right
+ * while grounded) and is a strict refinement of driveToXPlanned's own arrival, not new
+ * navigation.
+ *
+ * After that nudge, if the player is grounded, presses one deliberate "check for a
+ * secret" hop (Space held past the ~371ms apex per this file's own jumpHoldMs=450
+ * convention) and settles 600ms (mirroring resolveIfBoxed's own settle-recheck
+ * precedent) before reading the after-state.
+ *
+ * @returns {Promise<{triggered: boolean, resolved: boolean}>}
+ *   triggered = the alcove entity was destroyed (afterCount < beforeCount) — the only
+ *   externally-observable proxy for "the player's bounding box overlapped the trigger
+ *   volume," since secretAlcove.js destroys the object in the SAME handler that
+ *   detects the touch.
+ *   resolved = triggered AND the XP delta matches CONFIG.PROGRESS.XP_ALCOVE (first
+ *   touch this audit run) or 0 (already-found-this-run anti-farming case, per
+ *   secretAlcove.js's CR-01 guard — every audit run seeds a fresh SAVE_BLOB with no
+ *   secretFound field, so the XP_ALCOVE branch is the one actually expected to fire
+ *   in this harness).
+ */
+export async function driveAndDetectAlcove(page, encounter, geometry) {
+  const beforeCount = await page.evaluate(() => get("secret-alcove").length);
+  const beforeBlob = await page.evaluate((key) => {
+    try {
+      return JSON.parse(localStorage.getItem(key));
+    } catch {
+      return null;
+    }
+  }, CONFIG.SAVE.KEY);
+
+  await driveToXPlanned(page, encounter.x, geometry, { targetY: encounter.y });
+
+  // Bounded horizontal nudge onto the alcove's own x-span (see header note above) —
+  // grounded-only, small per-tick presses, capped wall-clock budget.
+  const nudgeMaxMs = 3000;
+  const nudgeDeadline = Date.now() + nudgeMaxMs;
+  const nudgeLeft = encounter.x - 8; // a few px of slack past the alcove's own left edge
+  const nudgeRight = encounter.x + CONFIG.ALCOVE_SIZE;
+  while (Date.now() < nudgeDeadline) {
+    const st = await page.evaluate(() => {
+      const p = get("player")[0];
+      return p ? { x: p.pos.x, grounded: p.isGrounded() } : null;
+    });
+    if (!st || !st.grounded) break; // never nudge while airborne
+    if (st.x < nudgeLeft) {
+      await page.keyboard.down("ArrowRight");
+      await page.waitForTimeout(70);
+      await page.keyboard.up("ArrowRight");
+    } else if (st.x > nudgeRight) {
+      await page.keyboard.down("ArrowLeft");
+      await page.waitForTimeout(70);
+      await page.keyboard.up("ArrowLeft");
+    } else {
+      break; // already overlapping the alcove's x-span
+    }
+  }
+
+  const s = await page.evaluate(() => {
+    const p = get("player")[0];
+    return p ? { grounded: p.isGrounded() } : { grounded: false };
+  });
+  if (s.grounded) {
+    await page.keyboard.press("Space", { delay: 450 });
+    await page.waitForTimeout(600);
+  }
+
+  const afterCount = await page.evaluate(() => get("secret-alcove").length);
+  const afterBlob = await page.evaluate((key) => {
+    try {
+      return JSON.parse(localStorage.getItem(key));
+    } catch {
+      return null;
+    }
+  }, CONFIG.SAVE.KEY);
+
+  const triggered = afterCount < beforeCount;
+  const delta = (afterBlob?.xp ?? 0) - (beforeBlob?.xp ?? 0);
+  const resolved = triggered && (delta === CONFIG.PROGRESS.XP_ALCOVE || delta === 0);
+
+  return { triggered, resolved };
 }

@@ -345,11 +345,19 @@ function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, depth = 0) 
  * x every tick, so a death/respawn behind a takeoff self-heals (the player walks back
  * into the same window and re-executes it).
  */
-export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE) {
+export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, targetY = undefined) {
   const nodes = buildNodes(geometry);
   const graph = buildGraph(nodes, envelope);
   const startNode = nodeContaining(nodes, SPAWN_X);
-  const targetNode = nodeContaining(nodes, targetX); // floors listed first — mechanics are floor-mounted
+  // Phase 30 (MECH-04) fix: thread an optional targetY through to nodeContaining so an
+  // x that falls within BOTH a floor's span AND an overlapping platform's span (e.g. a
+  // secret alcove floating above a stepping-stone platform) disambiguates to the
+  // intended node instead of always resolving to the floor (buildNodes always pushes
+  // floor nodes before platform nodes). Every pre-existing 2-arg/3-arg call site passes
+  // no targetY, so nodeContaining(nodes, targetX, undefined) === nodeContaining(nodes,
+  // targetX) — byte-identical behavior, proven by this file's own self-test staying
+  // green.
+  const targetNode = nodeContaining(nodes, targetX, targetY);
   if (!startNode || !targetNode) return { takeoffs: [], path: null };
 
   const path = bottleneckPath(nodes, graph, startNode.id, targetNode.id, envelope);
@@ -447,6 +455,30 @@ if (isMain) {
     2050
   );
   check(noPath === null && none.length === 0, "expected null path for an unreachable target");
+
+  // Phase 30 (MECH-04) — targetY disambiguation for an alcove-shaped target: level-01's
+  // real geometry (floor 0..560 y:320, platform 360..520 y:240; alcove at x:400, y:170).
+  // With no targetY, nodeContaining resolves to the floor (buildNodes pushes floors
+  // first) — a pure walk with zero takeoffs, since the target x is already inside the
+  // floor's own span. With targetY:170 supplied, |240-170|=70 < |320-170|=150, so the
+  // platform node wins, and reaching it requires a real "mount" takeoff (non-empty).
+  {
+    const alcoveGeometry = {
+      floors: [{ x: 0, w: 560 }],
+      platforms: [{ x: 360, y: 240, w: 160, h: 24 }],
+      spikes: [],
+    };
+    const { takeoffs: noTargetY } = planTakeoffs(alcoveGeometry, 400);
+    check(
+      noTargetY.length === 0,
+      `expected zero takeoffs when targetY is omitted (resolves to the floor, already walkable), got ${JSON.stringify(noTargetY)}`
+    );
+    const { takeoffs: withTargetY } = planTakeoffs(alcoveGeometry, 400, JUMP_ENVELOPE, 170);
+    check(
+      withTargetY.length > 0 && withTargetY.some((t) => t.kind === "mount"),
+      `expected a non-empty "mount" takeoff when targetY:170 disambiguates to the platform node, got ${JSON.stringify(withTargetY)}`
+    );
+  }
 
   if (failures > 0) {
     console.error(`route-planner-selftest: FAIL — ${failures} assertion(s) failed`);
