@@ -40,6 +40,7 @@ This milestone: reviewed and auto-fixed the entire v4.1 codebase before doubling
 
 **Delivered so far:**
 - ✓ Validated in Phase 29 — Mechanic cleanup: collect-the-answer removed atomically from all 5 affected levels (code + level data + every defending harness fixture, one commit), math pacing re-verified rhythm-intact with zero XP-path disturbance; secret alcove now gives real on-touch discovery feedback (particle burst + chime + "+5 XP" popup, one-shot per level with anti-farming + anti-loss-on-escape guards) and a positive-only star marker on level-select backed by a save-format version bump — closes the long-open "alcove feels like nothing happened" todo from Phase 25
+- ✓ Validated in Phase 30 — Harness extensions: the validator now provably catches an unreachable secret alcove (point-vs-jump-reach, RED-first proven against a fixture, PASS on all 8 real levels) and a mover-dependent path unreachable under a worst-case-extreme rule (RED-first, no real movers exist yet — Phase 36's job); the interactive audit now genuinely detects alcove discovery via entity-destroy/XP-delta (never the always-false challenge-open signal) across all 8 levels — closes the "no automated alcove coverage" todo from Phase 25
 
 ## Shipped Milestone: v5.0 Nox Run — Real Levels (2026-07-09)
 
@@ -191,4 +192,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-10 — Phase 29 (Mechanic Cleanup) complete: MECH-01/02/03/06 satisfied*
+*Last updated: 2026-07-10 — Phase 30 (Harness Extensions) complete: MECH-04/MOT-04 satisfied*
