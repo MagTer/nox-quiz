@@ -235,17 +235,23 @@ async function runSaveResumeAcrossReloadProof(errors) {
     // derived-unlock state was genuinely honored after the reload, via the SAME
     // deriveEncounters/driveToXPlanned helpers the primary per-level drive uses.
     const level = getLevel("level-03");
-    const encounters = deriveEncounters(level.geometry);
+    // Phase 30 (mandatory fix): filter out secret-alcove encounters before selecting --
+    // this non-exhaustive save-resume proof only needs ANY drivable mechanic to prove
+    // resumed-unlock reachability, and this script's simple driveToXPlanned call here has
+    // no targetY hint, so it can never climb to an elevated alcove platform (unlike
+    // audit-retry.mjs's driver, which Plan 30-02 correctly upgraded with targetY
+    // threading). See mandatory_additional_fix in this plan's execution context.
+    const drivableEncounters = deriveEncounters(level.geometry).filter((e) => e.tag !== "secret-alcove");
     // WR-01: guard the empty-encounters case with a specific message instead of letting
-    // `encounters[0].x` throw a TypeError that the generic catch below would report as
-    // an opaque "Cannot read properties of undefined (reading 'x')".
-    if (encounters.length === 0) {
+    // `drivableEncounters[0].x` throw a TypeError that the generic catch below would
+    // report as an opaque "Cannot read properties of undefined (reading 'x')".
+    if (drivableEncounters.length === 0) {
       errors.push({
         type: "save-resume",
-        message: "level-03 has no encounters to drive to -- cannot prove resumed-unlock reachability",
+        message: "level-03 has no drivable encounters to drive to -- cannot prove resumed-unlock reachability",
       });
     } else {
-      const { triggered } = await driveToXPlanned(page, encounters[0].x, level.geometry);
+      const { triggered } = await driveToXPlanned(page, drivableEncounters[0].x, level.geometry);
       if (!triggered) {
         errors.push({
           type: "save-resume",
@@ -392,7 +398,16 @@ try {
     // the exhaustive full-level sweep across every encounter lives in
     // scripts/audit-phase21-mechanics.mjs (Plan 21-01/21-05), not here.
     const level = getLevel(LEVEL_ORDER[i]);
-    const encounters = deriveEncounters(level.geometry);
+    // Phase 30 (mandatory fix): filter out secret-alcove encounters -- this gate is
+    // documented immediately above as deliberately non-exhaustive (stops at each level's
+    // FIRST resolvable mechanic, not a full sweep of every encounter). deriveEncounters()
+    // now also emits secret-alcove entries (Plan 30-02); driving to one here would use
+    // this script's simple 3-arg driveToXPlanned call, which has no targetY hint and can
+    // never climb to an elevated alcove platform. The exhaustive full-level sweep --
+    // including alcoves, via the targetY-aware audit-retry.mjs driver -- lives in
+    // scripts/audit-phase21-mechanics.mjs, not here. See mandatory_additional_fix in
+    // this plan's execution context.
+    const drivableEncounters = deriveEncounters(level.geometry).filter((e) => e.tag !== "secret-alcove");
     // Plan 25-07 fix (Rule 1 — bug): the old driveToXClimbing ("jump whenever
     // grounded, from spawn") is the exact retired driver Phase 24's close-out
     // documented as bunny-hopping over ground-level checkpoints and failing
@@ -405,7 +420,7 @@ try {
     // (driveToXPlanned walks by default, so ground-level triggers register
     // naturally on every approach, not just the level's first — see
     // audit-retry.mjs's own comment at its driveToXPlanned call site).
-    for (const encounter of encounters) {
+    for (const encounter of drivableEncounters) {
       const { triggered } = await driveToXPlanned(page, encounter.x, level.geometry);
       if (!triggered) {
         errors.push({
