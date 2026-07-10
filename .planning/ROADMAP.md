@@ -149,7 +149,12 @@ Plans:
   3. The validator HARD-FAILs a fixture level whose mover-dependent path is unreachable under the worst-case-extreme rule — proven RED-first before any real level ships a mover
   4. The full existing gate suite stays green — the new rules add coverage without false HARD-FAILs on shipped content
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 30-01-PLAN.md — Alcove point-reachability + mover worst-case-extreme reachability in reachability.mjs, both proven RED-first — MECH-04, MOT-04
+- [ ] 30-02-PLAN.md — Interactive audit alcove driving + entity-destroy/XP-delta detection, real browser-verified — MECH-04
+- [ ] 30-03-PLAN.md — LEVEL-DESIGN.md accuracy fixes + full 7-gate integration verification — MECH-04, MOT-04
 
 ### Phase 31: Asset Bake & Style-Board Sign-off
 
@@ -302,8 +307,8 @@ Plans:
 | 26. Grunge Palette & Nox Run Rebrand | v5.0 | 12/12 | ✅ Complete | 2026-07-07 |
 | 27. Audio & ADHD-Safe Sound | v5.0 | 7/7 | ✅ Complete | 2026-07-08 |
 | 28. Full Verification & Interactive Sign-off | v5.0 | 3/3 | ✅ Complete | 2026-07-09 |
-| 29. Mechanic Cleanup | v6.0 | 2/2 | Complete   | 2026-07-09 |
-| 30. Harness Extensions | v6.0 | 0/TBD | Not started | - |
+| 29. Mechanic Cleanup | v6.0 | 2/2 | Complete    | 2026-07-09 |
+| 30. Harness Extensions | v6.0 | 0/3 | Planned | - |
 | 31. Asset Bake & Style-Board Sign-off | v6.0 | 0/TBD | Not started | - |
 | 32. Terrain & Parallax Rendering | v6.0 | 0/TBD | Not started | - |
 | 33. Player & Entity Animation | v6.0 | 0/TBD | Not started | - |
