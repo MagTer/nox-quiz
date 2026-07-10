@@ -67,22 +67,35 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (attempt > 1) {
-      await reloadLevel();
-
-      // CR-01 fix (30-REVIEW.md): reloadLevel() re-enters the level fresh but does
-      // NOT clear localStorage — the secret alcove's cross-run persisted
-      // `secretFound` fact (src/mechanics/secretAlcove.js's own CR-01 anti-farming
-      // guard) survives a reload within the same audit run, because secretAlcove.js
-      // sets that fact unconditionally on first touch regardless of whether the XP
-      // award itself was verified correct. Without clearing it here, a genuine
-      // attempt-1 reward-verification failure would "self-heal" into a false pass
-      // on retry: the persisted fact makes attempt 2's touch indistinguishable from
-      // a legitimate already-found re-touch (delta === 0), silently laundering a
-      // real detection failure. Clearing ONLY this level's `secretFound` field
-      // (never `cleared`, xp, level, accuracy, or history) restores
-      // driveAndDetectAlcove's own documented "every attempt starts unseeded for
-      // this fact" assumption without disturbing level-unlock state or any other
-      // mechanic's cross-attempt bookkeeping.
+      // CR-01 fix (30-REVIEW.md iteration 1) + CR-01 residual fix (30-REVIEW.md
+      // iteration 2): this localStorage clear MUST run BEFORE reloadLevel(), not
+      // after. reloadLevel() presses Enter, which synchronously calls
+      // go("game", { levelId }) -> gameScene(data) (src/scenes/select.js:275,
+      // src/scenes/game.js:80-81), and gameScene() constructs this scene's
+      // `progress` object via `createProgress(loadSave())` ONE TIME, at that exact
+      // instant — createProgress() is a pure factory that snapshots
+      // saved.levels[id].secretFound into a closure-local map and never re-reads
+      // localStorage afterward (src/progress.js:59-99). src/mechanics/
+      // secretAlcove.js's onCollide handler branches on that frozen in-memory
+      // snapshot (progress.hasSecretFound(levelId), src/progress.js:164-166) —
+      // never on live localStorage. Clearing AFTER reloadLevel() (the iteration-1
+      // ordering) meant the new scene's progress snapshot was always taken from the
+      // STILL-poisoned pre-clear value, so every even-numbered retry attempt
+      // silently forced the alcove's "already found, zero-delta" no-op replay
+      // branch regardless of whether the underlying XP-award mechanism was
+      // genuinely broken — an artifactual resolved:false, not a real re-test,
+      // roughly halving the wrapper's effective retry budget. Clearing BEFORE
+      // reloadLevel() ensures the clear lands in localStorage before the Enter
+      // press (inside reloadLevel()) triggers the synchronous
+      // loadSave()/createProgress() call that snapshots it — this is safe to run
+      // from whatever page context is active at the top of this attempt (the
+      // previous attempt's game scene, or the select scene after an Escape),
+      // since localStorage is a plain same-origin key/value store and this patch
+      // never touches any live scene object. Clearing ONLY this level's
+      // `secretFound` field (never `cleared`, xp, level, accuracy, or history)
+      // restores driveAndDetectAlcove's own documented "every attempt starts
+      // unseeded for this fact" assumption for BOTH the before/after localStorage
+      // diff the detector reads AND the live scene's actual branch decision.
       if ((level.geometry.secretAlcove ?? []).length > 0) {
         await page.evaluate(
           ({ key, levelId }) => {
@@ -99,6 +112,8 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
           { key: CONFIG.SAVE.KEY, levelId: level.id }
         );
       }
+
+      await reloadLevel();
     }
 
     for (const encounter of encounters) {
