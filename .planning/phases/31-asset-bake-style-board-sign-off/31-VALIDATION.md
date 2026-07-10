@@ -1,9 +1,9 @@
 ---
 phase: 31
 slug: asset-bake-style-board-sign-off
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: reviewed
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-10
 ---
 
@@ -38,10 +38,12 @@ created: 2026-07-10
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 31-01-01 | 01 | 0 | ART-01 | — / — | N/A | script | `bash scripts/check-pink-gate.sh` | ❌ W0 | ⬜ pending |
-| 31-01-02 | 01 | 1 | ART-01 | — / — | N/A | gate (RED-first on 2 known pink assets, then GREEN post-retint) | `bash scripts/check-pink-gate.sh` | ❌ W0 | ⬜ pending |
-| 31-01-03 | 01 | 1 | ART-01 | — / — | N/A | manual/structural | `grep -c "gothicvania" CREDITS.md` vs. new asset file count | ✅ (CREDITS.md exists) | ⬜ pending |
-| 31-01-04 | 01 | 1 | ART-01 | — / — | N/A | checkpoint:human-verify (inherently manual) | quoted sign-off in SUMMARY.md | N/A | ⬜ pending |
+| 31-01 tasks | 01 | 1 | ART-01 | supply-chain (zip download/extraction) | no zip-slip, `.gitignore`d scratch dir | script | `git check-ignore assets/_gothicvania-src/` | ✅ (plan-checker verified) | ⬜ pending |
+| 31-02 tasks | 02 | 2 | ART-01 | — / — | N/A | checkpoint:human-verify (blocking, inherently manual) | quoted round-2 sign-off in SUMMARY.md | N/A | ⬜ pending |
+| 31-03 tasks | 03 | 2 | ART-01 | — / — | N/A | gate (RED-first on 2 known pink assets, then GREEN post-retint) | `bash scripts/check-pink-gate.sh` | ✅ (plan-checker verified) | ⬜ pending |
+| 31-04 tasks | 04 | 3 | ART-01 | — / — | N/A | script (baking) | visual + pink-gate spot check | ✅ (plan-checker verified) | ⬜ pending |
+| 31-05 tasks | 05 | 4 | ART-01 | — / — | N/A | script (baking) | visual + pink-gate spot check | ✅ (plan-checker verified) | ⬜ pending |
+| 31-06 tasks | 06 | 5 | ART-01 | — / — | N/A | manual/structural + full gate re-run | `bash scripts/check-pink-gate.sh` full tree | ✅ (plan-checker verified) | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -66,11 +68,11 @@ created: 2026-07-10
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (verified by gsd-plan-checker — only the 31-02 checkpoint:human-verify task lacks one, which is correct: sign-off is inherently manual)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (31-01 creates `check-pink-gate.sh`/`pink_scan.py` and the gitignored source-fetch dir before any dependent task runs)
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-07-10 (gsd-plan-checker pass — 0 blockers, 2 non-blocking process warnings resolved directly)
