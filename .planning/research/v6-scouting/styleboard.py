@@ -4,8 +4,13 @@
 import os
 from PIL import Image
 
-ROOT = os.path.dirname(os.path.abspath(__file__)) + "/extracted"
 REPO = "/home/magnus/dev/nox-quiz"
+# Gitignored source packs (Plan 31-01) live per-checkout, not at the hardcoded
+# REPO path — a git worktree checks them out at a different filesystem root
+# than REPO. Derive ROOT from this script's own location (3 dirs up from
+# .planning/research/v6-scouting/) so it resolves correctly in any worktree,
+# same as OUT already does below.
+ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "assets", "_gothicvania-src"))
 OUT = os.path.dirname(os.path.abspath(__file__)) + "/board"
 os.makedirs(OUT, exist_ok=True)
 
@@ -122,12 +127,34 @@ def swamp():
         tile_x(c, fill, yb + 16)
         yb += 16
     # characters
+    # SWAMP_*_FEET_Y: measured directly from the sourced tileset.png "surface"
+    # island (ts[0], the 80x62 grass-topped dirt block tiled above as the
+    # ground), not guessed. FLOOR_Y is that island's alpha-bbox top -- i.e. the
+    # single highest grass-blade pixel across the whole 80px-wide repeating
+    # tile -- not the actual visual grass line under any given character;
+    # individual columns of the tile dip 0-6px below that peak as the grass
+    # texture undulates. Sampling the tile's real alpha data at each ground
+    # character's stance x (mod the 80px tile width, averaged across their
+    # sprite's own footprint width) gives the true per-character visual
+    # top-of-grass row: player footprint at x=150 averages 4px below FLOOR_Y,
+    # spider at x=420 averages 2px below, thing at x=520 averages 1px below.
+    # Anchoring every character's feet at FLOOR_Y directly (round-3 bug) put
+    # them all at the tile's rare grass-blade peak instead, floating them
+    # 1-4px above the ground they're meant to stand on -- most visible on the
+    # player, caught by round-3 human sign-off ("gubben svavar lite ovanpa
+    # marken" / "the guy is floating a bit above the ground"). FLOOR_Y itself
+    # is unchanged: it still correctly anchors where the terrain tile geometry
+    # is drawn (trees above and the ground tiling reuse it as-is); only the
+    # characters standing on that ground needed a per-character offset.
+    SWAMP_PLAYER_FEET_Y = FLOOR_Y + 4
+    SWAMP_SPIDER_FEET_Y = FLOOR_Y + 2
+    SWAMP_THING_FEET_Y = FLOOR_Y + 1
     player = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
-    put_feet(c, player, 150, FLOOR_Y)
+    put_feet(c, player, 150, SWAMP_PLAYER_FEET_Y)
     spider = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Spider/walk/spider1.png")
-    put_feet(c, spider, 420, FLOOR_Y, flip=True)
+    put_feet(c, spider, 420, SWAMP_SPIDER_FEET_Y, flip=True)
     thing = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Thing/walk thing/thing1.png")
-    put_feet(c, thing, 520, FLOOR_Y, flip=True)
+    put_feet(c, thing, 520, SWAMP_THING_FEET_Y, flip=True)
     badge(c)
     return c
 
@@ -142,7 +169,7 @@ def town():
     top = H - prev.height
     stretch_top(c, crop, top)
     c.alpha_composite(crop, (0, top))
-    hero = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Gothic-hero-Files/PNG/gothic-hero-idle.png"), 4)
+    hero = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
     put_feet(c, hero, 300, 344)
     hound = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Hell-Hound-Files/PNG/hell-hound-idle.png"), 6)
     put_feet(c, hound, 470, 344, flip=True)
@@ -166,7 +193,7 @@ def cemetery():
     put_feet(c, statue, 60, 330)
     stone = load("gothicvania-cemetery-files_1/gothicvania-cemetery-files/PNG/Environment/sliced-objects/stone-1.png")
     put_feet(c, stone, 400, 330)
-    hero = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Gothic-hero-Files/PNG/gothic-hero-idle.png"), 4)
+    hero = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
     put_feet(c, hero, 220, 332)
     ghost = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Ghost-Files/PNG/ghost-idle.png"), 7)
     c.alpha_composite(ghost, (480, 240))
@@ -181,10 +208,37 @@ def castle():
     top = H - prev.height
     stretch_top(c, crop, top)
     c.alpha_composite(crop, (0, top))
-    hero = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Gothic-hero-Files/PNG/gothic-hero-idle.png"), 4)
-    put_feet(c, hero, 210, 336)
-    skull = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Fire-Skull-Files/PNG/fire-skull.png"), 8)
-    c.alpha_composite(skull, (430, 230))
+    hero = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
+    # CASTLE_HERO_FEET_Y: measured directly from the sourced preview tileset, not
+    # guessed. The floating door-ledge the hero stands on (crop columns ~150-260)
+    # has its walkable top edge (gold trim -> void transition, sampled pixel-by-
+    # -pixel) at crop-local y=234, i.e. canvas y = 234 + top(56) = 290. The prior
+    # value (336) placed the hero's feet 46px below that edge, in the open void
+    # under the floating ledge (confirmed void, not stone, by sampling: pixels
+    # below the ledge at this x match the scene's background color, not a solid
+    # block) — round 2 human sign-off caught this as "base varies" misalignment.
+    # Unlike swamp (which tiles its own terrain from the shared FLOOR_Y=320 and
+    # then applies a small per-character measured offset on top of it — see the
+    # SWAMP_*_FEET_Y comment in swamp() above), town/cemetery/castle each
+    # composite a pre-made background plate whose visual floor row is NOT at a
+    # shared y — each needs its own measured feet_y entirely.
+    put_feet(c, hero, 210, 290)
+    hound = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Hell-Hound-Files/PNG/hell-hound-idle.png"), 6)
+    # CASTLE_HOUND_FEET_Y: measured directly from the sourced preview tileset,
+    # not guessed (round-5 fix -- round-4 human sign-off: "the weird dog is
+    # floating in the air on that ledge"). The prior code placed the hound
+    # with a raw `c.alpha_composite(hound, (430, 230))` -- a bare top-left
+    # paste that bypassed put_feet's feet-anchoring entirely, unlike every
+    # other character in every other scene. The hound's footprint (canvas
+    # x=430-467) sits over the rope bridge, NOT the door-ledge the player
+    # stands on (that ledge ends around x=260 -- see CASTLE_HERO_FEET_Y
+    # comment above). Sampling the bridge deck's gold-trim top edge pixel-by-
+    # -pixel across the hound's full footprint width (x=430..467) gives a
+    # consistent top row at crop-local y~202 (canvas y = 202 + top(56) = 258,
+    # confirmed solid deck, not void, at every sampled column) -- not the same
+    # y as the player's ledge, and not guessed as identical to it.
+    CASTLE_HOUND_FEET_Y = 258
+    put_feet(c, hound, 430, CASTLE_HOUND_FEET_Y)
     badge(c)
     return c
 
