@@ -2,7 +2,7 @@
 phase: 30-harness-extensions
 reviewed: 2026-07-10T12:00:00Z
 depth: standard
-files_reviewed: 8
+files_reviewed: 9
 files_reviewed_list:
   - docs/LEVEL-DESIGN.md
   - scripts/browser-boot.mjs
@@ -12,110 +12,157 @@ files_reviewed_list:
   - scripts/lib/mechanic-drive.mjs
   - scripts/lib/reachability.mjs
   - scripts/lib/route-planner.mjs
+  - src/progress.js
 findings:
-  critical: 1
-  warning: 1
+  critical: 0
+  warning: 0
   info: 0
-  total: 2
-status: issues_found
+  total: 0
+status: clean
 ---
 
-# Phase 30: Code Review Report (iteration 2 — post-fix re-review)
+# Phase 30: Code Review Report (iteration 3 — final)
 
 **Reviewed:** 2026-07-10
-**Depth:** standard (with explicit deep cross-file tracing on the CR-01 retry-flow per the re-review brief)
-**Files Reviewed:** 8
-**Status:** issues_found
+**Depth:** standard
+**Files Reviewed:** 9
+**Status:** clean
 
 ## Summary
 
-This is iteration 2, re-reviewing the fixer's commits (`11cbdd1` CR-01, `deb05c1` WR-02, `7f06b78` WR-01, `0592444` WR-03) against the four findings from iteration 1's review (superseded — see git history of this file).
+This is the third and final review pass for Phase 30 (harness extensions; 3-iteration
+cap). Iteration 1 found and fixed CR-01 (original), WR-01, WR-02, WR-03. Iteration 2
+found a residual bug in the CR-01 fix (`localStorage` cleared *after* `reloadLevel()`
+instead of before, poisoning even-numbered retry attempts) plus WR-04 (`predictAward`
+math hand-duplicated between `src/progress.js` and `scripts/lib/mechanic-drive.mjs`, a
+drift risk). This review verifies both of iteration 2's fixes (`adf18b4`, `f832399`)
+against the exact concerns raised, and re-scans the full file set for anything a fresh
+look surfaces. **No new Critical or Warning findings.**
 
-Three of the four prior findings hold up cleanly under re-inspection:
+### (1) `src/progress.js` production-code safety — verified as a pure refactor
 
-- **WR-01** (misleading `Math.max`/marginRatio comment in `reachability.mjs`) — genuinely fixed; the corrected comment matches the code and the file's own `WARN_MARGIN_RATIO` convention.
-- **WR-03** (missing mover rightward-only doc note) — genuinely fixed; the new `docs/LEVEL-DESIGN.md` §6a accurately describes `bestMarginToPoint`'s `if (point.x < n.xStart) continue;` restriction.
-- **WR-02** (fragile alcove XP-delta equality) — the immediate bug (breaking on a level-up boundary) is genuinely fixed: `predictAward()` correctly reimplements `progress.js`'s `awardAndCarry` threshold/carry-over loop (verified line-for-line against `src/progress.js:121-130`). A residual drift-risk finding is raised below (WR-04) since this is a hand-duplicated implementation with no shared import and no regression test tying it to `progress.js`.
+Read the file's own header (the XP amounts/curve are explicitly "the validated values
+and MUST NOT be re-tuned") and traced `f832399`'s diff (`git show f832399 --
+src/progress.js`) line-by-line against the prior version:
 
-**CR-01 does not fully hold up.** Tracing the actual retry-attempt flow across `audit-retry.mjs` → the real browser scene lifecycle (`src/scenes/select.js` → `src/scenes/game.js` → `src/progress.js` → `src/mechanics/secretAlcove.js`) — not just the fixer's own mock-based proof — surfaces a genuine ordering bug in the fix itself: the `localStorage` clear that's supposed to reset the "unseeded" state for a retry attempt executes **after** the new scene instance has already read and cached the *stale* pre-clear value into its in-memory `progress` closure. This does not reopen the *original* false-pass vulnerability (verified below — no path produces a false `resolved: true`), but it does silently poison every even-numbered retry attempt into a guaranteed, artifactual `resolved: false`, roughly halving the wrapper's effective retry budget and contradicting the fix's own stated goal ("restores `driveAndDetectAlcove`'s own documented 'every attempt starts unseeded' assumption"). See CR-01 (below) — same finding ID as iteration 1 since it is the same underlying defect area, but this is a *distinct residual bug in the fix itself*, not the original bug recurring verbatim.
+- `threshold(lvl)` was lifted verbatim from a closure-local `const threshold = (lvl) =>
+  ...` inside `createProgress()` to a module-level `export function threshold(lvl)`,
+  with an **identical body** (`Math.round(CONFIG.PROGRESS.BASE_XP *
+  Math.pow(CONFIG.PROGRESS.LEVEL_MULT, lvl - 1))`) reading the same `CONFIG` constants.
+  The old closure version captured no per-instance state, so lifting it to module scope
+  changes nothing observable.
+- The old `awardAndCarry(delta)` closure inlined the carry-over while-loop directly
+  against the closure's own `xp`/`level` variables. The new `awardAndCarry(delta)` calls
+  `predictAward({ xp, level }, delta)` and reassigns `xp`/`level` from the result. The
+  extracted `predictAward` reproduces the **exact same while-loop**
+  (`while (xp >= threshold(level)) { xp -= threshold(level); level += 1; leveledUp =
+  true; }`), with `xp -= threshold` (not reset to 0) preserved verbatim.
+- `predictAward`'s input-validation guards on `state.xp`/`state.level` (finite,
+  non-negative, floored) are structurally identical to `createProgress`'s own seed
+  guards. Since `xp`/`level` inside the closure are *already* valid per those same
+  invariants at every call site, round-tripping them through `predictAward`'s guards is
+  a no-op — they pass through unchanged.
+- `serialize()`/`validate()`/`loadSave()`/`writeSave()`/`resetSave()` are untouched by
+  `f832399` — the diff is scoped entirely to the threshold/predictAward extraction.
+- Both existing call sites (`addXp` → `awardAndCarry(calculateXp(table))`, `addBonusXp`
+  → `awardAndCarry(amount)`) are unmodified and still route through the same shared
+  helper, now backed by `predictAward`, so `createProgress()`'s own internal callers and
+  `predictAward`'s new external caller can never diverge (the fix's stated goal).
+- Ran `node scripts/smoke-progress.mjs` (the project's real unit-test layer for this
+  exact math — `threshold(1)===200`, `threshold(2)===260`, exact-crossing surplus-0,
+  overshoot-carry-over-20, and the XP_ALCOVE regression pin): **PASS**. Also ran `bash
+  scripts/check-progress.sh`: **PASS**.
 
-## Critical Issues
+No behavioral drift found — this is a genuine pure refactor, not a re-tune.
 
-### CR-01: CR-01's own `localStorage` clear runs too late to un-poison the retry attempt it's meant to fix — every even-numbered retry is a guaranteed false-negative, not a genuine re-test
+### (2) CR-01 residual fix soundness — verified sound, no race
 
-**Files:** `scripts/lib/audit-retry.mjs:69-101`, `scripts/lib/mechanic-drive.mjs:549-645`; root cause spans into `src/scenes/select.js:275`, `src/scenes/game.js:80-81`, `src/progress.js:59-99`, `src/mechanics/secretAlcove.js:49-89` (not in this review's file list, but load-bearing for the actual defect and read to confirm it).
+Traced the reordered code in `scripts/lib/audit-retry.mjs` (`attempt > 1` branch)
+against the actual call chain, rather than trusting the fix's own comments:
 
-**Issue:**
+- `page.evaluate(...)` is `await`ed and only resolves after the browser-side function (a
+  synchronous `try { JSON.parse → delete → JSON.stringify → setItem } catch {}` body)
+  has fully completed and Playwright has serialized the result back — there is no
+  intermediate window in which `reloadLevel()` could fire before the clear lands. Since
+  `reloadLevel()` is only called in the next statement (`await reloadLevel();`), the
+  clear is guaranteed to have completed in `localStorage` before any subsequent read.
+- Read `src/scenes/game.js` directly: `gameScene(data)` calls `const saved =
+  loadSave(); const progress = createProgress(saved);` at lines 80-81, synchronously at
+  scene construction — exactly as the fix's own comment claims. `createProgress()`
+  snapshots `saved.levels[id].secretFound` into a closure-local map once and never
+  re-reads `localStorage` afterward (confirmed in `src/progress.js` lines 141-152).
+- Confirmed `reloadLevel()`'s actual implementation
+  (`scripts/audit-phase21-mechanics.mjs` lines 216-233): Escape → reposition cursor →
+  Enter → settle. Checked whether Escape's handler (`src/scenes/game.js:292`,
+  `onKeyPress("escape", () => go("select"))`) performs any intervening `writeSave()`
+  that could re-persist the (already-cleared) blob and thereby restore poisoned data
+  before the new scene reads it — it does not; the code's own comment ("NAV-03, which
+  does not otherwise save") is accurate, and `onHide`'s save-on-hide is gated on
+  document-visibility change, not scene navigation, so it never fires here. No
+  intervening write undoes the clear.
+- Confirmed the clear only runs for `attempt > 1` — attempt 1 is untouched by the
+  patch, and the seed `SAVE_BLOB` used by both callers never pre-sets `secretFound` for
+  any level, so attempt 1's behavior is provably unchanged.
+- On the question of whether clearing before *every* retry (not just even-numbered
+  ones) introduces a *new* side effect: no. `driveAndDetectAlcove`'s `alreadyFoundBefore`
+  read (its own defensive sanity signal) now correctly reads `false` on every retry
+  attempt instead of only every other one — this is the intended fix, not an
+  unintended side effect, and it strictly restores (never weakens) the "every attempt
+  starts unseeded for this fact" invariant the module's own header documents.
+- The clear is scoped to exactly one field (`delete blob.levels[levelId].secretFound`)
+  of exactly one level id — `cleared`, `xp`, `level`, `accuracy`, `history`, and every
+  other level's data are untouched, matching the header's documented scope claim. A
+  missing/malformed blob (`JSON.parse(null)` → `null`, or a level id absent from
+  `blob.levels`) is handled by the `blob?.levels?.[levelId]` optional-chain guard —
+  no throw, no partial write.
 
-The CR-01 fix's ordering, per `audit-retry.mjs`'s attempt loop:
+No race and no unintended side effect found. The fix is sound.
 
-```js
-if (attempt > 1) {
-  await reloadLevel();                    // (A) re-enters the level — builds a NEW scene
-  if ((level.geometry.secretAlcove ?? []).length > 0) {
-    await page.evaluate(/* delete blob.levels[levelId].secretFound; setItem(...) */);  // (B) clears localStorage
-  }
-}
-```
+### (3) General residue check
 
-`reloadLevel()` (the caller-supplied callback in `scripts/audit-phase21-mechanics.mjs`) presses `Escape` → repositions the cursor → presses `Enter` → waits 1500ms. Pressing `Enter` on the select screen synchronously calls `go("game", { levelId })` (`src/scenes/select.js:275`), which synchronously invokes `gameScene(data)` (`src/scenes/game.js`). Lines 80-81 of `game.js` read:
+Re-read `scripts/lib/mechanic-drive.mjs`, `scripts/lib/reachability.mjs`,
+`scripts/lib/route-planner.mjs`, `scripts/browser-boot.mjs`,
+`scripts/fixtures/bad-level.js`, `scripts/fixtures/bad-level-mover.js`, and
+`docs/LEVEL-DESIGN.md` for anything a fresh pass surfaces (secrets, dangerous
+functions, debug artifacts, empty catches, unhandled edge cases, dead code):
 
-```js
-const saved = loadSave();
-const progress = createProgress(saved);
-```
+- No hardcoded secrets, `eval`, `innerHTML`, or empty catch blocks in any reviewed file.
+- The only `console.log` calls found are legitimate self-test/harness PASS output
+  (`reachability.mjs`, `route-planner.mjs`, `browser-boot.mjs`), not debug leftovers.
+- `driveAndDetectAlcove`'s `predictAward(beforeBlob, CONFIG.PROGRESS.XP_ALCOVE)` call
+  correctly handles `beforeBlob === null` (fresh/no-save state) via `predictAward`'s own
+  `state && ...` guard, defaulting to `xp:0, level:1` — matches the real game's
+  `loadSave()` defaults, so the oracle and the real save start from the same baseline.
+  Confirmed `src/mechanics/secretAlcove.js` calls its `save` callback
+  (`writeSave(...)`) **synchronously right after** `markSecretFound` (not deferred to
+  level-clear/tab-hide), so `afterBlob` genuinely reflects the fresh touch rather than
+  stale pre-touch data — this is a prerequisite for `driveAndDetectAlcove`'s
+  before/after comparison to be meaningful at all, and it holds.
+- All XP constants (`XP_EASY:10`, `XP_HARD:20`, `XP_ALCOVE:5`, `BASE_XP:200`) are
+  integers and `threshold()` always returns `Math.round(...)` (an integer), so the
+  strict `===` equality checks in `driveAndDetectAlcove`'s `freshAwardCorrect` and
+  `smoke-progress.mjs`'s assertions carry no floating-point-equality risk.
+- Ran the full harness suite live: `node scripts/smoke-progress.mjs`,
+  `node scripts/lib/reachability.mjs` (self-test), `node scripts/lib/route-planner.mjs`
+  (self-test), `bash scripts/check-progress.sh`, `bash scripts/check-safety.sh`,
+  `bash scripts/check-import-safety.sh`, and `node scripts/validate-levels.mjs`
+  (including both `--fixture` runs against `bad-level.js` and `bad-level-mover.js`,
+  confirming both still correctly HARD-FAIL RED, and the 8 shipped levels still PASS).
+  All passed / behaved as documented.
+- `docs/LEVEL-DESIGN.md` and both fixture files are documentation/calibration-only
+  content with no executable logic beyond descriptor literals — nothing to flag.
 
-`createProgress()` (`src/progress.js:59-99`) is a **pure factory**: it seeds a closure-local `secretFound` map **once**, at construction time, from whatever `saved.levels[id].secretFound` was at that instant, and never re-reads storage afterward. `src/mechanics/secretAlcove.js`'s collision handler (line 59) checks `progress.hasSecretFound(levelId)` — which reads this frozen in-memory closure map (`src/progress.js:164-166`), **not** live `localStorage`.
+## Structural Findings (fallow)
 
-So the sequence for attempt N (N > 1), following a genuine attempt-(N-1) reward-verification failure (which, per `secretAlcove.js`'s unconditional-marking design, still leaves `localStorage`'s `secretFound` persisted as `true` even though the award itself was wrong):
+None provided for this review (no `<structural_findings>` block was supplied).
 
-1. `reloadLevel()` step (A) runs — the new scene's `progress` closure is constructed from the **still-poisoned** (pre-clear) `localStorage`, capturing `hasSecretFound(levelId) === true` into memory.
-2. Only *after* `reloadLevel()` resolves does step (B)'s `page.evaluate` delete `secretFound` from `localStorage`.
-3. `driveAndDetectAlcove` then reads `beforeBlob` (post-clear) and correctly computes `alreadyFoundBefore = false` — but this now describes only the *external* `localStorage` snapshot, not the *actual* decision the running scene will make.
-4. When the player touches the alcove, `secretAlcove.js` branches on the **stale in-memory** `progress.hasSecretFound(levelId)`, which is still `true` from step 1 — so it unconditionally takes the "already found" replay branch: `fx.pop` / `audio.playSfx` / `destroy(alcoveObj)`, **never** calling `addBonusXp`, `markSecretFound`, or `save()`. The real award logic is never re-exercised on this attempt.
-5. Result: `triggered = true` (the entity is destroyed either way), `delta = 0` (xp genuinely unchanged, since no award ran), `freshAwardCorrect = false` (afterBlob.xp doesn't match the predicted post-award state), `alreadyFoundBefore = false` (per the now-cleared `localStorage` read in step 3) → `resolved = false`.
+## Narrative Findings (AI reviewer)
 
-This step is a **guaranteed** `resolved: false`, independent of whether the underlying `addBonusXp`/`awardAndCarry` mechanism is genuinely broken or was just a one-off timing flake. Because step 4 never wrote anything back to `localStorage`, the *next* reload (attempt N+1) picks up the correctly-cleared state and gets a genuine, unbiased test — so attempts 1, 3, 5 are real tests and attempts 2, 4 are deterministic no-ops. With `maxAttempts: 5` (the value this codebase always passes — `scripts/audit-phase21-mechanics.mjs:236`), this silently reduces the effective retry budget from up to 5 genuine attempts to 3, directly undermining 23-CONTEXT.md's "3-5 retries... timing-sensitive, not fundamentally unreachable" design intent this whole wrapper exists to serve, and contradicts the fix's own comment claim that clearing `localStorage` "restores `driveAndDetectAlcove`'s own documented 'every attempt starts unseeded for this fact' assumption" — it restores that assumption only for the *external* before/after `localStorage` diff the detector reads, never for the *live game session* whose branch decision actually determines what happens on that attempt.
-
-**Why this wasn't caught by the fixer's own proof:** the fixer's `scratchpad/cr01-verify.mjs` (per `30-REVIEW-FIX.md`) drove `auditLevelWithRetries` against a synthetic mock `page`, not a real browser. The mock "faithfully reproduces `secretAlcove.js`'s real contract" for the *storage write* semantics (unconditional persist-on-first-touch) but — necessarily, since it never runs `src/scenes/game.js`/`src/progress.js` — cannot reproduce the fact that a real browser scene's `progress` object is a **one-shot snapshot** taken at scene-construction time, before `audit-retry.mjs`'s `localStorage` patch has a chance to run. The mock's per-attempt "delta" is presumably driven straight off its own simulated `localStorage`, updated transactionally in the correct read/clear/write order — sidestepping exactly the race this finding describes. The `30-REVIEW-FIX.md` follow-up "re-confirmed end-to-end" run (`node scripts/audit-phase21-mechanics.mjs` against real shipped levels) also would not surface this: every shipped level's alcove genuinely works today, so it resolves on attempt 1 and never reaches the poisoned attempt-2 path at all — the bug is latent precisely in the scenario (a persistently-broken award needing 2+ attempts) that real content never exercises.
-
-**Does this reopen the original false-pass vulnerability?** No — traced exhaustively above, the poisoned attempt always computes `delta === 0` *and* `alreadyFoundBefore === false` (since the `localStorage` read that feeds `alreadyFoundBefore` genuinely is cleared, even though the live scene's branch decision isn't), so `resolved` can never evaluate `true` on a poisoned attempt. The severity here is about the retry mechanism silently failing at its one job (reliably distinguishing "genuinely broken" from "just unlucky this run") by wasting half its budget on deterministic non-tests, which can cause a legitimately-flaky-but-correct mechanic to be reported as a HARD finding in `23-FINDINGS.md`-style output when a genuine 5-attempt budget would have caught it. Classified Critical because a verification harness whose core value proposition is "produces a reliable pass/fail signal so a human doesn't have to" silently delivering a materially weaker guarantee than documented is a correctness defect in the tool itself, not a cosmetic one.
-
-**Fix:** Reorder the two steps — clear the `localStorage` fact **before** calling `reloadLevel()`, not after, so the new scene's `loadSave()`/`createProgress()` call (triggered synchronously by the `Enter` press inside `reloadLevel()`) observes the already-cleared state:
-
-```js
-if (attempt > 1) {
-  if ((level.geometry.secretAlcove ?? []).length > 0) {
-    await page.evaluate(
-      ({ key, levelId }) => {
-        try {
-          const blob = JSON.parse(localStorage.getItem(key));
-          if (blob?.levels?.[levelId]) {
-            delete blob.levels[levelId].secretFound;
-            localStorage.setItem(key, JSON.stringify(blob));
-          }
-        } catch {
-          // forgiving — a malformed/missing blob just leaves nothing to clear
-        }
-      },
-      { key: CONFIG.SAVE.KEY, levelId: level.id }
-    );
-  }
-  await reloadLevel(); // now observes the already-cleared secretFound state
-}
-```
-
-This is safe: the clear-patch operates on `localStorage` directly (not via any live scene object), so running it while the *previous* attempt's scene is still the active page context is harmless — it only needs to land before the *next* scene's `loadSave()` call, which is exactly what moving it before `reloadLevel()` guarantees. Re-verify with a mock that actually models the "scene snapshot is taken once, at `Enter`-press time" ordering (or, more convincingly, add this exact regression to the real Playwright-driven audit: seed a deliberately-broken `addBonusXp` via a monkeypatch/build flag and confirm `attempts` in the final result reflects genuine re-tries, not a mix of real and poisoned ones).
-
-## Warnings
-
-### WR-04: `predictAward` in `mechanic-drive.mjs` is a hand-duplicated reimplementation of `progress.js`'s `awardAndCarry`, with no shared import and no regression test tying the two together
-
-**File:** `scripts/lib/mechanic-drive.mjs:616-626`
-
-**Issue:** The WR-02 fix's `predictAward` helper is a byte-for-byte re-derivation of `src/progress.js:104-130`'s `threshold`/`awardAndCarry` logic (confirmed correct in this review — the `Math.round(BASE_XP * LEVEL_MULT ** (lvl-1))` threshold formula and the `while (xp >= threshold) { xp -= threshold; level += 1 }` carry-over loop match exactly). The fix's own comment acknowledges the risk ("never re-tune independently — this MUST stay byte-for-byte in sync with progress.js's awardAndCarry"), but `progress.js` exports only `createProgress`/`loadSave`/`writeSave`/`resetSave` — `threshold` and `awardAndCarry` are private closure-local functions, not exported — so there is no way for `mechanic-drive.mjs` to import the real logic instead of re-deriving it, and no automated check (lint rule, shared fixture, or self-test comparing the two implementations) that would catch the two silently diverging if `progress.js`'s curve or carry-over shape is ever changed without a matching edit here. Since both read the same `CONFIG.PROGRESS.BASE_XP`/`LEVEL_MULT` constants, a pure *tuning* change (retuning the numbers) stays in sync automatically; only an *algorithmic* change to `progress.js`'s award/carry-over shape (e.g., changing the reset-on-level-up semantics, or adding a cap) would silently break this oracle without either file's own tests noticing.
-
-**Fix:** Either (a) export `threshold`/`awardAndCarry` (or a `predictAward`-shaped pure function) from `src/progress.js` as the single source of truth and import it here — `progress.js`'s own header already documents it as import-nothing/engine-free, so this wouldn't violate the a727c13 firewall — or (b) at minimum, add a small cross-file self-test (in `mechanic-drive.mjs` or a new `scripts/lib/*.mjs` self-test) that constructs a real `createProgress()` instance, calls `.addBonusXp(CONFIG.PROGRESS.XP_ALCOVE)` across a level-up boundary, and asserts the result matches `predictAward`'s prediction for the same seed — so a future divergence fails loudly instead of silently degrading this specific verification path.
+No Critical or Warning findings. Both of iteration 2's fixes (`adf18b4` CR-01 residual,
+`f832399` WR-04 `predictAward` extraction) were traced against real code and confirmed
+against live test output rather than taken on faith, and hold up under adversarial
+scrutiny — no residual defects found in this final pass. This closes the 3-iteration
+fix loop for Phase 30.
 
 ---
 
