@@ -1,0 +1,45 @@
+Asset:        assets/tiles/atlas-swamp.png (swamp biome terrain atlas — 32x16,
+              2 frames of 16x32: cap + fill)
+              assets/parallax/far-swamp.png, mid-swamp.png, near-swamp.png
+              (3-layer parallax, 640x120/144/90)
+              assets/player-swamphunter.png (player sprite sheet — 192x32,
+              12 frames: 2 idle + 6 run + 2 jump + 2 fall)
+Source pack:  "Gothicvania Swamp"
+Author:       ansimuz (Luis Zuno)
+Source URL:   https://opengameart.org/sites/default/files/gothicvania_swamp_files.zip
+Tiles/frames used: hand-identified cap+fill crop rectangles from the swamp
+              tileset for the terrain atlas (see
+              scripts/build-art-assets.py's build_biome_atlas_swamp());
+              the swamp pack's 3 native background layers, tiled horizontally
+              to 640px width via _tile_to_width() (see
+              build_biome_parallax_swamp()); the Swamp Hunter's own idle/run/
+              jump/fall source frames, 6 hand-picked run frames (run1/4/6/9/
+              11/14) spaced evenly across the 14-frame cycle rather than a
+              contiguous slice (see build_player_swamphunter()).
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own bundled public-license.txt:
+    "Public domain and free to use on whatever you want, personal or
+     commercial. Credit is not required but appreciated."
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+
+Processing note: no hue-conform retint was applied to any Swamp-pack asset —
+direct pixel sampling confirmed the terrain atlas and all 3 parallax layers
+measure 0% or near-0% dominant pink/magenta hue pre-bake. The terrain atlas
+and parallax layers are palette-remapped onto this project's locked dark
+environment token set via scripts/build-art-assets.py's `_remap_luminance`
+pass (same pipeline as every other biome). The player sprite (a direct
+style-board pick, per 31-CONTEXT.md/31-02-SUMMARY.md's 5-round human sign-off)
+is baked at NATIVE Gothicvania color, deliberately skipping `_remap`/
+`_remap_luminance` — palette-conforming it would silently change what was
+actually shown and approved at sign-off.
+
+Verification: License page (opengameart.org) and the pack's own bundled
+public-license.txt both confirmed CC0/public-domain by ansimuz this session
+(2026-07-10, live re-verified — see Plan 31-01's SUMMARY.md). The pack's
+"Music License" section (Pascal Belisle, CC-BY) was also re-confirmed this
+session and is explicitly NOT vendored — no .mp3/.ogg from this pack ships
+under assets/.
+
+Vendor logo / brand art: none.

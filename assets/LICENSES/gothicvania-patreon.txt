@@ -1,0 +1,48 @@
+Asset:        assets/parallax/mid-town.png, near-town.png (night-town
+              parallax detail layers, 640x144/90)
+              assets/parallax/far-castle.png, mid-castle.png (castle biome
+              exterior/interior parallax, 640x120/144)
+              assets/enemy-hellhound.png (castle biome enemy sprite — 384x32,
+              6 idle-only frames)
+Source pack:  "Gothicvania Patreon Collection" (13 sub-packs bundled together)
+Author:       ansimuz (Luis Zuno)
+Source URL:   https://opengameart.org/sites/default/files/%20gothicvania%20patreon%20collection.zip
+Tiles/frames used: the collection's night-town background layers, tiled
+              horizontally to 640px width via _tile_to_width() and folded in
+              as the town biome's mid/near parallax layers (see
+              scripts/build-art-assets.py's build_biome_parallax_town());
+              the collection's Gothic Castle environment + Old Dark Castle
+              interior background layers, similarly tiled for the castle
+              biome's far/mid parallax layers (see
+              build_biome_parallax_castle()); the Hell hound's idle-only
+              source frames sliced from hell-hound-idle.png — walk/run/jump
+              source frames from the same character were never referenced
+              (see build_enemy_hellhound()).
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own bundled public-license.txt:
+    "Public domain and free to use on whatever you want, personal or
+     commercial. Credit is not required but appreciated."
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+
+Processing note: no hue-conform retint was applied to any Patreon
+Collection asset — direct pixel sampling confirmed the night-town and
+castle parallax layers measure 0% or near-0% dominant pink/magenta hue
+pre-bake. The 4 parallax layers are palette-remapped onto this project's
+locked dark environment token set via scripts/build-art-assets.py's
+`_remap_luminance` pass (same pipeline as every other biome layer). The
+Hell hound enemy sprite (a direct style-board pick, per
+31-CONTEXT.md/31-02-SUMMARY.md's 5-round human sign-off, including a
+floor-alignment fix at CASTLE_HOUND_FEET_Y=258 during that review) is baked
+at NATIVE Gothicvania color, deliberately skipping `_remap`/
+`_remap_luminance` — palette-conforming it would silently change what was
+actually shown and approved at sign-off.
+
+Verification: License page (opengameart.org) and the pack's own bundled
+public-license.txt both confirmed CC0/public-domain by ansimuz this session
+(2026-07-10, live re-verified — see Plan 31-01's SUMMARY.md). This pack's
+public-license.txt has no music-license mention at all (no bundled music) —
+confirmed no .mp3/.ogg from this pack ships under assets/.
+
+Vendor logo / brand art: none.

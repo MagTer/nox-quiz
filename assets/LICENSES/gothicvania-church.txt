@@ -1,0 +1,35 @@
+Asset:        assets/parallax/near-castle.png (castle biome near parallax
+              layer — church interior background accent, 640x90)
+Source pack:  "Gothicvania Church"
+Author:       ansimuz (Luis Zuno)
+Source URL:   https://opengameart.org/sites/default/files/gothicvania%20church%20files.zip
+Tiles/frames used: the church pack's interior background layer, tiled
+              horizontally to 640px width via _tile_to_width() and folded in
+              as the castle biome's near parallax layer (see
+              scripts/build-art-assets.py's build_biome_parallax_castle()) —
+              per the "3-4 biomes covering 8 levels" requirement, Church does
+              not ship as its own biome; it accents the castle biome's
+              interior register instead (levels 7-8).
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own bundled public-license.txt:
+    "Public domain and free to use on whatever you want, personal or
+     commercial. Credit is not required but appreciated."
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+
+Processing note: no hue-conform retint was applied — direct pixel sampling
+confirmed the church interior layer measures 0% or near-0% dominant
+pink/magenta hue pre-bake. Palette-remapped onto this project's locked dark
+environment token set via scripts/build-art-assets.py's `_remap_luminance`
+pass (same pipeline as every other biome layer).
+
+Verification: License page (opengameart.org) and the pack's own bundled
+public-license.txt both confirmed CC0/public-domain by ansimuz this session
+(2026-07-10, live re-verified — see Plan 31-01's SUMMARY.md). This pack's
+public-license.txt has no dedicated "Music License" section (only an
+"Additional credits / Demo Music by Pascal Belisle" line) — weaker
+attribution language than the Swamp/Town/Cemetery packs, but still
+non-CC0; no music from this pack is vendored regardless.
+
+Vendor logo / brand art: none.

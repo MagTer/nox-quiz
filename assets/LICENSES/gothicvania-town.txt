@@ -1,0 +1,39 @@
+Asset:        assets/tiles/atlas-town.png (town biome terrain atlas — 32x16,
+              2 frames of 16x32: cap + fill)
+              assets/parallax/far-town.png (dusk-sky parallax far layer,
+              640x120)
+Source pack:  "Gothicvania Town"
+Author:       ansimuz (Luis Zuno)
+Source URL:   https://opengameart.org/sites/default/files/gothicvania-town-files.zip
+Tiles/frames used: hand-identified cap+fill crop rectangles (roof/rooftop
+              terrain region) for the terrain atlas (see
+              scripts/build-art-assets.py's build_biome_atlas_town()); the
+              town pack's native dusk-sky background layer, tiled
+              horizontally to 640px width via _tile_to_width() (see
+              build_biome_parallax_town()).
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own bundled public-license.txt:
+    "Public domain and free to use on whatever you want, personal or
+     commercial. Credit is not required but appreciated."
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+
+Processing note: BOTH assets in this pack were retinted via `hue_shift_band()`
+(copied verbatim from .planning/research/v6-scouting/styleboard.py, same
+call already proven in styleboard.py's town()) — `hue_shift_band(215, 255,
+-60)` — because the pack's native rooftop terrain and dusk sky are
+salmon-pink, which violates this project's no-pink rule as-is. Pre-retint
+measurements: the raw tileset crop scored ~33.1% dominant pink/magenta hue,
+the raw background.png scored ~64.3%. Post-bake (retint applied, then run
+through the shared `_remap_luminance` palette-conform pass), both outputs
+measure 0.0000 (0%) via scripts/lib/pink_scan.py.
+
+Verification: License page (opengameart.org) and the pack's own bundled
+public-license.txt both confirmed CC0/public-domain by ansimuz this session
+(2026-07-10, live re-verified — see Plan 31-01's SUMMARY.md). The pack's
+"Music License" section (Pascal Belisle, CC-BY) was also re-confirmed this
+session and is explicitly NOT vendored — no .mp3/.ogg from this pack ships
+under assets/.
+
+Vendor logo / brand art: none.
