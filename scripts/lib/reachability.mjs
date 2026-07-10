@@ -527,6 +527,35 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
     }
   }
 
+  // --- mover-reachability: worst-case-extreme rule (MOT-04). Reuses
+  // bestMarginToPoint for both ping-pong endpoints — no duplicated reachability
+  // math. A mover is available at EITHER endpoint independently (the player may
+  // arrive exactly when it's at its least helpful position), so this reports the
+  // WORSE (lower marginRatio, more likely to fail) of the two endpoint results;
+  // if EITHER endpoint is flatly unreachable, the whole mover HARD-FAILs.
+  // `?? []`-guarded: zero real levels carry geometry.movers today (Phase 36
+  // places the first one), so this produces zero rows against all 8 shipped
+  // levels — nothing to report on an empty array.
+  for (const [i, m] of (geometry.movers ?? []).entries()) {
+    const r1 = bestMarginToPoint({ x: m.x1, y: m.y1 }, nodes, spawnPaths, envelope);
+    const r2 = bestMarginToPoint({ x: m.x2, y: m.y2 }, nodes, spawnPaths, envelope);
+    if (r1 === null || r2 === null) {
+      const badEndpoint = r1 === null ? `x1:${m.x1} y1:${m.y1}` : `x2:${m.x2} y2:${m.y2}`;
+      rows.push({
+        check: "mover-reachability",
+        status: "HARD-FAIL",
+        descriptor: `mover[${i}] endpoint (${badEndpoint}) unreachable from spawn (worst-case-extreme)`,
+      });
+    } else {
+      const worst = Math.max(r1.marginRatio, r2.marginRatio);
+      rows.push({
+        check: "mover-reachability",
+        status: worst >= WARN_MARGIN_RATIO ? "WARN" : "PASS",
+        descriptor: `mover[${i}] (${m.x1},${m.y1})<->(${m.x2},${m.y2}) worst-case reached (marginRatio=${worst.toFixed(3)})`,
+      });
+    }
+  }
+
   const hardFailCount = rows.filter((r) => r.status === "HARD-FAIL").length;
   return { rows, hardFailCount };
 }
@@ -818,6 +847,58 @@ if (isMain) {
     check(!threw, "checkLevelReachability must never throw when geometry.secretAlcove is omitted");
     const alcoveRows = result?.rows.filter((r) => r.check === "secret-alcove-reachability") ?? [];
     check(alcoveRows.length === 0, `expected zero secret-alcove-reachability rows when omitted, got ${alcoveRows.length}`);
+  }
+
+  // --- Task 2 (mover-reachability, worst-case-extreme) behavior cases ---
+
+  // Case K: a mover whose near endpoint sits on the spawn floor at the SAME y
+  // (dy=0, trivial walk) and whose far endpoint requires a 150px rise
+  // (exceeding maxRise) -> mover-reachability HARD-FAIL (the worst of the two,
+  // since the far endpoint is null/unreachable).
+  {
+    const geometry = {
+      floors: [{ x: 0, w: 400 }],
+      goal: { x: 350, y: 320 },
+      movers: [{ x1: 150, y1: 320, x2: 250, y2: 170 }],
+    };
+    const { rows } = checkLevelReachability(geometry, testEnvelope);
+    const moverRows = rows.filter((r) => r.check === "mover-reachability");
+    check(moverRows.length === 1, `expected exactly 1 mover-reachability row, got ${moverRows.length}`);
+    check(moverRows[0]?.status === "HARD-FAIL", `expected HARD-FAIL for a mover with an unreachable far endpoint, got ${JSON.stringify(moverRows[0])}`);
+  }
+
+  // Case L: a mover whose BOTH endpoints are comfortably within jump range ->
+  // mover-reachability PASS or WARN, never HARD-FAIL.
+  {
+    const geometry = {
+      floors: [{ x: 0, w: 560 }],
+      platforms: [{ x: 360, y: 240, w: 160, h: 24 }],
+      goal: { x: 100, y: 320 },
+      movers: [{ x1: 150, y1: 320, x2: 400, y2: 170 }],
+    };
+    const { rows } = checkLevelReachability(geometry, testEnvelope);
+    const moverRows = rows.filter((r) => r.check === "mover-reachability");
+    check(moverRows.length === 1, `expected exactly 1 mover-reachability row, got ${moverRows.length}`);
+    check(
+      moverRows[0]?.status === "PASS" || moverRows[0]?.status === "WARN",
+      `expected PASS or WARN for a fully-in-range mover, got ${JSON.stringify(moverRows[0])}`
+    );
+  }
+
+  // Case M: checkLevelReachability with geometry.movers omitted -> zero
+  // mover-reachability rows, never throws.
+  {
+    const geometry = { floors: [{ x: 0, w: 400 }], goal: { x: 100, y: 320 } };
+    let threw = false;
+    let result;
+    try {
+      result = checkLevelReachability(geometry, testEnvelope);
+    } catch {
+      threw = true;
+    }
+    check(!threw, "checkLevelReachability must never throw when geometry.movers is omitted");
+    const moverRows = result?.rows.filter((r) => r.check === "mover-reachability") ?? [];
+    check(moverRows.length === 0, `expected zero mover-reachability rows when omitted, got ${moverRows.length}`);
   }
 
   if (failures > 0) {
