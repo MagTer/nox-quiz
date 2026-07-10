@@ -169,7 +169,7 @@ Plans:
   3. An automated pink-hue scan gate exists and passes over all vendored art — no pink asset can land now or in any future phase; the two known pink/magenta skies are retinted via the live-proven Pillow hue-conform pass
   4. Baked per-biome atlases follow a written anchor/lip convention (16×32-compatible cap tiles, documented lip offset) so downstream integration can prove sprites don't lie about solid ground
 
-**Plans**: 4/6 plans executed
+**Plans**: 5/6 plans executed
 
 Plans:
 **Wave 1**
@@ -187,7 +187,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 31-05-PLAN.md — Bake the Swamp Hunter player + Hell hound enemy sprites, write the anchor/lip convention doc — ART-01
+- [x] 31-05-PLAN.md — Bake the Swamp Hunter player + Hell hound enemy sprites, write the anchor/lip convention doc — ART-01
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -332,7 +332,7 @@ Plans:
 | 28. Full Verification & Interactive Sign-off | v5.0 | 3/3 | ✅ Complete | 2026-07-09 |
 | 29. Mechanic Cleanup | v6.0 | 2/2 | Complete    | 2026-07-09 |
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
-| 31. Asset Bake & Style-Board Sign-off | v6.0 | 4/6 | In Progress|  |
+| 31. Asset Bake & Style-Board Sign-off | v6.0 | 5/6 | In Progress|  |
 | 32. Terrain & Parallax Rendering | v6.0 | 0/TBD | Not started | - |
 | 33. Player & Entity Animation | v6.0 | 0/TBD | Not started | - |
 | 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
