@@ -169,7 +169,16 @@ Plans:
   3. An automated pink-hue scan gate exists and passes over all vendored art — no pink asset can land now or in any future phase; the two known pink/magenta skies are retinted via the live-proven Pillow hue-conform pass
   4. Baked per-biome atlases follow a written anchor/lip convention (16×32-compatible cap tiles, documented lip offset) so downstream integration can prove sprites don't lie about solid ground
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+
+- [ ] 31-01-PLAN.md — Re-fetch the 5 Gothicvania OGA zip packs (source files absent from this filesystem), verify CC0 live — ART-01
+- [ ] 31-02-PLAN.md — Regenerate the style board (Swamp Hunter + Hell hound swaps) and get a genuine round-2 human sign-off — ART-01
+- [ ] 31-03-PLAN.md — Write the pink-scan gate (`check-pink-gate.sh` + `pink_scan.py`), proven RED-first against the 2 known pink assets — ART-01
+- [ ] 31-04-PLAN.md — Bake all 4 biomes' terrain atlases + parallax layers, retinting Town/Cemetery's pink skies — ART-01
+- [ ] 31-05-PLAN.md — Bake the Swamp Hunter player + Hell hound enemy sprites, write the anchor/lip convention doc — ART-01
+- [ ] 31-06-PLAN.md — CREDITS.md + LICENSES proof files, final full-tree pink-gate regression proof — ART-01
 
 ### Phase 32: Terrain & Parallax Rendering
 
@@ -310,7 +319,7 @@ Plans:
 | 28. Full Verification & Interactive Sign-off | v5.0 | 3/3 | ✅ Complete | 2026-07-09 |
 | 29. Mechanic Cleanup | v6.0 | 2/2 | Complete    | 2026-07-09 |
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
-| 31. Asset Bake & Style-Board Sign-off | v6.0 | 0/TBD | Not started | - |
+| 31. Asset Bake & Style-Board Sign-off | v6.0 | 0/6 | Not started | - |
 | 32. Terrain & Parallax Rendering | v6.0 | 0/TBD | Not started | - |
 | 33. Player & Entity Animation | v6.0 | 0/TBD | Not started | - |
 | 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
