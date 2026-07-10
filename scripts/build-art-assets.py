@@ -961,6 +961,133 @@ def build_biome_parallax_castle():
     _bake_biome_parallax_layer("castle", "near", near_path, ENVIRONMENT_PALETTE_NEAR)
 
 
+# --- Phase 31 (ART-01): Swamp Hunter player + Hell hound enemy sprite bakes ---
+#
+# The two remaining character-class sprites for this phase. Both ship at
+# NATIVE Gothicvania colors (no _remap/_remap_luminance) -- unlike every
+# other bake in this file, which palette-conforms onto PLAYER_PALETTE or
+# ENVIRONMENT_PALETTE. This is deliberate: CONTEXT.md frames both the Swamp
+# Hunter and the Hell hound as direct style-board picks (31-02-SUMMARY.md's
+# 5-round sign-off), not a request for further palette conforming -- baking
+# them through a remap would silently change what was actually shown and
+# approved.
+
+
+def build_player_swamphunter():
+    """Gothicvania Swamp "Sprites/Player/{idle,run,jump,fall}/*.png" (62x54
+    native canvas each) -> assets/player-swamphunter.png (192x32, 12 frames
+    of 16x32 each).
+
+    Frames chosen (ART-04's move-set only -- crouch/shoot/hurt excluded,
+    they are not part of this game's move-set per CONTEXT.md):
+      - idle: idle1.png, idle2.png (2 frames)
+      - run:  run1.png, run4.png, run6.png, run9.png, run11.png, run14.png
+              (6 frames hand-picked, evenly spaced across the 14-frame run
+              cycle -- not a contiguous slice, so the baked loop still reads
+              as a full stride cycle rather than a truncated fragment)
+      - jump: jump1.png, jump2.png (2 frames)
+      - fall: fall1.png, fall2.png (2 frames)
+    Cell layout: 12 frames total, each a 16x32 cell, laid out left-to-right
+    in the above order -> 192x32 sheet.
+
+    Pattern 1 (mirrors build_player()'s own shared-scale-factor idiom): ONE
+    scale factor is derived from the TALLEST frame's own content bbox across
+    ALL 12 included frames (measured this session: jump1.png, content height
+    49px of the 54px native canvas) and applied uniformly to every frame, so
+    the character does not visibly grow/shrink between idle/run/jump/fall.
+    Each frame is bottom-aligned (feet on the cell's bottom edge) and
+    horizontally centered within its 16px-wide cell.
+
+    Deliberately NOT run through _remap/_remap_luminance -- ships at native
+    Gothicvania colors, per this section's header comment. Image.NEAREST is
+    the only resize used (never LANCZOS, which would blur pixel-art edges).
+    """
+    target_w, target_h = 16, 32
+    player_dir = os.path.join(
+        GV_SRC, "gothicvania_swamp_files", "Gothicvania Swamp files", "Sprites", "Player"
+    )
+    frame_files = [
+        ("idle", "idle1.png"),
+        ("idle", "idle2.png"),
+        ("run", "run1.png"),
+        ("run", "run4.png"),
+        ("run", "run6.png"),
+        ("run", "run9.png"),
+        ("run", "run11.png"),
+        ("run", "run14.png"),
+        ("jump", "jump1.png"),
+        ("jump", "jump2.png"),
+        ("fall", "fall1.png"),
+        ("fall", "fall2.png"),
+    ]
+
+    loaded = []
+    for subdir, fname in frame_files:
+        im = Image.open(os.path.join(player_dir, subdir, fname)).convert("RGBA")
+        loaded.append((im, im.getbbox()))
+
+    max_content_h = max(bbox[3] - bbox[1] for _, bbox in loaded)
+    scale = target_h / max_content_h  # height-bound scale, shared across all 12 frames
+
+    sheet = Image.new("RGBA", (target_w * len(frame_files), target_h), (0, 0, 0, 0))
+    for i, (im, bbox) in enumerate(loaded):
+        cropped = im.crop(bbox)
+        new_w = max(1, round(cropped.width * scale))
+        new_h = max(1, round(cropped.height * scale))
+        resized = cropped.resize((new_w, new_h), Image.NEAREST)  # NEAREST only
+        frame = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+        px = (target_w - new_w) // 2  # center horizontally (clips if wider than target_w)
+        py = target_h - new_h  # bottom-align feet
+        frame.paste(resized, (px, py), resized)
+        sheet.paste(frame, (i * target_w, 0), frame)
+
+    assert sheet.size == (target_w * len(frame_files), target_h), (
+        f"player-swamphunter sheet wrong size: {sheet.size}"
+    )
+    save(sheet, os.path.join(ROOT, "assets", "player-swamphunter.png"))
+
+
+def build_enemy_hellhound():
+    """Gothicvania Patreon Collection's Hell-Hound-Files/PNG/hell-hound-idle.png
+    (384x32, 6 frames of 64x32 each) -> assets/enemy-hellhound.png.
+
+    Deliberately NOT hell-hound-walk.png/-run.png/-jump.png -- CONTEXT.md is
+    explicit this phase vendors the STATIC sprite only; motion wiring
+    (patrol/waypoints/speed) is Phase 36's job.
+
+    Ships at native size (no resize needed -- 64x32 per frame already sits
+    at a reasonable scale alongside the other enemy sprites) and native
+    Gothicvania color (no _remap/_remap_luminance), same reasoning as
+    build_player_swamphunter() above: this is a direct style-board pick,
+    not a request for further palette conforming.
+    """
+    frame_w, frame_h = 64, 32
+    num_frames = 6
+    sheet_path = os.path.join(
+        GV_SRC,
+        "gothicvaniapatreoncollection",
+        " gothicvania patreon collection",
+        "Hell-Hound-Files",
+        "PNG",
+        "hell-hound-idle.png",
+    )
+    im = Image.open(sheet_path).convert("RGBA")
+    assert im.size == (frame_w * num_frames, frame_h), (
+        f"hell-hound-idle.png source unexpected size: {im.size}"
+    )
+
+    sheet = Image.new("RGBA", (frame_w * num_frames, frame_h), (0, 0, 0, 0))
+    for i in range(num_frames):
+        frame = im.crop((i * frame_w, 0, (i + 1) * frame_w, frame_h))
+        resized = frame.resize((frame_w, frame_h), Image.NEAREST)  # identity-scale NEAREST
+        sheet.paste(resized, (i * frame_w, 0), resized)
+
+    assert sheet.size == (frame_w * num_frames, frame_h), (
+        f"enemy-hellhound sheet wrong size: {sheet.size}"
+    )
+    save(sheet, os.path.join(ROOT, "assets", "enemy-hellhound.png"))
+
+
 FONT_PATH = os.path.join(ROOT, "assets", "_font-src", "monogram.ttf")
 
 # Logo fill/stroke colors (BRAND-01/BRAND-03; Phase 26 Plan 07) — mirror
@@ -1138,3 +1265,5 @@ if __name__ == "__main__":
     build_biome_parallax_town()
     build_biome_parallax_cemetery()
     build_biome_parallax_castle()
+    build_player_swamphunter()
+    build_enemy_hellhound()
