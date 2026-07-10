@@ -108,7 +108,7 @@ Rebranded Math Lab → Nox Run; doubled the game to 8 levels (levels 1–4 fixed
 
 - [x] **Phase 29: Mechanic Cleanup** - Collect-the-answer removed everywhere atomically, math pacing rebalanced, and the secret alcove finally feels like finding a secret — cue on touch, positive-only marker on select (completed 2026-07-09)
 - [x] **Phase 30: Harness Extensions** - The validator and interactive audit learn every new dynamic RED-first — alcove reachability + trigger signal, mover worst-case-extreme rule — before any level uses them (completed 2026-07-10)
-- [ ] **Phase 31: Asset Bake & Style-Board Sign-off** - Gothicvania-anchored biome art vendored, conformed, and human-approved on a style board before one pixel is integrated
+- [x] **Phase 31: Asset Bake & Style-Board Sign-off** - Gothicvania-anchored biome art vendored, conformed, and human-approved on a style board before one pixel is integrated (completed 2026-07-10)
 - [ ] **Phase 32: Terrain & Parallax Rendering** - Solid autotiled ground and real multi-layer parallax replace floating strips and flat triangles — geometry byte-frozen
 - [ ] **Phase 33: Player & Entity Animation** - Fully animated player and real animated mechanic-entity art on explicitly locked colliders
 - [ ] **Phase 34: Level Quality Pass** - Levels 5–8 reachability fixed, 07/08 climbs differentiated, soft-rules review done, and motion rules written into LEVEL-DESIGN.md
@@ -169,7 +169,7 @@ Plans:
   3. An automated pink-hue scan gate exists and passes over all vendored art — no pink asset can land now or in any future phase; the two known pink/magenta skies are retinted via the live-proven Pillow hue-conform pass
   4. Baked per-biome atlases follow a written anchor/lip convention (16×32-compatible cap tiles, documented lip offset) so downstream integration can prove sprites don't lie about solid ground
 
-**Plans**: 5/6 plans executed
+**Plans**: 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -191,7 +191,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 31-06-PLAN.md — CREDITS.md + LICENSES proof files, final full-tree pink-gate regression proof — ART-01
+- [x] 31-06-PLAN.md — CREDITS.md + LICENSES proof files, final full-tree pink-gate regression proof — ART-01
 
 ### Phase 32: Terrain & Parallax Rendering
 
@@ -332,7 +332,7 @@ Plans:
 | 28. Full Verification & Interactive Sign-off | v5.0 | 3/3 | ✅ Complete | 2026-07-09 |
 | 29. Mechanic Cleanup | v6.0 | 2/2 | Complete    | 2026-07-09 |
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
-| 31. Asset Bake & Style-Board Sign-off | v6.0 | 5/6 | In Progress|  |
+| 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete   | 2026-07-10 |
 | 32. Terrain & Parallax Rendering | v6.0 | 0/TBD | Not started | - |
 | 33. Player & Entity Animation | v6.0 | 0/TBD | Not started | - |
 | 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
