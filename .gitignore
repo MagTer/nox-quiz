@@ -8,3 +8,10 @@ artifacts/
 # Python bytecode cache — regenerated on every scripts/build-art-assets.py run
 __pycache__/
 *.pyc
+
+# Third-party Gothicvania source-pack downloads (multi-MB raw zips, re-fetchable any
+# time from .planning/research/v6-scouting/ASSET-SCOUTING.md's URL table). Only the
+# baked/cropped output PNGs get vendored into assets/ proper — this deliberately
+# differs from the assets/_kenney-src/ and assets/_opengameart-src/ convention
+# (which IS committed) because of this pack's larger size and per Phase 31's plan.
+assets/_gothicvania-src/
