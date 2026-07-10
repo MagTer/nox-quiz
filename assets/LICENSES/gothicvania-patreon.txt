@@ -4,6 +4,8 @@ Asset:        assets/parallax/mid-town.png, near-town.png (night-town
               exterior/interior parallax, 640x120/144)
               assets/enemy-hellhound.png (castle biome enemy sprite — 384x32,
               6 idle-only frames)
+              assets/tiles/atlas-castle.png (castle biome terrain atlas —
+              32x32, 2 frames of 16x32: cap + fill)
 Source pack:  "Gothicvania Patreon Collection" (13 sub-packs bundled together)
 Author:       ansimuz (Luis Zuno)
 Source URL:   https://opengameart.org/sites/default/files/%20gothicvania%20patreon%20collection.zip
@@ -17,7 +19,12 @@ Tiles/frames used: the collection's night-town background layers, tiled
               build_biome_parallax_castle()); the Hell hound's idle-only
               source frames sliced from hell-hound-idle.png — walk/run/jump
               source frames from the same character were never referenced
-              (see build_enemy_hellhound()).
+              (see build_enemy_hellhound()); two hand-picked gold-capped
+              dark-stone brick crop rects from the Old-Dark-Castle interior
+              tileset (Old-dark-Castle-tileset-Files/PNG/
+              old-dark-castle-interior-tileset.png) for the terrain atlas's
+              cap (320,32,352,114) and fill (272,160,304,224) tiles (see
+              build_biome_atlas_castle()).
 License:      CC0 (Creative Commons Zero / Public Domain)
 
 Quoted license declaration from the pack's own bundled public-license.txt:
