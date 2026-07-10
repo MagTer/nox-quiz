@@ -182,3 +182,7 @@ None - no external service configuration required.
 ---
 *Phase: 31-asset-bake-style-board-sign-off*
 *Completed: 2026-07-10*
+
+## Self-Check: PASSED
+
+All 16 baked PNG output files confirmed present on disk at their declared paths; all 3 commits (`eb8fe9d`, `c5fc233`, `2cc6134`) confirmed present in git log. `bash scripts/check-pink-gate.sh` re-run clean immediately before this check.
