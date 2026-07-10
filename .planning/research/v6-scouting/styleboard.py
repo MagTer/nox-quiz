@@ -224,7 +224,21 @@ def castle():
     # shared y — each needs its own measured feet_y entirely.
     put_feet(c, hero, 210, 290)
     hound = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Hell-Hound-Files/PNG/hell-hound-idle.png"), 6)
-    c.alpha_composite(hound, (430, 230))
+    # CASTLE_HOUND_FEET_Y: measured directly from the sourced preview tileset,
+    # not guessed (round-5 fix -- round-4 human sign-off: "the weird dog is
+    # floating in the air on that ledge"). The prior code placed the hound
+    # with a raw `c.alpha_composite(hound, (430, 230))` -- a bare top-left
+    # paste that bypassed put_feet's feet-anchoring entirely, unlike every
+    # other character in every other scene. The hound's footprint (canvas
+    # x=430-467) sits over the rope bridge, NOT the door-ledge the player
+    # stands on (that ledge ends around x=260 -- see CASTLE_HERO_FEET_Y
+    # comment above). Sampling the bridge deck's gold-trim top edge pixel-by-
+    # -pixel across the hound's full footprint width (x=430..467) gives a
+    # consistent top row at crop-local y~202 (canvas y = 202 + top(56) = 258,
+    # confirmed solid deck, not void, at every sampled column) -- not the same
+    # y as the player's ledge, and not guessed as identical to it.
+    CASTLE_HOUND_FEET_Y = 258
+    put_feet(c, hound, 430, CASTLE_HOUND_FEET_Y)
     badge(c)
     return c
 
