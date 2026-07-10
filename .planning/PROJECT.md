@@ -41,6 +41,7 @@ This milestone: reviewed and auto-fixed the entire v4.1 codebase before doubling
 **Delivered so far:**
 - ✓ Validated in Phase 29 — Mechanic cleanup: collect-the-answer removed atomically from all 5 affected levels (code + level data + every defending harness fixture, one commit), math pacing re-verified rhythm-intact with zero XP-path disturbance; secret alcove now gives real on-touch discovery feedback (particle burst + chime + "+5 XP" popup, one-shot per level with anti-farming + anti-loss-on-escape guards) and a positive-only star marker on level-select backed by a save-format version bump — closes the long-open "alcove feels like nothing happened" todo from Phase 25
 - ✓ Validated in Phase 30 — Harness extensions: the validator now provably catches an unreachable secret alcove (point-vs-jump-reach, RED-first proven against a fixture, PASS on all 8 real levels) and a mover-dependent path unreachable under a worst-case-extreme rule (RED-first, no real movers exist yet — Phase 36's job); the interactive audit now genuinely detects alcove discovery via entity-destroy/XP-delta (never the always-false challenge-open signal) across all 8 levels — closes the "no automated alcove coverage" todo from Phase 25
+- ✓ Validated in Phase 31 — Asset Bake & Style-Board Sign-off: one style-coherent CC0 Gothicvania-anchored collection (4 biomes — swamp/town/cemetery/castle) vendored under `assets/` with per-pack license proofs in `assets/LICENSES/` and credits in `CREDITS.md`; Swamp Hunter player + Hell hound enemy sprites and 4 biome terrain atlases + 12 parallax layers baked; an automated pink-hue scan gate (`check-pink-gate.sh`/`pink_scan.py`), RED-first proven, now guards every future phase, with the two known pink/magenta skies (town, cemetery) retinted; a written anchor/lip convention documented in `docs/LEVEL-DESIGN.md` §9 for downstream integration — genuine 5-round human style-board sign-off found and fixed 2 real floor-alignment bugs before final "Looks good. Approved." (ART-01)
 
 ## Shipped Milestone: v5.0 Nox Run — Real Levels (2026-07-09)
 
@@ -96,7 +97,7 @@ Both seeds (SEED-001 SNES-fidelity overhaul, SEED-002 mobile touch controls) and
 
 <!-- v6.0 SNES-Fidelity World — scoped in .planning/REQUIREMENTS.md -->
 
-- [ ] SNES-fidelity sourced biome art: cohesive CC0/CC-BY collection (3–4 biomes), style-board human sign-off before integration
+- [x] SNES-fidelity sourced biome art: cohesive CC0/CC-BY collection (3–4 biomes), style-board human sign-off before integration — Phase 31
 - [ ] Filled terrain (autotiled ground mass), real multi-layer parallax backgrounds per biome
 - [ ] Fully animated player (idle/run/jump/fall/land) and real animated art for mechanic entities
 - [ ] Props layer (visual-only, validator-neutral)
@@ -192,4 +193,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-10 — Phase 30 (Harness Extensions) complete: MECH-04/MOT-04 satisfied*
+*Last updated: 2026-07-10 — Phase 31 (Asset Bake & Style-Board Sign-off) complete: ART-01 satisfied*
