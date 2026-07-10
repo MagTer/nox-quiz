@@ -35,6 +35,7 @@
 // resolution retry is for.
 
 import { deriveEncounters, driveToXPlanned, resolveIfBoxed, driveAndDetectAlcove } from './mechanic-drive.mjs';
+import { CONFIG } from '../../src/config.js';
 
 /**
  * Drive every mechanic encounter in `level.geometry` through up to `maxAttempts`
@@ -67,6 +68,37 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (attempt > 1) {
       await reloadLevel();
+
+      // CR-01 fix (30-REVIEW.md): reloadLevel() re-enters the level fresh but does
+      // NOT clear localStorage — the secret alcove's cross-run persisted
+      // `secretFound` fact (src/mechanics/secretAlcove.js's own CR-01 anti-farming
+      // guard) survives a reload within the same audit run, because secretAlcove.js
+      // sets that fact unconditionally on first touch regardless of whether the XP
+      // award itself was verified correct. Without clearing it here, a genuine
+      // attempt-1 reward-verification failure would "self-heal" into a false pass
+      // on retry: the persisted fact makes attempt 2's touch indistinguishable from
+      // a legitimate already-found re-touch (delta === 0), silently laundering a
+      // real detection failure. Clearing ONLY this level's `secretFound` field
+      // (never `cleared`, xp, level, accuracy, or history) restores
+      // driveAndDetectAlcove's own documented "every attempt starts unseeded for
+      // this fact" assumption without disturbing level-unlock state or any other
+      // mechanic's cross-attempt bookkeeping.
+      if ((level.geometry.secretAlcove ?? []).length > 0) {
+        await page.evaluate(
+          ({ key, levelId }) => {
+            try {
+              const blob = JSON.parse(localStorage.getItem(key));
+              if (blob?.levels?.[levelId]) {
+                delete blob.levels[levelId].secretFound;
+                localStorage.setItem(key, JSON.stringify(blob));
+              }
+            } catch {
+              // forgiving — a malformed/missing blob just leaves nothing to clear
+            }
+          },
+          { key: CONFIG.SAVE.KEY, levelId: level.id }
+        );
+      }
     }
 
     for (const encounter of encounters) {
@@ -93,7 +125,7 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
       let everTriggered;
       let resolved;
       if (encounter.tag === "secret-alcove") {
-        const outcome = await driveAndDetectAlcove(page, encounter, level.geometry);
+        const outcome = await driveAndDetectAlcove(page, encounter, level.geometry, level.id);
         // Still OR-ed across attempts per this file's existing contract — do not
         // regress a previously-true outcome even if this attempt's own drive somehow
         // fails to redetect it.

@@ -524,18 +524,26 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
  * convention) and settles 600ms (mirroring resolveIfBoxed's own settle-recheck
  * precedent) before reading the after-state.
  *
+ * `levelId` (30-REVIEW.md CR-01 fix) is used ONLY to read the pre-touch persisted
+ * `secretFound` fact for THIS level, purely as a defensive sanity signal (see
+ * `alreadyFoundBefore` below) — the actual anti-residue fix lives in the caller,
+ * audit-retry.mjs, which clears this level's persisted `secretFound` fact once per
+ * fresh attempt so `alreadyFoundBefore` is expected to always read `false` here under
+ * normal operation.
+ *
  * @returns {Promise<{triggered: boolean, resolved: boolean}>}
  *   triggered = the alcove entity was destroyed (afterCount < beforeCount) — the only
  *   externally-observable proxy for "the player's bounding box overlapped the trigger
  *   volume," since secretAlcove.js destroys the object in the SAME handler that
  *   detects the touch.
- *   resolved = triggered AND the XP delta matches CONFIG.PROGRESS.XP_ALCOVE (first
- *   touch this audit run) or 0 (already-found-this-run anti-farming case, per
- *   secretAlcove.js's CR-01 guard — every audit run seeds a fresh SAVE_BLOB with no
- *   secretFound field, so the XP_ALCOVE branch is the one actually expected to fire
- *   in this harness).
+ *   resolved = triggered AND (the XP delta matches CONFIG.PROGRESS.XP_ALCOVE exactly
+ *   — a genuine first touch this attempt — OR the touch legitimately re-found an
+ *   alcove that was ALREADY marked found before this specific attempt began, per
+ *   secretAlcove.js's own CR-01 anti-farming guard; `alreadyFoundBefore` gates this
+ *   second branch so a genuine reward-verification failure can never be misread as
+ *   a legitimate re-touch, per 30-REVIEW.md CR-01).
  */
-export async function driveAndDetectAlcove(page, encounter, geometry) {
+export async function driveAndDetectAlcove(page, encounter, geometry, levelId) {
   const beforeCount = await page.evaluate(() => get("secret-alcove").length);
   const beforeBlob = await page.evaluate((key) => {
     try {
@@ -544,6 +552,7 @@ export async function driveAndDetectAlcove(page, encounter, geometry) {
       return null;
     }
   }, CONFIG.SAVE.KEY);
+  const alreadyFoundBefore = beforeBlob?.levels?.[levelId]?.secretFound === true;
 
   await driveToXPlanned(page, encounter.x, geometry, { targetY: encounter.y });
 
@@ -592,7 +601,20 @@ export async function driveAndDetectAlcove(page, encounter, geometry) {
 
   const triggered = afterCount < beforeCount;
   const delta = (afterBlob?.xp ?? 0) - (beforeBlob?.xp ?? 0);
-  const resolved = triggered && (delta === CONFIG.PROGRESS.XP_ALCOVE || delta === 0);
+
+  // CR-01 fix: `delta === 0` alone is NOT sufficient evidence of a legitimate
+  // "already found before this attempt" re-touch — secretAlcove.js persists
+  // secretFound unconditionally on first touch regardless of whether the XP award
+  // was actually correct, so without gating on `alreadyFoundBefore` (the pre-touch
+  // state read above, before this attempt drove anywhere), a genuine reward-
+  // verification failure on a fresh alcove could be misread as a legitimate
+  // zero-delta re-touch. audit-retry.mjs additionally clears this level's
+  // persisted secretFound fact once per fresh attempt, so under normal operation
+  // `alreadyFoundBefore` only reads true within a single attempt that touches more
+  // than one alcove for the same level (the documented "only the first one touched
+  // pays out" content case) — never as residue surviving a retry's reload.
+  const resolved =
+    triggered && (delta === CONFIG.PROGRESS.XP_ALCOVE || (delta === 0 && alreadyFoundBefore));
 
   return { triggered, resolved };
 }
