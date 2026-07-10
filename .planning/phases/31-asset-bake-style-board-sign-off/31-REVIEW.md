@@ -1,150 +1,103 @@
 ---
 phase: 31-asset-bake-style-board-sign-off
-reviewed: 2026-07-10T00:00:00Z
+reviewed: 2026-07-10T22:11:49Z
 depth: standard
-files_reviewed: 9
+files_reviewed: 15
 files_reviewed_list:
+  - assets/enemy-hellhound.png
   - assets/LICENSES/gothicvania-cemetery.txt
   - assets/LICENSES/gothicvania-church.txt
   - assets/LICENSES/gothicvania-patreon.txt
   - assets/LICENSES/gothicvania-swamp.txt
   - assets/LICENSES/gothicvania-town.txt
+  - assets/player-swamphunter.png
+  - assets/tiles/atlas-castle.png
+  - assets/tiles/atlas-cemetery.png
+  - assets/tiles/atlas-swamp.png
+  - assets/tiles/atlas-town.png
   - docs/LEVEL-DESIGN.md
   - scripts/build-art-assets.py
   - scripts/check-pink-gate.sh
   - scripts/lib/pink_scan.py
 findings:
   critical: 0
-  warning: 4
-  info: 2
-  total: 6
+  warning: 2
+  info: 1
+  total: 3
 status: issues_found
 ---
 
 # Phase 31: Code Review Report
 
-**Reviewed:** 2026-07-10
+**Reviewed:** 2026-07-10T22:11:49Z
 **Depth:** standard
-**Files Reviewed:** 9
+**Files Reviewed:** 15
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the Phase 31 asset-bake pipeline (`scripts/build-art-assets.py`, `scripts/check-pink-gate.sh`, `scripts/lib/pink_scan.py`), the level-design documentation update (`docs/LEVEL-DESIGN.md` §9), and the 5 new/updated Gothicvania license attribution files.
+This is an independent re-review of the same file scope covered by an earlier pass (WR-01..WR-04 plus 2 deferred info items), verifying the 4 fix commits (`3f081f6`, `99f5e17`, `c82fa7a`, `91aec3d`) against the current file contents rather than trusting `31-REVIEW-FIX.md`'s claims. This pass's config also adds 6 binary PNGs to scope (`assets/enemy-hellhound.png`, `assets/player-swamphunter.png`, `assets/tiles/atlas-{castle,cemetery,swamp,town}.png`) that the prior pass did not have.
 
-The license `.txt` files were cross-checked against the actual live bytes in `assets/tiles/atlas-*.png` (alpha coverage per row, per-row luminance) — every specific pixel-measurement claim in `docs/LEVEL-DESIGN.md`'s §9 lip-offset table (swamp ~4px, town ~26px, cemetery rows 10-19 only, castle's bottom-anchored gold highlight at rows 27-31) was verified byte-for-byte against the shipped PNGs and is accurate. The pink-gate itself (`pink_scan.py` + `check-pink-gate.sh`) is logically sound: no shell-injection risk, no divide-by-zero, allowlist matching by suffix is robust, self-test cases pass.
+**Fix verification results:**
+- **WR-01** (non-uniform stretch in biome atlas bake) — **confirmed fixed.** `_fit_and_pad()` (added in `3f081f6`) is now used by `_bake_biome_atlas()` for every biome's cap/fill crop. Hand-checked the aspect-preserving `min(w-ratio, h-ratio)` scale factor against all 8 hardcoded crop rects (swamp/town/cemetery/castle × cap/fill) — every one now fits inside the 16x32 target without skew, including cemetery's fill (32x128, previously stretched 2.0x in the opposite direction from its own cap).
+- **WR-02** (pink_scan allowlist comment mischaracterized scope) — **confirmed fixed and accurate.** Re-ran `python3 scripts/lib/pink_scan.py assets`; `assets/player-swamphunter.png` reports exactly `43.3%`, matching the corrected allowlist justification text verbatim (no drift between the code-measured value and the doc claim).
+- **WR-03** (unguarded `getbbox() -> None` in frame-loading loops) — **only partially fixed.** `c82fa7a` patched `build_player()` and `build_player_swamphunter()` but missed a third, structurally identical loop in `build_enemies()`. See WR-05 below — this is a real regression against the fix's own stated scope ("frame-loading loops", plural), not a new independent bug.
+- **WR-04** (source-bounds checks in biome atlas/parallax bakes) — **confirmed fixed.** `_bake_biome_atlas()` now validates both `cap_rect` and `fill_rect` against the source sheet's real dimensions before cropping (raises `ValueError` naming the offending rect), and `_bake_biome_parallax_layer()` now rejects zero-dimension source images before tiling.
 
-Two real defects were found in the bake pipeline itself, both in `scripts/build-art-assets.py`'s new Phase-31 code:
-
-1. The 4 biome terrain-atlas bakes (`_bake_biome_atlas`, used by `build_biome_atlas_{swamp,town,cemetery,castle}`) crop rectangles whose aspect ratio does **not** match the 16:32 (w:h = 0.5) target frame, then force-resize with a single non-uniform `.resize()` call — unlike this same file's existing `build_door()` (which deliberately hand-picked a crop already at the exact target aspect) or `build_player()`/`build_enemies()` (which derive one shared, aspect-preserving scale factor and pad). This silently stretches the baked cap/fill art by up to ~3.3x more in one axis than the other.
-2. `scripts/lib/pink_scan.py`'s `ALLOWLIST` entry for `assets/player-swamphunter.png` characterizes the flagged color as an "outline-shading" artifact, but direct pixel sampling shows it is **43.3% of the sprite's opaque pixels** — the character's main pants/boot fill color, clearly visible as a large solid region in the rendered sprite, not outline pixels. The underlying "not genuinely pink, HSV-hue-unstable at low brightness" technical conclusion checks out numerically, but the comment's framing understates how much of the asset this covers, which matters for whoever next decides whether to trust/extend/remove this allowlist entry.
-
-Additional quality gaps: a `getbbox() -> None` edge case is unguarded in two frame-loading loops, biome-atlas/parallax bakes skip the source-dimension assertion that `build_enemy_hellhound()` uses, and numerous output-size `assert` statements throughout the file are tautological (they check a post-condition that `.resize()` always satisfies, so they can never actually catch a bad crop).
+**New findings from this pass:** the WR-03 incomplete-fix regression above, and an asset-provenance/documentation gap on `assets/tiles/atlas-castle.png` (newly in this pass's scope) that has no license or credit record anywhere in the repo, unlike the other 3 biome atlases. All 4 biome atlas/parallax PNGs and both character sheets were opened and dimension-checked directly against their bake functions' asserted output sizes — all match. `check-pink-gate.sh`/`pink_scan.py` remain sound (re-run cleanly against the real `assets/` tree, self-tests pass, no shell-injection risk, `subprocess.run()` in `build-art-assets.py` uses a fixed argv list with no `shell=True`). No new security issues, no dead code, no secrets found.
 
 ## Warnings
 
-### WR-01: Biome atlas crops are resized non-uniformly (stretched), unlike this file's own established aspect-preserving convention
+### WR-05: `build_enemies()` still has the unguarded `getbbox()` the WR-03 fix was supposed to eliminate
 
-**File:** `scripts/build-art-assets.py:700-731` (`_bake_biome_atlas`), called from `build_biome_atlas_swamp` (745-747), `build_biome_atlas_town` (769-773), `build_biome_atlas_cemetery` (802-805), `build_biome_atlas_castle` (829-831)
+**File:** `scripts/build-art-assets.py:619-620`
+**Issue:** The WR-03 fix (`c82fa7a`, "guard getbbox() None in frame-loading loops") added a `bbox is None` check + `raise ValueError(...)` to `build_player()` (line 177) and `build_player_swamphunter()` (line 1055), but `build_enemies()`'s identical frame-loading loop was never touched:
 
-**Issue:** `_bake_biome_atlas` does `cap.resize((target_w, target_h), Image.NEAREST)` / `fill.resize((target_w, target_h), Image.NEAREST)` directly against `cap_rect`/`fill_rect` crops whose own aspect ratio is not checked against the 16:32 (0.5 w:h) target. Computing the actual per-axis scale factors from the hardcoded rects:
-
-| Biome | Crop (cap) | scale_x | scale_y | skew (max/min) |
-|---|---|---|---|---|
-| swamp cap | 80x64 | 0.20 | 0.50 | 2.5x |
-| swamp fill | 80x48 | 0.20 | 0.667 | 3.33x |
-| town cap | 64x76 | 0.25 | 0.421 | 1.68x |
-| town fill | 64x72 | 0.25 | 0.444 | 1.78x |
-| cemetery cap | 96x128 | 0.167 | 0.25 | 1.5x |
-| cemetery fill | 32x128 | 0.5 | 0.25 | 2.0x (opposite skew from its own cap) |
-| castle cap | 32x82 | 0.5 | 0.390 | 1.28x |
-| castle fill | 32x64 | 0.5 | 0.5 | 1.0x (only exact match) |
-
-Only castle's `fill_rect` happens to already match the target aspect; every other cap/fill crop gets non-uniformly squashed/stretched, and in cemetery's case the cap and fill are skewed in *opposite* directions from each other within the same atlas. This is inconsistent with `build_door()` (crop `(0,64,48,160)` = 48x96, exactly 0.5 aspect, chosen deliberately) and with `build_player()`/`build_enemies()` (single shared scale factor derived from content bbox, then centered/padded — never a raw non-uniform `.resize()`). Visual impact is muted today because the post-remap dark-grunge palette collapses most surface detail to near-black, but the distortion is real and undocumented, and will compound if these crops are ever reused at a lower luminance-compression setting or a brighter per-theme accent.
-
-**Fix:** Either hand-pick replacement crop rectangles whose native aspect ratio already matches 16:32 (the `build_door()` convention), or scale-and-letterbox/pad like `build_player()` instead of a raw two-argument `.resize()`:
 ```python
-# instead of: cap.resize((target_w, target_h), Image.NEAREST)
-scale = min(target_w / cap.width, target_h / cap.height)
-new_w, new_h = max(1, round(cap.width * scale)), max(1, round(cap.height * scale))
-resized = cap.resize((new_w, new_h), Image.NEAREST)
-frame = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
-frame.paste(resized, ((target_w - new_w) // 2, target_h - new_h), resized)  # bottom-anchor
+for fname, out_name in sources:
+    im = Image.open(os.path.join(SRC, "new-platformer-pack", fname)).convert("RGBA")
+    bbox = im.getbbox()
+    cropped = im.crop(bbox)
 ```
 
-### WR-02: Allowlist justification in pink_scan.py mischaracterizes the flagged color's actual role/scope
+`grep -n getbbox scripts/build-art-assets.py` returns 3 hits (lines 177, 619, 1055); the fix commit's diff only touches 2 of them, despite its own commit message describing the fix as covering "frame-loading loops" (plural).
 
-**File:** `scripts/lib/pink_scan.py:67-84`
-
-**Issue:** The `ALLOWLIST` entry for `assets/player-swamphunter.png` describes the flagged RGB `(50,34,46)` as "Swamp Hunter native dark plum/maroon **outline-shading** color" implying thin edge/shadow pixels. Direct measurement shows this single color accounts for **43.3%** of the sprite's opaque pixels (`pink_scan.py` itself reports `0.4328` for this file) — verified by direct pixel-count sampling and by rendering the sprite: it is the character's pants/boots base fill color, a large solid region, not an outline. The technical HSV-instability claim (hue~223, sat~81, val~50 — confirmed numerically correct) may still be a reasonable basis for allowlisting, but the "outline-shading" framing is inaccurate and could mislead a future maintainer deciding whether this allowlist entry is still narrowly scoped/justified or has quietly become a way to launder a genuinely large maroon/burgundy fill area past the no-pink gate.
-
-**Fix:** Correct the comment to state the actual measured scope, e.g.:
-```python
-ALLOWLIST = {
-    "assets/player-swamphunter.png": (
-        "Swamp Hunter's dark plum/maroon pants+boots BASE FILL color "
-        "(RGB (50,34,46), HSV hue~223/sat~81/val~50) — 43.3% of the sprite's "
-        "opaque pixels, not a thin outline. Confirmed via colorsys round-trip "
-        "as a low-brightness HSV hue-instability artifact, not genuine pink "
-        "content (31-CONTEXT.md); re-verify against a render, not just the "
-        "hue number, if this entry is ever revisited."
-    ),
-}
-```
-
-### WR-03: Unguarded `getbbox() -> None` in frame-loading loops
-
-**File:** `scripts/build-art-assets.py:176-179` (`build_player`), `1024-1030` (`build_player_swamphunter`)
-
-**Issue:** Both loops do `loaded.append((im, im.getbbox()))` then later `max(bbox[3] - bbox[1] for _, bbox in loaded)`. `Image.getbbox()` returns `None` when a frame is fully transparent (no non-zero pixels). If any vendored source frame is ever a blank/placeholder image (e.g. a corrupted download, a renamed-but-empty frame file), this raises an opaque `TypeError: 'NoneType' object is not subscriptable` instead of a clear error identifying which frame file was empty.
+This is arguably worse than the crash the other two sites now correctly fail loud on. Verified directly (`Image.crop(None)` on a fully-transparent RGBA image returns a full, uncropped copy of the source rather than raising — confirmed by direct test). So a fully-transparent `saw_rest.png`/`barnacle_attack_a.png`/`fly_rest.png` source would silently bake as a full untrimmed canvas scaled by `content_target / max(cropped.width, cropped.height)` (using the whole source canvas's dimensions instead of the intended content bbox) instead of failing the build — a silently-wrong sprite ships with zero error raised anywhere in the pipeline, the exact failure mode WR-03 was written to close off.
 
 **Fix:**
 ```python
-for fname in pose_files:
-    im = Image.open(os.path.join(SRC, "platformer-characters", fname)).convert("RGBA")
+for fname, out_name in sources:
+    im = Image.open(os.path.join(SRC, "new-platformer-pack", fname)).convert("RGBA")
     bbox = im.getbbox()
     if bbox is None:
         raise ValueError(f"{fname}: fully transparent source frame, cannot derive content bbox")
-    loaded.append((im, bbox))
+    cropped = im.crop(bbox)
 ```
 
-### WR-04: Biome atlas/parallax bakes skip the source-dimension assertion this file uses elsewhere
+### WR-06: `assets/tiles/atlas-castle.png` ships with no license/credit record anywhere in the repo
 
-**File:** `scripts/build-art-assets.py:700-731` (`_bake_biome_atlas`), `834-856` (`_bake_biome_parallax_layer`)
+**File:** `assets/LICENSES/gothicvania-patreon.txt`, `CREDITS.md:37`
+**Issue:** `assets/tiles/atlas-castle.png` (explicitly in this review's file scope, confirmed present and correctly baked at 32x32) is produced by `build_biome_atlas_castle()` from the Gothicvania Patreon Collection's `Old-dark-Castle-tileset-Files/PNG/old-dark-castle-interior-tileset.png`. Every other biome's terrain atlas has both a `assets/LICENSES/gothicvania-*.txt` proof file naming the exact atlas PNG, and a matching `CREDITS.md` row:
 
-**Issue:** `build_enemy_hellhound()` (line 1074-1077) explicitly asserts the source sheet's dimensions (`assert im.size == (frame_w * num_frames, frame_h)`) before slicing frames, so a vendor-pack change is caught immediately with a clear message. `_bake_biome_atlas` and `_bake_biome_parallax_layer` crop hardcoded rectangles out of `im.crop(cap_rect)` / `Image.open(src_path)` with no such check — if a re-fetched Gothicvania pack ever ships a differently-sized sheet (the license docs note these packs were "re-fetched" and "live re-verified" this same session, so re-fetch is an established practice here), the crop rectangles will silently sample the wrong region (or partially transparent padding) and bake a corrupted-looking but structurally "valid" (correctly-sized) PNG with no error raised anywhere in the pipeline.
+- swamp → `gothicvania-swamp.txt:1` + `CREDITS.md:35` both name `atlas-swamp.png`
+- town → `gothicvania-town.txt:1` + `CREDITS.md:36` both name `atlas-town.png`
+- cemetery → `gothicvania-cemetery.txt:1-2` + `CREDITS.md:38` both name `atlas-cemetery.png`
+- **castle → nothing.** `gothicvania-patreon.txt`'s "Tiles/frames used" section and its matching `CREDITS.md:37` row both enumerate `far-castle.png`, `mid-castle.png`, and `enemy-hellhound.png` from this same source pack, but `atlas-castle.png` is never mentioned. `grep -rn "atlas-castle" assets/LICENSES/ CREDITS.md` returns zero hits.
 
-**Fix:** Add a source-size assertion (or at minimum a bounds check that `cap_rect`/`fill_rect` fit within `im.size`) before cropping, mirroring `build_enemy_hellhound()`'s pattern:
-```python
-im = Image.open(sheet_path).convert("RGBA")
-assert im.size == EXPECTED_SIZE, f"{sheet_path}: unexpected sheet size {im.size}, crop rects need re-deriving"
-```
+This breaks the project's own stated convention (`CLAUDE.md`: "Licenses in `assets/LICENSES/`, credits in `CREDITS.md`") and `CREDITS.md`'s own header claim ("Each row below cross-matches one proof file") for an asset that is genuinely shipped in this repo. CC0 doesn't legally require attribution, but every sibling biome atlas carries full sourcing/hue-analysis documentation, and this one has none — a real provenance gap, not a style nit.
+
+**Fix:** Add `assets/tiles/atlas-castle.png` to `gothicvania-patreon.txt`'s "Tiles/frames used" list (naming the `Old-dark-Castle-tileset-Files/PNG/old-dark-castle-interior-tileset.png` source and the two hand-picked crop rects `build_biome_atlas_castle()` uses), and add `assets/tiles/atlas-castle.png` to the file list in `CREDITS.md:37`'s Gothicvania Patreon Collection row.
 
 ## Info
 
-### IN-01: Output-size `assert` statements throughout the bake pipeline are tautological
+### IN-01: Three license files describe the biome atlas as "32x16" when the actual/coded output is 32x32
 
-**File:** `scripts/build-art-assets.py` — representative instances: `:195`, `:223`, `:251-252`, `:478`, `:492`, `:501`, `:518`, `:530`, `:538`, `:565`, `:590`, `:729`, `:855`
-
-**Issue:** Every bake function ends with e.g. `assert remapped.size == (target_w, target_h), "..."` immediately after a `.resize((target_w, target_h), ...)` (directly or via `_remap`/`_remap_luminance`, both of which preserve input size). `Image.resize()` always returns an image of exactly the requested size — the assert can never fail regardless of whether the *content* of the crop/composite upstream was correct. These asserts read as content-correctness verification but only prove that Pillow's `resize()` did what it always does, giving false confidence that "the bake was verified" when no such verification of the actual pixel content took place.
-
-**Fix:** Either remove these no-op asserts, or replace them with an assertion that actually tests something non-guaranteed (e.g. that the image isn't fully transparent/blank: `assert remapped.getbbox() is not None`).
-
-### IN-02: `pink_scan.py` CLI crashes with a raw traceback on a missing/unreadable path
-
-**File:** `scripts/lib/pink_scan.py:226-264` (`main`)
-
-**Issue:** The single-file CLI branch (`frac = pink_fraction(target)`) calls `Image.open(target)` with no existence/format check. A typo'd path or a non-image file produces an unhandled `FileNotFoundError` / `PIL.UnidentifiedImageError` traceback rather than a clean, actionable CLI error message. Low impact since this is a developer-invoked debug tool, but worth a friendlier guard given the module's docstring explicitly documents this as a supported invocation mode ("single-file report").
-
-**Fix:**
-```python
-if not os.path.isfile(target):
-    print(f"pink_scan: no such file: {target}", file=sys.stderr)
-    return 1
-```
+**File:** `assets/LICENSES/gothicvania-swamp.txt:1`, `assets/LICENSES/gothicvania-cemetery.txt:1-2`, `assets/LICENSES/gothicvania-town.txt:1`
+**Issue:** All three say `"...biome terrain atlas — 32x16, 2 frames of 16x32: cap + fill)"`. This is internally inconsistent (two 16-wide x 32-tall frames placed side-by-side horizontally is 32x32, not 32x16) and doesn't match the actual shipped files — verified directly with Pillow: `atlas-swamp.png`, `atlas-cemetery.png`, and `atlas-town.png` are all `(32, 32)`, matching `_bake_biome_atlas()`'s own `(target_w * 2, target_h)` = `(32, 32)` construction and assert. `docs/LEVEL-DESIGN.md` section 9 correctly states "32x32 sheet of two 16x32 frames" for the same assets, so this is an isolated typo copy-pasted across the three license files, not a spec ambiguity — `assets/LICENSES/gothicvania-castle.txt` doesn't exist so it can't repeat the same typo (see WR-06).
+**Fix:** Change `"32x16"` to `"32x32"` in all three files' opening `Asset:` line.
 
 ---
 
-_Reviewed: 2026-07-10_
+_Reviewed: 2026-07-10T22:11:49Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
