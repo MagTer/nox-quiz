@@ -32,6 +32,59 @@
 import { CONFIG } from "./config.js"; // leaf constants — CONFIG.PROGRESS / SAVE / BRAIN
 
 /**
+ * Level-up threshold curve (VERBATIM from archive 651): threshold(1) = round(200 *
+ * 1.3^0) = 200; threshold(2) = round(200 * 1.3^1) = round(260) = 260. Exported (WR-04,
+ * 30-REVIEW.md) as this module's single source of truth for the curve — MUST NOT be
+ * re-tuned (see header). Pure: no localStorage, no engine import (firewall #2).
+ *
+ * @param {number} lvl
+ * @returns {number}
+ */
+export function threshold(lvl) {
+  return Math.round(
+    CONFIG.PROGRESS.BASE_XP * Math.pow(CONFIG.PROGRESS.LEVEL_MULT, lvl - 1),
+  );
+}
+
+/**
+ * Pure XP-award + level-up-with-surplus-carry-over calculation (WR-04, 30-REVIEW.md):
+ * exported as the single source of truth for the threshold/carry-over math so external
+ * callers (specifically scripts/lib/mechanic-drive.mjs's alcove-reward verification
+ * oracle, which needs to PREDICT an award's outcome without a live createProgress()
+ * instance) import the real logic instead of hand-duplicating it — closing the
+ * drift-risk WR-04 flagged. `createProgress()`'s own internal `awardAndCarry` below
+ * calls this SAME function, so the two can never diverge. `xp -= threshold` (NOT
+ * xp = 0) is deliberate — resetting to 0 feels punishing (archive 682 comment). Pure:
+ * takes/returns plain values, never touches localStorage or the engine (firewall #2).
+ *
+ * @param {{ xp?: number, level?: number }} [state] - starting xp/level (missing/
+ *   non-finite values default to 0/1, mirroring createProgress's own seed guards).
+ * @param {number} delta - XP amount to award (table-scaled or a flat bonus amount).
+ * @returns {{ xp: number, level: number, leveledUp: boolean }}
+ */
+export function predictAward(state, delta) {
+  let xp =
+    state && typeof state.xp === "number" && isFinite(state.xp) && state.xp >= 0
+      ? state.xp
+      : 0;
+  let level =
+    state &&
+    typeof state.level === "number" &&
+    Number.isFinite(state.level) &&
+    state.level >= 1
+      ? Math.floor(state.level)
+      : 1;
+  xp += delta;
+  let leveledUp = false;
+  while (xp >= threshold(level)) {
+    xp -= threshold(level); // carry surplus over, never reset to 0
+    level += 1;
+    leveledUp = true;
+  }
+  return { xp, level, leveledUp };
+}
+
+/**
  * Construct a fresh, independent progression tracker for one game session.
  *
  * PURE: never reads localStorage. `saved` is an already-loaded plain object (e.g. from
@@ -98,14 +151,6 @@ export function createProgress(saved) {
     }
   }
 
-  // Level-up threshold curve — VERBATIM from archive 651 (read CONFIG.PROGRESS.* here,
-  // not the archive's bare CONFIG.*). threshold(1) = round(200 * 1.3^0) = 200;
-  // threshold(2) = round(200 * 1.3^1) = round(260) = 260.
-  const threshold = (lvl) =>
-    Math.round(
-      CONFIG.PROGRESS.BASE_XP * Math.pow(CONFIG.PROGRESS.LEVEL_MULT, lvl - 1),
-    );
-
   // Per-table XP amount — VERBATIM from archive 653. Hard tables (6–9) award XP_HARD (20),
   // everything else XP_EASY (10).
   const calculateXp = (table) =>
@@ -114,19 +159,19 @@ export function createProgress(saved) {
       : CONFIG.PROGRESS.XP_EASY;
 
   // Shared award + level-up-with-surplus-carry-over helper (WR-05 dedup): both addXp
-  // and addBonusXp add a delta to `xp` then run the IDENTICAL carry-over while-loop
-  // (RESEARCH Pattern 1) — `xp -= threshold` (NOT xp = 0) is deliberate, resetting to 0
-  // feels punishing (archive 682 comment). Kept as one closure-local helper so the two
-  // public methods can never diverge if this business rule is ever retuned.
+  // and addBonusXp add a delta to `xp` then run the IDENTICAL carry-over logic. WR-04
+  // fix (30-REVIEW.md): this now delegates to the module-level exported `predictAward`
+  // (this module's single source of truth for the threshold/carry-over math) instead
+  // of re-deriving the while-loop locally — the module-level `threshold` function
+  // (referenced by `nextThreshold`/the returned `threshold` property below) and this
+  // helper can now never silently diverge from each other OR from any external caller
+  // (scripts/lib/mechanic-drive.mjs's alcove-reward verification oracle) that imports
+  // `predictAward` directly.
   const awardAndCarry = (delta) => {
-    xp += delta;
-    let leveledUp = false;
-    while (xp >= threshold(level)) {
-      xp -= threshold(level); // carry surplus over, never reset to 0
-      level += 1;
-      leveledUp = true;
-    }
-    return leveledUp;
+    const result = predictAward({ xp, level }, delta);
+    xp = result.xp;
+    level = result.level;
+    return result.leveledUp;
   };
 
   return {

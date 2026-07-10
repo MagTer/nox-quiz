@@ -23,6 +23,14 @@
 
 import { planTakeoffs } from "./route-planner.mjs";
 import { CONFIG } from "../../src/config.js";
+// WR-04 fix (30-REVIEW.md): predictAward used to be a hand-duplicated,
+// unexported reimplementation of src/progress.js's private awardAndCarry
+// threshold/carry-over math (drift risk if progress.js's curve or carry-over
+// shape ever changed without a matching edit here). progress.js now exports a
+// pure, standalone predictAward as its own single source of truth (its
+// internal createProgress().awardAndCarry calls this SAME function), so this
+// module imports the real logic instead of re-deriving it.
+import { predictAward } from "../../src/progress.js";
 
 /**
  * Merge every mechanic type present in geometry into one ascending-x-sorted list,
@@ -610,20 +618,12 @@ export async function driveAndDetectAlcove(page, encounter, geometry, levelId) {
   // awardAndCarry helper carries the surplus over (xp -= threshold(level), not
   // xp = 0), possibly looping multiple levels in one award, so the RAW delta stops
   // matching XP_ALCOVE exactly the moment a level-up happens to land on this touch.
-  // Mirror that exact threshold/carry-over math here (never re-tune independently —
-  // this MUST stay byte-for-byte in sync with progress.js's awardAndCarry) so a
-  // genuinely correct award is still recognized even when it crosses a level-up.
-  const threshold = (lvl) =>
-    Math.round(CONFIG.PROGRESS.BASE_XP * Math.pow(CONFIG.PROGRESS.LEVEL_MULT, lvl - 1));
-  const predictAward = (blob, amount) => {
-    let xp = (blob?.xp ?? 0) + amount;
-    let level = blob?.level ?? 1;
-    while (xp >= threshold(level)) {
-      xp -= threshold(level);
-      level += 1;
-    }
-    return { xp, level };
-  };
+  // WR-04 fix (30-REVIEW.md): the threshold/carry-over math previously hand-
+  // duplicated here now comes from progress.js's own exported `predictAward` (the
+  // module's single source of truth, also used internally by createProgress()'s
+  // awardAndCarry) — so a genuinely correct award is still recognized even when it
+  // crosses a level-up, AND this oracle can never silently drift from progress.js's
+  // real XP curve.
   const predicted = predictAward(beforeBlob, CONFIG.PROGRESS.XP_ALCOVE);
   const freshAwardCorrect =
     afterBlob?.xp === predicted.xp && afterBlob?.level === predicted.level;
