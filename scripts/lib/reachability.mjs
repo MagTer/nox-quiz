@@ -531,7 +531,10 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
   // bestMarginToPoint for both ping-pong endpoints — no duplicated reachability
   // math. A mover is available at EITHER endpoint independently (the player may
   // arrive exactly when it's at its least helpful position), so this reports the
-  // WORSE (lower marginRatio, more likely to fail) of the two endpoint results;
+  // WORSE (higher marginRatio, tighter/more likely to fail) of the two endpoint
+  // results, per this file's own convention (WARN_MARGIN_RATIO's header comment
+  // and every other tiering decision in this function: a HIGHER marginRatio means
+  // a tighter, harder-to-land hop closer to the calibrated envelope's max reach);
   // if EITHER endpoint is flatly unreachable, the whole mover HARD-FAILs.
   // `?? []`-guarded: zero real levels carry geometry.movers today (Phase 36
   // places the first one), so this produces zero rows against all 8 shipped
