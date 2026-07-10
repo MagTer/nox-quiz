@@ -31,7 +31,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **MOT-01**: Patrolling cosmetic enemies — built-in `patrol()` between fixed waypoints, walk-cycle telegraph, contact = checkpoint respawn (existing ADHD-safe hazard class), visually distinct from stationary math-blocker enemies, zero hurt/punishment wiring
 - [ ] **MOT-02**: Moving platforms — native `stickToPlatform` carry, dt-based ping-pong with sine easing (natural endpoint slow-down, no timers), placed only in new/re-dressed sections
 - [ ] **MOT-03**: Ambient animation — torch flames, shimmer, goal/checkpoint unlock animations (pure visual loops, check-safety-compliant idioms from spike-code only)
-- [ ] **MOT-04**: Validator + interactive audit learn movers BEFORE any level ships one — worst-case-extreme reachability rule proven RED-first against a failing fixture
+- [x] **MOT-04**: Validator + interactive audit learn movers BEFORE any level ships one — worst-case-extreme reachability rule proven RED-first against a failing fixture
 
 ### Level Quality
 
@@ -102,7 +102,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MOT-01 | Phase 36 | Pending |
 | MOT-02 | Phase 36 | Pending |
 | MOT-03 | Phase 36 | Pending |
-| MOT-04 | Phase 30 | Pending |
+| MOT-04 | Phase 30 | Complete |
 | LVL-01 | Phase 34 | Pending |
 | LVL-02 | Phase 34 | Pending |
 | LVL-03 | Phase 34 | Pending |
