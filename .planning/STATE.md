@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 31
-current_phase_name: Asset Bake & Style-Board Sign-off
+current_phase: 32
+current_phase_name: Terrain & Parallax Rendering
 status: executing
-stopped_at: Phase 29 (Mechanic Cleanup) complete — both plans executed, 2-iteration code-review/fix cycle closed 2 blockers + 4 warnings, genuine human sign-off on the alcove-discovery checkpoint, verification passed 4/4 must-haves. Ready to plan Phase 30.
-last_updated: "2026-07-10T11:44:26.037Z"
+stopped_at: "Phase 30 (Harness Extensions) complete — 3 plans executed across 2 waves, 3-iteration code-review/fix cycle closed 1 blocker + 4 warnings (including a residual timing bug and a production-code refactor in src/progress.js, both independently re-verified clean), verification passed 8/8 must-haves with all 4 roadmap success criteria proven live. Ready to plan Phase 31 — the first phase with a checkpoint:human-verify hard gate (style-board sign-off)."
+last_updated: "2026-07-10T22:26:22.880Z"
 last_activity: 2026-07-10
-last_activity_desc: Phase 31 execution started
+last_activity_desc: Phase 31 complete, transitioned to Phase 32
 progress:
   total_phases: 10
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 5
-  percent: 20
+  completed_plans: 11
+  percent: 30
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 
 ## Current Position
 
-Phase: 31 (Asset Bake & Style-Board Sign-off) — EXECUTING
-Plan: 1 of 6
+Phase: 32 — Terrain & Parallax Rendering
+Plan: Not started
 Status: Executing Phase 31
-Last activity: 2026-07-10 — Phase 31 execution started
+Last activity: 2026-07-10 — Phase 31 complete, transitioned to Phase 32
 
 Progress: [██░░░░░░░░] 20%
 

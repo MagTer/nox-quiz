@@ -18,7 +18,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Art Foundation
 
-- [ ] **ART-01**: One style-coherent sourced dark pixel-art collection (ansimuz Gothicvania anchor, 3–4 biomes) vendored with licenses/credits via the existing CREDITS.md + assets/LICENSES/ process; style-board mock screen gets human sign-off BEFORE any integration; automated pink-hue scan gate added (no pink asset can land)
+- [x] **ART-01**: One style-coherent sourced dark pixel-art collection (ansimuz Gothicvania anchor, 3–4 biomes) vendored with licenses/credits via the existing CREDITS.md + assets/LICENSES/ process; style-board mock screen gets human sign-off BEFORE any integration; automated pink-hue scan gate added (no pink asset can land)
 - [ ] **ART-02**: Filled terrain — solid autotiled ground mass (surface + underground fill + edge/corner tiles) replacing the floating 16px strip, using the spike-proven chunked `{tiled:true}` rendering recipe; colliders untouched
 - [ ] **ART-03**: Real per-biome multi-layer parallax backgrounds (sky + 2–3 detail layers) replacing the flat triangle silhouettes
 - [ ] **ART-04**: Fully animated player (idle, run 4+ frames, jump, fall, land) with the 16×32 physics collider explicitly locked via `area({ shape })` — supersedes the v4.1 player-art lock with a new human sign-off
@@ -92,7 +92,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MECH-04 | Phase 30 | Complete |
 | MECH-05 | Phase 36 | Pending |
 | MECH-06 | Phase 29 | Complete |
-| ART-01 | Phase 31 | Pending |
+| ART-01 | Phase 31 | Complete |
 | ART-02 | Phase 32 | Pending |
 | ART-03 | Phase 32 | Pending |
 | ART-04 | Phase 33 | Pending |

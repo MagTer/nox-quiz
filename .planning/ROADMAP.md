@@ -332,7 +332,7 @@ Plans:
 | 28. Full Verification & Interactive Sign-off | v5.0 | 3/3 | ✅ Complete | 2026-07-09 |
 | 29. Mechanic Cleanup | v6.0 | 2/2 | Complete    | 2026-07-09 |
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
-| 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete   | 2026-07-10 |
+| 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete    | 2026-07-10 |
 | 32. Terrain & Parallax Rendering | v6.0 | 0/TBD | Not started | - |
 | 33. Player & Entity Animation | v6.0 | 0/TBD | Not started | - |
 | 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
