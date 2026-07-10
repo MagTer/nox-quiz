@@ -187,7 +187,18 @@ def castle():
     stretch_top(c, crop, top)
     c.alpha_composite(crop, (0, top))
     hero = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
-    put_feet(c, hero, 210, 336)
+    # CASTLE_HERO_FEET_Y: measured directly from the sourced preview tileset, not
+    # guessed. The floating door-ledge the hero stands on (crop columns ~150-260)
+    # has its walkable top edge (gold trim -> void transition, sampled pixel-by-
+    # -pixel) at crop-local y=234, i.e. canvas y = 234 + top(56) = 290. The prior
+    # value (336) placed the hero's feet 46px below that edge, in the open void
+    # under the floating ledge (confirmed void, not stone, by sampling: pixels
+    # below the ledge at this x match the scene's background color, not a solid
+    # block) — round 2 human sign-off caught this as "base varies" misalignment.
+    # Unlike swamp (which tiles its own terrain at the shared FLOOR_Y=320), town/
+    # cemetery/castle each composite a pre-made background plate whose visual
+    # floor row is NOT at a shared y — each needs its own measured feet_y.
+    put_feet(c, hero, 210, 290)
     hound = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Hell-Hound-Files/PNG/hell-hound-idle.png"), 6)
     c.alpha_composite(hound, (430, 230))
     badge(c)
