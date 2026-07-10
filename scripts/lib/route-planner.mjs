@@ -345,11 +345,19 @@ function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, depth = 0) 
  * x every tick, so a death/respawn behind a takeoff self-heals (the player walks back
  * into the same window and re-executes it).
  */
-export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE) {
+export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, targetY = undefined) {
   const nodes = buildNodes(geometry);
   const graph = buildGraph(nodes, envelope);
   const startNode = nodeContaining(nodes, SPAWN_X);
-  const targetNode = nodeContaining(nodes, targetX); // floors listed first — mechanics are floor-mounted
+  // Phase 30 (MECH-04) fix: thread an optional targetY through to nodeContaining so an
+  // x that falls within BOTH a floor's span AND an overlapping platform's span (e.g. a
+  // secret alcove floating above a stepping-stone platform) disambiguates to the
+  // intended node instead of always resolving to the floor (buildNodes always pushes
+  // floor nodes before platform nodes). Every pre-existing 2-arg/3-arg call site passes
+  // no targetY, so nodeContaining(nodes, targetX, undefined) === nodeContaining(nodes,
+  // targetX) — byte-identical behavior, proven by this file's own self-test staying
+  // green.
+  const targetNode = nodeContaining(nodes, targetX, targetY);
   if (!startNode || !targetNode) return { takeoffs: [], path: null };
 
   const path = bottleneckPath(nodes, graph, startNode.id, targetNode.id, envelope);

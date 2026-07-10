@@ -34,7 +34,7 @@
 // run-to-run timing difference, not a deterministic bug, i.e. precisely what a
 // resolution retry is for.
 
-import { deriveEncounters, driveToXPlanned, resolveIfBoxed } from './mechanic-drive.mjs';
+import { deriveEncounters, driveToXPlanned, resolveIfBoxed, driveAndDetectAlcove } from './mechanic-drive.mjs';
 
 /**
  * Drive every mechanic encounter in `level.geometry` through up to `maxAttempts`
@@ -85,22 +85,38 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
         continue;
       }
 
-      // Phase 24 close-out: driveToXPlanned (geometry-informed walk + planned
-      // takeoffs) replaced driveToXClimbing (blind jump-whenever-grounded). Walking
-      // is now the default everywhere, so the first-encounter warmupUntilFirstGap
-      // special case is retired as a class — ground-level trigger zones register
-      // naturally on every approach, not just the level's first.
-      const { triggered } = await driveToXPlanned(page, encounter.x, level.geometry);
+      // Phase 30 (MECH-04): secret alcoves use a wholly different detection signal
+      // (entity-destroy/XP-delta, never get("challenge").length — challenge-open is
+      // contractually always false for alcoves, per secretAlcove.js's own header
+      // contract) and their own combined drive+detect helper. Every other tag keeps
+      // the existing driveToXPlanned + resolveIfBoxed path byte-unchanged.
+      let everTriggered;
+      let resolved;
+      if (encounter.tag === "secret-alcove") {
+        const outcome = await driveAndDetectAlcove(page, encounter, level.geometry);
+        // Still OR-ed across attempts per this file's existing contract — do not
+        // regress a previously-true outcome even if this attempt's own drive somehow
+        // fails to redetect it.
+        everTriggered = outcome.triggered || (previous?.triggered ?? false);
+        resolved = outcome.resolved || (previous?.resolved ?? false);
+      } else {
+        // Phase 24 close-out: driveToXPlanned (geometry-informed walk + planned
+        // takeoffs) replaced driveToXClimbing (blind jump-whenever-grounded). Walking
+        // is now the default everywhere, so the first-encounter warmupUntilFirstGap
+        // special case is retired as a class — ground-level trigger zones register
+        // naturally on every approach, not just the level's first.
+        const { triggered } = await driveToXPlanned(page, encounter.x, level.geometry);
 
-      // OR-across-attempts for BOTH fields independently: a previously-triggered
-      // encounter stays triggered even if this attempt's own drive somehow doesn't
-      // redetect it, and a previously-unresolved encounter only flips to resolved
-      // once ANY attempt actually resolves it (never regresses true -> false).
-      const everTriggered = triggered || (previous?.triggered ?? false);
-      let resolved = previous?.resolved ?? null;
-      if (everTriggered && resolved !== true) {
-        ({ resolved } = await resolveIfBoxed(page));
-        resolved = resolved || (previous?.resolved ?? false);
+        // OR-across-attempts for BOTH fields independently: a previously-triggered
+        // encounter stays triggered even if this attempt's own drive somehow doesn't
+        // redetect it, and a previously-unresolved encounter only flips to resolved
+        // once ANY attempt actually resolves it (never regresses true -> false).
+        everTriggered = triggered || (previous?.triggered ?? false);
+        resolved = previous?.resolved ?? null;
+        if (everTriggered && resolved !== true) {
+          ({ resolved } = await resolveIfBoxed(page));
+          resolved = resolved || (previous?.resolved ?? false);
+        }
       }
 
       results.set(key, {
@@ -109,11 +125,16 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
         attempts: (previous?.attempts ?? 0) + 1,
       });
 
-      if (!everTriggered) {
+      if (!everTriggered && encounter.tag !== "secret-alcove") {
         // Matches driveToXClimbing's existing sequential-approach semantics (preserved
         // from the retired single-pass caller): an untriggered mechanic blocks progress
         // to later encounters within the SAME attempt/pass, since the player never
         // actually reached the point where a later encounter's approach would begin.
+        // Phase 30 (MECH-04) fix: the secret alcove is NEVER a blocking collider (it
+        // never opens the shared math-challenge UI and never freezes the player, per
+        // secretAlcove.js's own header contract — "this is a walk-through bonus") —
+        // an untriggered/unresolved alcove must not prevent the audit from reaching
+        // later door/mathGate/enemy encounters in the same attempt.
         break;
       }
     }
