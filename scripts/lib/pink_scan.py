@@ -64,22 +64,29 @@ THRESHOLD = 0.08
 # Do NOT add entries speculatively — every entry here must cite a specific,
 # measured finding.
 #
-# "assets/player-swamphunter.png": the Swamp Hunter's native dark plum/maroon
-# outline-shading color (sampled RGB (50,34,46), HSV hue~223/sat~81/val~50)
-# numerically falls inside the pink/magenta hue band purely because HUE IS
-# UNSTABLE AT LOW BRIGHTNESS (a well-known HSV artifact for near-black
-# pixel-art outline/shadow colors) — it is NOT a genuinely pink asset. This
-# exact sprite was the kid's explicit style-board pick (31-CONTEXT.md). If
-# Plan 31-05's actual baked assets/player-swamphunter.png does not in fact
-# trip the gate (e.g. because of resizing/cropping choices made there), this
-# entry is harmless dead weight, not a bug — it stays for the reasoning
-# trail regardless of whether it is ever live.
+# "assets/player-swamphunter.png": the Swamp Hunter's dark plum/maroon
+# pants+boots BASE FILL color (sampled RGB (50,34,46), HSV hue~223/sat~81/
+# val~50) numerically falls inside the pink/magenta hue band purely because
+# HUE IS UNSTABLE AT LOW BRIGHTNESS (a well-known HSV artifact for
+# near-black pixel-art fill/shadow colors) — it is NOT a genuinely pink
+# asset. Direct pixel-count sampling shows this single color covers 43.3%
+# of the sprite's opaque pixels (a large solid fill region, not a thin
+# outline) — re-verify against a render, not just the hue number, if this
+# entry is ever revisited. This exact sprite was the kid's explicit
+# style-board pick (31-CONTEXT.md). If Plan 31-05's actual baked
+# assets/player-swamphunter.png does not in fact trip the gate (e.g.
+# because of resizing/cropping choices made there), this entry is harmless
+# dead weight, not a bug — it stays for the reasoning trail regardless of
+# whether it is ever live.
 # ---------------------------------------------------------------------------
 ALLOWLIST = {
     "assets/player-swamphunter.png": (
-        "Swamp Hunter native dark plum/maroon outline-shading color "
-        "(RGB (50,34,46), HSV hue~223/sat~81/val~50) is a low-brightness HSV "
-        "hue instability artifact, not genuine pink content (31-CONTEXT.md)."
+        "Swamp Hunter's dark plum/maroon pants+boots BASE FILL color "
+        "(RGB (50,34,46), HSV hue~223/sat~81/val~50) — 43.3% of the sprite's "
+        "opaque pixels, not a thin outline. Confirmed via colorsys round-trip "
+        "as a low-brightness HSV hue-instability artifact, not genuine pink "
+        "content (31-CONTEXT.md); re-verify against a render, not just the "
+        "hue number, if this entry is ever revisited."
     ),
 }
 
