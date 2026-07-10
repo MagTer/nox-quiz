@@ -4,8 +4,13 @@
 import os
 from PIL import Image
 
-ROOT = os.path.dirname(os.path.abspath(__file__)) + "/extracted"
 REPO = "/home/magnus/dev/nox-quiz"
+# Gitignored source packs (Plan 31-01) live per-checkout, not at the hardcoded
+# REPO path — a git worktree checks them out at a different filesystem root
+# than REPO. Derive ROOT from this script's own location (3 dirs up from
+# .planning/research/v6-scouting/) so it resolves correctly in any worktree,
+# same as OUT already does below.
+ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "assets", "_gothicvania-src"))
 OUT = os.path.dirname(os.path.abspath(__file__)) + "/board"
 os.makedirs(OUT, exist_ok=True)
 
@@ -142,7 +147,7 @@ def town():
     top = H - prev.height
     stretch_top(c, crop, top)
     c.alpha_composite(crop, (0, top))
-    hero = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Gothic-hero-Files/PNG/gothic-hero-idle.png"), 4)
+    hero = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
     put_feet(c, hero, 300, 344)
     hound = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Hell-Hound-Files/PNG/hell-hound-idle.png"), 6)
     put_feet(c, hound, 470, 344, flip=True)
@@ -166,7 +171,7 @@ def cemetery():
     put_feet(c, statue, 60, 330)
     stone = load("gothicvania-cemetery-files_1/gothicvania-cemetery-files/PNG/Environment/sliced-objects/stone-1.png")
     put_feet(c, stone, 400, 330)
-    hero = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Gothic-hero-Files/PNG/gothic-hero-idle.png"), 4)
+    hero = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
     put_feet(c, hero, 220, 332)
     ghost = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Ghost-Files/PNG/ghost-idle.png"), 7)
     c.alpha_composite(ghost, (480, 240))
@@ -181,10 +186,10 @@ def castle():
     top = H - prev.height
     stretch_top(c, crop, top)
     c.alpha_composite(crop, (0, top))
-    hero = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Gothic-hero-Files/PNG/gothic-hero-idle.png"), 4)
+    hero = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
     put_feet(c, hero, 210, 336)
-    skull = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Fire-Skull-Files/PNG/fire-skull.png"), 8)
-    c.alpha_composite(skull, (430, 230))
+    hound = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Hell-Hound-Files/PNG/hell-hound-idle.png"), 6)
+    c.alpha_composite(hound, (430, 230))
     badge(c)
     return c
 
