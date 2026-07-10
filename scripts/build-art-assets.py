@@ -36,6 +36,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "assets", "_kenney-src")
+GV_SRC = os.path.join(ROOT, "assets", "_gothicvania-src")
 
 # Player-only palette (bright, must read against #0a0a0a) — the exact locked
 # hex tokens already established in scripts/generate-art-assets.py's
@@ -629,6 +630,337 @@ def build_enemies():
         save(remapped.convert("RGBA"), os.path.join(ROOT, "assets", out_name))
 
 
+# --- Phase 31 (ART-01): Gothicvania biome terrain atlases + parallax layers ---
+#
+# Extends this file's existing per-variant idiom (build_ground_theme() /
+# build_parallax_theme()) with 4 biomes x (1 terrain atlas + 3 parallax
+# layers), baked from the re-fetched Gothicvania (ansimuz) CC0 packs under
+# GV_SRC. Every crop rectangle below was hand-identified via a throwaway
+# Pillow crop-preview loop (visually verified against the real source
+# sheet) BEFORE being hardcoded here -- never a generic/grid auto-slicer
+# (T-31-09; SPIKE-FINDINGS.md's explicit warning that Gothicvania terrain
+# sheets are non-grid, interlocking decorative blocks), matching
+# build_door()'s existing hand-cropped-rectangle convention.
+
+
+def hue_shift_band(im, band_lo, band_hi, delta, min_sat=30):
+    """Rotate hue by `delta` for pixels whose hue is in [band_lo, band_hi]
+    (PIL 0-255 hue units).
+
+    Copied verbatim (body unchanged) from
+    .planning/research/v6-scouting/styleboard.py's hue_shift_band() -- the
+    same live-proven no-pink hue-conform pass already used to regenerate the
+    4 style-board renders (Plan 31-02) -- reused here rather than
+    reimplemented, per 31-RESEARCH.md's "Don't Hand-Roll" guidance.
+    """
+    rgba = im.convert("RGBA")
+    a = rgba.getchannel("A")
+    hsv = rgba.convert("RGB").convert("HSV")
+    px = hsv.load()
+    w, h = hsv.size
+    for y in range(h):
+        for x in range(w):
+            hh, s, v = px[x, y]
+            if s >= min_sat and band_lo <= hh <= band_hi:
+                px[x, y] = ((hh + delta) % 256, s, v)
+    out = hsv.convert("RGB").convert("RGBA")
+    out.putalpha(a)
+    return out
+
+
+def _tile_to_width(im, target_w):
+    """Tile `im` horizontally (paste repeats) to reach target_w.
+
+    Gothicvania parallax layers are seamless-tileable narrow vertical strips
+    meant to repeat across the screen width (unlike Kenney's "Background
+    Elements" wide silhouettes, which build_parallax()'s _scale_to_width
+    stretches to fit) -- so the correct bake here is repetition, not a
+    scale, which would distort the source art's intended pixel density.
+    """
+    canvas = Image.new("RGBA", (target_w, im.height), (0, 0, 0, 0))
+    x = 0
+    while x < target_w:
+        canvas.paste(im, (x, 0), im)
+        x += im.width
+    return canvas
+
+
+def _bottom_anchor(im, target_w, target_h):
+    """Bottom-anchor an already-tiled `im` (width == target_w) onto a
+    target_h canvas, cropping overflow off the top or padding the top with
+    transparency -- the same crop/paste idiom already used by
+    build_parallax()/build_parallax_theme() above.
+    """
+    canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+    src = im.crop((0, max(0, im.height - target_h), target_w, im.height))
+    canvas.paste(src, (0, target_h - min(target_h, im.height)), src)
+    return canvas
+
+
+def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
+    """Shared crop -> [retint] -> resize(NEAREST) -> _remap_luminance ->
+    assert -> save body for a 2-frame (cap + fill) biome terrain atlas
+    (16x32 each, 32x32 total) -- mirrors build_door()'s single-hand-crop
+    shape, just twice (cap tile + fill/edge tile) per biome.
+
+    `retint`, if given, is a (band_lo, band_hi, delta) tuple applied to BOTH
+    crops via hue_shift_band() BEFORE the palette remap (never after --
+    _remap_luminance discards hue entirely, so retint order only matters
+    pre-remap).
+    """
+    target_w, target_h = 16, 32
+    im = Image.open(sheet_path).convert("RGBA")
+    cap = im.crop(cap_rect)
+    fill = im.crop(fill_rect)
+
+    if retint is not None:
+        band_lo, band_hi, delta = retint
+        cap = hue_shift_band(cap, band_lo, band_hi, delta)
+        fill = hue_shift_band(fill, band_lo, band_hi, delta)
+
+    cap_r = cap.resize((target_w, target_h), Image.NEAREST)
+    fill_r = fill.resize((target_w, target_h), Image.NEAREST)
+
+    sheet = Image.new("RGBA", (target_w * 2, target_h), (0, 0, 0, 0))
+    sheet.paste(cap_r, (0, 0), cap_r)
+    sheet.paste(fill_r, (target_w, 0), fill_r)
+
+    remapped = _remap_luminance(sheet, ENVIRONMENT_PALETTE)
+    assert remapped.size == (target_w * 2, target_h), f"atlas-{out_name} wrong size: {remapped.size}"
+    save(remapped.convert("RGBA"), os.path.join(ROOT, "assets", "tiles", f"atlas-{out_name}.png"))
+
+
+def build_biome_atlas_swamp():
+    """Gothicvania Swamp Evironment/tileset.png (336x112, note the pack's own
+    "Evironment" misspelling) -> assets/tiles/atlas-swamp.png.
+
+    Measured 0% dominant-pink (31-RESEARCH.md) -- no retint needed.
+    """
+    sheet_path = os.path.join(
+        GV_SRC, "gothicvania_swamp_files", "Gothicvania Swamp files", "Evironment", "tileset.png"
+    )
+    _bake_biome_atlas(
+        "swamp",
+        sheet_path,
+        cap_rect=(32, 0, 112, 64),  # 80x64 -- mossy rock cap tile, 2nd of 3 top-row blocks
+        fill_rect=(224, 64, 304, 112),  # 80x48 -- dark fill block, grass-tuft top edge
+    )
+
+
+def build_biome_atlas_town():
+    """Gothicvania Town PNG/environment/layers/tileset.png (592x192) ->
+    assets/tiles/atlas-town.png.
+
+    Measured ~33% dominant-pink (31-RESEARCH.md) -- retint REQUIRED. Applies
+    the SAME hue_shift_band(prev, 215, 255, -60) call already proven in
+    styleboard.py's town() function, to both crops BEFORE the palette remap.
+    """
+    sheet_path = os.path.join(
+        GV_SRC,
+        "gothicvania-town-files",
+        "GothicVania-town-files",
+        "PNG",
+        "environment",
+        "layers",
+        "tileset.png",
+    )
+    _bake_biome_atlas(
+        "town",
+        sheet_path,
+        cap_rect=(16, 4, 80, 80),  # 64x76 -- salmon-pink roof triangle, 1st of 3 roof shapes
+        fill_rect=(320, 104, 384, 176),  # 64x72 -- jagged rooftop-texture fill block
+        retint=(215, 255, -60),
+    )
+
+
+def build_biome_atlas_cemetery():
+    """Gothicvania Cemetery PNG/Environment/tileset.png (448x160) ->
+    assets/tiles/atlas-cemetery.png.
+
+    31-RESEARCH.md measured the FULL sheet at ~8.7% dominant-pink
+    (borderline) -- but direct pixel sampling this session confirmed that
+    figure is dominated by a single dark violet/plum tombstone SHADOW tone
+    (RGB (65,25,59)), the same low-brightness HSV-hue-instability class
+    already documented for assets/player-swamphunter.png's pink_scan
+    allowlist entry -- not a genuinely pink surface. Rather than retint that
+    shadow tone, the crop rects below were deliberately chosen from the
+    tileset's grass-tuft/rock region, which measures 0.9%/0.0% dominant-pink
+    BEFORE any remap (well under the 8% gate, and the shadow tone is absent
+    entirely from these rects). No retint applied -- see 31-04-SUMMARY.md
+    for the recorded judgment call and the pixel-sampling proof.
+    """
+    sheet_path = os.path.join(
+        GV_SRC,
+        "gothicvania-cemetery-files_1",
+        "gothicvania-cemetery-files",
+        "PNG",
+        "Environment",
+        "tileset.png",
+    )
+    _bake_biome_atlas(
+        "cemetery",
+        sheet_path,
+        cap_rect=(64, 16, 160, 144),  # 96x128 -- grass tuft + spikes over rock/dirt mound
+        fill_rect=(16, 16, 48, 144),  # 32x128 -- narrow grass-over-dark-fill strip
+    )
+
+
+def build_biome_atlas_castle():
+    """Gothicvania Patreon Collection's Old-Dark-Castle interior tileset
+    (832x240) -> assets/tiles/atlas-castle.png.
+
+    Measured 0% dominant-pink (31-RESEARCH.md) -- no retint needed. Crop
+    rects are two individual gold-capped dark-stone brick pieces from the
+    tileset's own arch/staircase arrangement -- these ARE the anchor/lip
+    cap-tile convention (gold lip over dark stone body) already native to
+    the source art, not something this bake invents.
+    """
+    sheet_path = os.path.join(
+        GV_SRC,
+        "gothicvaniapatreoncollection",
+        " gothicvania patreon collection",
+        "Old-dark-Castle-tileset-Files",
+        "PNG",
+        "old-dark-castle-interior-tileset.png",
+    )
+    _bake_biome_atlas(
+        "castle",
+        sheet_path,
+        cap_rect=(320, 32, 352, 114),  # 32x82 -- tall gold-capped brick, arch peak
+        fill_rect=(272, 160, 304, 224),  # 32x64 -- shorter gold-capped brick, arch base
+    )
+
+
+def _bake_biome_parallax_layer(out_name, layer, src_path, palette, retint=None):
+    """Shared load -> [retint] -> tile-to-640 -> bottom-anchor -> resize(NEAREST
+    is implicit via tiling, no scale) -> _remap_luminance -> assert -> save
+    body for one biome parallax layer -- mirrors build_parallax_theme()'s
+    crop/composite -> _remap_luminance -> assert -> save shape, adapted for
+    Gothicvania's tileable-strip source material (see _tile_to_width).
+
+    `layer` is one of "far"/"mid"/"near" (locked 640x120/640x144/640x90,
+    matching build_parallax_theme()'s existing dimensions for cross-biome
+    consistency); `palette` is the matching ENVIRONMENT_PALETTE_FAR/_MID/
+    _NEAR sub-palette.
+    """
+    dims = {"far": (640, 120), "mid": (640, 144), "near": (640, 90)}
+    w, h = dims[layer]
+    src = Image.open(src_path).convert("RGBA")
+    if retint is not None:
+        band_lo, band_hi, delta = retint
+        src = hue_shift_band(src, band_lo, band_hi, delta)
+    tiled = _tile_to_width(src, w)
+    anchored = _bottom_anchor(tiled, w, h)
+    remapped = _remap_luminance(anchored, palette)
+    assert remapped.size == (w, h), f"{layer}-{out_name} wrong size: {remapped.size}"
+    save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
+
+
+def build_biome_parallax_swamp():
+    """Gothicvania Swamp Evironment/{background,mid-layer-02,mid-layer-01}.png
+    -> assets/parallax/{far,mid,near}-swamp.png.
+
+    All 3 layers measured 0% dominant-pink -- no retint needed. near <-
+    mid-layer-01.png per the existing swamp() styleboard compositing order
+    (drawn last/on top -> reads as closest to camera).
+    """
+    env = os.path.join(GV_SRC, "gothicvania_swamp_files", "Gothicvania Swamp files", "Evironment")
+    _bake_biome_parallax_layer("swamp", "far", os.path.join(env, "background.png"), ENVIRONMENT_PALETTE_FAR)
+    _bake_biome_parallax_layer("swamp", "mid", os.path.join(env, "mid-layer-02.png"), ENVIRONMENT_PALETTE_MID)
+    _bake_biome_parallax_layer("swamp", "near", os.path.join(env, "mid-layer-01.png"), ENVIRONMENT_PALETTE_NEAR)
+
+
+def build_biome_parallax_town():
+    """Town parallax: far <- PNG/environment/layers/background.png (dusk
+    sky, ~64% dominant-pink, retint REQUIRED via the same
+    hue_shift_band(prev, 215, 255, -60) call as styleboard.py's town());
+    mid <- Patreon Collection's night-town-background-town.png (0% pink);
+    near <- night-town-background-far-buildings.png (0% pink) ->
+    assets/parallax/{far,mid,near}-town.png.
+    """
+    far_path = os.path.join(
+        GV_SRC,
+        "gothicvania-town-files",
+        "GothicVania-town-files",
+        "PNG",
+        "environment",
+        "layers",
+        "background.png",
+    )
+    night_town_dir = os.path.join(
+        GV_SRC,
+        "gothicvaniapatreoncollection",
+        " gothicvania patreon collection",
+        "night-town-background-files",
+        "layers",
+    )
+    _bake_biome_parallax_layer(
+        "town", "far", far_path, ENVIRONMENT_PALETTE_FAR, retint=(215, 255, -60)
+    )
+    _bake_biome_parallax_layer(
+        "town", "mid", os.path.join(night_town_dir, "night-town-background-town.png"), ENVIRONMENT_PALETTE_MID
+    )
+    _bake_biome_parallax_layer(
+        "town",
+        "near",
+        os.path.join(night_town_dir, "night-town-background-far-buildings.png"),
+        ENVIRONMENT_PALETTE_NEAR,
+    )
+
+
+def build_biome_parallax_cemetery():
+    """Cemetery parallax: far <- PNG/Environment/background.png (magenta
+    horizon glow, ~79% dominant-pink, retint REQUIRED, mirrors
+    styleboard.py's cemetery() hue_shift_band(bg, 195, 245, -50) call);
+    mid <- mountains.png (also hue-shifted for visual cohesion with the
+    retinted sky, matching cemetery()'s own mts = hue_shift_band(mts, 195,
+    245, -50) call); near <- graveyard.png (0.1% pink, no retint) ->
+    assets/parallax/{far,mid,near}-cemetery.png.
+    """
+    env = os.path.join(GV_SRC, "gothicvania-cemetery-files_1", "gothicvania-cemetery-files", "PNG", "Environment")
+    _bake_biome_parallax_layer(
+        "cemetery", "far", os.path.join(env, "background.png"), ENVIRONMENT_PALETTE_FAR, retint=(195, 245, -50)
+    )
+    _bake_biome_parallax_layer(
+        "cemetery", "mid", os.path.join(env, "mountains.png"), ENVIRONMENT_PALETTE_MID, retint=(195, 245, -50)
+    )
+    _bake_biome_parallax_layer("cemetery", "near", os.path.join(env, "graveyard.png"), ENVIRONMENT_PALETTE_NEAR)
+
+
+def build_biome_parallax_castle():
+    """Castle parallax: far <- Gothic-Castle-Files
+    gothic-castle-background.png (exterior, most distant); mid <-
+    Old-Dark-Castle interior background (interior, closer); near <-
+    Gothicvania Church backgrounds.png (folded in per CONTEXT.md's
+    Castle-absorbs-Church decision, ~2% pink, effectively clean) ->
+    assets/parallax/{far,mid,near}-castle.png. All measured 0% or near-0%
+    dominant-pink -- no retint needed.
+    """
+    far_path = os.path.join(
+        GV_SRC,
+        "gothicvaniapatreoncollection",
+        " gothicvania patreon collection",
+        "Gothic-Castle-Files",
+        "PNG",
+        "layers",
+        "gothic-castle-background.png",
+    )
+    mid_path = os.path.join(
+        GV_SRC,
+        "gothicvaniapatreoncollection",
+        " gothicvania patreon collection",
+        "Old-dark-Castle-tileset-Files",
+        "PNG",
+        "old-dark-castle-interior-background.png",
+    )
+    near_path = os.path.join(
+        GV_SRC, "gothicvania-church-files", "gothicvania church files", "ENVIRONMENT", "backgrounds.png"
+    )
+    _bake_biome_parallax_layer("castle", "far", far_path, ENVIRONMENT_PALETTE_FAR)
+    _bake_biome_parallax_layer("castle", "mid", mid_path, ENVIRONMENT_PALETTE_MID)
+    _bake_biome_parallax_layer("castle", "near", near_path, ENVIRONMENT_PALETTE_NEAR)
+
+
 FONT_PATH = os.path.join(ROOT, "assets", "_font-src", "monogram.ttf")
 
 # Logo fill/stroke colors (BRAND-01/BRAND-03; Phase 26 Plan 07) — mirror
@@ -798,3 +1130,11 @@ if __name__ == "__main__":
     build_door()
     build_enemies()
     build_logo()
+    build_biome_atlas_swamp()
+    build_biome_atlas_town()
+    build_biome_atlas_cemetery()
+    build_biome_atlas_castle()
+    build_biome_parallax_swamp()
+    build_biome_parallax_town()
+    build_biome_parallax_cemetery()
+    build_biome_parallax_castle()
