@@ -287,6 +287,123 @@ const BARRIER_WIDTH = {
 };
 
 /**
+ * Best (lowest) marginRatio for reaching a floating, zero-width `point` (not a
+ * footprint-based node) from any node already known reachable from spawn.
+ * Consumed by the secret-alcove-reachability (Task 1) and mover-reachability
+ * (Task 2) checks below — a point has zero width, unlike doors/mathGates/
+ * enemies which anchor to a floor-run footprint, so this needs its own
+ * point-vs-jump-reach model rather than reusing `canReach`: calling
+ * `canReach(fromNode, {xStart:point.x, xEnd:point.x, y:point.y}, envelope)`
+ * pins the overlapping-span branch's `spanMax` to `min(fromEnd,point.x) -
+ * max(fromStart,point.x)` = 0 whenever the point sits inside fromNode's own
+ * x-span (the common alcove-above-its-own-launch-platform case), requiring an
+ * impossible exact-zero reach and reporting every such point unreachable
+ * regardless of Δy — see Task 1's rationale, verified by hand against
+ * level-01's real, shipped alcove.
+ *
+ * `point` is `{x, y}`. `nodes` is the full node list (buildNodes output).
+ * `spawnPaths` is bfsWithPathMargin's Map<nodeId, maxMarginRatioAlongFirstFoundPath>
+ * — the already-computed spawn-reachable set; never re-derived here.
+ *
+ * For every node already in `spawnPaths`, up to three candidate types are
+ * evaluated:
+ *
+ * (1) Same-surface (trivial-walk): the point sits directly on the node's own
+ * surface (`y` within 4px, `x` within the node's span) — no jump needed;
+ * candidate marginRatio is just the path-so-far cost to that node.
+ *
+ * (2) In-footprint hop (a "hop up/down from where I'm already standing"): the
+ * point's x falls within this node's own [xStart, xEnd] span but at a
+ * different height. `jumpReach(dy, envelope)` returning any candidate at all
+ * means the rise/fall is within the calibrated envelope — reusing `jumpReach`
+ * (unmodified) purely as the maxRise/maxFall FEASIBILITY gate here, not as an
+ * exact horizontal-reach-matching constraint: unlike a footprint-to-footprint
+ * landing (where the player must precisely LAND on the target, so the fixed
+ * running-jump horizontal-travel model in `jumpReach`'s candidates is exactly
+ * right), touching a floating trigger point above/within a surface the player
+ * is already standing on is a "hop up and touch it," not a precision landing —
+ * real players do not need to time a full-speed running jump to launch from an
+ * EXACT x offset from the point. A HARD requirement that some candidate's
+ * fixed running-jump reach land the takeoff position exactly within the node's
+ * own span was tried first and empirically falsifies real, shipped, human-
+ * verified content: level-03's and level-04's alcoves sit only ~30px right of
+ * their launch platform's own left edge, but the shortest real running-jump
+ * candidate at their ~70px rise needs ~38.5px of horizontal travel — narrower
+ * than the platform allows even though the alcove is trivially reachable in
+ * actual play (a near-vertical "hop up," not a running jump). marginRatio uses
+ * the LOWEST candidate reach's ratio to `theoreticalMaxReach` (still a
+ * meaningful WARN-tier tightness signal), combined with the path-so-far cost.
+ *
+ * (3) Cross-height gap hop (point beyond this node's own far edge, a genuine
+ * horizontal gap ahead of the node): this IS a precision-landing scenario (the
+ * player must clear real horizontal distance to arrive at the point), so this
+ * reuses the same fixed running-jump reach-matching model as (2)'s originally-
+ * tried strict form: only candidate reaches whose implied take-off position
+ * `point.x - reach` falls within `[n.xStart, n.xEnd]` count.
+ */
+function bestMarginToPoint(point, nodes, spawnPaths, envelope) {
+  let best = null;
+
+  for (const n of nodes) {
+    if (!spawnPaths.has(n.id)) continue;
+    const pathSoFar = spawnPaths.get(n.id);
+
+    // (1) Same-surface (trivial-walk) candidate — no jump needed at all.
+    if (point.x >= n.xStart && point.x <= n.xEnd && Math.abs(point.y - n.y) < 4) {
+      if (best === null || pathSoFar < best.marginRatio) best = { marginRatio: pathSoFar };
+      continue;
+    }
+
+    // Rightward-travel-only model: a point strictly behind this node's near
+    // edge is out of scope for a hop launched from this node.
+    if (point.x < n.xStart) continue;
+
+    const dy = point.y - n.y;
+    const candidates = jumpReach(dy, envelope);
+    if (candidates.length === 0) continue;
+
+    // theoreticalMaxReach: identical derivation to canReach's own inlined
+    // larger-root quadratic solve at this exact dy — used only as the
+    // marginRatio denominator, never as a cutoff.
+    const disc = CONFIG.JUMP_FORCE ** 2 + 2 * CONFIG.GRAVITY * dy;
+    const sqrtDisc = disc >= 0 ? Math.sqrt(disc) : 0;
+    const theoreticalMaxT = Math.max(
+      (CONFIG.JUMP_FORCE - sqrtDisc) / CONFIG.GRAVITY,
+      (CONFIG.JUMP_FORCE + sqrtDisc) / CONFIG.GRAVITY,
+      0
+    );
+    const theoreticalMaxReach = envelope.runSpeed * theoreticalMaxT;
+
+    let hopMargin = null;
+    if (point.x <= n.xEnd) {
+      // (2) In-footprint hop — the rise/fall being within jumpReach's feasible
+      // range is sufficient; take the lowest (tightest, most WARN-informative)
+      // candidate ratio.
+      for (const { reach } of candidates) {
+        const marginRatio = theoreticalMaxReach > 0 ? reach / theoreticalMaxReach : 0;
+        if (hopMargin === null || marginRatio < hopMargin) hopMargin = marginRatio;
+      }
+    } else {
+      // (3) Cross-height gap hop — precision-landing: the implied take-off
+      // position must fall within this node's own footprint.
+      for (const { reach } of candidates) {
+        const x0 = point.x - reach;
+        if (x0 >= n.xStart && x0 <= n.xEnd) {
+          const marginRatio = theoreticalMaxReach > 0 ? reach / theoreticalMaxReach : 0;
+          if (hopMargin === null || marginRatio < hopMargin) hopMargin = marginRatio;
+        }
+      }
+    }
+    if (hopMargin === null) continue;
+
+    const combined = Math.max(pathSoFar, hopMargin);
+    if (best === null || combined < best.marginRatio) best = { marginRatio: combined };
+  }
+
+  return best;
+}
+
+/**
  * Compose buildNodes/buildGraph/bfsReachableSet into the three ROADMAP-named
  * checks: spawn-goal, gap-width, mechanic-reachability. Returns
  * { rows: [{check, status, descriptor}], hardFailCount }.
@@ -383,6 +500,29 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
         descriptor: reachable
           ? `${kind} x:${e.x}..${e.x + w} on ${node.id} reachable from spawn`
           : `${kind} x:${e.x}..${e.x + w} on ${node.id} not reachable from spawn`,
+      });
+    }
+  }
+
+  // --- secret-alcove-reachability: floating, zero-width bonus points (MECH-04
+  // static half). HARD-FAIL for an unreachable alcove — matches this project's
+  // exact-fact HARD-FAIL convention for any unreachable entity (30-CONTEXT.md
+  // locked decision), not the WARN tier (WARN never fails, which would defeat
+  // the RED-first proof requirement). `?? []`-guarded: an omitted
+  // geometry.secretAlcove produces zero rows, never throws.
+  for (const [i, a] of (geometry.secretAlcove ?? []).entries()) {
+    const result = bestMarginToPoint({ x: a.x, y: a.y }, nodes, spawnPaths, envelope);
+    if (result === null) {
+      rows.push({
+        check: "secret-alcove-reachability",
+        status: "HARD-FAIL",
+        descriptor: `secretAlcove[${i}] x:${a.x} y:${a.y} unreachable from spawn`,
+      });
+    } else {
+      rows.push({
+        check: "secret-alcove-reachability",
+        status: result.marginRatio >= WARN_MARGIN_RATIO ? "WARN" : "PASS",
+        descriptor: `secretAlcove[${i}] x:${a.x} y:${a.y} reached (marginRatio=${result.marginRatio.toFixed(3)})`,
       });
     }
   }
@@ -590,6 +730,94 @@ if (isMain) {
     check(!threw, "checkLevelReachability must never throw when doors/mathGates/enemies are all omitted");
     const mechRows = result?.rows.filter((r) => r.check === "mechanic-reachability") ?? [];
     check(mechRows.length === 0, `expected zero mechanic-reachability rows when all barrier arrays are omitted, got ${mechRows.length}`);
+  }
+
+  // --- Task 1 (bestMarginToPoint / secret-alcove-reachability) behavior cases ---
+
+  // Case E: bestMarginToPoint against a level-01-shaped node set (floor-0 +
+  // platform-0 at {xStart:360, xEnd:520, y:240}, mirroring the real, shipped
+  // level-01 alcove {x:400, y:170}) -> non-null.
+  {
+    const floor0 = { id: "floor-0", xStart: 0, xEnd: 560, y: 320 };
+    const platform0 = { id: "platform-0", xStart: 360, xEnd: 520, y: 240 };
+    const nodes = [floor0, platform0];
+    const graph = buildGraph(nodes, testEnvelope);
+    const spawnPaths = bfsWithPathMargin(graph, "floor-0");
+    const result = bestMarginToPoint({ x: 400, y: 170 }, nodes, spawnPaths, testEnvelope);
+    check(result !== null, `expected non-null for the level-01-shaped alcove point, got ${JSON.stringify(result)}`);
+  }
+
+  // Case F: bestMarginToPoint against a point requiring a 200px rise (exceeding
+  // testEnvelope.maxRise=88.331) -> null (jumpReach's maxRise guard short-circuits).
+  {
+    const floor0 = { id: "floor-0", xStart: 0, xEnd: 400, y: 320 };
+    const nodes = [floor0];
+    const graph = buildGraph(nodes, testEnvelope);
+    const spawnPaths = bfsWithPathMargin(graph, "floor-0");
+    const result = bestMarginToPoint({ x: 150, y: 120 }, nodes, spawnPaths, testEnvelope);
+    check(result === null, `expected null for a point requiring a 200px rise beyond maxRise, got ${JSON.stringify(result)}`);
+  }
+
+  // Case G: bestMarginToPoint against a point on the SAME floor at the SAME y
+  // as spawn -> non-null via the same-surface (trivial-walk) branch, marginRatio
+  // equal to that floor node's own spawnPaths margin (0 for the spawn floor).
+  {
+    const floor0 = { id: "floor-0", xStart: 0, xEnd: 400, y: 320 };
+    const nodes = [floor0];
+    const graph = buildGraph(nodes, testEnvelope);
+    const spawnPaths = bfsWithPathMargin(graph, "floor-0");
+    const result = bestMarginToPoint({ x: 150, y: 320 }, nodes, spawnPaths, testEnvelope);
+    check(result !== null, `expected non-null for a same-floor same-y point, got ${JSON.stringify(result)}`);
+    check(result?.marginRatio === 0, `expected marginRatio===0 (spawn floor's own path-so-far cost), got ${JSON.stringify(result)}`);
+  }
+
+  // Case H: checkLevelReachability with a secretAlcove entry comfortably inside
+  // jump range -> exactly one secret-alcove-reachability row, status PASS or
+  // WARN, never HARD-FAIL.
+  {
+    const geometry = {
+      floors: [{ x: 0, w: 560 }],
+      platforms: [{ x: 360, y: 240, w: 160, h: 24 }],
+      goal: { x: 100, y: 320 },
+      secretAlcove: [{ x: 400, y: 170 }],
+    };
+    const { rows } = checkLevelReachability(geometry, testEnvelope);
+    const alcoveRows = rows.filter((r) => r.check === "secret-alcove-reachability");
+    check(alcoveRows.length === 1, `expected exactly 1 secret-alcove-reachability row, got ${alcoveRows.length}`);
+    check(
+      alcoveRows[0]?.status === "PASS" || alcoveRows[0]?.status === "WARN",
+      `expected PASS or WARN for an in-range alcove, got ${JSON.stringify(alcoveRows[0])}`
+    );
+  }
+
+  // Case I: checkLevelReachability with a secretAlcove entry requiring an
+  // impossible rise -> exactly one row, status HARD-FAIL.
+  {
+    const geometry = {
+      floors: [{ x: 0, w: 400 }],
+      goal: { x: 100, y: 320 },
+      secretAlcove: [{ x: 150, y: 120 }],
+    };
+    const { rows } = checkLevelReachability(geometry, testEnvelope);
+    const alcoveRows = rows.filter((r) => r.check === "secret-alcove-reachability");
+    check(alcoveRows.length === 1, `expected exactly 1 secret-alcove-reachability row, got ${alcoveRows.length}`);
+    check(alcoveRows[0]?.status === "HARD-FAIL", `expected HARD-FAIL for an unreachable alcove, got ${JSON.stringify(alcoveRows[0])}`);
+  }
+
+  // Case J: checkLevelReachability with geometry.secretAlcove omitted -> zero
+  // secret-alcove-reachability rows, never throws.
+  {
+    const geometry = { floors: [{ x: 0, w: 400 }], goal: { x: 100, y: 320 } };
+    let threw = false;
+    let result;
+    try {
+      result = checkLevelReachability(geometry, testEnvelope);
+    } catch {
+      threw = true;
+    }
+    check(!threw, "checkLevelReachability must never throw when geometry.secretAlcove is omitted");
+    const alcoveRows = result?.rows.filter((r) => r.check === "secret-alcove-reachability") ?? [];
+    check(alcoveRows.length === 0, `expected zero secret-alcove-reachability rows when omitted, got ${alcoveRows.length}`);
   }
 
   if (failures > 0) {

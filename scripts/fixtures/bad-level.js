@@ -25,6 +25,16 @@
 //       spawn, so the validator's spawn->goal check independently HARD-FAILs too —
 //       not only the over-hole check.
 //
+//   (c) unreachable secretAlcove (Phase 30, MECH-04 static half) — a secretAlcove
+//       entry at x:150,y:120 sits WITHIN floor A's own reachable span (0..300,
+//       spawn x:64 sits here) but requires a 200px rise (320-120) from FLOOR_Y,
+//       vastly exceeding the ~88-96px theoretical/calibrated max rise —
+//       UNCONDITIONALLY unreachable regardless of the exact calibration numbers
+//       (mirrors defect (b)'s own "wide margin, calibration-independent" design).
+//       Independent of defects (a)/(b), which concern the mathGate/platform/goal
+//       on the far side of the 300..700 gap — this defect fails purely on the
+//       secret-alcove-reachability check.
+//
 // A shipped-good level (src/levels/level-01.js etc.) must stay GREEN against both
 // checks; this fixture is the other half of that calibration: it must go RED,
 // mirroring scripts/fixtures/bad-scene.js's "deliberately-bad fixture proves the
@@ -60,6 +70,9 @@ export const BAD_LEVEL = {
     // On floor B (900 is within 700..1000) — unconditionally unreachable from
     // spawn given the two defects above.
     goal: { x: 900, y: 320 - 16 },
+
+    // Defect (c): unreachable secretAlcove, independent of (a)/(b) — see header.
+    secretAlcove: [{ x: 150, y: 120 }],
   },
 
   // --- Forward-looking optional slots (matches getLevel()'s real-level shape) ---
