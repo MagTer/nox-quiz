@@ -172,12 +172,25 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 31-01-PLAN.md — Re-fetch the 5 Gothicvania OGA zip packs (source files absent from this filesystem), verify CC0 live — ART-01
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 31-02-PLAN.md — Regenerate the style board (Swamp Hunter + Hell hound swaps) and get a genuine round-2 human sign-off — ART-01
 - [ ] 31-03-PLAN.md — Write the pink-scan gate (`check-pink-gate.sh` + `pink_scan.py`), proven RED-first against the 2 known pink assets — ART-01
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 31-04-PLAN.md — Bake all 4 biomes' terrain atlases + parallax layers, retinting Town/Cemetery's pink skies — ART-01
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 31-05-PLAN.md — Bake the Swamp Hunter player + Hell hound enemy sprites, write the anchor/lip convention doc — ART-01
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 31-06-PLAN.md — CREDITS.md + LICENSES proof files, final full-tree pink-gate regression proof — ART-01
 
 ### Phase 32: Terrain & Parallax Rendering
