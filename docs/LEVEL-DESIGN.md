@@ -40,8 +40,7 @@ The builder gives every barrier an invisible full-height blocker (jump apex + 64
 
 - **SOFT spacing between consecutive barriers: 300–750px** (the shipped norm). Closer than ~300px reads as a wall of interruptions — the only shipped exception is the deliberate 72px door+gate set-piece pair (levels 01/04); if you author one, make it intentional and rare.
 - Long barrier-free stretches (>1000px) are fine as breathers, but they exist today mostly on the Phase-24 extensions — flag them for the pending level review rather than copying the pattern.
-- **HARD (mechanic reachability):** every door/mathGate/enemy/collectZone must be reachable from spawn per the validator, and the interactive audit must show `triggered: true` for every encounter.
-- **Collect zones: keep ONE per level** for now — the zone→slots→choices contract is unvalidated for multi-zone levels (22-REVIEW latent warning; becomes safe to revisit in Phase 28). Pickup slots must be reachable on foot or one standard hop from the zone.
+- **HARD (mechanic reachability):** every door/mathGate/enemy must be reachable from spawn per the validator, and the interactive audit must show `triggered: true` for every encounter.
 
 ## 5. Checkpoints
 
@@ -56,7 +55,7 @@ Exactly one per level: a 24×24 (`CONFIG.ALCOVE_SIZE`) invisible walk-through tr
 
 - Place it **~70px above an early/mid-level platform** as one extra optional hop — off the required path, never signposted, never gating (the shipped pattern across all 8 levels).
 - It must cost nothing to skip: never between the player and a required barrier or the goal.
-- The validator/audit deliberately do NOT check alcoves — verify reachability by playing with `?debug=1` (renders them as magenta markers).
+- The validator (`node scripts/validate-levels.mjs`) checks alcove point-reachability via its `secret-alcove-reachability` row, and the interactive audit (`node scripts/audit-phase21-mechanics.mjs`) verifies real discovery via the entity-destroy/XP-delta signal (MECH-04) — both are live, automated coverage as of Phase 30. Playing with `?debug=1` (renders alcoves as magenta markers) remains a valid supplementary manual-eyeball step, just no longer the only verification path.
 
 ## 7. Camera bounds
 
