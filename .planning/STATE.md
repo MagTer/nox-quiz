@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 30 — Harness Extensions
+**Current Focus:** Phase 31 — Asset Bake & Style-Board Sign-off
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -38,10 +38,10 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 
 Phase: 31 — Asset Bake & Style-Board Sign-off
 Plan: Not started
-Status: Executing Phase 30
+Status: Ready to plan
 Last activity: 2026-07-10 — Phase 30 complete, transitioned to Phase 31
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [██░░░░░░░░] 20%
 
 ## v6.0 Roadmap Summary
 
@@ -64,7 +64,7 @@ Progress: [█░░░░░░░░░] 10%
 
 **Velocity (through v5.0):** 28 phases, 107 plans completed across 6 shipped milestones (2026-06-20 → 2026-07-09). Per-plan history archived in `.planning/milestones/`.
 
-**v6.0:** 2 plans completed (Phase 29).
+**v6.0:** 5 plans completed (Phases 29-30).
 
 ## Accumulated Context
 
@@ -91,10 +91,11 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 
 ### Pending Todos
 
-All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (2026-07-09); 1 of 5 formally closed (moved to `.planning/todos/completed/`) on Phase 29's completion:
+All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (2026-07-09); 2 of 5 formally closed (moved to `.planning/todos/completed/`) on Phases 29-30's completion:
 
 - ✓ alcove discoverability/value → MECH-03/06, closed Phase 29 — the "nothing happens" feedback gap is now a real burst/chime/popup + select-screen marker
-- alcove automated coverage → MECH-04 (Phase 30) · unreachable pickups + 07/08 repetition → LVL-01/02 (Phase 34) · LEVEL-DESIGN.md soft-rules review → LVL-03 (Phase 34) · "n0x" logo shortening → BRAND-01 (Phase 38)
+- ✓ alcove automated coverage → MECH-04, closed Phase 30 — validator + interactive audit both genuinely detect alcove reachability/discovery now
+- unreachable pickups + 07/08 repetition → LVL-01/02 (Phase 34) · LEVEL-DESIGN.md soft-rules review → LVL-03 (Phase 34) · "n0x" logo shortening → BRAND-01 (Phase 38)
 
 ### Blockers/Concerns
 
@@ -113,10 +114,10 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 ## Session Continuity
 
 Last session: 2026-07-10
-Stopped at: Phase 29 (Mechanic Cleanup) complete — both plans executed, 2-iteration code-review/fix cycle closed 2 blockers + 4 warnings, genuine human sign-off on the alcove-discovery checkpoint, verification passed 4/4 must-haves. Ready to plan Phase 30.
+Stopped at: Phase 30 (Harness Extensions) complete — 3 plans executed across 2 waves, 3-iteration code-review/fix cycle closed 1 blocker + 4 warnings (including a residual timing bug and a production-code refactor in src/progress.js, both independently re-verified clean), verification passed 8/8 must-haves with all 4 roadmap success criteria proven live. Ready to plan Phase 31 — the first phase with a checkpoint:human-verify hard gate (style-board sign-off).
 Resume file: None
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-07-10 (Phase 29 complete — next: `/gsd-plan-phase 30`)
+**Last updated:** 2026-07-10 (Phase 30 complete — next: `/gsd-plan-phase 31`)
