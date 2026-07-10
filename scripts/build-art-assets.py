@@ -729,6 +729,13 @@ def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
     """
     target_w, target_h = 16, 32
     im = Image.open(sheet_path).convert("RGBA")
+    for rect_name, rect in (("cap_rect", cap_rect), ("fill_rect", fill_rect)):
+        rx0, ry0, rx1, ry1 = rect
+        if rx0 < 0 or ry0 < 0 or rx1 > im.width or ry1 > im.height:
+            raise ValueError(
+                f"{sheet_path}: {rect_name} {rect} does not fit within sheet size "
+                f"{im.size} -- crop rects need re-deriving (vendor pack may have changed)"
+            )
     cap = im.crop(cap_rect)
     fill = im.crop(fill_rect)
 
@@ -865,6 +872,8 @@ def _bake_biome_parallax_layer(out_name, layer, src_path, palette, retint=None):
     dims = {"far": (640, 120), "mid": (640, 144), "near": (640, 90)}
     w, h = dims[layer]
     src = Image.open(src_path).convert("RGBA")
+    if src.width == 0 or src.height == 0:
+        raise ValueError(f"{src_path}: degenerate zero-dimension source image, cannot tile/bottom-anchor")
     if retint is not None:
         band_lo, band_hi, delta = retint
         src = hue_shift_band(src, band_lo, band_hi, delta)
