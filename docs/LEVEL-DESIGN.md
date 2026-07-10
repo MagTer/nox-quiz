@@ -57,6 +57,14 @@ Exactly one per level: a 24×24 (`CONFIG.ALCOVE_SIZE`) invisible walk-through tr
 - It must cost nothing to skip: never between the player and a required barrier or the goal.
 - The validator (`node scripts/validate-levels.mjs`) checks alcove point-reachability via its `secret-alcove-reachability` row, and the interactive audit (`node scripts/audit-phase21-mechanics.mjs`) verifies real discovery via the entity-destroy/XP-delta signal (MECH-04) — both are live, automated coverage as of Phase 30. Playing with `?debug=1` (renders alcoves as magenta markers) remains a valid supplementary manual-eyeball step, just no longer the only verification path.
 
+## 6a. Movers (`geometry.movers`) — preview ahead of Phase 36
+
+No shipped level authors `geometry.movers` yet (Phase 36 places the first one), but the static validator (`node scripts/validate-levels.mjs`) already carries a `mover-reachability` check (`scripts/lib/reachability.mjs`, MOT-04) ready for it. Read this before authoring the first mover:
+
+- The check models a mover as two ping-pong endpoints and tests both independently via **worst-case-extreme** reachability — the player may arrive exactly when the mover is parked at its least helpful endpoint, so BOTH endpoints must be independently reachable, and the check reports the tighter/harder (higher marginRatio) of the two.
+- **HARD constraint — rightward-travel-only model:** each endpoint is only recognized as reachable via a hop launched from some already-reachable node whose own span sits **at or before** that endpoint's x position (the same rightward-only simplification `bestMarginToPoint` already applies to `secretAlcove` reachability). A mover endpoint reachable only by walking **left** from a later point in the level (e.g. after a required backtrack, or a mover parked behind a checkpoint) will HARD-FAIL this validator even if it is genuinely reachable in actual play.
+- Practical guidance: place both ping-pong endpoints so each is reachable by walking/jumping rightward from spawn along the level's normal forward path — do not park a mover endpoint behind a backtrack until this rightward-only limitation is lifted.
+
 ## 7. Camera bounds
 
 - level-01 derives its right edge from geometry; **level-02+ carry an explicit `bounds` field used AS-IS — bump `bounds.right` by hand when extending**, or the camera clamps short of the new goal.
