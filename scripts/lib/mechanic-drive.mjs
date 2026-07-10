@@ -536,12 +536,15 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
  *   externally-observable proxy for "the player's bounding box overlapped the trigger
  *   volume," since secretAlcove.js destroys the object in the SAME handler that
  *   detects the touch.
- *   resolved = triggered AND (the XP delta matches CONFIG.PROGRESS.XP_ALCOVE exactly
- *   — a genuine first touch this attempt — OR the touch legitimately re-found an
- *   alcove that was ALREADY marked found before this specific attempt began, per
- *   secretAlcove.js's own CR-01 anti-farming guard; `alreadyFoundBefore` gates this
- *   second branch so a genuine reward-verification failure can never be misread as
- *   a legitimate re-touch, per 30-REVIEW.md CR-01).
+ *   resolved = triggered AND (the XP/level state after the touch matches the
+ *   level-up-aware predicted post-award state for a genuine CONFIG.PROGRESS.XP_ALCOVE
+ *   award — mirroring progress.js's own awardAndCarry threshold/carry-over math so a
+ *   correct award that happens to cross a level-up boundary is still recognized
+ *   (30-REVIEW.md WR-02) — OR the touch legitimately re-found an alcove that was
+ *   ALREADY marked found before this specific attempt began, per secretAlcove.js's
+ *   own CR-01 anti-farming guard; `alreadyFoundBefore` gates this second branch so a
+ *   genuine reward-verification failure can never be misread as a legitimate
+ *   re-touch, per 30-REVIEW.md CR-01).
  */
 export async function driveAndDetectAlcove(page, encounter, geometry, levelId) {
   const beforeCount = await page.evaluate(() => get("secret-alcove").length);
@@ -602,6 +605,29 @@ export async function driveAndDetectAlcove(page, encounter, geometry, levelId) {
   const triggered = afterCount < beforeCount;
   const delta = (afterBlob?.xp ?? 0) - (beforeBlob?.xp ?? 0);
 
+  // WR-02 fix: a bare `delta === CONFIG.PROGRESS.XP_ALCOVE` equality silently breaks
+  // the moment the award straddles a level-up boundary — progress.js's shared
+  // awardAndCarry helper carries the surplus over (xp -= threshold(level), not
+  // xp = 0), possibly looping multiple levels in one award, so the RAW delta stops
+  // matching XP_ALCOVE exactly the moment a level-up happens to land on this touch.
+  // Mirror that exact threshold/carry-over math here (never re-tune independently —
+  // this MUST stay byte-for-byte in sync with progress.js's awardAndCarry) so a
+  // genuinely correct award is still recognized even when it crosses a level-up.
+  const threshold = (lvl) =>
+    Math.round(CONFIG.PROGRESS.BASE_XP * Math.pow(CONFIG.PROGRESS.LEVEL_MULT, lvl - 1));
+  const predictAward = (blob, amount) => {
+    let xp = (blob?.xp ?? 0) + amount;
+    let level = blob?.level ?? 1;
+    while (xp >= threshold(level)) {
+      xp -= threshold(level);
+      level += 1;
+    }
+    return { xp, level };
+  };
+  const predicted = predictAward(beforeBlob, CONFIG.PROGRESS.XP_ALCOVE);
+  const freshAwardCorrect =
+    afterBlob?.xp === predicted.xp && afterBlob?.level === predicted.level;
+
   // CR-01 fix: `delta === 0` alone is NOT sufficient evidence of a legitimate
   // "already found before this attempt" re-touch — secretAlcove.js persists
   // secretFound unconditionally on first touch regardless of whether the XP award
@@ -613,8 +639,7 @@ export async function driveAndDetectAlcove(page, encounter, geometry, levelId) {
   // `alreadyFoundBefore` only reads true within a single attempt that touches more
   // than one alcove for the same level (the documented "only the first one touched
   // pays out" content case) — never as residue surviving a retry's reload.
-  const resolved =
-    triggered && (delta === CONFIG.PROGRESS.XP_ALCOVE || (delta === 0 && alreadyFoundBefore));
+  const resolved = triggered && (freshAwardCorrect || (delta === 0 && alreadyFoundBefore));
 
   return { triggered, resolved };
 }
