@@ -32,6 +32,11 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 | Interface Sounds (maximize_002) | `assets/sfx/clear.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Level-clear SFX — calm, non-fanfare resolve swell |
 | Interface Sounds (pluck_001) | `assets/sfx/pickup.ogg` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/interface-sounds | CC0 | Pickup/collect SFX — light plucked pop |
 | Music Loops (Flowing Rocks) | `assets/music/ambient.ogg` | Kenney (Kenney Vleugels) | https://gamesounds.xyz/?dir=Kenney%27s+Sound+Pack%2FMusic+Loops%2FLoops | CC0 | Ambient music loop — the one calm bed for the entire game (supersedes "Calm Loop" by wipics, ~19.4s; re-picked at the 27-07 human sign-off for a longer ~30.8s loop) |
+| Gothicvania Swamp (terrain/parallax/player) | `assets/tiles/atlas-swamp.png, assets/parallax/far-swamp.png, assets/parallax/mid-swamp.png, assets/parallax/near-swamp.png, assets/player-swamphunter.png` | ansimuz (Luis Zuno) | https://opengameart.org/sites/default/files/gothicvania_swamp_files.zip | CC0 | Levels 1-2 swamp biome terrain atlas, 3-layer parallax, and the player character sprite sheet (ships across all 4 biomes) |
+| Gothicvania Town (terrain + dusk sky) | `assets/tiles/atlas-town.png, assets/parallax/far-town.png` | ansimuz (Luis Zuno) | https://opengameart.org/sites/default/files/gothicvania-town-files.zip | CC0 | Levels 3-4 town biome terrain atlas and dusk-sky parallax far layer (hue-conformed — the pack's native salmon-pink sky was retinted steel-blue per the no-pink rule) |
+| Gothicvania Patreon Collection (night-town layers, castle env, hell hound) | `assets/parallax/mid-town.png, assets/parallax/near-town.png, assets/parallax/far-castle.png, assets/parallax/mid-castle.png, assets/enemy-hellhound.png` | ansimuz (Luis Zuno) | https://opengameart.org/sites/default/files/%20gothicvania%20patreon%20collection.zip | CC0 | Levels 3-4 night-town parallax detail layers, levels 7-8 castle biome parallax (exterior + interior), and the castle biome enemy sprite (static, idle-only this phase) |
+| Gothicvania Cemetery | `assets/tiles/atlas-cemetery.png, assets/parallax/far-cemetery.png, assets/parallax/mid-cemetery.png, assets/parallax/near-cemetery.png` | ansimuz (Luis Zuno) | https://opengameart.org/sites/default/files/gothicvania-cemetery-files_1.zip | CC0 | Levels 5-6 cemetery biome terrain atlas and 3-layer parallax (horizon glow hue-conformed — the pack's native magenta glow was retinted cold-blue per the no-pink rule) |
+| Gothicvania Church (castle interior accent) | `assets/parallax/near-castle.png` | ansimuz (Luis Zuno) | https://opengameart.org/sites/default/files/gothicvania%20church%20files.zip | CC0 | Levels 7-8 castle biome — church interior background accent, folded in as the castle biome's near parallax layer (per the "3-4 biomes covering 8 levels" requirement — Church does not ship as its own biome) |
 
 ## Notes
 
@@ -76,6 +81,19 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
   current site no longer lists this pack under its old slug) and "Flowing
   Rocks" (~30.8s, CC0, license verified) was picked by ear from 2 longer
   candidates and now ships instead (see row above).
+- **Phase 31 (Gothicvania biome/character art):** the 5 Gothicvania packs
+  (Swamp, Town, Cemetery, Church, Patreon Collection) are the first fully
+  style-coherent, single-artist collection vendored in this project — all
+  authored by ansimuz (Luis Zuno) in one consistent Castlevania-register
+  style, superseding the "grab whatever's CC0" mixed-source approach of
+  Phases 18/20/26. Each pack also bundles CC-BY music by Pascal Belisle
+  ("Music License"/"Demo Music" credit sections in the packs' own
+  `public-license.txt` files) — this music was explicitly **NOT** vendored;
+  Phase 27 already owns this game's audio, and CC-BY-licensed content is not
+  vendorable under this project's CC0-only art discipline. The raw pack
+  files (zips + extracted trees) live in a gitignored
+  `assets/_gothicvania-src/` scratch directory, never committed, and are
+  re-fetchable any time from the 5 source URLs listed in the rows above.
 
 ## License reference
 

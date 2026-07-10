@@ -1,0 +1,49 @@
+Asset:        assets/tiles/atlas-cemetery.png (cemetery biome terrain atlas —
+              32x16, 2 frames of 16x32: cap + fill)
+              assets/parallax/far-cemetery.png, mid-cemetery.png,
+              near-cemetery.png (3-layer parallax, 640x120/144/90)
+Source pack:  "Gothicvania Cemetery"
+Author:       ansimuz (Luis Zuno)
+Source URL:   https://opengameart.org/sites/default/files/gothicvania-cemetery-files_1.zip
+Tiles/frames used: hand-identified cap+fill crop rectangles for the terrain
+              atlas, deliberately chosen from a clean grass-tuft/rock region
+              (see scripts/build-art-assets.py's build_biome_atlas_cemetery())
+              rather than the cross-shaped grass-cap-over-tombstone region
+              initially considered; the cemetery pack's 3 native background
+              layers (horizon glow, mountains, foreground), tiled
+              horizontally to 640px width via _tile_to_width() (see
+              build_biome_parallax_cemetery()).
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own bundled public-license.txt:
+    "Public domain and free to use on whatever you want, personal or
+     commercial. Credit is not required but appreciated."
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+
+Processing note: the far (horizon-glow sky) and mid (mountains) parallax
+layers were retinted via `hue_shift_band()` (copied verbatim from
+.planning/research/v6-scouting/styleboard.py, same call already proven in
+styleboard.py's cemetery()) — `hue_shift_band(195, 245, -50)` — because the
+pack's native horizon glow is magenta, which violates this project's no-pink
+rule as-is. Pre-retint measurement: the raw sky background.png scored ~78.7%
+dominant pink/magenta hue. Post-bake (retint applied, then run through the
+shared `_remap_luminance` palette-conform pass), the far layer measures
+0.0000 (0%) via scripts/lib/pink_scan.py.
+
+The terrain atlas was NOT retinted — direct pixel sampling of both candidate
+crop regions found the full tombstone sheet's ~8.7% pre-remap pink-hue figure
+was entirely attributable to a single dark violet/plum tombstone SHADOW tone
+(RGB (65,25,59)), the same low-brightness HSV hue-instability class already
+documented for assets/player-swamphunter.png's pink-scan allowlist entry —
+not a genuinely pink surface. The final crop rects (grass-tuft/rock region,
+0.9%/0.0% pre-remap) avoid this artifact entirely and require no retint.
+
+Verification: License page (opengameart.org) and the pack's own bundled
+public-license.txt both confirmed CC0/public-domain by ansimuz this session
+(2026-07-10, live re-verified — see Plan 31-01's SUMMARY.md). The pack's
+"Music License" section (Pascal Belisle, CC-BY) was also re-confirmed this
+session and is explicitly NOT vendored — no .mp3/.ogg from this pack ships
+under assets/.
+
+Vendor logo / brand art: none.
