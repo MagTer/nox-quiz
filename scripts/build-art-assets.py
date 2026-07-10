@@ -174,7 +174,10 @@ def build_player():
     loaded = []
     for fname in pose_files:
         im = Image.open(os.path.join(SRC, "platformer-characters", fname)).convert("RGBA")
-        loaded.append((im, im.getbbox()))
+        bbox = im.getbbox()
+        if bbox is None:
+            raise ValueError(f"{fname}: fully transparent source frame, cannot derive content bbox")
+        loaded.append((im, bbox))
 
     max_content_h = max(bbox[3] - bbox[1] for _, bbox in loaded)
     scale = target_h / max_content_h  # height-bound scale, shared across all frames
@@ -1040,7 +1043,10 @@ def build_player_swamphunter():
     loaded = []
     for subdir, fname in frame_files:
         im = Image.open(os.path.join(player_dir, subdir, fname)).convert("RGBA")
-        loaded.append((im, im.getbbox()))
+        bbox = im.getbbox()
+        if bbox is None:
+            raise ValueError(f"{subdir}/{fname}: fully transparent source frame, cannot derive content bbox")
+        loaded.append((im, bbox))
 
     max_content_h = max(bbox[3] - bbox[1] for _, bbox in loaded)
     scale = target_h / max_content_h  # height-bound scale, shared across all 12 frames
