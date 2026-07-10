@@ -127,3 +127,7 @@ None - no external service configuration required.
 ---
 *Phase: 31-asset-bake-style-board-sign-off*
 *Completed: 2026-07-10*
+
+## Self-Check: PASSED
+
+All 5 packs' `public-license.txt` files found on disk at expected paths; both task commits (`6d7d3a8`, `9de008b`) confirmed present in git log.
