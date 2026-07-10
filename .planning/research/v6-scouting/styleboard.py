@@ -127,12 +127,34 @@ def swamp():
         tile_x(c, fill, yb + 16)
         yb += 16
     # characters
+    # SWAMP_*_FEET_Y: measured directly from the sourced tileset.png "surface"
+    # island (ts[0], the 80x62 grass-topped dirt block tiled above as the
+    # ground), not guessed. FLOOR_Y is that island's alpha-bbox top -- i.e. the
+    # single highest grass-blade pixel across the whole 80px-wide repeating
+    # tile -- not the actual visual grass line under any given character;
+    # individual columns of the tile dip 0-6px below that peak as the grass
+    # texture undulates. Sampling the tile's real alpha data at each ground
+    # character's stance x (mod the 80px tile width, averaged across their
+    # sprite's own footprint width) gives the true per-character visual
+    # top-of-grass row: player footprint at x=150 averages 4px below FLOOR_Y,
+    # spider at x=420 averages 2px below, thing at x=520 averages 1px below.
+    # Anchoring every character's feet at FLOOR_Y directly (round-3 bug) put
+    # them all at the tile's rare grass-blade peak instead, floating them
+    # 1-4px above the ground they're meant to stand on -- most visible on the
+    # player, caught by round-3 human sign-off ("gubben svavar lite ovanpa
+    # marken" / "the guy is floating a bit above the ground"). FLOOR_Y itself
+    # is unchanged: it still correctly anchors where the terrain tile geometry
+    # is drawn (trees above and the ground tiling reuse it as-is); only the
+    # characters standing on that ground needed a per-character offset.
+    SWAMP_PLAYER_FEET_Y = FLOOR_Y + 4
+    SWAMP_SPIDER_FEET_Y = FLOOR_Y + 2
+    SWAMP_THING_FEET_Y = FLOOR_Y + 1
     player = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Player/idle/idle1.png")
-    put_feet(c, player, 150, FLOOR_Y)
+    put_feet(c, player, 150, SWAMP_PLAYER_FEET_Y)
     spider = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Spider/walk/spider1.png")
-    put_feet(c, spider, 420, FLOOR_Y, flip=True)
+    put_feet(c, spider, 420, SWAMP_SPIDER_FEET_Y, flip=True)
     thing = load("gothicvania_swamp_files/Gothicvania Swamp files/Sprites/Thing/walk thing/thing1.png")
-    put_feet(c, thing, 520, FLOOR_Y, flip=True)
+    put_feet(c, thing, 520, SWAMP_THING_FEET_Y, flip=True)
     badge(c)
     return c
 
@@ -195,9 +217,11 @@ def castle():
     # under the floating ledge (confirmed void, not stone, by sampling: pixels
     # below the ledge at this x match the scene's background color, not a solid
     # block) — round 2 human sign-off caught this as "base varies" misalignment.
-    # Unlike swamp (which tiles its own terrain at the shared FLOOR_Y=320), town/
-    # cemetery/castle each composite a pre-made background plate whose visual
-    # floor row is NOT at a shared y — each needs its own measured feet_y.
+    # Unlike swamp (which tiles its own terrain from the shared FLOOR_Y=320 and
+    # then applies a small per-character measured offset on top of it — see the
+    # SWAMP_*_FEET_Y comment in swamp() above), town/cemetery/castle each
+    # composite a pre-made background plate whose visual floor row is NOT at a
+    # shared y — each needs its own measured feet_y entirely.
     put_feet(c, hero, 210, 290)
     hound = frame0(load("gothicvaniapatreoncollection/ gothicvania patreon collection/Hell-Hound-Files/PNG/hell-hound-idle.png"), 6)
     c.alpha_composite(hound, (430, 230))
