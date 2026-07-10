@@ -617,6 +617,8 @@ def build_enemies():
     for fname, out_name in sources:
         im = Image.open(os.path.join(SRC, "new-platformer-pack", fname)).convert("RGBA")
         bbox = im.getbbox()
+        if bbox is None:
+            raise ValueError(f"{fname}: fully transparent source frame, cannot derive content bbox")
         cropped = im.crop(bbox)
         scale = content_target / max(cropped.width, cropped.height)
         new_w = max(1, round(cropped.width * scale))
