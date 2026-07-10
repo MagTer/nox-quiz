@@ -697,9 +697,25 @@ def _bottom_anchor(im, target_w, target_h):
     return canvas
 
 
+def _fit_and_pad(im, target_w, target_h):
+    """Scale `im` down/up by ONE shared factor (the smaller of the two axis
+    ratios, so the whole crop fits without stretching), then bottom-anchor
+    it in a transparent target_w x target_h canvas -- mirrors build_player()'s
+    aspect-preserving shared-scale-factor idiom instead of a raw two-argument
+    .resize() that silently skews non-16:32 crops (WR-01, 31-REVIEW.md).
+    """
+    scale = min(target_w / im.width, target_h / im.height)
+    new_w = max(1, round(im.width * scale))
+    new_h = max(1, round(im.height * scale))
+    resized = im.resize((new_w, new_h), Image.NEAREST)
+    frame = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+    frame.paste(resized, ((target_w - new_w) // 2, target_h - new_h), resized)  # bottom-anchor
+    return frame
+
+
 def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
-    """Shared crop -> [retint] -> resize(NEAREST) -> _remap_luminance ->
-    assert -> save body for a 2-frame (cap + fill) biome terrain atlas
+    """Shared crop -> [retint] -> aspect-preserving fit+pad -> _remap_luminance
+    -> assert -> save body for a 2-frame (cap + fill) biome terrain atlas
     (16x32 each, 32x32 total) -- mirrors build_door()'s single-hand-crop
     shape, just twice (cap tile + fill/edge tile) per biome.
 
@@ -718,8 +734,8 @@ def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
         cap = hue_shift_band(cap, band_lo, band_hi, delta)
         fill = hue_shift_band(fill, band_lo, band_hi, delta)
 
-    cap_r = cap.resize((target_w, target_h), Image.NEAREST)
-    fill_r = fill.resize((target_w, target_h), Image.NEAREST)
+    cap_r = _fit_and_pad(cap, target_w, target_h)
+    fill_r = _fit_and_pad(fill, target_w, target_h)
 
     sheet = Image.new("RGBA", (target_w * 2, target_h), (0, 0, 0, 0))
     sheet.paste(cap_r, (0, 0), cap_r)
