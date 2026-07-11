@@ -13,6 +13,7 @@ import { CONFIG } from "./config.js";
 import { titleScene } from "./scenes/title.js";
 import { selectScene } from "./scenes/select.js";
 import { gameScene } from "./scenes/game.js";
+import { ASSETS_MANIFEST } from "./assets-manifest.js";
 
 // kaplay() returns a context and, with global: true (the default), also
 // exposes scene/add/text/pos/anchor/color/go/loadSprite on the global scope.
@@ -59,9 +60,6 @@ const k = kaplay({
 // "../lib/kaplay.mjs"` above. `assets/` is a SIBLING of the served src/ root, so
 // `assets/` or `/assets/` would silently fail to load. Use `loadSprite` with
 // `sliceX`/`anims` — `loadSpriteSheet` does NOT exist in Kaplay 3001.
-loadSprite("ground", "../assets/tiles/ground.png", {
-  sliceX: CONFIG.GROUND_FRAMES,
-});
 loadSprite("spike", "../assets/spike.png");
 loadSprite("goal", "../assets/goal.png");
 loadSprite("player", "../assets/player.png", {
@@ -95,18 +93,18 @@ loadSprite("title-bg", "../assets/tiles/title-bg.png");
 loadSprite("logo-hero", "../assets/logo-hero.png");
 loadSprite("logo-badge", "../assets/logo-badge.png");
 
-// Per-level theme variants (VIS-03; Phase 26 Plan 05) — 8 baked themes, one
-// dedicated accent per level (26-03/26-12). Sprite names exactly match
-// parallax.js's layerName() template and build.js's groundSprite template
-// (`${base}-theme-${n}`), including the literal "theme-N" shape set on each
-// level descriptor's `.theme` field in 26-06.
-for (let n = 1; n <= 8; n++) {
-  loadSprite(`bg-far-theme-${n}`, `../assets/parallax/far-theme-${n}.png`);
-  loadSprite(`bg-mid-theme-${n}`, `../assets/parallax/mid-theme-${n}.png`);
-  loadSprite(`bg-near-theme-${n}`, `../assets/parallax/near-theme-${n}.png`);
-  loadSprite(`ground-theme-${n}`, `../assets/tiles/ground-theme-${n}.png`, {
-    sliceX: CONFIG.GROUND_FRAMES,
-  });
+// Biome atlas/parallax assets (ART-02/ART-03; Phase 32 Plan 04) — manifest-driven
+// load loop over ASSETS_MANIFEST's biome-atlas/biome-bg entries, replacing the old
+// hand-written per-theme-N block. Every other manifest `kind` is intentionally
+// skipped here — those assets are loaded by the hand-written calls elsewhere in
+// this file, and looping them too would double-load.
+for (const a of ASSETS_MANIFEST) {
+  const webPath = `../${a.path}`;
+  if (a.kind === "biome-atlas") {
+    loadSprite(a.key, webPath, { sliceX: 2, sliceY: 1 });
+  } else if (a.kind === "biome-bg") {
+    loadSprite(a.key, webPath);
+  }
 }
 
 // Door + enemy sprite art (VIS-04; Phase 26 Plan 05) — replaces the flat-color

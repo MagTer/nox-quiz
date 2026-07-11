@@ -20,6 +20,7 @@
 - `bash scripts/check-safety.sh` — SAFE-01 no-timer + forgiving mandate (whole `src/`)
 - `bash scripts/check-import-safety.sh` — a727c13 module-top-level engine-global trap
 - `bash scripts/check-progress.sh` — progress/save invariants (ends with `smoke-progress.mjs`)
+- `node scripts/check-assets-manifest.mjs` — asset manifest existence gate (every declared sprite/sound path exists on disk)
 - `node scripts/validate-levels.mjs` — static level validator, REQUIRED for any level edit (green = zero HARD-FAIL)
 - `node scripts/browser-boot.mjs` — real-browser boot + drive across all levels
 - `node scripts/audit-phase21-mechanics.mjs` — interactive mechanic audit (`triggered: true` required for every encounter; `resolved: false` rows are known headless-timing flakiness)
