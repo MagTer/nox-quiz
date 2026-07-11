@@ -146,3 +146,15 @@ None - no external service configuration required.
 ---
 *Phase: 32-terrain-parallax-rendering*
 *Completed: 2026-07-11*
+
+## Self-Check: PASSED
+
+- FOUND: src/parallax.js
+- FOUND: src/scenes/game.js
+- FOUND: src/main.js
+- FOUND: .planning/phases/32-terrain-parallax-rendering/32-04-SUMMARY.md
+- CONFIRMED DELETED: assets/tiles/ground-theme-1.png (and 31 sibling theme-N assets)
+- FOUND: 1c939c1 (Task 1 commit)
+- FOUND: b1cfbfd (Task 2 commit)
+- FOUND: 70d42a6 (Task 3 commit)
+- FOUND: 586454a (SUMMARY.md commit)
