@@ -235,13 +235,13 @@ Plans:
   3. Doors, checkpoint gates, enemy blockers, and the math gate show real animated art in place of flat-color panels, with their invisible blocker colliders untouched
   4. The full interactive mechanic audit still triggers every encounter across all 8 levels — the art swap is proven collision-neutral, not assumed
 
-**Plans**: 5 plans
+**Plans**: 2/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 33-01-PLAN.md — Bake native-color door/math-gate art (church/castle packs) + retire dead enemy-1/2/3 assets — ART-05
-- [ ] 33-02-PLAN.md — Boot-time sprite loading: player-swamphunter 5-state anims, enemy-hellhound idle loop, math-gate load, config tunables, manifest rows — ART-04, ART-05
+- [x] 33-01-PLAN.md — Bake native-color door/math-gate art (church/castle packs) + retire dead enemy-1/2/3 assets — ART-05
+- [x] 33-02-PLAN.md — Boot-time sprite loading: player-swamphunter 5-state anims, enemy-hellhound idle loop, math-gate load, config tunables, manifest rows — ART-04, ART-05
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -364,7 +364,7 @@ Plans:
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
 | 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete    | 2026-07-10 |
 | 32. Terrain & Parallax Rendering | v6.0 | 5/5 | Complete    | 2026-07-11 |
-| 33. Player & Entity Animation | v6.0 | 0/5 | Planned | - |
+| 33. Player & Entity Animation | v6.0 | 2/5 | In Progress|  |
 | 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
 | 35. Biome Re-dress & Props | v6.0 | 0/TBD | Not started | - |
 | 36. World Motion & Ambient Life | v6.0 | 0/TBD | Not started | - |
