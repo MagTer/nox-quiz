@@ -83,6 +83,14 @@ export function buildLevel(levelData) {
   // is the load-bearing fill (underground mass).
   const CAP_FRAME = 0;
   const FILL_FRAME = 1;
+  // WR-02 fix (32-REVIEW.md): each baked atlas frame is 16 wide x 32 tall (the "32x32
+  // sheet of two 16x32 frames" from the comment above, confirmed against the real PNGs
+  // — sliceX:2/sliceY:1 in main.js's load call). The last-tile width clamp below must
+  // pass this explicit natural height alongside the clamped width, or Kaplay's
+  // non-tiled sprite draw (which uses `width` alone as a UNIFORM x+y scale factor when
+  // `height` is omitted) would also squish the cap art vertically, not just crop its
+  // overhanging right edge.
+  const CAP_FRAME_H = T * 2;
 
   // Occupancy-driven autotile cap+chunked-fill renderer (ART-02; Phase 32 Plan 03),
   // a near-verbatim port of the spike-proven recipe simplified to the real 2-frame
@@ -114,7 +122,17 @@ export function buildLevel(levelData) {
         ]);
       }
       for (let tx = runX; tx < runX + runW; tx += T) {
-        add([sprite(atlasSprite, { frame: CAP_FRAME }), pos(tx, runY), "ground-cap"]);
+        // WR-02 fix (32-REVIEW.md): clamp the last cap tile's drawn width to the
+        // remaining run pixels instead of letting a fixed-16px sprite overshoot the
+        // run's right edge (matches how the fill-chunk loop above already clamps
+        // chunkW). Only takes effect for the final tile of a run whose width isn't a
+        // multiple of T; every other tile still gets the full T-wide sprite.
+        const capW = Math.min(T, runX + runW - tx);
+        add([
+          sprite(atlasSprite, { frame: CAP_FRAME, width: capW, height: CAP_FRAME_H }),
+          pos(tx, runY),
+          "ground-cap",
+        ]);
       }
       return;
     }
@@ -128,7 +146,14 @@ export function buildLevel(levelData) {
       ]);
     }
     for (let tx = runX; tx < runX + runW; tx += T) {
-      add([sprite(atlasSprite, { frame: CAP_FRAME }), pos(tx, runY), "ground-cap"]);
+      // WR-02 fix (32-REVIEW.md): same last-tile clamp as the Cemetery branch above —
+      // see that comment for the reasoning.
+      const capW = Math.min(T, runX + runW - tx);
+      add([
+        sprite(atlasSprite, { frame: CAP_FRAME, width: capW, height: CAP_FRAME_H }),
+        pos(tx, runY),
+        "ground-cap",
+      ]);
     }
   }
 
