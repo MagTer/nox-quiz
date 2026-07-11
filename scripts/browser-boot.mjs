@@ -496,10 +496,26 @@ try {
 
     // Phase 32 (ART-02/ART-03, Plan 32-05): drive to the level's authored far end (the
     // goal, always placed near the level's true end by design — RESEARCH.md Pitfall 7)
-    // and prove it genuinely renders, not just the entry screen. Separate drive from
-    // the drivableEncounters loop above (which stops after the first resolvable
-    // mechanic), reusing the same already-proven driveToXPlanned navigation.
-    await driveToXPlanned(page, level.geometry.goal.x, level.geometry);
+    // and prove it genuinely renders, not just the entry screen. The drivableEncounters
+    // loop above deliberately stops after the FIRST resolvable mechanic (see its own
+    // comment); every shipped level has 2+ chained door/math-gate/enemy encounters, and
+    // each is a physics-solid blocker (build.js: "a tall solid collider that physically
+    // prevents bypassing... by jumping"), so driving straight to goal.x here would stall
+    // at the next still-locked encounter and never actually reach the goal (CR-01,
+    // 32-REVIEW.md). Resolve every remaining encounter on the path first.
+    for (const encounter of drivableEncounters) {
+      const { triggered } = await driveToXPlanned(page, encounter.x, level.geometry);
+      if (triggered) {
+        await resolveIfBoxed(page);
+      }
+    }
+    const { reachedX } = await driveToXPlanned(page, level.geometry.goal.x, level.geometry);
+    if (Math.abs(reachedX - level.geometry.goal.x) > 32) {
+      errors.push({
+        type: "far-end-unreachable",
+        message: `${level.id}: far-end drive stalled at x:${reachedX}, never reached goal.x:${level.geometry.goal.x}`,
+      });
+    }
     await assertScreenshotNonBlank(page, errors, `${level.id}: far-end (goal)`);
 
     // Return to select so the next level can be chosen.
