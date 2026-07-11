@@ -109,7 +109,7 @@ Rebranded Math Lab → Nox Run; doubled the game to 8 levels (levels 1–4 fixed
 - [x] **Phase 29: Mechanic Cleanup** - Collect-the-answer removed everywhere atomically, math pacing rebalanced, and the secret alcove finally feels like finding a secret — cue on touch, positive-only marker on select (completed 2026-07-09)
 - [x] **Phase 30: Harness Extensions** - The validator and interactive audit learn every new dynamic RED-first — alcove reachability + trigger signal, mover worst-case-extreme rule — before any level uses them (completed 2026-07-10)
 - [x] **Phase 31: Asset Bake & Style-Board Sign-off** - Gothicvania-anchored biome art vendored, conformed, and human-approved on a style board before one pixel is integrated (completed 2026-07-10)
-- [ ] **Phase 32: Terrain & Parallax Rendering** - Solid autotiled ground and real multi-layer parallax replace floating strips and flat triangles — geometry byte-frozen
+- [x] **Phase 32: Terrain & Parallax Rendering** - Solid autotiled ground and real multi-layer parallax replace floating strips and flat triangles — geometry byte-frozen (completed 2026-07-11)
 - [ ] **Phase 33: Player & Entity Animation** - Fully animated player and real animated mechanic-entity art on explicitly locked colliders
 - [ ] **Phase 34: Level Quality Pass** - Levels 5–8 reachability fixed, 07/08 climbs differentiated, soft-rules review done, and motion rules written into LEVEL-DESIGN.md
 - [ ] **Phase 35: Biome Re-dress & Props** - All 8 levels dressed in their assigned biomes with a visual-only props layer — geometry byte-frozen
@@ -206,7 +206,7 @@ Plans:
   4. Every sprite/sound the game loads exists on disk — a data-driven assets manifest with a static existence gate kills the silent-404 class
   5. Level geometry arrays are byte-identical to their pre-phase state (review-gated) and the structural validator stays green with zero HARD-FAILs
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -221,7 +221,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 32-05-PLAN.md — browser-boot.mjs screenshot/FPS/object-budget/far-end checks — ART-02, ART-03
+- [x] 32-05-PLAN.md — browser-boot.mjs screenshot/FPS/object-budget/far-end checks — ART-02, ART-03
 
 ### Phase 33: Player & Entity Animation
 
@@ -348,7 +348,7 @@ Plans:
 | 29. Mechanic Cleanup | v6.0 | 2/2 | Complete    | 2026-07-09 |
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
 | 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete    | 2026-07-10 |
-| 32. Terrain & Parallax Rendering | v6.0 | 4/5 | In Progress|  |
+| 32. Terrain & Parallax Rendering | v6.0 | 5/5 | Complete   | 2026-07-11 |
 | 33. Player & Entity Animation | v6.0 | 0/TBD | Not started | - |
 | 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
 | 35. Biome Re-dress & Props | v6.0 | 0/TBD | Not started | - |
