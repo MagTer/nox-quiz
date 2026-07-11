@@ -494,6 +494,14 @@ try {
       break;
     }
 
+    // Phase 32 (ART-02/ART-03, Plan 32-05): drive to the level's authored far end (the
+    // goal, always placed near the level's true end by design — RESEARCH.md Pitfall 7)
+    // and prove it genuinely renders, not just the entry screen. Separate drive from
+    // the drivableEncounters loop above (which stops after the first resolvable
+    // mechanic), reusing the same already-proven driveToXPlanned navigation.
+    await driveToXPlanned(page, level.geometry.goal.x, level.geometry);
+    await assertScreenshotNonBlank(page, errors, `${level.id}: far-end (goal)`);
+
     // Return to select so the next level can be chosen.
     if (i < levels.length - 1) {
       await page.keyboard.press("Escape");
