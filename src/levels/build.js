@@ -267,13 +267,7 @@ export function buildLevel(levelData) {
       "math-gate",
     ]);
 
-    const panel = add([
-      rect(CONFIG.MATH_GATE.W, CONFIG.MATH_GATE.H),
-      pos(mg.x, mg.y),
-      color(...CONFIG.MATH_GATE.LOCKED_GREY),
-      outline(2, rgb(...CONFIG.MATH_GATE.LOCKED_BORDER)),
-      "math-gate-panel",
-    ]);
+    const panel = add([sprite("math-gate"), pos(mg.x, mg.y), "math-gate-panel"]);
 
     const glyph = add([
       text("?", { size: CONFIG.MATH_GATE.GLYPH_SIZE }),
@@ -305,14 +299,18 @@ export function buildLevel(levelData) {
       "enemy",
     ]);
 
-    // Visible enemy panel — real sprite art (VIS-04; Phase 26 Plan 05) replaces the
-    // flat-color rect+glyph placeholder. Falls back to variant 0 (enemy-1) when a
-    // level's enemy object has no `variant` field yet.
+    // Visible enemy panel — real animated sprite art (ART-05; Phase 33) replaces the
+    // flat-color rect+glyph placeholder. CONFIG.ENEMY.SPRITES is now single-entry, but
+    // existing level descriptors still carry variant:0/1/2 fields — modulo-safe index
+    // keeps every variant value resolving to index 0 without touching level data.
+    // x-offset centers the wider FRAME_W (64px) Hell hound frame over the unchanged
+    // 32px-wide invisible blocker.
     const panel = add([
-      sprite(CONFIG.ENEMY.SPRITES[e.variant ?? 0]),
-      pos(e.x, e.y),
+      sprite(CONFIG.ENEMY.SPRITES[(e.variant ?? 0) % CONFIG.ENEMY.SPRITES.length]),
+      pos(e.x - (CONFIG.ENEMY.FRAME_W - CONFIG.ENEMY.W) / 2, e.y),
       "enemy-panel",
     ]);
+    panel.play("idle"); // looping idle anim registered in main.js loadSprite
 
     enemyObj.panelObj = panel;
   }
