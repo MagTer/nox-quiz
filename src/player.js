@@ -27,7 +27,7 @@ export function makePlayer(startX, startY) {
   const player = add([
     sprite("player"), // CC0 16x32 player sprite (replaces the Phase 8 placeholder rect)
     pos(startX, startY),
-    area(), // collider matches the 16x32 sprite footprint (no transparent padding to tune)
+    area({ shape: new Rect(vec2(0), 16, 32) }), // collider explicitly locked to 16x32 (ART-04) — independent of whichever anim frame is currently playing, so the visually taller player-swamphunter sheet can never silently resize the physics hitbox
     body({ maxVelocity: CONFIG.MAX_FALL_SPEED }), // gravity + collision + anti-tunnel terminal cap
     opacity(1), // enables the respawn flash (scene tweens player.opacity)
     scale(1), // VISUAL only — enables squash/stretch via .scaleTo() (JUICE-01); brief small deltas keep area() fair
@@ -57,6 +57,13 @@ export function makePlayer(startX, startY) {
   // buffer: window after a press where a not-yet-valid jump stays queued.
   let coyote = 0;
   let buffer = 0;
+
+  // Anim-state timers — CLOSURE-LOCAL (anti-leak: never module-level), same discipline
+  // as coyote/buffer above. wasFalling tracks whether the player was airborne-and-descending
+  // on the previous frame (drives the genuine falling-to-grounded land transition below).
+  // landHold counts down the seconds remaining to hold the synthesized "land" pose.
+  let wasFalling = false;
+  let landHold = 0;
 
   player.onUpdate(() => {
     // Horizontal run: read held input, derive -1/0/+1, set vel.x = dir * RUN_SPEED.
@@ -108,9 +115,28 @@ export function makePlayer(startX, startY) {
     const deadzone = CONFIG.PLAYER_ANIM_DEADZONE;
     const speedX = Math.abs(player.vel.x);
 
-    let target;
+    // Decay the land-pose hold timer (same clamp-at-0 idiom as coyote/buffer).
+    landHold = Math.max(0, landHold - dt());
+
+    // Track airborne-and-descending state and detect the genuine falling-to-grounded
+    // transition. Deliberately NOT hooked off player.onGround() (see the comment on that
+    // hook above) — onGround() fires on every grounded contact, including repeated hits
+    // while walking across adjacent floor colliders, which would keep re-triggering
+    // landHold during ordinary walking and starve the run anim. This wasFalling-gated
+    // edge only fires once, on a real airborne-to-grounded transition.
     if (!player.isGrounded()) {
-      target = "jump";
+      // Up is NEGATIVE Y (Vec2.UP = (0,-1)) — descending is vel.y >= 0.
+      wasFalling = player.vel.y >= 0;
+    } else if (wasFalling) {
+      landHold = CONFIG.PLAYER_LAND_HOLD_MS / 1000;
+      wasFalling = false;
+    }
+
+    let target;
+    if (landHold > 0) {
+      target = "land";
+    } else if (!player.isGrounded()) {
+      target = player.vel.y < 0 ? "jump" : "fall";
     } else if (speedX >= deadzone) {
       target = "run";
     } else {
