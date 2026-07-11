@@ -29,6 +29,9 @@ import { CONFIG } from "../config.js";
 
 const T = CONFIG.TILE_SIZE; // 16px — floor visual-tile grid step (pure config read, safe at top level)
 const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run (pure config read, safe at top level)
+const FILL_CHUNK_COLS = CONFIG.TERRAIN.FILL_CHUNK_COLS; // <=40 cols — spike-proven {tiled:true} chunk ceiling (pure config read, safe at top level)
+const FLOOR_FILL_DEPTH_PX = CONFIG.TERRAIN.FLOOR_FILL_DEPTH_PX; // px — floor-run underground fill depth (pure config read, safe at top level)
+const PLATFORM_FILL_DEPTH_PX = CONFIG.TERRAIN.PLATFORM_FILL_DEPTH_PX; // px — shallow platform fill depth (pure config read, safe at top level)
 
 // Dark-grunge palette per CLAUDE.md — matches src/scenes/select.js's own text color exactly
 // (21-RESEARCH.md Finding 1 convention), now read from CONFIG.PALETTE.TEXT (VIS-01; Phase 26
@@ -70,21 +73,63 @@ export function buildLevel(levelData) {
 
   const g = levelData.geometry;
 
-  // Theme-aware ground sprite (VIS-03; Phase 26 Plan 05): falls back to the base
-  // untinted "ground" sprite when levelData.theme is unset, so any level without a
-  // theme (or a future level, or a node-import context) still builds correctly.
-  const groundSprite = levelData.theme ? `ground-${levelData.theme}` : "ground";
+  // atlas-${biome} sprite selection (ART-02; Phase 32 Plan 03): biome is a required
+  // field on every descriptor (Plan 32-02) — no fallback, unlike the old theme-aware
+  // groundSprite ternary this replaces.
+  const atlasSprite = `atlas-${levelData.biome}`;
 
-  // Helper: pick the correct ground.png frame for a top-surface tile based on
-  // its position within a run/platform. Pure visual pass — colliders are merged
-  // separately and untouched (Phase 18 ART-02).
-  function pickTopFrame(tx, runX, runW) {
-    const isLeft = tx === runX;
-    const isRight = tx + CONFIG.TILE_SIZE >= runX + runW;
-    if (isLeft && isRight) return 0; // single-tile run
-    if (isLeft) return 1;            // left edge
-    if (isRight) return 3;           // right edge
-    return 2;                        // center fill
+  // Cap/fill frame order per docs/LEVEL-DESIGN.md §9: the baked atlas is a 32x32
+  // sheet of two 16x32 frames — frame 0 is the decorative cap (top surface), frame 1
+  // is the load-bearing fill (underground mass).
+  const CAP_FRAME = 0;
+  const FILL_FRAME = 1;
+
+  // Occupancy-driven autotile cap+chunked-fill renderer (ART-02; Phase 32 Plan 03),
+  // a near-verbatim port of the spike-proven recipe simplified to the real 2-frame
+  // biome atlas. Emits ONLY tagged visual tiles (sprite, no area()/body()) — the
+  // caller's merged rect()+body({isStatic:true}) collider block (below) stays the
+  // sole physics body for the run, byte-unchanged; this helper only ever reads
+  // runX/runY/runW/fillDepthPx, never geometry.
+  //
+  // Cemetery's cap frame is transparent in rows 0-9 (docs/LEVEL-DESIGN.md §9) — its
+  // branch starts the fill body one tile-row earlier (at runY instead of runY + T,
+  // with height fillDepthPx + T so it still reaches the same effective bottom depth)
+  // and emits it before the cap-row loop, so the always-solid fill composites
+  // underneath the cap as a decorative overlay rather than leaving a gap down to the
+  // collider line. Castle and the other 2 biomes render through the standard path
+  // as-is (per 32-CONTEXT.md — no special-casing beyond Cemetery).
+  function emitTerrainRun(runX, runY, runW, fillDepthPx) {
+    if (levelData.biome === "cemetery") {
+      for (let cx = runX; cx < runX + runW; cx += FILL_CHUNK_COLS * T) {
+        const chunkW = Math.min(FILL_CHUNK_COLS * T, runX + runW - cx);
+        add([
+          sprite(atlasSprite, {
+            frame: FILL_FRAME,
+            tiled: true,
+            width: chunkW,
+            height: fillDepthPx + T,
+          }),
+          pos(cx, runY),
+          "ground-fill",
+        ]);
+      }
+      for (let tx = runX; tx < runX + runW; tx += T) {
+        add([sprite(atlasSprite, { frame: CAP_FRAME }), pos(tx, runY), "ground-cap"]);
+      }
+      return;
+    }
+
+    for (let cx = runX; cx < runX + runW; cx += FILL_CHUNK_COLS * T) {
+      const chunkW = Math.min(FILL_CHUNK_COLS * T, runX + runW - cx);
+      add([
+        sprite(atlasSprite, { frame: FILL_FRAME, tiled: true, width: chunkW, height: fillDepthPx }),
+        pos(cx, runY + T),
+        "ground-fill",
+      ]);
+    }
+    for (let tx = runX; tx < runX + runW; tx += T) {
+      add([sprite(atlasSprite, { frame: CAP_FRAME }), pos(tx, runY), "ground-cap"]);
+    }
   }
 
   // --- Solid floor runs: ONE merged collider per run + separate visual tiles ---
@@ -105,11 +150,9 @@ export function buildLevel(levelData) {
       "ground",
     ]);
 
-    // Visual-only floor tiles across the run — NO area()/body() (the merged
-    // collider above is the only physics body for this run).
-    for (let tx = run.x; tx < run.x + run.w; tx += T) {
-      add([sprite(groundSprite, { frame: pickTopFrame(tx, run.x, run.w) }), pos(tx, FLOOR_Y)]);
-    }
+    // Visual-only autotile cap+fill mass across the run — NO area()/body() (the
+    // merged collider above is the only physics body for this run).
+    emitTerrainRun(run.x, FLOOR_Y, run.w, FLOOR_FILL_DEPTH_PX);
   }
 
   // --- Raised platforms: same merged-collider idiom + visual tiles on top ---
@@ -124,9 +167,7 @@ export function buildLevel(levelData) {
       opacity(HIDDEN),
       "ground",
     ]);
-    for (let tx = p.x; tx < p.x + p.w; tx += T) {
-      add([sprite(groundSprite, { frame: pickTopFrame(tx, p.x, p.w) }), pos(tx, p.y)]);
-    }
+    emitTerrainRun(p.x, p.y, p.w, PLATFORM_FILL_DEPTH_PX);
   }
 
   // --- Coins (REQUIRED — buildLevel owns creation; tag + area() so the scene wires) ---
