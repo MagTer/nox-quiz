@@ -155,3 +155,15 @@ None - no external service configuration required.
 ---
 *Phase: 33-player-entity-animation*
 *Completed: 2026-07-11*
+
+## Self-Check: PASSED
+
+- FOUND: assets/door.png
+- FOUND: assets/math-gate.png
+- FOUND: scripts/build-art-assets.py
+- FOUND: CREDITS.md
+- CONFIRMED DELETED: assets/enemy-1.png, assets/enemy-2.png, assets/enemy-3.png
+- FOUND: .planning/phases/33-player-entity-animation/33-01-SUMMARY.md
+- Commit 0e0988d (feat: bake door/math-gate) — FOUND in git log
+- Commit 7ab5a4d (chore: CREDITS + delete dead enemies) — FOUND in git log
+- Commit 67ca9ed (docs: plan summary) — FOUND in git log
