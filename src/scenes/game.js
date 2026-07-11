@@ -123,10 +123,10 @@ export function gameScene(data) {
   // player so the player spawns onto solid ground.
   buildLevel(level);
 
-  // --- Parallax background (Phase 18 ART-03) ---
+  // --- Parallax background (Phase 18 ART-03; biome-driven since Phase 32 Plan 04) ---
   // Camera-driven layers below gameplay z-order; created after the level so
   // bounds are known and before the player so the player draws on top.
-  const parallaxLayers = makeParallaxLayers(bounds, level.theme);
+  const parallaxLayers = makeParallaxLayers(bounds, level.biome);
 
   // --- Player ---
   // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).

@@ -39,10 +39,10 @@ function makeParallaxLayer(name, bounds, ratio, zLayer, y) {
 /**
  * Build all three parallax layers for a level.
  * @param {object} bounds - level bounds with left/right
- * @param {string} [theme] - level theme id (e.g. "theme-3"); falsy -> base untinted layers
+ * @param {string} [biome] - level biome id (e.g. "swamp"); falsy -> base untinted layers
  * @returns {{name: string, instances: GameObj[], ratio: number}[]}
  */
-export function makeParallaxLayers(bounds, theme) {
+export function makeParallaxLayers(bounds, biome) {
   const P = CONFIG.PARALLAX;
   // Per-key defaulting, same idiom as camera.js: game.js's whole-object fallback
   // (`level.bounds ?? {...}`) does NOT default individual missing keys, so a future
@@ -55,10 +55,10 @@ export function makeParallaxLayers(bounds, theme) {
     left: bounds?.left ?? CONFIG.LEVEL_LEFT,
     right: bounds?.right ?? CONFIG.LEVEL_RIGHT,
   };
-  // Theme-templated sprite-name helper (VIS-03; Phase 26 Plan 05), same per-key-
-  // defaulting spirit as safeBounds above: theme absent means the base untinted
+  // Biome-templated sprite-name helper (ART-03; Phase 32 Plan 04), same per-key-
+  // defaulting spirit as safeBounds above: biome absent means the base untinted
   // layer set, never a crash.
-  const layerName = (base) => (theme ? `${base}-${theme}` : base);
+  const layerName = (base) => (biome ? `${base}-${biome}` : base);
   return [
     {
       name: layerName("bg-far"),
