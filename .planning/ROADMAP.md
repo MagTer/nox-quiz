@@ -206,13 +206,13 @@ Plans:
   4. Every sprite/sound the game loads exists on disk — a data-driven assets manifest with a static existence gate kills the silent-404 class
   5. Level geometry arrays are byte-identical to their pre-phase state (review-gated) and the structural validator stays green with zero HARD-FAILs
 
-**Plans**: 5 plans
+**Plans**: 2/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 32-01-PLAN.md — Assets manifest + existence gate (src/assets-manifest.js, scripts/check-assets-manifest.mjs) — ART-02, ART-03
-- [ ] 32-02-PLAN.md — CONFIG.TERRAIN tunables + biome field on all 8 level descriptors (replaces theme) — ART-02, ART-03
+- [x] 32-01-PLAN.md — Assets manifest + existence gate (src/assets-manifest.js, scripts/check-assets-manifest.mjs) — ART-02, ART-03
+- [x] 32-02-PLAN.md — CONFIG.TERRAIN tunables + biome field on all 8 level descriptors (replaces theme) — ART-02, ART-03
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -348,7 +348,7 @@ Plans:
 | 29. Mechanic Cleanup | v6.0 | 2/2 | Complete    | 2026-07-09 |
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
 | 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete    | 2026-07-10 |
-| 32. Terrain & Parallax Rendering | v6.0 | 0/5 | Planned | - |
+| 32. Terrain & Parallax Rendering | v6.0 | 2/5 | In Progress|  |
 | 33. Player & Entity Animation | v6.0 | 0/TBD | Not started | - |
 | 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
 | 35. Biome Re-dress & Props | v6.0 | 0/TBD | Not started | - |
