@@ -80,6 +80,7 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - **Player sprite swap must lock the collider explicitly** via `area({ shape: 16×32 })` — a bare swap silently resizes the physics body and invalidates the calibrated jump envelope + kid-validated feel
 - **Never rubber-stamp `checkpoint:human-verify` gates** (standing precedent, Phases 25/27/28) — style board (31), player art (33), hazard placement (36), n0x logo (38), kid-UAT (38) all require genuine sign-off
 - **v5.0 backlog absorbed:** 999.1 collect-the-answer → MECH-01/02 (Phase 29); 999.2 pink spike sprite → subsumed by ART-01's art replacement + pink-scan gate (Phase 31)
+- **Math-gate/enemy/door density stays at one of each per level** (user's explicit live direction, 2026-07-11, during Phase 33 planning) — matches the status quo already; binding for Phases 34–36, none should raise that count
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
