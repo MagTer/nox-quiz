@@ -34,6 +34,11 @@ import { LEVEL_ORDER, getLevel } from "../src/levels/index.js";
 import { findOverHoleBarriers } from "./lib/over-hole-check.mjs";
 import { checkLevelReachability } from "./lib/reachability.mjs";
 
+// Phase 32 (WR-01, 32-REVIEW.md): the only 4 biome atlases build.js actually loads
+// (src/assets-manifest.js's biome-atlas/biome-bg entries) — must stay in sync with
+// that manifest's biome list.
+const VALID_BIOMES = ["swamp", "town", "cemetery", "castle"];
+
 // --- Parse an optional `--fixture <path>` pair from argv ---
 function parseFixturePath(argv) {
   const idx = argv.indexOf('--fixture');
@@ -41,7 +46,7 @@ function parseFixturePath(argv) {
   return argv[idx + 1] ?? null;
 }
 
-// --- Build the list of { id, geometry } descriptors to check ---
+// --- Build the list of { id, biome, geometry } descriptors to check ---
 async function buildDescriptors(fixturePath) {
   if (fixturePath) {
     const mod = await import(pathToFileURL(resolve(fixturePath)).href);
@@ -49,9 +54,12 @@ async function buildDescriptors(fixturePath) {
     if (!descriptor) {
       throw new Error(`--fixture ${fixturePath} exports no value carrying a .geometry property`);
     }
-    return [{ id: descriptor.id ?? fixturePath, geometry: descriptor.geometry }];
+    return [{ id: descriptor.id ?? fixturePath, biome: descriptor.biome, geometry: descriptor.geometry }];
   }
-  return LEVEL_ORDER.map((id) => ({ id, geometry: getLevel(id).geometry }));
+  return LEVEL_ORDER.map((id) => {
+    const level = getLevel(id);
+    return { id, biome: level.biome, geometry: level.geometry };
+  });
 }
 
 async function main() {
@@ -61,6 +69,21 @@ async function main() {
   let failures = 0;
 
   for (const descriptor of descriptors) {
+    // Phase 32 (WR-01, 32-REVIEW.md): biome is a required, unconditionally-referenced
+    // field (build.js: `atlas-${levelData.biome}`, no `?? "swamp"`-style fallback, per
+    // 32-CONTEXT.md's "biome is required, no fallback" decision) — a missing or
+    // misspelled biome would otherwise only surface as a Kaplay missing-sprite
+    // error/throw the first time that level is opened in a browser. Catch it here
+    // instead, alongside this script's other per-field HARD-FAIL checks.
+    if (!VALID_BIOMES.includes(descriptor.biome)) {
+      console.log(
+        `${descriptor.id} | biome | HARD-FAIL | biome "${descriptor.biome}" is missing or not one of ${VALID_BIOMES.join("/")}`
+      );
+      failures += 1;
+    } else {
+      console.log(`${descriptor.id} | biome | PASS | "${descriptor.biome}"`);
+    }
+
     const overHoleRows = findOverHoleBarriers(descriptor.geometry);
     if (overHoleRows.length === 0) {
       console.log(`${descriptor.id} | over-hole | PASS | (no floating barriers)`);
