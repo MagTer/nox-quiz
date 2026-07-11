@@ -42,6 +42,7 @@ This milestone: reviewed and auto-fixed the entire v4.1 codebase before doubling
 - ✓ Validated in Phase 29 — Mechanic cleanup: collect-the-answer removed atomically from all 5 affected levels (code + level data + every defending harness fixture, one commit), math pacing re-verified rhythm-intact with zero XP-path disturbance; secret alcove now gives real on-touch discovery feedback (particle burst + chime + "+5 XP" popup, one-shot per level with anti-farming + anti-loss-on-escape guards) and a positive-only star marker on level-select backed by a save-format version bump — closes the long-open "alcove feels like nothing happened" todo from Phase 25
 - ✓ Validated in Phase 30 — Harness extensions: the validator now provably catches an unreachable secret alcove (point-vs-jump-reach, RED-first proven against a fixture, PASS on all 8 real levels) and a mover-dependent path unreachable under a worst-case-extreme rule (RED-first, no real movers exist yet — Phase 36's job); the interactive audit now genuinely detects alcove discovery via entity-destroy/XP-delta (never the always-false challenge-open signal) across all 8 levels — closes the "no automated alcove coverage" todo from Phase 25
 - ✓ Validated in Phase 31 — Asset Bake & Style-Board Sign-off: one style-coherent CC0 Gothicvania-anchored collection (4 biomes — swamp/town/cemetery/castle) vendored under `assets/` with per-pack license proofs in `assets/LICENSES/` and credits in `CREDITS.md`; Swamp Hunter player + Hell hound enemy sprites and 4 biome terrain atlases + 12 parallax layers baked; an automated pink-hue scan gate (`check-pink-gate.sh`/`pink_scan.py`), RED-first proven, now guards every future phase, with the two known pink/magenta skies (town, cemetery) retinted; a written anchor/lip convention documented in `docs/LEVEL-DESIGN.md` §9 for downstream integration — genuine 5-round human style-board sign-off found and fixed 2 real floor-alignment bugs before final "Looks good. Approved." (ART-01)
+- ✓ Validated in Phase 32 — Terrain & Parallax Rendering: the floating 16px floor strip is gone, replaced by an occupancy-driven autotile cap+chunked-fill renderer (spike-proven `{tiled:true}` recipe, simplified from 8 frames to the real 2-frame biome atlas) with colliders byte-unchanged; all 8 levels now render their locked biome's real multi-layer parallax (levels 1–2 swamp, 3–4 town, 5–6 cemetery, 7–8 castle) in place of the flat triangle silhouettes; a new data-driven assets manifest (`src/assets-manifest.js`, 38 entries) + existence gate (`check-assets-manifest.mjs`) closes the silent-404 class, and the 32 superseded per-level theme-N assets were deleted; `browser-boot.mjs` gained live FPS/object-budget/far-end-render proof across all 8 levels. Code review caught a genuine critical bug in the new far-end check itself (it silently never reached the goal) — chasing the real fix surfaced and fixed a deeper pre-existing pathfinding bug in `scripts/lib/route-planner.mjs` (a spike's own clearance hop could carry the player past a nearby platform's narrow mount-takeoff window), verified live across 3 consecutive full 8-level runs. Level geometry stayed byte-identical throughout (ART-02, ART-03)
 
 ## Shipped Milestone: v5.0 Nox Run — Real Levels (2026-07-09)
 
@@ -98,7 +99,7 @@ Both seeds (SEED-001 SNES-fidelity overhaul, SEED-002 mobile touch controls) and
 <!-- v6.0 SNES-Fidelity World — scoped in .planning/REQUIREMENTS.md -->
 
 - [x] SNES-fidelity sourced biome art: cohesive CC0/CC-BY collection (3–4 biomes), style-board human sign-off before integration — Phase 31
-- [ ] Filled terrain (autotiled ground mass), real multi-layer parallax backgrounds per biome
+- [x] Filled terrain (autotiled ground mass), real multi-layer parallax backgrounds per biome — Phase 32
 - [ ] Fully animated player (idle/run/jump/fall/land) and real animated art for mechanic entities
 - [ ] Props layer (visual-only, validator-neutral)
 - [ ] World motion: patrolling cosmetic enemies, moving platforms (validator-aware), ambient animation
@@ -193,4 +194,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-10 — Phase 31 (Asset Bake & Style-Board Sign-off) complete: ART-01 satisfied*
+*Last updated: 2026-07-11 — Phase 32 (Terrain & Parallax Rendering) complete: ART-02, ART-03 satisfied*
