@@ -899,17 +899,34 @@ def build_biome_atlas_castle():
     )
 
 
-def _bake_biome_parallax_layer(out_name, layer, src_path, palette, retint=None):
-    """Shared load -> [retint] -> tile-to-640 -> bottom-anchor -> resize(NEAREST
-    is implicit via tiling, no scale) -> _remap_luminance -> assert -> save
-    body for one biome parallax layer -- mirrors build_parallax_theme()'s
-    crop/composite -> _remap_luminance -> assert -> save shape, adapted for
+def _bake_biome_parallax_layer(out_name, layer, src_path, retint=None):
+    """Shared load -> [retint] -> tile-to-640 -> bottom-anchor -> assert -> save
+    body for one biome parallax layer -- mirrors styleboard.py's swamp()/
+    town()/cemetery()/castle() compositing (load -> [hue_shift_band retint]
+    -> tile/composite -> save, full source color preserved), adapted for
     Gothicvania's tileable-strip source material (see _tile_to_width).
 
     `layer` is one of "far"/"mid"/"near" (locked 640x120/640x144/640x90,
     matching build_parallax_theme()'s existing dimensions for cross-biome
-    consistency); `palette` is the matching ENVIRONMENT_PALETTE_FAR/_MID/
-    _NEAR sub-palette.
+    consistency).
+
+    Bug fix (2026-07-12, found at the Phase 33 human-verify checkpoint —
+    "black mess" report): this function used to end with
+    `_remap_luminance(anchored, palette)` against an ENVIRONMENT_PALETTE_FAR/
+    _MID/_NEAR sub-palette. That palette (3-5 achromatic entries, brightest
+    stop 0x88 luma136, most stops well under that) was tuned for turning
+    FLAT KENNEY SILHOUETTES into locked dark-grunge ground/tile tokens
+    (build_ground/build_parallax_theme) -- reusing it here crushed the rich,
+    already-dark-grunge-appropriate Gothicvania biome art (the SAME source
+    files the human-approved style board at .planning/research/v6-scouting/
+    styleboard.py renders from) down to near-solid #0a0a0a with a thin grey
+    silhouette edge. styleboard.py never remaps these layers at all -- it
+    only retints (no-pink pass) and composites -- so removing the remap call
+    here is what actually restores parity with the images that were signed
+    off on the style board. No new colors are introduced: the output is
+    exactly the vendored CC0 source pixels (already dark/muted by design),
+    optionally retinted by the same hue_shift_band() calls used for the
+    approved renders.
     """
     dims = {"far": (640, 120), "mid": (640, 144), "near": (640, 90)}
     w, h = dims[layer]
@@ -921,9 +938,8 @@ def _bake_biome_parallax_layer(out_name, layer, src_path, palette, retint=None):
         src = hue_shift_band(src, band_lo, band_hi, delta)
     tiled = _tile_to_width(src, w)
     anchored = _bottom_anchor(tiled, w, h)
-    remapped = _remap_luminance(anchored, palette)
-    assert remapped.size == (w, h), f"{layer}-{out_name} wrong size: {remapped.size}"
-    save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
+    assert anchored.size == (w, h), f"{layer}-{out_name} wrong size: {anchored.size}"
+    save(anchored.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
 
 
 def build_biome_parallax_swamp():
@@ -935,9 +951,9 @@ def build_biome_parallax_swamp():
     (drawn last/on top -> reads as closest to camera).
     """
     env = os.path.join(GV_SRC, "gothicvania_swamp_files", "Gothicvania Swamp files", "Evironment")
-    _bake_biome_parallax_layer("swamp", "far", os.path.join(env, "background.png"), ENVIRONMENT_PALETTE_FAR)
-    _bake_biome_parallax_layer("swamp", "mid", os.path.join(env, "mid-layer-02.png"), ENVIRONMENT_PALETTE_MID)
-    _bake_biome_parallax_layer("swamp", "near", os.path.join(env, "mid-layer-01.png"), ENVIRONMENT_PALETTE_NEAR)
+    _bake_biome_parallax_layer("swamp", "far", os.path.join(env, "background.png"))
+    _bake_biome_parallax_layer("swamp", "mid", os.path.join(env, "mid-layer-02.png"))
+    _bake_biome_parallax_layer("swamp", "near", os.path.join(env, "mid-layer-01.png"))
 
 
 def build_biome_parallax_town():
@@ -964,17 +980,14 @@ def build_biome_parallax_town():
         "night-town-background-files",
         "layers",
     )
+    _bake_biome_parallax_layer("town", "far", far_path, retint=(215, 255, -60))
     _bake_biome_parallax_layer(
-        "town", "far", far_path, ENVIRONMENT_PALETTE_FAR, retint=(215, 255, -60)
-    )
-    _bake_biome_parallax_layer(
-        "town", "mid", os.path.join(night_town_dir, "night-town-background-town.png"), ENVIRONMENT_PALETTE_MID
+        "town", "mid", os.path.join(night_town_dir, "night-town-background-town.png")
     )
     _bake_biome_parallax_layer(
         "town",
         "near",
         os.path.join(night_town_dir, "night-town-background-far-buildings.png"),
-        ENVIRONMENT_PALETTE_NEAR,
     )
 
 
@@ -989,12 +1002,12 @@ def build_biome_parallax_cemetery():
     """
     env = os.path.join(GV_SRC, "gothicvania-cemetery-files_1", "gothicvania-cemetery-files", "PNG", "Environment")
     _bake_biome_parallax_layer(
-        "cemetery", "far", os.path.join(env, "background.png"), ENVIRONMENT_PALETTE_FAR, retint=(195, 245, -50)
+        "cemetery", "far", os.path.join(env, "background.png"), retint=(195, 245, -50)
     )
     _bake_biome_parallax_layer(
-        "cemetery", "mid", os.path.join(env, "mountains.png"), ENVIRONMENT_PALETTE_MID, retint=(195, 245, -50)
+        "cemetery", "mid", os.path.join(env, "mountains.png"), retint=(195, 245, -50)
     )
-    _bake_biome_parallax_layer("cemetery", "near", os.path.join(env, "graveyard.png"), ENVIRONMENT_PALETTE_NEAR)
+    _bake_biome_parallax_layer("cemetery", "near", os.path.join(env, "graveyard.png"))
 
 
 def build_biome_parallax_castle():
@@ -1026,9 +1039,9 @@ def build_biome_parallax_castle():
     near_path = os.path.join(
         GV_SRC, "gothicvania-church-files", "gothicvania church files", "ENVIRONMENT", "backgrounds.png"
     )
-    _bake_biome_parallax_layer("castle", "far", far_path, ENVIRONMENT_PALETTE_FAR)
-    _bake_biome_parallax_layer("castle", "mid", mid_path, ENVIRONMENT_PALETTE_MID)
-    _bake_biome_parallax_layer("castle", "near", near_path, ENVIRONMENT_PALETTE_NEAR)
+    _bake_biome_parallax_layer("castle", "far", far_path)
+    _bake_biome_parallax_layer("castle", "mid", mid_path)
+    _bake_biome_parallax_layer("castle", "near", near_path)
 
 
 # --- Phase 31 (ART-01): Swamp Hunter player + Hell hound enemy sprite bakes ---
