@@ -102,6 +102,6 @@ export const LEVEL_02 = {
   },
 
   mechanics: [],
-  theme: "theme-2", // VIS-03 theme assignment — fern green, level 2 of 8
+  biome: "swamp", // Phase 32 (ART-02/ART-03) — level 2 of 8, Castlevania arc calm->harsh (levels 1-2 swamp, 3-4 town, 5-6 cemetery, 7-8 castle)
   parallax: null,
 };

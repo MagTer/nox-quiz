@@ -93,6 +93,6 @@ export const LEVEL_06 = {
   },
 
   mechanics: [],
-  theme: "theme-6", // VIS-03 theme assignment — warm clay, level 6 of 8
+  biome: "cemetery", // Phase 32 (ART-02/ART-03) — level 6 of 8, Castlevania arc calm->harsh (levels 1-2 swamp, 3-4 town, 5-6 cemetery, 7-8 castle)
   parallax: null,
 };

@@ -97,6 +97,21 @@ export const CONFIG = {
     NEAR_Z: -10,
     Y_ANCHOR: 320, // bottom edge anchor near the floor
   },
+
+  // --- Terrain rendering tunables (ART-02/ART-03; Phase 32) ---
+  // Autotiled ground-mass fill + perf/proof budgets for the browser-boot terrain
+  // checks. The chunk-size and fill-depth keys are consumed by the autotile builder
+  // (Plan 32-03); the budget/floor/byte-size keys are consumed by the boot-time
+  // proof script (Plan 32-05).
+  TERRAIN: {
+    FILL_CHUNK_COLS: 40, // count — max columns per {tiled:true} fill chunk; the spike-proven ceiling from SPIKE-FINDINGS.md Spike B — an oversized chunk silently renders nothing
+    FLOOR_FILL_DEPTH_PX: 64, // px — fill depth for floor runs; every shipped level's floor sits at FLOOR_Y 320 with bounds.bottom 360 (or the CONFIG.LEVEL_BOTTOM 360 fallback), a real 40px gap to the camera's lower clamp edge — 64px gives comfortable margin without a per-level bounds lookup
+    PLATFORM_FILL_DEPTH_PX: 32, // px — shallow 2-tile fill for floating platforms, per 32-CONTEXT.md's "not a deep mass" decision
+    OBJECT_BUDGET: 650, // count — hard-fail ceiling for the browser-boot per-level terrain object-count assertion; the spike measured ~410 objects safe at a synthetic 16-row stress depth, real levels land ~400-420 objects at this phase's actual ~2-4-row fill depth per 32-RESEARCH.md's level-04 Metadata calculation — headroom set above that real max
+    FPS_FLOOR: 45, // fps — hard-fail floor for the browser-boot debug.fps() sample; the spike's clean run was 58fps, comfortably below that to absorb headless-Chromium's measured pessimistic bias vs a real GPU
+    MIN_SCREENSHOT_BYTES: 4000, // bytes — PNG screenshot byte-size floor used as a non-blank-render proxy in browser-boot; measured locally against this exact game: an about:blank page screenshots at ~2,667 bytes, a real pre-Phase-32 level-entry screenshot at ~8,735 bytes — 4,000 sits clear of the blank floor with margin below real content, and Phase 32's new terrain-mass+parallax content should only push real screenshots higher, never lower
+  },
+
   TITLE_BG_Z: -100, // z-order for shared title/select backdrop
 
   COIN_FRAMES: 8, // count — coin.png is a 256x32 sheet of 8 evenly-gridded 32px frames (sliceX)

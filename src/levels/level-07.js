@@ -142,6 +142,6 @@ export const LEVEL_07 = {
   },
 
   mechanics: [],
-  theme: "theme-7", // VIS-03 theme assignment — harsh rust, level 7 of 8
+  biome: "castle", // Phase 32 (ART-02/ART-03) — level 7 of 8, Castlevania arc calm->harsh (levels 1-2 swamp, 3-4 town, 5-6 cemetery, 7-8 castle)
   parallax: null,
 };

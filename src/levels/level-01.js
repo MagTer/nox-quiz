@@ -147,6 +147,6 @@ export const LEVEL_01 = {
 
   // --- Forward-looking optional slots (buildLevel ignores them when unset) ---
   mechanics: [], // Phase 15/16 placeholder — mid-game math mechanics
-  theme: "theme-1", // VIS-03 theme assignment — calm moss green, level 1 of 8
+  biome: "swamp", // Phase 32 (ART-02/ART-03) — level 1 of 8, Castlevania arc calm->harsh (levels 1-2 swamp, 3-4 town, 5-6 cemetery, 7-8 castle)
   parallax: null, // Phase 18 placeholder — parallax background layers
 };
