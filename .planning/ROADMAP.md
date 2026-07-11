@@ -235,7 +235,7 @@ Plans:
   3. Doors, checkpoint gates, enemy blockers, and the math gate show real animated art in place of flat-color panels, with their invisible blocker colliders untouched
   4. The full interactive mechanic audit still triggers every encounter across all 8 levels — the art swap is proven collision-neutral, not assumed
 
-**Plans**: 2/5 plans executed
+**Plans**: 4/5 plans executed
 
 Plans:
 **Wave 1**
@@ -245,8 +245,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 33-03-PLAN.md — Lock the player collider to 16x32, add fall/land anim-state logic — ART-04
-- [ ] 33-04-PLAN.md — Wire real math-gate/enemy visual emission in build.js, re-prove collision-neutral via the interactive audit — ART-05
+- [x] 33-03-PLAN.md — Lock the player collider to 16x32, add fall/land anim-state logic — ART-04
+- [x] 33-04-PLAN.md — Wire real math-gate/enemy visual emission in build.js, re-prove collision-neutral via the interactive audit — ART-05
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -364,7 +364,7 @@ Plans:
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
 | 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete    | 2026-07-10 |
 | 32. Terrain & Parallax Rendering | v6.0 | 5/5 | Complete    | 2026-07-11 |
-| 33. Player & Entity Animation | v6.0 | 2/5 | In Progress|  |
+| 33. Player & Entity Animation | v6.0 | 4/5 | In Progress|  |
 | 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
 | 35. Biome Re-dress & Props | v6.0 | 0/TBD | Not started | - |
 | 36. World Motion & Ambient Life | v6.0 | 0/TBD | Not started | - |
