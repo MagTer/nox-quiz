@@ -62,12 +62,17 @@ const k = kaplay({
 // `sliceX`/`anims` — `loadSpriteSheet` does NOT exist in Kaplay 3001.
 loadSprite("spike", "../assets/spike.png");
 loadSprite("goal", "../assets/goal.png");
-loadSprite("player", "../assets/player.png", {
+loadSprite("player", "../assets/player-swamphunter.png", {
   sliceX: CONFIG.PLAYER_FRAMES,
   anims: {
     idle: { from: 0, to: 1, loop: true, speed: CONFIG.PLAYER_IDLE_SPEED },
-    run: { from: 2, to: 3, loop: true, speed: CONFIG.PLAYER_RUN_SPEED },
-    jump: { from: 4, to: 4, loop: false, speed: CONFIG.PLAYER_JUMP_SPEED },
+    run: { from: 2, to: 7, loop: true, speed: CONFIG.PLAYER_RUN_SPEED },
+    jump: { from: 8, to: 9, loop: false, speed: CONFIG.PLAYER_JUMP_SPEED },
+    fall: { from: 10, to: 11, loop: true, speed: CONFIG.PLAYER_FALL_SPEED },
+    // No dedicated land-pose frames exist in the bake (locked "wiring only" scope,
+    // 33-RESEARCH.md Pitfall 2) — synthesized below by holding fall's last frame
+    // (index 11) briefly, mirroring the existing single-frame non-looping jump idiom.
+    land: { from: 11, to: 11, loop: false, speed: CONFIG.PLAYER_LAND_SPEED },
   },
 });
 loadSprite("coin", "../assets/coin.png", {
@@ -107,12 +112,16 @@ for (const a of ASSETS_MANIFEST) {
   }
 }
 
-// Door + enemy sprite art (VIS-04; Phase 26 Plan 05) — replaces the flat-color
-// rect+glyph placeholder shipped since Phase 18.
+// Door + enemy + math-gate sprite art (ART-04/ART-05; Phase 33) — replaces the
+// flat-color rect+glyph placeholder shipped since Phase 18.
 loadSprite("door", "../assets/door.png");
-loadSprite("enemy-1", "../assets/enemy-1.png");
-loadSprite("enemy-2", "../assets/enemy-2.png");
-loadSprite("enemy-3", "../assets/enemy-3.png");
+loadSprite("math-gate", "../assets/math-gate.png");
+loadSprite("enemy-hellhound", "../assets/enemy-hellhound.png", {
+  sliceX: 6,
+  anims: {
+    idle: { from: 0, to: 5, loop: true, speed: CONFIG.ENEMY.IDLE_SPEED },
+  },
+});
 
 // Audio loads (Phase 27 AUD-01/AUD-02) — 7 CC0 SFX + 1 ambient music loop, registered
 // here before any go() so the audio.js seam (src/audio.js) never plays against a

@@ -82,11 +82,14 @@ export const CONFIG = {
   FLOOR_THICKNESS: 40, // px — merged-floor collider depth; thick to resist tunneling on tall drops (Pitfall 3)
 
   // --- Visual tuning constants (Phase 18 art/animation/parallax) ---
-  PLAYER_FRAMES: 5, // count — player.png sliceX (5 frames of 16x32)
+  PLAYER_FRAMES: 12, // count — player-swamphunter.png sliceX (12 frames of 16x32)
   PLAYER_ANIM_DEADZONE: 10, // px/s — below this treat horizontal speed as idle/rest
   PLAYER_IDLE_SPEED: 6, // fps — idle anim frame rate
   PLAYER_RUN_SPEED: 10, // fps — run anim frame rate
   PLAYER_JUMP_SPEED: 1, // fps — single-frame jump anim; speed must be >0 in Kaplay
+  PLAYER_FALL_SPEED: 8, // fps — fall anim frame rate, 2-frame loop over frames 10-11 of player-swamphunter.png
+  PLAYER_LAND_SPEED: 1, // fps — single-frame land anim; speed must be >0 in Kaplay, mirrors PLAYER_JUMP_SPEED
+  PLAYER_LAND_HOLD_MS: 120, // ms — how long the synthesized land pose (fall's last frame, index 11) holds after a falling→grounded transition before reverting to idle/run; consistent with FX.STRETCH_MS/SQUASH_MS's 120-140ms window
   GROUND_FRAMES: 5, // count — ground.png sliceX (5 frames of 16x16)
   PARALLAX: {
     FAR_RATIO: 0.15, // far layer scroll ratio vs camera
@@ -174,7 +177,9 @@ export const CONFIG = {
   ENEMY: {
     W: 32, // px — enemy footprint width
     H: 32, // px — enemy footprint height
-    SPRITES: ["enemy-1", "enemy-2", "enemy-3"], // real sprite art (VIS-04; Phase 26 Plan 05) — replaces the flat-color rect+glyph placeholder
+    IDLE_SPEED: 8, // fps — enemy-hellhound idle-loop frame rate
+    FRAME_W: 64, // px — enemy-hellhound.png's native per-frame width; twice the W/H blocker footprint, used to center the wider visual panel over the unchanged blocker
+    SPRITES: ["enemy-hellhound"], // real animated sprite art (ART-05; Phase 33) — the single shared animated blocker sprite, replacing the 3-variant static set
   },
 
   // --- Progression / XP (ported VERBATIM from archive/math-lab.html 604-619 — DO NOT re-tune) ---
