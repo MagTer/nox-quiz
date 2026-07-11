@@ -570,28 +570,68 @@ def build_title_bg():
 
 
 def build_door():
-    """6 Color Dungeon 16x16 gate/archway tile -> assets/door.png (32x64).
+    """Old-Dark-Castle-tileset-Files' wooden-door tile -> assets/door.png (32x64).
 
-    VIS-04 (Phase 26 Plan 04): replaces the flat-color rect+glyph placeholder
-    that has shipped since Phase 18. Crops the sheet's closed-lattice-gate +
-    archway-base assembly, scales it 2/3 down to the locked CONFIG.DOOR
-    dimensions, and remaps it through the same luminance-ramp pipeline every
-    other environment asset uses. The door is a universal barrier element
-    (per 26-RESEARCH.md's Anti-Pattern note: danger/reward/barrier elements
-    must not be re-themed), so it stays on the base ENVIRONMENT_PALETTE, not
-    a per-theme variant.
+    ART-05 (Phase 33 Plan 01), v2: replaces the Kenney-adjacent "6 Color
+    Dungeon" gate/archway crop (Phase 26) with a genuinely new crop sourced
+    from the Gothicvania Patreon Collection's castle interior tileset, so the
+    door reads as part of the same style-coherent Gothicvania castle biome as
+    the already-shipped atlas/player/enemy assets.
+
+    Crop verified this session (Phase 33 research): (664, 47, 698, 112) in
+    old-dark-castle-interior-tileset.png (832x240) -- a 34x65px wooden door
+    with stone frame + gold hinge/handle, near-exact fit for the locked
+    32x64 footprint. Measured 0% pink/magenta hue (scripts/lib/pink_scan.py)
+    -- no allowlist entry needed. Ships at NATIVE Gothicvania color (no
+    _remap/_remap_luminance) to match the already-shipped castle biome
+    atlas/player/enemy assets -- do NOT reuse the OLD build_door()'s
+    Kenney-sourced remap pipeline (see 33-RESEARCH.md Architecture
+    Patterns #3).
     """
     target_w, target_h = 32, 64
     sheet_path = os.path.join(
-        ROOT, "assets", "_opengameart-src", "6-color-dungeon", "16x16-dungeon-tiles.png"
+        GV_SRC, "gothicvaniapatreoncollection", " gothicvania patreon collection",
+        "Old-dark-Castle-tileset-Files", "PNG", "old-dark-castle-interior-tileset.png",
     )
     im = Image.open(sheet_path).convert("RGBA")
-    crop = im.crop((0, 64, 48, 160))  # 48x96 — closed lattice gate + archway base
-    resized = crop.resize((target_w, target_h), Image.NEAREST)
+    crop = im.crop((664, 47, 698, 112))  # 34x65 -- verified content-full, 0% pink
+    resized = crop.resize((target_w, target_h), Image.NEAREST)  # near-1:1, minor squash
 
-    remapped = _remap_luminance(resized, ENVIRONMENT_PALETTE)
-    assert remapped.size == (target_w, target_h), f"door sprite wrong size: {remapped.size}"
-    save(remapped.convert("RGBA"), os.path.join(ROOT, "assets", "door.png"))
+    canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+    canvas.paste(resized, (0, 0), resized)
+    assert canvas.size == (target_w, target_h), f"door sprite wrong size: {canvas.size}"
+    save(canvas, os.path.join(ROOT, "assets", "door.png"))
+
+
+def build_math_gate():
+    """Gothicvania Church's barred-window/cross tile -> assets/math-gate.png (32x64).
+
+    ART-05 (Phase 33 Plan 01): the math-gate mechanic previously had no
+    sprite art of its own (a flat color()+outline()+text("?") panel). This
+    bakes a genuinely new crop -- a barred iron-lattice window with a cross
+    plaque, reading naturally as "locked" -- sourced from the Gothicvania
+    Church pack's environment tileset.
+
+    Crop verified this session (Phase 33 research): (240, 32, 272, 80) in
+    tileset.png -- a 32x48px content-full crop, exact width match to
+    CONFIG.MATH_GATE.W but 16px short of the 64px target height (no
+    adjacent fillable content exists in the source to pad with instead, so
+    a uniform vertical stretch is used -- same non-1:1 NEAREST-resize
+    precedent as build_door()). Measured 0% pink/magenta hue
+    (scripts/lib/pink_scan.py) -- no allowlist entry needed. Ships at
+    NATIVE Gothicvania color (no _remap/_remap_luminance), same discipline
+    as build_door() above.
+    """
+    target_w, target_h = 32, 64
+    sheet_path = os.path.join(GV_SRC, "gothicvania church files", "ENVIRONMENT", "tileset.png")
+    im = Image.open(sheet_path).convert("RGBA")
+    crop = im.crop((240, 32, 272, 80))  # 32x48 -- verified content-full, 0% pink
+    resized = crop.resize((target_w, target_h), Image.NEAREST)  # uniform vertical stretch
+
+    canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+    canvas.paste(resized, (0, 0), resized)
+    assert canvas.size == (target_w, target_h), f"math-gate sprite wrong size: {canvas.size}"
+    save(canvas, os.path.join(ROOT, "assets", "math-gate.png"))
 
 
 def build_enemies():
@@ -1288,6 +1328,7 @@ if __name__ == "__main__":
         build_ground_theme(theme_id, palette["ground"])
         build_parallax_theme(theme_id, palette)
     build_door()
+    build_math_gate()
     build_enemies()
     build_logo()
     build_biome_atlas_swamp()
