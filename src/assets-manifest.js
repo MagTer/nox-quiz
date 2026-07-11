@@ -7,11 +7,11 @@
 // relative (the `assets/...` convention main.js's existing loads already use
 // before the `../` prefix is applied at the call site).
 //
-// 38 entries total, grouped by `kind`:
+// 37 entries total, grouped by `kind`:
 //   biome-atlas (4)  — Phase-31-baked 2-frame cap+fill ground atlases
 //   biome-bg    (12) — Phase-31-baked per-biome parallax layers (far/mid/near x 4 biomes)
-//   sprite      (12) — plain single-argument loadSprite calls, gate coverage only
-//   sprite-anim (2)  — sliceX+anims sprites, gate coverage only
+//   sprite      (10) — plain single-argument loadSprite calls, gate coverage only
+//   sprite-anim (3)  — sliceX+anims sprites, gate coverage only
 //   sound       (7)  — loadSound calls, gate coverage only
 //   music       (1)  — loadMusic call, gate coverage only
 
@@ -36,7 +36,7 @@ export const ASSETS_MANIFEST = [
   { key: "bg-mid-castle", path: "assets/parallax/mid-castle.png", kind: "biome-bg" },
   { key: "bg-near-castle", path: "assets/parallax/near-castle.png", kind: "biome-bg" },
 
-  // --- sprite: 12 entries, gate coverage only ---
+  // --- sprite: 10 entries, gate coverage only ---
   { key: "bg-far", path: "assets/parallax/far.png", kind: "sprite" },
   { key: "bg-mid", path: "assets/parallax/mid.png", kind: "sprite" },
   { key: "bg-near", path: "assets/parallax/near.png", kind: "sprite" },
@@ -46,13 +46,12 @@ export const ASSETS_MANIFEST = [
   { key: "logo-hero", path: "assets/logo-hero.png", kind: "sprite" },
   { key: "logo-badge", path: "assets/logo-badge.png", kind: "sprite" },
   { key: "door", path: "assets/door.png", kind: "sprite" },
-  { key: "enemy-1", path: "assets/enemy-1.png", kind: "sprite" },
-  { key: "enemy-2", path: "assets/enemy-2.png", kind: "sprite" },
-  { key: "enemy-3", path: "assets/enemy-3.png", kind: "sprite" },
+  { key: "math-gate", path: "assets/math-gate.png", kind: "sprite" },
 
-  // --- sprite-anim: 2 entries, gate coverage only ---
-  { key: "player", path: "assets/player.png", kind: "sprite-anim" },
+  // --- sprite-anim: 3 entries, gate coverage only ---
+  { key: "player", path: "assets/player-swamphunter.png", kind: "sprite-anim" },
   { key: "coin", path: "assets/coin.png", kind: "sprite-anim" },
+  { key: "enemy-hellhound", path: "assets/enemy-hellhound.png", kind: "sprite-anim" },
 
   // --- sound: 7 entries, gate coverage only ---
   { key: "jump", path: "assets/sfx/jump.ogg", kind: "sound" },
