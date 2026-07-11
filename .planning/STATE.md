@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 32
-current_phase_name: Terrain & Parallax Rendering
-status: executing
-stopped_at: "Phase 31 (Asset Bake & Style-Board Sign-off) complete — 6 plans executed across 5 waves, genuine 5-round human style-board sign-off (2 real floor-alignment bugs found and fixed before approval), 2-cycle code-review/fix (4 warnings fixed post-pause, then a genuine re-review caught an incomplete fix plus a missing license attribution, both fixed and re-verified clean), verification passed 4/4 must-haves with all 4 roadmap success criteria proven live. Ready to plan Phase 32 — Terrain & Parallax Rendering."
-last_updated: "2026-07-10T22:26:22.880Z"
-last_activity: 2026-07-10
-last_activity_desc: Phase 31 complete, transitioned to Phase 32
+current_phase: 33
+current_phase_name: Player & Entity Animation
+status: planning
+stopped_at: Phase 31 (Asset Bake & Style-Board Sign-off) complete — resumed mid-close-out from a paused /gsd-autonomous run (all 6 plans + genuine 5-round style-board sign-off already done pre-pause); this session ran a skeptical re-review that caught an incomplete WR-03 fix (build_enemies() still unguarded) and a missing license attribution for atlas-castle.png, fixed both, re-reviewed clean, then verified 4/4 success criteria and closed the phase. Continuing the autonomous run into Phase 32.
+last_updated: "2026-07-11T10:46:58.073Z"
+last_activity: 2026-07-11
+last_activity_desc: Phase 32 complete, transitioned to Phase 33
 progress:
   total_phases: 10
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
-  percent: 30
+  completed_phases: 4
+  total_plans: 16
+  completed_plans: 16
+  percent: 40
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-10)
 
 ## Current Position
 
-Phase: 32 — Terrain & Parallax Rendering
+Phase: 33 — Player & Entity Animation
 Plan: Not started
 Status: Ready to plan Phase 32
-Last activity: 2026-07-10 — Phase 31 complete, transitioned to Phase 32
+Last activity: 2026-07-11 — Phase 32 complete, transitioned to Phase 33
 
 Progress: [███░░░░░░░] 30%
 
