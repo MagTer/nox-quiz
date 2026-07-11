@@ -10,6 +10,7 @@ import { existsSync, readdirSync } from "fs";
 import { extname, join, resolve, sep } from "path";
 import { LEVEL_ORDER, getLevel } from "../src/levels/index.js";
 import { deriveEncounters, driveToXPlanned, resolveIfBoxed } from "./lib/mechanic-drive.mjs";
+import { CONFIG } from "../src/config.js";
 
 // WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
 // path. Tries (1) normal project-relative resolution (works once `playwright` is a real
@@ -98,6 +99,54 @@ async function assertAudioElementCount(page, errors, stopLabel) {
     errors.push({
       type: "audio",
       message: `${stopLabel}: expected at most 1 <audio> element, found ${count}`,
+    });
+  }
+}
+
+// Phase 32 (ART-02/ART-03, Plan 32-05): three CONFIG.TERRAIN-driven assertion
+// helpers, each mirroring assertAudioElementCount's exact (page, errors, stopLabel)
+// signature and errors.push({ type, message }) shape so one failed level never aborts
+// the rest of the drive. These turn this phase's documented Common Pitfalls (silent
+// blank fill chunk, perf cliff) into real, hard-failing automated gates instead of
+// code-review-only claims — the phase's own "checks that don't play the game lie"
+// verification standard.
+
+// A raw PNG screenshot byte-size floor as a non-blank-render proxy: an about:blank
+// page screenshots far smaller than any real level-entry frame (see the
+// MIN_SCREENSHOT_BYTES tunable's own header comment in src/config.js for the measured
+// reference points this threshold is set against).
+async function assertScreenshotNonBlank(page, errors, stopLabel) {
+  const buf = await page.screenshot();
+  if (buf.length < CONFIG.TERRAIN.MIN_SCREENSHOT_BYTES) {
+    errors.push({
+      type: "render-blank",
+      message: `${stopLabel}: screenshot only ${buf.length} bytes (< ${CONFIG.TERRAIN.MIN_SCREENSHOT_BYTES} min) — likely a blank/silently-failed render`,
+    });
+  }
+}
+
+// The perf-cliff mitigation: samples Kaplay's own live debug.fps() reading against a
+// hard floor, catching the "one giant tiled quad renders nothing, silently, at 15fps"
+// class of regression this phase's own spike findings warned about.
+async function assertFpsFloor(page, errors, stopLabel) {
+  const fps = await page.evaluate(() => debug.fps());
+  if (fps < CONFIG.TERRAIN.FPS_FLOOR) {
+    errors.push({
+      type: "perf-fps",
+      message: `${stopLabel}: fps ${fps} < floor ${CONFIG.TERRAIN.FPS_FLOOR}`,
+    });
+  }
+}
+
+// Terrain object-count budget: sums the "ground-cap"/"ground-fill" tagged entities
+// emitTerrainRun() (src/levels/build.js, Plan 32-03) emits, catching an oversized
+// chunked-fill regression before it becomes a real perf cliff in a live level.
+async function assertObjectBudget(page, errors, stopLabel) {
+  const count = await page.evaluate(() => get("ground-cap").length + get("ground-fill").length);
+  if (count > CONFIG.TERRAIN.OBJECT_BUDGET) {
+    errors.push({
+      type: "perf-objects",
+      message: `${stopLabel}: terrain object count ${count} > budget ${CONFIG.TERRAIN.OBJECT_BUDGET}`,
     });
   }
 }
@@ -389,6 +438,12 @@ try {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(1500); // let game scene build the level
     await assertAudioElementCount(page, errors, `${LEVEL_ORDER[i]}: level entry`);
+    // Phase 32 (ART-02/ART-03, Plan 32-05): the level has settled (the 1500ms wait
+    // above), so sample the new terrain proof battery right here — non-blank render,
+    // FPS floor, and terrain object-count budget.
+    await assertScreenshotNonBlank(page, errors, `${LEVEL_ORDER[i]}: level entry`);
+    await assertFpsFloor(page, errors, `${LEVEL_ORDER[i]}: level entry`);
+    await assertObjectBudget(page, errors, `${LEVEL_ORDER[i]}: level entry`);
 
     // VERIFY-03 (all 4 levels, generalized from the retired level-01-only special case):
     // hold real directional input to actually reach and fully resolve at least one
