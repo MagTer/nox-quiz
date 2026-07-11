@@ -113,3 +113,12 @@ None - no external service configuration required.
 ---
 *Phase: 32-terrain-parallax-rendering*
 *Completed: 2026-07-11*
+
+## Self-Check: PASSED
+
+- FOUND: src/assets-manifest.js
+- FOUND: scripts/check-assets-manifest.mjs
+- FOUND: .planning/phases/32-terrain-parallax-rendering/32-01-SUMMARY.md
+- FOUND: aee6d0c (Task 1 commit)
+- FOUND: b5fc695 (Task 2 commit)
+- FOUND: ff36bf6 (SUMMARY.md commit)
