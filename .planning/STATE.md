@@ -5,7 +5,7 @@ milestone_name: SNES-Fidelity World
 current_phase: 33
 current_phase_name: Player & Entity Animation
 status: planning
-stopped_at: Phase 31 (Asset Bake & Style-Board Sign-off) complete — resumed mid-close-out from a paused /gsd-autonomous run (all 6 plans + genuine 5-round style-board sign-off already done pre-pause); this session ran a skeptical re-review that caught an incomplete WR-03 fix (build_enemies() still unguarded) and a missing license attribution for atlas-castle.png, fixed both, re-reviewed clean, then verified 4/4 success criteria and closed the phase. Continuing the autonomous run into Phase 32.
+stopped_at: Phase 32 (Terrain & Parallax Rendering) complete — 5 plans executed across 3 waves (2 parallel worktree pairs + 1 solo), autotile terrain + biome parallax + assets manifest all landed with geometry byte-frozen. Code review found and fixed a genuine critical bug (the new far-end proof check silently never reached the goal), and chasing the real fix surfaced a deeper pre-existing pathfinding bug in scripts/lib/route-planner.mjs affecting levels 03/04, root-caused and fixed with live in-engine verification (3 consecutive full 8-level browser-boot passes). Verification passed 5/5 must-haves. Continuing the autonomous run into Phase 33 — the first checkpoint:human-verify phase since Phase 31 (player art sign-off).
 last_updated: "2026-07-11T10:46:58.073Z"
 last_activity: 2026-07-11
 last_activity_desc: Phase 32 complete, transitioned to Phase 33
@@ -25,10 +25,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-10)
+See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 32 — Terrain & Parallax Rendering
+**Current Focus:** Phase 33 — Player & Entity Animation
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -38,10 +38,10 @@ See: .planning/PROJECT.md (updated 2026-07-10)
 
 Phase: 33 — Player & Entity Animation
 Plan: Not started
-Status: Ready to plan Phase 32
+Status: Ready to plan Phase 33
 Last activity: 2026-07-11 — Phase 32 complete, transitioned to Phase 33
 
-Progress: [███░░░░░░░] 30%
+Progress: [████░░░░░░] 40%
 
 ## v6.0 Roadmap Summary
 
@@ -64,7 +64,7 @@ Progress: [███░░░░░░░] 30%
 
 **Velocity (through v5.0):** 28 phases, 107 plans completed across 6 shipped milestones (2026-06-20 → 2026-07-09). Per-plan history archived in `.planning/milestones/`.
 
-**v6.0:** 11 plans completed (Phases 29-31).
+**v6.0:** 16 plans completed (Phases 29-32).
 
 ## Accumulated Context
 
@@ -114,10 +114,10 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 ## Session Continuity
 
 Last session: 2026-07-11
-Stopped at: Phase 31 (Asset Bake & Style-Board Sign-off) complete — resumed mid-close-out from a paused /gsd-autonomous run (all 6 plans + genuine 5-round style-board sign-off already done pre-pause); this session ran a skeptical re-review that caught an incomplete WR-03 fix (build_enemies() still unguarded) and a missing license attribution for atlas-castle.png, fixed both, re-reviewed clean, then verified 4/4 success criteria and closed the phase. Continuing the autonomous run into Phase 32.
+Stopped at: Phase 32 (Terrain & Parallax Rendering) complete — autotile terrain + biome parallax + assets manifest, geometry byte-frozen; code review caught and root-caused a real pathfinding bug (levels 03/04) rather than accepting a surface-level fix, verified live. Continuing the autonomous run into Phase 33 — the next checkpoint:human-verify phase (player art sign-off).
 Resume file: None
 
 ---
 
 **State initialized:** 2026-06-20
-**Last updated:** 2026-07-11 (Phase 31 complete — next: `/gsd-plan-phase 32`)
+**Last updated:** 2026-07-11 (Phase 32 complete — next: `/gsd-plan-phase 33`)
