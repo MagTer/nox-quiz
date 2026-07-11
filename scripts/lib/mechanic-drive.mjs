@@ -480,7 +480,16 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
       for (let i = 0; i < takeoffs.length; i++) {
         const t = takeoffs[i];
         if (consumed.has(i)) continue;
-        if (x < t.x || x > t.x + FIRE_WINDOW[t.kind]) continue;
+        // Phase 32 far-end-check fix (route-planner.mjs's spike-before-mount conflict
+        // fix): a takeoff may carry its own `fireWindow` override (wider than the
+        // per-kind default) for cases where the PRECEDING hop's exact landing spot
+        // varies run-to-run (a short-held spike hop's real landing distance isn't
+        // perfectly predictable) — the takeoff still only fires once genuinely
+        // grounded there (the checks below), a wide window just means it doesn't
+        // miss whichever spot that turns out to be. Every pre-existing takeoff
+        // (mount/gap/spike from pushHopTakeoffs' plain branches) never sets this,
+        // so `?? FIRE_WINDOW[t.kind]` reproduces the exact prior per-kind default.
+        if (x < t.x || x > t.x + (t.fireWindow ?? FIRE_WINDOW[t.kind])) continue;
         if (Math.abs(s.y + 32 - t.fromY) > FROM_Y_TOL) continue; // wrong surface — skip
         if (!s.grounded && t.kind !== "gap") continue; // gap fires airborne too (coyote)
         consumed.add(i);

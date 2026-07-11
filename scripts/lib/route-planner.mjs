@@ -96,6 +96,91 @@ const EARLY_LEAD_PX = 15; // how far before the lip to fire when margin allows i
 // the spike comfortably mid-arc.
 const SPIKE_OFFSET = 52;
 
+// Spike-before-mount conflict fix (discovered empirically: level-04's spike@1000 sitting
+// only 12px before platform@1080's natural mount takeoff x:1012, AND level-03's
+// spike@3260 sitting 72px before platform@3400's natural mount takeoff x:3332 — both
+// deterministically unreachable before this fix). mechanic-drive.mjs's driveToXPlanned
+// holds a spike-clearing hop for its own spikeJumpHoldMs (150ms, well short of the
+// ~371ms time-to-apex, so CONFIG.JUMP_CUT truncates it) — but JUMP_CUT only zeroes 55%
+// of the upward velocity AT the moment of release, not all of it, so even this "short"
+// hop still carries real height and range: measured empirically (real in-engine arc
+// probe, matching this file's own AIR_SPEED calibration note above) at ~70-120px of
+// horizontal travel depending on exact timing, comparable to a meaningful FRACTION of
+// this file's own MAX_FLAT_RANGE same-height full-hold range (~156px) — nowhere near
+// negligible. A "mount" takeoff (unlike "gap") only fires while grounded
+// (driveToXPlanned), so any spike whose own standalone hop's flight carries the player
+// PAST a nearby mount's narrow FIRE_WINDOW (16px) while still airborne means that mount
+// can NEVER fire — the player sails over the platform and falls into the gap on every
+// attempt, deterministically (not a timing flake). Rather than pin the trigger radius to
+// a fragile re-derivation of driveToXPlanned's own hold-duration physics (a second
+// module's constant this file doesn't import), reuse MAX_FLAT_RANGE as a conservative
+// upper bound on how far ANY single hop (short spike hop or full mount hop alike) can
+// possibly travel — a spike within that distance of a mount's natural takeoff is always
+// a plausible conflict. Fix: fold the spike's clearance into the SAME jump — move the
+// takeoff earlier, to just before the spike (SPIKE_MERGE_LEAD px of lead, small because
+// a full-duration jump gains height fast: ~24px of rise after just 10px of travel,
+// comfortably above the 8px spike hitbox), clamped to never go earlier than what the
+// rise can still physically reach (maxReachForRise). See computeMountTakeoffX below.
+const SPIKE_MOUNT_CONFLICT_RANGE = MAX_FLAT_RANGE;
+
+// SPIKE_MERGE_LEAD's value is EMPIRICAL, not derived from this file's own reach
+// formulas — a real in-engine sweep (25+ live-browser trials against level-04's
+// spike@1000 -> platform@1080 hop, rise 70) found this file's closed-form
+// maxReachForRise() measurably UNDERESTIMATES the real reachable range (predicted
+// ~119px; a launch 140px back from the platform's leading edge landed on it reliably,
+// 3/3, while 100px back was flaky and 160px back consistently undershot into the gap
+// — the true usable range sits well above the formula's own ceiling). Two DISTINCT,
+// independently confirmed failure modes bound the safe window from either side:
+//   - Too CLOSE to the platform (a small lead, e.g. 8px — tried and falsified): the
+//     mount's fire window opens at/after the spike's actual hitbox contact point
+//     (CONFIG.SPIKE_HITBOX_W(12) is centered in the 16px tile, and the player is 16px
+//     wide, so real contact starts at playerX >= spike.x + 2 - 16 = spike.x - 14,
+//     regardless of jump state) — the player dies on the spike before any jump can
+//     matter. A separate "corner-clip" mode was also observed near this same close
+//     boundary (spike.x-20 lead): the arc crosses the leading edge too low/too late,
+//     catching only the platform's front corner and sliding off — flaky rather than
+//     deterministic, but still an unreliable zone.
+//   - Too FAR from the platform (e.g. spike.x-80 or more): the arc's horizontal range
+//     simply runs out before reaching the platform's leading edge at all, landing back
+//     on the SAME floor short of the gap (harmless) or undershooting into the gap
+//     between them (a fall death) — the classic "reach" failure this file's
+//     formula tries (and, per the above, under-shoots) to model.
+// 50px (matching this file's own already-proven SPIKE_OFFSET, the exact lead a
+// standalone spike hop already uses successfully everywhere else in this game) sits
+// solidly inside the empirically-confirmed 140px-of-total-travel-still-reliable
+// window and gives generous (~36px) vertical clearance over the spike well before
+// reaching it — see computeMountTakeoffX below for how the reach ceiling itself
+// still gates whether Strategy 1 is even attempted (RISE_REACH_SAFETY_FACTOR).
+const SPIKE_MERGE_LEAD = SPIKE_OFFSET;
+
+// This file's maxReachForRise() (below) undershoots the real in-engine reach ceiling
+// — see SPIKE_MERGE_LEAD's header comment for the calibration trial (rise 70: formula
+// says ~119px, reliable in practice up to ~140px). Applied as a multiplier on top of
+// the raw formula so Strategy 1's feasibility gate (computeMountTakeoffX) stops
+// rejecting merges the real engine can actually complete, while still correctly
+// rejecting the much-larger reach level-03's spike@3260 -> platform@3400 hop would
+// need (Strategy 2 handles that case instead — see its own comment below).
+const RISE_REACH_SAFETY_FACTOR = 1.2;
+
+// Strategy 2's wide fire-window (computeMountTakeoffX, the "neither Strategy 1 nor a
+// single predicted x is reliable" fallback): where a spike's OWN standalone hop
+// (untouched, unmerged — see Strategy 2's own comment) actually lands, empirically.
+// Real in-engine trials landed a spikeJumpHoldMs-held hop anywhere from ~135px to
+// ~152px past its own takeoff (level-04's spike@3880: takeoff 3836.9 -> landed
+// grounded 3972.1, a 135.2px travel; level-03's spike@3260: takeoff 3213.2 -> landed
+// grounded ~3360, a ~147px travel). SPIKE_HOP_MIN_LANDING/MAX_LANDING bound a window
+// around that observed range with real margin on both sides — narrower than this and
+// a landing on the shorter end of the observed spread falls outside the window
+// (confirmed empirically: a reach-ceiling-derived window centered near the PLATFORM
+// instead of near this observed landing spread missed level-04's actual 3972.1
+// landing entirely, since the window's own far edge sat at 3898.9). REACH_EDGE_BUFFER
+// keeps the window's far end from creeping up against the platform's own leading
+// edge (the same close-in corner-clip/collision risk SPIKE_MERGE_LEAD's own header
+// comment documents for Strategy 1).
+const SPIKE_HOP_MIN_LANDING = 90;
+const SPIKE_HOP_MAX_LANDING = 200;
+const REACH_EDGE_BUFFER = 20;
+
 // Two takeoffs closer than this are merged (a single jump covers both); kept by
 // priority: mount > gap > spike, then smaller x.
 const DEDUPE_PX = 34;
@@ -247,6 +332,126 @@ function pathAvoidingDirectEdge(nodes, graph, fromId, toId, envelope) {
   return bottleneckPath(nodes, filtered, fromId, toId, envelope);
 }
 
+// Longest-reach candidate for rise `dy` (toNode.y - fromNode.y, negative = rising),
+// using this file's own measured AIR_SPEED constant — mirrors canReach's
+// theoreticalMaxReach derivation but with AIR_SPEED (not reachability.mjs's
+// envelope.runSpeed), since this is a concrete arc-placement decision (same job as
+// MOUNT_OFFSET/GAP_COYOTE_MARK above), not the graph's feasibility-cost model.
+function maxReachForRise(dy) {
+  const disc = CONFIG.JUMP_FORCE ** 2 + 2 * CONFIG.GRAVITY * dy;
+  if (disc < 0) return 0;
+  const t = (CONFIG.JUMP_FORCE + Math.sqrt(disc)) / CONFIG.GRAVITY;
+  return AIR_SPEED * t;
+}
+
+// Compute a "mount" takeoff for rising onto `to` from `from`, folding in the
+// spike-before-mount conflict fix (SPIKE_MOUNT_CONFLICT_RANGE's header comment above): if a
+// spike sits close enough before the natural takeoff that ANY hop clearing it would
+// carry the player past this takeoff's fire window while still airborne, move the
+// takeoff earlier — before the spike — clamped so it never retreats past what the rise
+// can still physically reach. `absorbedSpikes` (a Set, or undefined) is written to
+// with the spike's `x` when merged, so the caller can suppress that spike's own
+// separate takeoff. Shared by both pushHopTakeoffs call sites that build a "mount"
+// takeoff (the plain rising-hop branch and the obstructed-flat-edge fallback) so the
+// fix applies identically wherever a mount takeoff is computed.
+//
+// Returns { x, fireWindow }: fireWindow is undefined for the normal (unconflicted or
+// Strategy-1-merged) case — mechanic-drive.mjs's driver falls back to its own
+// per-kind FIRE_WINDOW.mount default (16px) exactly as before this fix. Strategy 2
+// (below) sets a real, much wider fireWindow instead of pinning a single predicted x.
+function computeMountTakeoffX(from, to, rise, spikes, absorbedSpikes) {
+  const offset = rise >= 76 ? MOUNT_OFFSET_HIGH : MOUNT_OFFSET_LOW;
+  let x = to.xStart - offset;
+  x = Math.min(x, from.xEnd - 4); // never past the takeoff surface's own lip
+  x = Math.max(x, from.xStart + 4);
+  let fireWindow;
+
+  // Closest spike whose OWN standalone-hop takeoff (spike.x - SPIKE_OFFSET, the
+  // actual position the player launches from, per the spike-emission loop in
+  // planTakeoffs below) fires BEFORE this mount's natural takeoff x, if any — the
+  // one whose hop is most likely to overshoot this mount's fire window. Comparing
+  // takeoff positions (not raw spike x) matters: a spike whose RAW position sits
+  // AFTER the mount's natural x can still have a takeoff position that sits BEFORE
+  // it (discovered empirically: level-04's spike@1700, whose takeoff at 1700-52=1648
+  // fires 44px before platform@1760's natural mount takeoff at x:1692, even though
+  // the raw spike position 1700 is itself past 1692) — the spike still fires first
+  // in walk order and can still strand this mount exactly like the raw-position case
+  // above. Earlier spikes on the same walk-up, whose OWN takeoff lands safely well
+  // before this point, are unaffected.
+  const blocking = (spikes ?? [])
+    .filter((s) => {
+      const stakeoff = s.x - SPIKE_OFFSET;
+      return stakeoff > from.xStart && stakeoff < x;
+    })
+    // Sort by takeoff position descending: (b.x - OFFSET) - (a.x - OFFSET) reduces to
+    // b.x - a.x since SPIKE_OFFSET is the same constant for every spike.
+    .sort((a, b) => b.x - a.x)[0];
+  const blockingTakeoffX = blocking ? blocking.x - SPIKE_OFFSET : null;
+  if (blocking && x - blockingTakeoffX < SPIKE_MOUNT_CONFLICT_RANGE) {
+    const maxReach = maxReachForRise(to.y - from.y);
+    // RISE_REACH_SAFETY_FACTOR's header comment: the raw formula underestimates the
+    // real in-engine reach ceiling, so gate Strategy 1's feasibility against a
+    // corrected (looser) bound instead of the raw one.
+    const minLaunchXGate = to.xStart - maxReach * RISE_REACH_SAFETY_FACTOR;
+
+    // Strategy 1 (preferred, verified in-engine against level-04's spike@1000 ->
+    // platform@1080): fold the spike's clearance into the SAME jump, launching
+    // before the spike (SPIKE_MERGE_LEAD px of lead — see its own header comment)
+    // — only attempted when the rise is still reachable from that far back per the
+    // corrected gate.
+    const mergedX = Math.max(blocking.x - SPIKE_MERGE_LEAD, from.xStart + 4);
+    if (mergedX <= blocking.x - 4 && mergedX >= minLaunchXGate) {
+      x = mergedX;
+      absorbedSpikes?.add(blocking.x);
+    } else {
+      // Strategy 2 (fallback, verified in-engine against level-03's spike@3260 ->
+      // platform@3400 AND level-04's spike@3880 -> platform@4000, both cases where
+      // Strategy 1's launch position is physically too far back to reach the rise):
+      // leave the spike's own standalone takeoff untouched (it clears the spike on
+      // its own, exactly as it already does for every OTHER spike in this game) and
+      // give THIS mount a WIDE fire window instead of a single predicted x.
+      //
+      // Two earlier versions of this fallback were tried and EMPIRICALLY FALSIFIED:
+      // (1) predicting the spike hop's exact landing x (its own takeoff position +
+      // this file's MAX_FLAT_RANGE ceiling) and pinning the mount there as a normal,
+      // narrow-window takeoff — against level-04's spike@3880 case, floor-5 ends
+      // exactly at platform@4000's own start (a zero-gap "touching" pair, common in
+      // this game), so the predicted x clamped hard against from.xEnd left only ~4px
+      // of fire window before the platform's edge, an unreliable corner-clip launch
+      // (confirmed to fail 8/8 real death-retries). (2) a fire window derived from
+      // maxReachForRise's own reach ceiling (i.e., positioned relative to the
+      // PLATFORM's leading edge) — also falsified: the spike hop's REAL landing spot
+      // (see SPIKE_HOP_MIN_LANDING/MAX_LANDING's own header comment) sat past that
+      // window's far edge entirely (level-04: window ended at 3898.9, real landing
+      // 3972.1), so the mount takeoff never matched a grounded frame inside it and
+      // the player walked straight off the platform's edge unjumped.
+      //
+      // Fix: position the window relative to WHERE THE SPIKE HOP ITSELF ACTUALLY
+      // LANDS (SPIKE_HOP_MIN_LANDING..MAX_LANDING past its own takeoff), not relative
+      // to the platform — the takeoff fires the instant the player is genuinely
+      // grounded anywhere in that observed landing spread, whichever exact x that
+      // turns out to be, rather than betting on either a single predicted point or a
+      // window anchored to the wrong end of the hop.
+      const lo = Math.max(blockingTakeoffX + SPIKE_HOP_MIN_LANDING, from.xStart + 4);
+      const hi = Math.min(
+        blockingTakeoffX + SPIKE_HOP_MAX_LANDING,
+        from.xEnd - 4,
+        to.xStart - REACH_EDGE_BUFFER
+      );
+      if (hi > lo) {
+        x = lo;
+        fireWindow = hi - lo;
+      } else if (process.env.DEBUG_ROUTE) {
+        console.error(`computeMountTakeoffX: NEITHER strategy worked for blocking spike x=${blocking.x} vs natural mount x=${x} (from ${from.xStart}-${from.xEnd}@${from.y} to ${to.xStart}-${to.xEnd}@${to.y})`);
+      }
+      // else: no physically reachable window clears the spike AND still reaches the
+      // platform via either strategy — fall back to the original (unmerged) x;
+      // best-effort, unchanged from pre-fix behavior for this pathological sub-case.
+    }
+  }
+  return { x, fireWindow };
+}
+
 /**
  * Compute and push the takeoff(s) needed for one leg of the planned path (from ->
  * to), recursing through a real avoiding-the-obstruction sub-path when the direct
@@ -254,16 +459,13 @@ function pathAvoidingDirectEdge(nodes, graph, fromId, toId, envelope) {
  * `depth` bounds recursion — level graphs are small (<20 nodes), so this only ever
  * recurses a couple of levels deep for a genuine multi-platform chain.
  */
-function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, depth = 0) {
+function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, spikes, absorbedSpikes, depth = 0) {
   const rise = Math.max(0, from.y - to.y);
 
   if (rise > 12) {
     // Mount: cross the leading edge while rising, near apex for high rises.
-    const offset = rise >= 76 ? MOUNT_OFFSET_HIGH : MOUNT_OFFSET_LOW;
-    let x = to.xStart - offset;
-    x = Math.min(x, from.xEnd - 4); // never past the takeoff surface's own lip
-    x = Math.max(x, from.xStart + 4);
-    takeoffs.push({ x, kind: "mount", fromY: from.y });
+    const { x, fireWindow } = computeMountTakeoffX(from, to, rise, spikes, absorbedSpikes);
+    takeoffs.push({ x, kind: "mount", fromY: from.y, ...(fireWindow !== undefined && { fireWindow }) });
     return;
   }
 
@@ -279,7 +481,7 @@ function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, depth = 0) 
       const subPath = pathAvoidingDirectEdge(nodes, graph, from.id, to.id, envelope);
       if (subPath && subPath.length > 2) {
         for (let j = 0; j < subPath.length - 1; j++) {
-          pushHopTakeoffs(subPath[j], subPath[j + 1], nodes, graph, envelope, takeoffs, depth + 1);
+          pushHopTakeoffs(subPath[j], subPath[j + 1], nodes, graph, envelope, takeoffs, spikes, absorbedSpikes, depth + 1);
         }
         return;
       }
@@ -288,11 +490,8 @@ function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, depth = 0) 
     // fallback: mount onto the nearest obstacle; descending off its far edge needs
     // no separate takeoff (natural gravity walk-off, same as the plain case below).
     const obsRise = from.y - obstacle.y;
-    const offset = obsRise >= 76 ? MOUNT_OFFSET_HIGH : MOUNT_OFFSET_LOW;
-    let x = obstacle.xStart - offset;
-    x = Math.min(x, from.xEnd - 4);
-    x = Math.max(x, from.xStart + 4);
-    takeoffs.push({ x, kind: "mount", fromY: from.y });
+    const { x, fireWindow } = computeMountTakeoffX(from, obstacle, obsRise, spikes, absorbedSpikes);
+    takeoffs.push({ x, kind: "mount", fromY: from.y, ...(fireWindow !== undefined && { fireWindow }) });
     return;
   }
 
@@ -364,9 +563,14 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, target
   if (!path) return { takeoffs: [], path: null };
 
   const takeoffs = [];
+  // Spike-before-mount conflict fix (SPIKE_MOUNT_CONFLICT_RANGE's header comment): spikes
+  // whose clearance gets folded into a nearby mount's own takeoff (computeMountTakeoffX)
+  // are recorded here by their geometry `x`, so the standalone spike-hop loop below
+  // does not ALSO emit a separate (now-redundant, and conflict-prone) takeoff for them.
+  const absorbedSpikes = new Set();
 
   for (let i = 0; i < path.length - 1; i++) {
-    pushHopTakeoffs(path[i], path[i + 1], nodes, graph, envelope, takeoffs);
+    pushHopTakeoffs(path[i], path[i + 1], nodes, graph, envelope, takeoffs, geometry.spikes, absorbedSpikes);
   }
 
   // Spike hops for every spike on a path FLOOR node before the target. fromY pins
@@ -374,6 +578,7 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, target
   const pathFloorIds = new Set(path.filter((n) => n.id.startsWith("floor-")).map((n) => n.id));
   for (const spike of geometry.spikes ?? []) {
     if (spike.x >= targetX - 8) continue;
+    if (absorbedSpikes.has(spike.x)) continue;
     const node = nodeContaining(
       nodes.filter((n) => n.id.startsWith("floor-")),
       spike.x
@@ -384,11 +589,20 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, target
   }
 
   // Sort, then dedupe near-coincident takeoffs by priority (mount > gap > spike).
+  // A takeoff carrying its own `fireWindow` (Strategy 2's wide-window mount, above)
+  // is EXEMPT from this merge: it was deliberately placed close to the spike it
+  // still needs to clear on the way there — that spike's own standalone takeoff
+  // must keep firing separately (Strategy 2 explicitly does NOT absorb it), or the
+  // player walks straight into the spike with nothing to jump it. Discovered
+  // empirically: level-04's spike@3880 sat only ~29px from its Strategy-2 mount
+  // (well inside the normal 34px DEDUPE_PX), so the unmodified merge step silently
+  // dropped the spike's own takeoff, turning a fixed conflict into a guaranteed
+  // spike death instead.
   takeoffs.sort((a, b) => a.x - b.x || PRIORITY[a.kind] - PRIORITY[b.kind]);
   const deduped = [];
   for (const t of takeoffs) {
     const last = deduped[deduped.length - 1];
-    if (last && t.x - last.x < DEDUPE_PX) {
+    if (last && t.x - last.x < DEDUPE_PX && t.fireWindow === undefined && last.fireWindow === undefined) {
       if (PRIORITY[t.kind] < PRIORITY[last.kind]) deduped[deduped.length - 1] = t;
       continue;
     }
