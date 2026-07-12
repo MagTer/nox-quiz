@@ -98,7 +98,8 @@ export const CONFIG = {
     FAR_Z: -30, // z-order: behind everything
     MID_Z: -20,
     NEAR_Z: -10,
-    Y_ANCHOR: 320, // bottom edge anchor near the floor
+    // Vertical anchoring is screen-locked in src/parallax.js (far plate top at
+    // view top, mid/near bottoms at view bottom) — no world-space Y tunable.
   },
 
   // --- Terrain rendering tunables (ART-02/ART-03; Phase 32) ---

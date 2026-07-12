@@ -915,156 +915,183 @@ def _dominant_opaque_color(im_rgba, fallback=(10, 10, 10)):
     return counts.most_common(1)[0][0] if counts else fallback
 
 
-def _bake_biome_parallax_layer(out_name, layer, src_path, retint=None):
-    """Shared load -> [retint] -> tile-to-640 -> bottom-anchor -> backing-
-    composite -> assert -> save body for one biome parallax layer -- mirrors
-    styleboard.py's swamp()/town()/cemetery()/castle() compositing (load ->
-    [hue_shift_band retint] -> tile/composite onto a solid base plate ->
-    save, full source color preserved), adapted for Gothicvania's tileable-
-    strip source material (see _tile_to_width).
+# --- Biome parallax bake (Phase 32 ART-03; architecture reworked 2026-07-12) ---
+#
+# History: two earlier fixes at the Phase 33 human-verify checkpoint removed a
+# luminance-crush remap ("black mess", commit caebfae) and a transparent->black
+# RGB flatten ("odd bits and pieces", commit 78b7dd2). A third human look showed
+# the remaining root cause was ARCHITECTURAL: the old _bake_biome_parallax_layer
+# bottom-cropped every 179-304px-tall Gothicvania source into a 90-144px strip
+# (showing only the bottom sixth of the approved art), and the runtime anchored
+# those strips at the floor line of a viewport whose camera climbs 360px above
+# them (levels 07/08 bounds.top -360) -- so most of the screen was the #0a0a0a
+# clear color by construction, and what art survived read as random fragments.
+#
+# The human-approved style boards (.planning/research/v6-scouting/styleboard.py)
+# are full 640x360 COMPOSED SCENES: one primary background plate bottom-anchored
+# at native height, sky rows above filled by repeating the plate's top row
+# (stretch_top), feature layers alpha-composited at native height. This section
+# now mirrors that exactly:
+#
+#   far-<biome>.png  = full 640x360 opaque plate (tile -> bottom-anchor ->
+#                      stretch_top sky fill), the whole approved scene backdrop.
+#   mid/near-<biome>.png = native-height RGBA feature layers, transparency
+#                      PRESERVED (never flattened -- the runtime composites them
+#                      over the far plate, like styleboard.py's alpha_composite).
+#                      Biomes whose approved board is a single plate (town near,
+#                      castle mid+near) bake fully-transparent placeholders --
+#                      board parity beats invented extra layers; Phase 35/36 may
+#                      add sanctioned depth later.
+#
+# src/parallax.js pins these vertically to the camera (screen-locked), so the
+# far plate covers the viewport at any camera height.
 
-    `layer` is one of "far"/"mid"/"near" (locked 640x120/640x144/640x90,
-    matching build_parallax_theme()'s existing dimensions for cross-biome
-    consistency).
+FAR_PLATE_W, FAR_PLATE_H = 640, 360
 
-    Bug fix 1 (2026-07-12, found at the Phase 33 human-verify checkpoint —
-    "black mess" report): this function used to end with
-    `_remap_luminance(anchored, palette)` against an ENVIRONMENT_PALETTE_FAR/
-    _MID/_NEAR sub-palette. That palette (3-5 achromatic entries, brightest
-    stop 0x88 luma136, most stops well under that) was tuned for turning
-    FLAT KENNEY SILHOUETTES into locked dark-grunge ground/tile tokens
-    (build_ground/build_parallax_theme) -- reusing it here crushed the rich,
-    already-dark-grunge-appropriate Gothicvania biome art (the SAME source
-    files the human-approved style board at .planning/research/v6-scouting/
-    styleboard.py renders from) down to near-solid #0a0a0a with a thin grey
-    silhouette edge. styleboard.py never remaps these layers at all -- it
-    only retints (no-pink pass) and composites -- so removing the remap call
-    was step 1 of restoring parity with the images signed off on the style
-    board.
 
-    Bug fix 2 (2026-07-12, same checkpoint, second human look — "odd bits
-    and pieces"): some source layers (e.g. swamp's mid-layer-02.png) are
-    discrete RGBA feature art (one big pumpkin-tree, mostly transparent
-    around it), not a seamless tileable texture -- `_tile_to_width` still
-    repeats them edge-to-edge (that part is correct and matches
-    styleboard.py's own `tile_x`), but this function used to flatten the
-    result straight to RGB with `.convert("RGB")`. PIL's RGBA->RGB drops the
-    alpha channel and keeps whatever garbage sits in the transparent pixels'
-    color channels (typically black), so every tiled repeat's transparent
-    surround baked in as a hard black void -- 3 identical trees in a row
-    with black gaps, reading as disconnected stamped fragments rather than
-    one continuous canopy. styleboard.py never hits this because it only
-    ever uses `canvas.alpha_composite()` onto an already-colored canvas, so
-    transparency always blends into the scene instead of flattening to
-    black. Fix: alpha-composite the tiled+anchored layer onto a solid backing
-    plate (that layer's own dominant opaque color, so it always blends with
-    itself) before flattening to RGB -- same idea as styleboard.py's base
-    canvas fill, computed automatically instead of one hand-picked constant
-    per biome.
-    """
-    dims = {"far": (640, 120), "mid": (640, 144), "near": (640, 90)}
-    w, h = dims[layer]
+def _stretch_top(canvas, y_top):
+    """Fill canvas rows 0..y_top-1 by repeating the row AT y_top -- port of
+    styleboard.py's stretch_top() sky-padding idiom (the plate's own top row
+    extended upward, so the fill is always the art's sky/ambient color)."""
+    if y_top <= 0:
+        return
+    row = canvas.crop((0, y_top, canvas.width, y_top + 1))
+    for y in range(y_top):
+        canvas.paste(row, (0, y))
+
+
+def _bake_biome_far_plate(out_name, src_path, retint=None, crop=None, base=None, stretch=True):
+    """One biome's full-viewport background plate -> assets/parallax/far-<biome>.png.
+
+    load -> [crop x-window] -> [hue_shift_band retint] -> tile to 640 wide ->
+    bottom-anchor onto a 640x360 base-colored canvas -> stretch_top the rows
+    above -> save opaque RGB. `base` overrides the auto-sampled dominant color
+    for biomes whose styleboard scene hand-picked one (swamp's (30,32,30)).
+    `stretch=False` keeps the base color above the art instead of repeating
+    the art's top row -- styleboard.py's swamp() does exactly that (its
+    background.png top row is bright canopy green; the board leaves the dark
+    (30,32,30) base showing above it, and the swamp mid layers' own opaque
+    crown-backdrop plates cover the seam)."""
     src = Image.open(src_path).convert("RGBA")
     if src.width == 0 or src.height == 0:
-        raise ValueError(f"{src_path}: degenerate zero-dimension source image, cannot tile/bottom-anchor")
+        raise ValueError(f"{src_path}: degenerate zero-dimension source image")
+    if crop is not None:
+        src = src.crop(crop)
     if retint is not None:
         band_lo, band_hi, delta = retint
         src = hue_shift_band(src, band_lo, band_hi, delta)
-    tiled = _tile_to_width(src, w)
-    anchored = _bottom_anchor(tiled, w, h)
-    backing = Image.new("RGBA", (w, h), _dominant_opaque_color(src) + (255,))
-    anchored = Image.alpha_composite(backing, anchored)
-    assert anchored.size == (w, h), f"{layer}-{out_name} wrong size: {anchored.size}"
-    save(anchored.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
+    tiled = _tile_to_width(src, FAR_PLATE_W)
+    base_color = base if base is not None else _dominant_opaque_color(src)
+    canvas = Image.new("RGBA", (FAR_PLATE_W, FAR_PLATE_H), base_color + (255,))
+    top = FAR_PLATE_H - tiled.height
+    if top < 0:
+        tiled = tiled.crop((0, -top, FAR_PLATE_W, tiled.height))
+        top = 0
+    canvas.alpha_composite(tiled, (0, top))
+    if stretch:
+        _stretch_top(canvas, top)
+    assert canvas.size == (FAR_PLATE_W, FAR_PLATE_H), f"far-{out_name} wrong size: {canvas.size}"
+    save(canvas.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"far-{out_name}.png"))
+
+
+def _bake_biome_feature_layer(out_name, layer, src_path, retint=None):
+    """One biome's mid/near feature layer at NATIVE height, RGBA transparency
+    preserved -> assets/parallax/<layer>-<biome>.png. The runtime bottom-anchors
+    it at the floor line over the far plate, so transparent regions show the
+    plate through -- exactly styleboard.py's alpha_composite layering."""
+    src = Image.open(src_path).convert("RGBA")
+    if src.width == 0 or src.height == 0:
+        raise ValueError(f"{src_path}: degenerate zero-dimension source image")
+    if retint is not None:
+        band_lo, band_hi, delta = retint
+        src = hue_shift_band(src, band_lo, band_hi, delta)
+    tiled = _tile_to_width(src, FAR_PLATE_W)
+    if tiled.height > FAR_PLATE_H:
+        tiled = tiled.crop((0, tiled.height - FAR_PLATE_H, FAR_PLATE_W, tiled.height))
+    save(tiled, os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
+
+
+def _bake_empty_feature_layer(out_name, layer):
+    """Fully-transparent placeholder for biomes whose approved style board is a
+    single composed plate with no separate feature layers (town near, castle
+    mid+near). Keeps the 3-sprite-keys-per-biome runtime/manifest contract
+    without inventing art the board never showed."""
+    canvas = Image.new("RGBA", (FAR_PLATE_W, 90), (0, 0, 0, 0))
+    save(canvas, os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
 
 
 def build_biome_parallax_swamp():
-    """Gothicvania Swamp Evironment/{background,mid-layer-02,mid-layer-01}.png
-    -> assets/parallax/{far,mid,near}-swamp.png.
-
-    All 3 layers measured 0% dominant-pink -- no retint needed. near <-
-    mid-layer-01.png per the existing swamp() styleboard compositing order
-    (drawn last/on top -> reads as closest to camera).
+    """Swamp scene per styleboard.py swamp(): far <- Evironment/background.png
+    tiled over the hand-picked (30,32,30) crown-backdrop base (the board's own
+    canvas color, so the 96px-wide plates merge into one continuous canopy
+    band); mid <- mid-layer-02.png, near <- mid-layer-01.png at native 256px
+    height with transparency preserved (board composites them over the
+    backdrop; drawn last -> closest to camera). All 3 measured 0% dominant-pink
+    -- no retint.
     """
     env = os.path.join(GV_SRC, "gothicvania_swamp_files", "Gothicvania Swamp files", "Evironment")
-    _bake_biome_parallax_layer("swamp", "far", os.path.join(env, "background.png"))
-    _bake_biome_parallax_layer("swamp", "mid", os.path.join(env, "mid-layer-02.png"))
-    _bake_biome_parallax_layer("swamp", "near", os.path.join(env, "mid-layer-01.png"))
+    _bake_biome_far_plate("swamp", os.path.join(env, "background.png"), base=(30, 32, 30), stretch=False)
+    _bake_biome_feature_layer("swamp", "mid", os.path.join(env, "mid-layer-02.png"))
+    _bake_biome_feature_layer("swamp", "near", os.path.join(env, "mid-layer-01.png"))
 
 
 def build_biome_parallax_town():
-    """Town parallax: far <- PNG/environment/layers/background.png (dusk
-    sky, ~64% dominant-pink, retint REQUIRED via the same
-    hue_shift_band(prev, 215, 255, -60) call as styleboard.py's town());
-    mid <- Patreon Collection's night-town-background-town.png (0% pink);
-    near <- night-town-background-far-buildings.png (0% pink) ->
-    assets/parallax/{far,mid,near}-town.png.
+    """Town scene per styleboard.py town(): the board renders
+    environment-preview.png, which is the artist's own composite of the pack's
+    two dedicated layer files -- so far <- environment/layers/background.png
+    (dusk sky + far houses, ~64% dominant-pink, retint REQUIRED via the same
+    hue_shift_band(..., 215, 255, -60) as the board) and mid <-
+    environment/layers/middleground.png (near houses, RGBA, native 288px) with
+    the same retint for cohesion. The board shows no third layer -> near bakes
+    fully transparent (the old near source was a Patreon night-town strip the
+    board never used).
     """
-    far_path = os.path.join(
+    layers_dir = os.path.join(
         GV_SRC,
         "gothicvania-town-files",
         "GothicVania-town-files",
         "PNG",
         "environment",
         "layers",
-        "background.png",
     )
-    night_town_dir = os.path.join(
-        GV_SRC,
-        "gothicvaniapatreoncollection",
-        " gothicvania patreon collection",
-        "night-town-background-files",
-        "layers",
+    _bake_biome_far_plate("town", os.path.join(layers_dir, "background.png"), retint=(215, 255, -60))
+    _bake_biome_feature_layer(
+        "town", "mid", os.path.join(layers_dir, "middleground.png"), retint=(215, 255, -60)
     )
-    _bake_biome_parallax_layer("town", "far", far_path, retint=(215, 255, -60))
-    _bake_biome_parallax_layer(
-        "town", "mid", os.path.join(night_town_dir, "night-town-background-town.png")
-    )
-    _bake_biome_parallax_layer(
-        "town",
-        "near",
-        os.path.join(night_town_dir, "night-town-background-far-buildings.png"),
-    )
+    _bake_empty_feature_layer("town", "near")
 
 
 def build_biome_parallax_cemetery():
-    """Cemetery parallax: far <- PNG/Environment/background.png (magenta
-    horizon glow, ~79% dominant-pink, retint REQUIRED, mirrors
-    styleboard.py's cemetery() hue_shift_band(bg, 195, 245, -50) call);
-    mid <- mountains.png (also hue-shifted for visual cohesion with the
-    retinted sky, matching cemetery()'s own mts = hue_shift_band(mts, 195,
-    245, -50) call); near <- graveyard.png (0.1% pink, no retint) ->
-    assets/parallax/{far,mid,near}-cemetery.png.
+    """Cemetery scene per styleboard.py cemetery(): far <-
+    PNG/Environment/background.png (magenta horizon glow, ~79% dominant-pink,
+    retint REQUIRED, same hue_shift_band(bg, 195, 245, -50) as the board);
+    mid <- mountains.png (same retint, matching the board's own mts call);
+    near <- graveyard.png (0.1% pink, no retint). Mid/near keep native height
+    + transparency -- the board alpha-composites exactly these three files.
     """
     env = os.path.join(GV_SRC, "gothicvania-cemetery-files_1", "gothicvania-cemetery-files", "PNG", "Environment")
-    _bake_biome_parallax_layer(
-        "cemetery", "far", os.path.join(env, "background.png"), retint=(195, 245, -50)
-    )
-    _bake_biome_parallax_layer(
+    _bake_biome_far_plate("cemetery", os.path.join(env, "background.png"), retint=(195, 245, -50))
+    _bake_biome_feature_layer(
         "cemetery", "mid", os.path.join(env, "mountains.png"), retint=(195, 245, -50)
     )
-    _bake_biome_parallax_layer("cemetery", "near", os.path.join(env, "graveyard.png"))
+    _bake_biome_feature_layer("cemetery", "near", os.path.join(env, "graveyard.png"))
 
 
 def build_biome_parallax_castle():
-    """Castle parallax: far <- Gothic-Castle-Files
-    gothic-castle-background.png (exterior, most distant); mid <-
-    Old-Dark-Castle interior background (interior, closer); near <-
-    Gothicvania Church backgrounds.png (folded in per CONTEXT.md's
-    Castle-absorbs-Church decision, ~2% pink, effectively clean) ->
-    assets/parallax/{far,mid,near}-castle.png. All measured 0% or near-0%
-    dominant-pink -- no retint needed.
+    """Castle scene per styleboard.py castle(): the approved board is ONE
+    composed interior scene -- a 640px window of the Old-Dark-Castle interior
+    art cropped at x=250 (window-arch centered, same x-window as the board's
+    prev.crop((250, 0, 890, h))) with stretch_top sky fill. far <-
+    old-dark-castle-interior-background.png (the pack's dedicated background
+    plate, visually the board's scene minus tileset props; 0% pink, no
+    retint). The board shows no separate feature layers -> mid+near bake fully
+    transparent. The OLD sources are deliberately dropped: Gothic-Castle
+    gothic-castle-background.png and Church backgrounds.png are multi-panel
+    preview SHEETS (discrete vignettes with gutters), and tiling them raw was
+    the "odd bits and pieces" band + the purple palette clash against the
+    approved teal.
     """
-    far_path = os.path.join(
-        GV_SRC,
-        "gothicvaniapatreoncollection",
-        " gothicvania patreon collection",
-        "Gothic-Castle-Files",
-        "PNG",
-        "layers",
-        "gothic-castle-background.png",
-    )
-    mid_path = os.path.join(
+    plate_path = os.path.join(
         GV_SRC,
         "gothicvaniapatreoncollection",
         " gothicvania patreon collection",
@@ -1072,12 +1099,9 @@ def build_biome_parallax_castle():
         "PNG",
         "old-dark-castle-interior-background.png",
     )
-    near_path = os.path.join(
-        GV_SRC, "gothicvania-church-files", "gothicvania church files", "ENVIRONMENT", "backgrounds.png"
-    )
-    _bake_biome_parallax_layer("castle", "far", far_path)
-    _bake_biome_parallax_layer("castle", "mid", mid_path)
-    _bake_biome_parallax_layer("castle", "near", near_path)
+    _bake_biome_far_plate("castle", plate_path, crop=(250, 0, 890, 304))
+    _bake_empty_feature_layer("castle", "mid")
+    _bake_empty_feature_layer("castle", "near")
 
 
 # --- Phase 31 (ART-01): Swamp Hunter player + Hell hound enemy sprite bakes ---
