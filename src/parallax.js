@@ -128,11 +128,17 @@ export function updateParallaxLayers(layers, camX, bounds) {
   // 07/08 bounds.top -360); for levels whose camera Y is clamped fixed (01-06,
   // top 0 / bottom 360) this is byte-identical to the old static placement.
   const viewTop = getCamPos().y - height() / 2;
+  const viewLeft = camX - width() / 2;
   for (const layer of layers) {
     for (let i = 0; i < layer.instances.length; i++) {
       const inst = layer.instances[i];
       inst.pos.x = left - width() + i * width() + camX * (1 - inst.ratio);
       inst.pos.y = viewTop + inst.screenY;
+      // Cull tiles fully outside the view: the full-viewport far plates are 3x
+      // the old strips' pixel area, and without this every tile across the
+      // whole level width is drawn each frame (measured ~44fps vs the 45
+      // browser-boot floor on the headless-Chromium rig; hidden skips draw).
+      inst.hidden = inst.pos.x + width() < viewLeft || inst.pos.x > viewLeft + width();
     }
   }
 }

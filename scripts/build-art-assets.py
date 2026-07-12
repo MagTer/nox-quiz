@@ -1008,6 +1008,13 @@ def _bake_biome_feature_layer(out_name, layer, src_path, retint=None):
     tiled = _tile_to_width(src, FAR_PLATE_W)
     if tiled.height > FAR_PLATE_H:
         tiled = tiled.crop((0, tiled.height - FAR_PLATE_H, FAR_PLATE_W, tiled.height))
+    # Drop fully-transparent TOP rows (bottom rows must stay — the runtime
+    # bottom-anchors this layer, so cropping the top is alignment-neutral but
+    # saves per-frame blend fill (town's middleground carries a 33-row empty sky
+    # band; invisible pixels still cost fill rate on the software renderer).
+    bbox = tiled.getchannel("A").getbbox()
+    if bbox is not None and bbox[1] > 0:
+        tiled = tiled.crop((0, bbox[1], FAR_PLATE_W, tiled.height))
     save(tiled, os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
 
 
@@ -1015,8 +1022,10 @@ def _bake_empty_feature_layer(out_name, layer):
     """Fully-transparent placeholder for biomes whose approved style board is a
     single composed plate with no separate feature layers (town near, castle
     mid+near). Keeps the 3-sprite-keys-per-biome runtime/manifest contract
-    without inventing art the board never showed."""
-    canvas = Image.new("RGBA", (FAR_PLATE_W, 90), (0, 0, 0, 0))
+    without inventing art the board never showed. 1px tall: the quad is still
+    blended every frame by the renderer, so a 90px-tall invisible layer was
+    pure fill-rate waste on the software-rendered browser-boot rig."""
+    canvas = Image.new("RGBA", (FAR_PLATE_W, 1), (0, 0, 0, 0))
     save(canvas, os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
 
 

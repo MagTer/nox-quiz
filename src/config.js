@@ -112,7 +112,16 @@ export const CONFIG = {
     FLOOR_FILL_DEPTH_PX: 64, // px — fill depth for floor runs; every shipped level's floor sits at FLOOR_Y 320 with bounds.bottom 360 (or the CONFIG.LEVEL_BOTTOM 360 fallback), a real 40px gap to the camera's lower clamp edge — 64px gives comfortable margin without a per-level bounds lookup
     PLATFORM_FILL_DEPTH_PX: 32, // px — shallow 2-tile fill for floating platforms, per 32-CONTEXT.md's "not a deep mass" decision
     OBJECT_BUDGET: 650, // count — hard-fail ceiling for the browser-boot per-level terrain object-count assertion; the spike measured ~410 objects safe at a synthetic 16-row stress depth, real levels land ~400-420 objects at this phase's actual ~2-4-row fill depth per 32-RESEARCH.md's level-04 Metadata calculation — headroom set above that real max
-    FPS_FLOOR: 45, // fps — hard-fail floor for the browser-boot debug.fps() sample; the spike's clean run was 58fps, comfortably below that to absorb headless-Chromium's measured pessimistic bias vs a real GPU
+    // fps — hard-fail floor for the browser-boot debug.fps() sample. Guards the
+    // perf-CLIFF class (one giant tiled quad silently rendering at 15fps), not
+    // frame-perfect 60. Recalibrated 45 -> 40 on 2026-07-12: the user-approved
+    // full-viewport biome plates (commit f6a386e) legitimately add ~1.5 screens
+    // of blended fill per frame, moving headless-Chromium/swiftshader steady-state
+    // on the heaviest level (04) from ~50 to 44-45 measured over 8s — real GPUs
+    // (the actual play environment) are unaffected. 40 clears both that new
+    // steady-state and the known ~43 entry-transient dip the 1500ms sample can
+    // catch, while still failing the 15-25fps cliff class by a wide margin.
+    FPS_FLOOR: 40,
     MIN_SCREENSHOT_BYTES: 4000, // bytes — PNG screenshot byte-size floor used as a non-blank-render proxy in browser-boot; measured locally against this exact game: an about:blank page screenshots at ~2,667 bytes, a real pre-Phase-32 level-entry screenshot at ~8,735 bytes — 4,000 sits clear of the blank floor with margin below real content, and Phase 32's new terrain-mass+parallax content should only push real screenshots higher, never lower
   },
 
