@@ -899,18 +899,35 @@ def build_biome_atlas_castle():
     )
 
 
+def _dominant_opaque_color(im_rgba, fallback=(10, 10, 10)):
+    """Most-common fully-opaque (alpha>=128) RGB color in `im_rgba`.
+
+    Used as the alpha-composite backing plate for _bake_biome_parallax_layer
+    (see its 2026-07-12 "bits and pieces" fix below) -- reading a color the
+    source art itself already uses means the backing always blends with that
+    same layer's own palette, no per-biome/per-layer hand-tuned constant
+    needed. Falls back to near-black (matches styleboard.py's default
+    new_canvas() plate) if the image is fully transparent.
+    """
+    from collections import Counter
+
+    counts = Counter(px[:3] for px in im_rgba.convert("RGBA").getdata() if px[3] >= 128)
+    return counts.most_common(1)[0][0] if counts else fallback
+
+
 def _bake_biome_parallax_layer(out_name, layer, src_path, retint=None):
-    """Shared load -> [retint] -> tile-to-640 -> bottom-anchor -> assert -> save
-    body for one biome parallax layer -- mirrors styleboard.py's swamp()/
-    town()/cemetery()/castle() compositing (load -> [hue_shift_band retint]
-    -> tile/composite -> save, full source color preserved), adapted for
-    Gothicvania's tileable-strip source material (see _tile_to_width).
+    """Shared load -> [retint] -> tile-to-640 -> bottom-anchor -> backing-
+    composite -> assert -> save body for one biome parallax layer -- mirrors
+    styleboard.py's swamp()/town()/cemetery()/castle() compositing (load ->
+    [hue_shift_band retint] -> tile/composite onto a solid base plate ->
+    save, full source color preserved), adapted for Gothicvania's tileable-
+    strip source material (see _tile_to_width).
 
     `layer` is one of "far"/"mid"/"near" (locked 640x120/640x144/640x90,
     matching build_parallax_theme()'s existing dimensions for cross-biome
     consistency).
 
-    Bug fix (2026-07-12, found at the Phase 33 human-verify checkpoint —
+    Bug fix 1 (2026-07-12, found at the Phase 33 human-verify checkpoint —
     "black mess" report): this function used to end with
     `_remap_luminance(anchored, palette)` against an ENVIRONMENT_PALETTE_FAR/
     _MID/_NEAR sub-palette. That palette (3-5 achromatic entries, brightest
@@ -922,11 +939,28 @@ def _bake_biome_parallax_layer(out_name, layer, src_path, retint=None):
     styleboard.py renders from) down to near-solid #0a0a0a with a thin grey
     silhouette edge. styleboard.py never remaps these layers at all -- it
     only retints (no-pink pass) and composites -- so removing the remap call
-    here is what actually restores parity with the images that were signed
-    off on the style board. No new colors are introduced: the output is
-    exactly the vendored CC0 source pixels (already dark/muted by design),
-    optionally retinted by the same hue_shift_band() calls used for the
-    approved renders.
+    was step 1 of restoring parity with the images signed off on the style
+    board.
+
+    Bug fix 2 (2026-07-12, same checkpoint, second human look — "odd bits
+    and pieces"): some source layers (e.g. swamp's mid-layer-02.png) are
+    discrete RGBA feature art (one big pumpkin-tree, mostly transparent
+    around it), not a seamless tileable texture -- `_tile_to_width` still
+    repeats them edge-to-edge (that part is correct and matches
+    styleboard.py's own `tile_x`), but this function used to flatten the
+    result straight to RGB with `.convert("RGB")`. PIL's RGBA->RGB drops the
+    alpha channel and keeps whatever garbage sits in the transparent pixels'
+    color channels (typically black), so every tiled repeat's transparent
+    surround baked in as a hard black void -- 3 identical trees in a row
+    with black gaps, reading as disconnected stamped fragments rather than
+    one continuous canopy. styleboard.py never hits this because it only
+    ever uses `canvas.alpha_composite()` onto an already-colored canvas, so
+    transparency always blends into the scene instead of flattening to
+    black. Fix: alpha-composite the tiled+anchored layer onto a solid backing
+    plate (that layer's own dominant opaque color, so it always blends with
+    itself) before flattening to RGB -- same idea as styleboard.py's base
+    canvas fill, computed automatically instead of one hand-picked constant
+    per biome.
     """
     dims = {"far": (640, 120), "mid": (640, 144), "near": (640, 90)}
     w, h = dims[layer]
@@ -938,6 +972,8 @@ def _bake_biome_parallax_layer(out_name, layer, src_path, retint=None):
         src = hue_shift_band(src, band_lo, band_hi, delta)
     tiled = _tile_to_width(src, w)
     anchored = _bottom_anchor(tiled, w, h)
+    backing = Image.new("RGBA", (w, h), _dominant_opaque_color(src) + (255,))
+    anchored = Image.alpha_composite(backing, anchored)
     assert anchored.size == (w, h), f"{layer}-{out_name} wrong size: {anchored.size}"
     save(anchored.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"{layer}-{out_name}.png"))
 
