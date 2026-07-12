@@ -128,11 +128,14 @@ export const LEVEL_07 = {
       { x: 2300, y: FLOOR_Y - CONFIG.DOOR.H }, // floor-3 (1920..2600)
     ],
 
-    mathGates: [
-      { x: 2000, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // floor-3 (1920..2600)
-    ],
+    // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy +
+    // the end-of-level goal gate (user decision 2026-07-12; the removed gate
+    // x:2000 is in git history).
+    mathGates: [],
 
-    enemies: [],
+    enemies: [
+      { x: 2000, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }, // enemy-1 (saw); floor-3 (1920..2600) — reuses the validator/audit-proven footprint of the removed x:2000 mathGate, 300px before the door at x:2300
+    ],
 
     // Secret XP alcove (LVL-06) — a sideways detour to the left of tier 4's
     // start, roughly at tier-4 height, off the main net-rightward climb path.

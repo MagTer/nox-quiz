@@ -78,20 +78,21 @@ export const LEVEL_02 = {
       { x: 1680, y: FLOOR_Y - 48 },
       { x: 2480, y: FLOOR_Y - 48 },
       { x: 3120, y: FLOOR_Y - 48 }, // Phase 24: before the new spike (x=3200) — 80px lead
-      { x: 3680, y: FLOOR_Y - 48 }, // Phase 24: before the new mathGate (x=3760) — 80px lead
+      { x: 3680, y: FLOOR_Y - 48 }, // Phase 24: start of the final run (historical: led the since-removed x:3760 mathGate)
     ],
 
     doors: [
       { x: 1540, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
 
-    mathGates: [
-      { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1100, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 3760, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24 extension mechanic, on the new floor-5 run
-    ],
+    // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy +
+    // the end-of-level goal gate (user decision 2026-07-12; removed gates
+    // x:420/1100/3760 are in git history).
+    mathGates: [],
 
-    enemies: [],
+    enemies: [
+      { x: 1860, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }, // enemy-1 (saw); floor-2 (1420..2020), 320px past the door at x:1540, 128px runway to the run's end
+    ],
 
     // Phase 25 retrofit (LVL-06) — purely additive, does not touch any existing
     // floor/platform/checkpoint geometry. A short extra hop UP from the early

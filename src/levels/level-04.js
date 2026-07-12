@@ -100,14 +100,12 @@ export const LEVEL_04 = {
 
     doors: [
       { x: 900, y: FLOOR_Y - CONFIG.DOOR.H },
-      { x: 5000, y: FLOOR_Y - CONFIG.DOOR.H }, // Phase 24 extension, on floor-8 (4920..5520 span)
     ],
 
-    mathGates: [
-      { x: 320, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24 re-reposition: was x:1728 [was x:1800 pre-Phase-24, over-hole per VALID-04] — x:1728 sat at floor-2's very edge, immediately before the gap 1760..1960 crossing platform, trapping forward-only traversal with no runway after the challenge resolves; x:1300 sits comfortably mid-floor-2, well before that platform, fully inside floor-2's 1240..1760 span
-      { x: 5760, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24 extension, on floor-9 (5680..6200 span)
-    ],
+    // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy +
+    // the end-of-level goal gate (user decision 2026-07-12; the removed gates
+    // x:320/1300/5760 and the removed second door x:5000 are in git history).
+    mathGates: [],
 
     enemies: [
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }, // enemy-1 (saw)

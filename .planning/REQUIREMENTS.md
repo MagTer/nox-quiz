@@ -11,6 +11,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **MECH-01**: Collect-the-answer mechanic fully removed — code (`src/mechanics/collect.js`, builder blocks, config), level data (all 8 descriptors), and every defending gate/fixture (`check-gate.sh` #13, smoke-progress golden geometry, audit expectations, validator entries) updated atomically in one change
 - [x] **MECH-02**: Math pacing rebalanced in the 5 affected levels (01/03/04/06/08) using the remaining mechanics — rhythm over 1:1 quota (≥2 mid-level encounters + end gate per level), XP economy re-checked
+  - **Tightened 2026-07-12 (user decision):** per-level math density is now locked at EXACTLY 1 door + 1 enemy + the end-of-level goal gate = 3 challenges per level, uniform across all 8 levels. All mid-level checkpoint `mathGates` removed from every descriptor (still satisfies the "≥2 mid-level encounters" letter via door+enemy). Binding for Phases 34–38.
 - [x] **MECH-03**: Secret alcove gives on-touch discovery feedback — particle burst + chime + "+5 XP" popup, one-shot per run, revealed only AFTER discovery (never pre-signposted, no secrets counter)
 - [x] **MECH-04**: Secret alcove has automated coverage — point-vs-jump-reach reachability in the validator and an entity-destroy/XP-delta trigger signal in the interactive audit (never the challenge-open signal)
 - [ ] **MECH-05**: Discovered alcove leaves a persistent in-level ambient change for the rest of the run (e.g. torch lights up) — positive-only reinforcement

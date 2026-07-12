@@ -98,16 +98,17 @@ export const LEVEL_03 = {
       { x: 4720, y: FLOOR_Y - 48 }, // Phase 24 extension — before the new spike (x=4800)
     ],
 
-    doors: [],
-
-    mathGates: [
-      { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 4360, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // Phase 24 extension (on floor-6, 4280..5200)
+    doors: [
+      { x: 3800, y: FLOOR_Y - CONFIG.DOOR.H }, // floor-5 (3560..4160) — reuses the validator/audit-proven footprint of the removed x:3800 fly enemy (density decision 2026-07-12)
     ],
+
+    // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy +
+    // the end-of-level goal gate (user decision 2026-07-12; removed gates
+    // x:420/4360 are in git history).
+    mathGates: [],
 
     enemies: [
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 }, // enemy-2 (barnacle)
-      { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 }, // enemy-3 (fly); Phase 24 extension (on floor-5, 3560..4160)
     ],
 
     // Phase 25 retrofit (LVL-06) — purely additive, does not touch any existing

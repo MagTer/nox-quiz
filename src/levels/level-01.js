@@ -113,7 +113,7 @@ export const LEVEL_01 = {
       { x: 1440, y: FLOOR_Y - 48 }, // before the second spike (x=1520)
       { x: 1920, y: FLOOR_Y - 48 }, // before the third spike (x=2000)
       { x: 2560, y: FLOOR_Y - 48 }, // before the new spike (x=2640) — 80px lead (Phase 24 extension)
-      { x: 3040, y: FLOOR_Y - 48 }, // before the new mathGate (x=3120) — 80px lead (Phase 24 extension)
+      { x: 3040, y: FLOOR_Y - 48 }, // start of the final run (historical: led the since-removed x:3120 mathGate)
     ],
 
     // Locked door — mid-level challenge seam (Plan 15-03). Sits on the final run
@@ -123,13 +123,11 @@ export const LEVEL_01 = {
       { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
 
-    // --- Mid-level math mechanics (Phase 16) ---
-    // MECH-04: two checkpoint gates on different floor runs.
-    mathGates: [
-      { x: 150, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // opening run (Phase 24 re-reposition: was x:528 [was x:600 pre-Phase-24, over-hole per VALID-04] — x:528 sat at floor-0's very edge, immediately before the gap-1 climbing platform at x:360-520, trapping forward-only traversal with no runway to execute the platform hop after the challenge resolves; x:150 sits comfortably mid-floor-0, well before the climbing platform, fully inside floor-0's 0..560 span)
-      { x: 1360, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // final run, before the door at 1400 (Phase 24 reposition: was x:1300, over-hole per VALID-04; 1360..1392 fully inside floor-2's 1360..2240 span)
-      { x: 3120, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // new gate on the new final run (Phase 24 extension, LVL-01 length/audit coverage — 3rd mathGate instance reuses an existing mechanic type, not new variety)
-    ],
+    // Mid-level checkpoint gates: NONE — per-level math density is locked at
+    // exactly 1 door + 1 enemy + the end-of-level goal gate = 3 challenges
+    // (user decision 2026-07-12, supersedes the Phase-16 MECH-04 checkpoint
+    // gates; the removed x:150/1360/3120 gates are in git history).
+    mathGates: [],
 
     // MECH-05: one defeat-enemy encounter on the middle run.
     enemies: [

@@ -113,10 +113,10 @@ export const LEVEL_08 = {
       { x: 700, y: FLOOR_Y - CONFIG.DOOR.H }, // floor-1 (560..1040)
     ],
 
-    mathGates: [
-      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // floor-2 (1160..1680)
-      { x: 2050, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // floor-3 (1800..2360)
-    ],
+    // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy +
+    // the end-of-level goal gate (user decision 2026-07-12; removed gates
+    // x:1300/2050 are in git history).
+    mathGates: [],
 
     enemies: [
       { x: 1600, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 }, // enemy-3 (fly); floor-2 (1160..1680)

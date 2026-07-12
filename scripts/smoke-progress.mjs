@@ -383,11 +383,10 @@ const deepEqual = (a, b) => {
     doors: [
       { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
-    mathGates: [
-      { x: 150, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1360, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 3120, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-    ],
+    // 2026-07-12 re-baseline (user decision): math density locked at 1 door +
+    // 1 enemy + the end-of-level goal gate per level — mid-level checkpoint
+    // gates removed everywhere. OLD: mathGates x:150/1360/3120.
+    mathGates: [],
     enemies: [
       { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],
@@ -479,12 +478,12 @@ const deepEqual = (a, b) => {
     doors: [
       { x: 1540, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
-    mathGates: [
-      { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1100, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 3760, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+    // 2026-07-12 re-baseline (user decision): density locked at 1 door + 1
+    // enemy + end gate. OLD: mathGates x:420/1100/3760, enemies [].
+    mathGates: [],
+    enemies: [
+      { x: 1860, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],
-    enemies: [],
     secretAlcove: [
       { x: 320, y: 170 },
     ],
@@ -587,14 +586,16 @@ const deepEqual = (a, b) => {
       { x: 4280, y: FLOOR_Y - 48 },
       { x: 4720, y: FLOOR_Y - 48 },
     ],
-    doors: [],
-    mathGates: [
-      { x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 4360, y: FLOOR_Y - CONFIG.MATH_GATE.H },
+    // 2026-07-12 re-baseline (user decision): density locked at 1 door + 1
+    // enemy + end gate. OLD: doors [], mathGates x:420/4360, enemies
+    // x:2400(v1)/x:3800(v2) — the new door reuses the removed fly enemy's
+    // proven x:3800 footprint.
+    doors: [
+      { x: 3800, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
+    mathGates: [],
     enemies: [
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 },
-      { x: 3800, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 },
     ],
     secretAlcove: [
       { x: 310, y: 170 },
@@ -714,15 +715,12 @@ const deepEqual = (a, b) => {
       { x: 5120, y: FLOOR_Y - 48 },
       { x: 5680, y: FLOOR_Y - 48 },
     ],
+    // 2026-07-12 re-baseline (user decision): density locked at 1 door + 1
+    // enemy + end gate. OLD: doors x:900/5000, mathGates x:320/1300/5760.
     doors: [
       { x: 900, y: FLOOR_Y - CONFIG.DOOR.H },
-      { x: 5000, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
-    mathGates: [
-      { x: 320, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 1300, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-      { x: 5760, y: FLOOR_Y - CONFIG.MATH_GATE.H },
-    ],
+    mathGates: [],
     enemies: [
       { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],

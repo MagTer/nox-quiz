@@ -79,12 +79,14 @@ export const LEVEL_05 = {
       { x: 2900, y: FLOOR_Y - CONFIG.DOOR.H }, // floor-4 (2820..3420)
     ],
 
-    mathGates: [
-      { x: 170, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // floor-0 (0..520)
-      { x: 2150, y: FLOOR_Y - CONFIG.MATH_GATE.H }, // floor-3 (2080..2700)
-    ],
+    // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy +
+    // the end-of-level goal gate (user decision 2026-07-12; removed gates
+    // x:170/2150 are in git history).
+    mathGates: [],
 
-    enemies: [],
+    enemies: [
+      { x: 2150, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 }, // enemy-3 (fly); floor-3 (2080..2700) — reuses the validator/audit-proven footprint of the removed x:2150 mathGate, 750px before the door at x:2900
+    ],
 
     // Secret XP alcove (LVL-06) — a short off-path detour: an extra 70px hop UP
     // from the gap-1 bridging platform (x:560, y:250) instead of continuing
