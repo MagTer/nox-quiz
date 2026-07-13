@@ -187,7 +187,7 @@ export const CONFIG = {
   ENEMY: {
     W: 32, // px — enemy footprint width
     H: 32, // px — enemy footprint height
-    IDLE_SPEED: 8, // fps — enemy-hellhound idle-loop frame rate
+    IDLE_SPEED: 5, // fps — enemy-hellhound idle-loop frame rate. 6 frames at 5fps = a 1.2s breathing loop. Was 8fps, which read as a sprint rather than an idle (it sat between the player's own idle at 6fps and run at 10fps) — flagged at the Phase 33 human-verify checkpoint as "a bit fast to be realistic".
     FRAME_W: 64, // px — enemy-hellhound.png's native per-frame width; twice the W/H blocker footprint, used to center the wider visual panel over the unchanged blocker
     SPRITES: ["enemy-hellhound"], // real animated sprite art (ART-05; Phase 33) — the single shared animated blocker sprite, replacing the 3-variant static set
   },
