@@ -742,46 +742,43 @@ def _bottom_anchor(im, target_w, target_h):
     return canvas
 
 
-def _fill_tile_cell(im, target_w, target_h):
-    """Stretch `im` to EXACTLY fill a target_w x target_h terrain-atlas cell.
-
-    A terrain frame is a TILE, not a sprite: build.js stamps the cap frame at
-    pos(tx, runY) — the frame's top row IS the walkable surface line, and the
-    fill frame is tiled as solid underground mass. A tile cell must therefore
-    be filled edge-to-edge; any transparent padding inside the cell renders as
-    a visible gap and floats the ground surface below its own collider.
-
-    This deliberately skews non-16:32 crops, and that is correct here. WR-01
-    (31-REVIEW.md) previously replaced this stretch with an aspect-preserving
-    fit+bottom-pad copied from build_player() — a SPRITE rule (a character must
-    not be squashed) misapplied to a TILE. That change was never re-baked, so
-    the shipped atlases kept the stretch while the script drifted to fit+pad;
-    re-running the bake would have regressed all four biomes to thin
-    bottom-anchored strips with transparent tops. Do not "fix" this back.
-    """
-    return im.resize((target_w, target_h), Image.NEAREST)
-
-
 def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
-    """Shared crop -> [retint] -> stretch-to-fill-cell -> _remap_luminance
-    -> assert -> save body for a 2-frame (cap + fill) biome terrain atlas
-    (16x32 each, 32x32 total) -- mirrors build_door()'s single-hand-crop
-    shape, just twice (cap tile + fill/edge tile) per biome.
+    """Shared crop -> [retint] -> paste -> save body for a 2-frame (cap + fill)
+    biome terrain atlas (16x32 each, 32x32 total).
 
-    `cap_rect` MUST be a crop whose TOP edge is the walkable ground surface
-    (flat, and seamless when repeated every 16px) -- build.js stamps this
-    frame once per 16px column across a run, so any diagonal or peaked
-    silhouette in the crop becomes a repeating sawtooth along the whole floor.
-    Town and castle originally pointed at a ROOF TRIANGLE and an ARCH PEAK
-    respectively (both picked as islands()[0], the largest island -- which is
-    the ground block only for swamp); both produced exactly that sawtooth and
-    were re-pointed at real ground tiles. Verify any new cap_rect by tiling it
-    before committing.
+    NO SCALING and NO PALETTE REMAP -- both crops are taken at the source
+    tileset's NATIVE resolution and keep their NATIVE Gothicvania colors. Every
+    Gothicvania tileset here is on a 16px grid, so a 16x32 window is two real
+    source cells, 1:1 pixels, and it repeats on the game's own 16px tile step.
+    Two separate bugs made the old ground look like a grey placeholder, and both
+    are fixed by that:
 
-    `retint`, if given, is a (band_lo, band_hi, delta) tuple applied to BOTH
-    crops via hue_shift_band() BEFORE the palette remap (never after --
-    _remap_luminance discards hue entirely, so retint order only matters
-    pre-remap).
+    1. `_remap_luminance(sheet, ENVIRONMENT_PALETTE)` collapsed every tile onto
+       an achromatic grey ramp -- it discards hue by design. This is the SAME
+       bug already removed from the parallax bake in commit caebfae ("stop
+       crushing biome parallax layers to near-black"); it was simply never
+       removed from the terrain bake, so the ground stayed grey while the
+       backgrounds went back to full color. styleboard.py -- the normative spec
+       per ART-PARITY-STEERING.md -- never remaps its ground either: swamp()
+       tiles the raw tileset island straight onto the canvas.
+    2. The crops were then SQUASHED into the 16px cell (swamp's ground tile is
+       80px wide -- a 5x horizontal compression), which turned rock/moss texture
+       into grey static. Human sign-off called it exactly that: "a placeholder
+       grey area that the player walks on."
+
+    `cap_rect` MUST therefore be exactly 16x32 (asserted below), and its TOP row
+    MUST be the walkable ground surface: build.js stamps this frame once per
+    16px column across a run, so whatever silhouette the crop has repeats every
+    16px forever. Town and castle once pointed at a ROOF TRIANGLE and an ARCH
+    PEAK (both picked as islands()[0] -- the largest island, which is the ground
+    block only for swamp), and tiled into a sawtooth along every floor. Always
+    verify a new cap_rect by tiling it before committing -- no automated gate
+    looks at rendered pixels (ART-PARITY-STEERING.md); scripts/screenshot-phase33-terrain.mjs
+    is the in-engine check.
+
+    `retint`, if given, is a (band_lo, band_hi, delta) tuple applied to both
+    crops via hue_shift_band() -- the board's own no-pink pass, and now the ONLY
+    color transform in this bake.
     """
     target_w, target_h = 16, 32
     im = Image.open(sheet_path).convert("RGBA")
@@ -792,6 +789,13 @@ def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
                 f"{sheet_path}: {rect_name} {rect} does not fit within sheet size "
                 f"{im.size} -- crop rects need re-deriving (vendor pack may have changed)"
             )
+        if (rx1 - rx0, ry1 - ry0) != (target_w, target_h):
+            raise ValueError(
+                f"{sheet_path}: {rect_name} {rect} is {rx1 - rx0}x{ry1 - ry0}, must be "
+                f"exactly {target_w}x{target_h} -- terrain frames are native-resolution "
+                f"tile cells and are never scaled (scaling is what turned the old ground "
+                f"into grey static)"
+            )
     cap = im.crop(cap_rect)
     fill = im.crop(fill_rect)
 
@@ -800,16 +804,12 @@ def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
         cap = hue_shift_band(cap, band_lo, band_hi, delta)
         fill = hue_shift_band(fill, band_lo, band_hi, delta)
 
-    cap_r = _fill_tile_cell(cap, target_w, target_h)
-    fill_r = _fill_tile_cell(fill, target_w, target_h)
-
     sheet = Image.new("RGBA", (target_w * 2, target_h), (0, 0, 0, 0))
-    sheet.paste(cap_r, (0, 0), cap_r)
-    sheet.paste(fill_r, (target_w, 0), fill_r)
+    sheet.paste(cap, (0, 0), cap)
+    sheet.paste(fill, (target_w, 0), fill)
 
-    remapped = _remap_luminance(sheet, ENVIRONMENT_PALETTE)
-    assert remapped.size == (target_w * 2, target_h), f"atlas-{out_name} wrong size: {remapped.size}"
-    save(remapped.convert("RGBA"), os.path.join(ROOT, "assets", "tiles", f"atlas-{out_name}.png"))
+    assert sheet.size == (target_w * 2, target_h), f"atlas-{out_name} wrong size: {sheet.size}"
+    save(sheet, os.path.join(ROOT, "assets", "tiles", f"atlas-{out_name}.png"))
 
 
 def build_biome_atlas_swamp():
@@ -824,8 +824,12 @@ def build_biome_atlas_swamp():
     _bake_biome_atlas(
         "swamp",
         sheet_path,
-        cap_rect=(32, 0, 112, 64),  # 80x64 -- mossy rock cap tile, 2nd of 3 top-row blocks
-        fill_rect=(224, 64, 304, 112),  # 80x48 -- dark fill block, grass-tuft top edge
+        # Native 16x32 cells from the MIDDLE of the 80x59 mossy-rock ground island
+        # (32,5)-(112,64) -- an interior column, so it repeats seamlessly. The whole
+        # island used to be squashed 80px -> 16px, which is what shredded the moss
+        # texture into grey static.
+        cap_rect=(64, 5, 80, 37),  # mossy top surface
+        fill_rect=(64, 32, 80, 64),  # the same block's dirt body below it
     )
 
 
@@ -849,15 +853,12 @@ def build_biome_atlas_town():
     _bake_biome_atlas(
         "town",
         sheet_path,
-        # 32x39 -- rubble/cobble ground block: FLAT top edge (alpha top-edge range 0),
-        # solid dark mass below. Replaces the original (16,4,80,80) crop, which was the
-        # sheet's largest island but is a ROOF TRIANGLE (top-edge range 70px) -- stamped
+        # Native 16x32 cells from the cobbled ground block at (320,137)-(352,176): a FLAT
+        # top edge that repeats cleanly. Replaces the original (16,4,80,80) crop, which was
+        # the sheet's largest island but is a ROOF TRIANGLE (top-edge range 70px) -- stamped
         # every 16px it tiled into a repeating sawtooth across every town floor.
-        cap_rect=(320, 137, 352, 176),
-        # 32x16 -- the cap block's OWN dark base strip, so fill and cap are the same
-        # material (styleboard.py's swamp() derives its fill the same way). Replaces the
-        # original (320,104,384,176) "jagged rooftop-texture" block.
-        fill_rect=(320, 160, 352, 176),
+        cap_rect=(328, 137, 344, 169),  # cobble surface
+        fill_rect=(328, 144, 344, 176),  # the same block's dark body below it
         retint=(215, 255, -60),
     )
 
@@ -889,8 +890,13 @@ def build_biome_atlas_cemetery():
     _bake_biome_atlas(
         "cemetery",
         sheet_path,
-        cap_rect=(64, 16, 160, 144),  # 96x128 -- grass tuft + spikes over rock/dirt mound
-        fill_rect=(16, 16, 48, 144),  # 32x128 -- narrow grass-over-dark-fill strip
+        # Native 16x32 cells from the 96x128 grass-over-mound island (64,16)-(160,144).
+        # The cap starts at the island's real grass line (y=55), NOT its bbox top -- the
+        # bbox top is 39px of empty air above the tallest blade. The whole island used to
+        # be squashed 96px -> 16px, which is what reduced the grass+skull detail to grey
+        # static ("a placeholder grey area that the player walks on").
+        cap_rect=(80, 55, 96, 87),  # grass blades over skull/dirt surface
+        fill_rect=(80, 96, 96, 128),  # the same mound's dirt body below it
     )
 
 
@@ -916,15 +922,15 @@ def build_biome_atlas_castle():
     _bake_biome_atlas(
         "castle",
         sheet_path,
-        # 32x32 -- gold surface lip (source rows 154-165) over the stone body beneath it:
-        # a flat, fully-opaque top edge that repeats cleanly. Replaces the original
-        # (320,32,352,114) crop, an ARCH PEAK whose notched silhouette tiled into the
-        # same repeating sawtooth as town's roof.
-        cap_rect=(656, 154, 688, 186),
-        # 32x32 -- plain dark stone body from the same column, BELOW its gold lip. The
-        # original (272,160,304,224) fill was another gold-CAPPED brick, which repeated
-        # bright gold lips down through the underground mass.
-        fill_rect=(656, 190, 688, 222),
+        # Native 16x32 cells from the gold-lipped stone column at source x 656-688. The cap
+        # opens on its gold surface lip (source rows 154-165) -- a flat, fully-opaque top
+        # edge that repeats cleanly. Replaces the original (320,32,352,114) crop, an ARCH
+        # PEAK whose notched silhouette tiled into the same repeating sawtooth as town's roof.
+        cap_rect=(664, 154, 680, 186),  # gold surface lip over stone
+        # Plain stone body from the same column, BELOW its lip. The original
+        # (272,160,304,224) fill was another gold-CAPPED brick, which repeated bright gold
+        # lips down through the underground mass.
+        fill_rect=(664, 190, 680, 222),
     )
 
 
