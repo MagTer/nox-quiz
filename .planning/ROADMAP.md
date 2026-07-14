@@ -291,7 +291,28 @@ Plans:
 
 - [x] 34-06-PLAN.md — Motion rules + coin HARD rule into LEVEL-DESIGN.md, documented 8-level soft-rules review, full consolidated suite green — LVL-03, LVL-01, LVL-02
 
-### Phase 34.5: Level Redesign — Rebuild and Double Every Level
+### Phase 34.5: Key & Lock Mechanic — the first non-math gate
+
+**Goal**: A key/lock mechanic exists, is provably softlock-free, and is validator- and audit-covered — BEFORE any level is authored to use it
+**Depends on**: Phase 34 (the bidirectional harness — a key on a doubling-back route cannot be driven or proven without it)
+**Requirements**: KEY-01, KEY-02
+**Added**: 2026-07-15, at the user's explicit request.
+
+**⚠ THIS REVERSES A LOCKED v6.0 DECISION.** SEED-001 (2026-07-07) locked v6.0 to *"visuals + cosmetic world motion only — **no new play mechanics**"*. The user explicitly chose to override it ("Keep keys — override the lock"). Recorded as a knowing reversal, not an oversight.
+
+**It is also the game's FIRST non-math gate.** The project's thesis is that *multiplication is the gate to progress*; a key-lock blocks her for a reason that is not math. That is a real change to the game's identity and was accepted deliberately.
+
+**Why it lands BEFORE the rebuild:** a key is code (a mechanics module, descriptor fields, validator + audit coverage), not geometry. If it landed after Phase 34.6, all 8 rebuilt levels would need a second geometry pass to retrofit key/lock placements — the same "pay for it twice" trap the Phase-35 ordering exists to avoid.
+
+**Success Criteria** (what must be TRUE):
+
+  1. `geometry.keys` / `geometry.locks` descriptor fields + a `src/mechanics/key.js` seam, following the existing mechanic conventions (pure-data levels; the ONE builder owns entity creation; no engine globals at module top level).
+  2. **HARD — no softlock is possible.** The validator must PROVE, per level, that every lock's key is reachable from spawn *and* reachable BEFORE the lock is required. A key she can miss on a route she cannot re-traverse is a dead end — and a dead end in a no-punishment game is the worst failure this project can ship. This gets a HARD validator check, exactly like coin-reachability got one.
+  3. In-engine audit coverage: a real driven player picks up the key and opens the lock (`audit-*.mjs`). The static model is not sufficient — this milestone has repeatedly shipped bugs past a green static model.
+  4. No timers, no punishment, no game-over. Missing the key means *go back and get it*, never death or a reset.
+  5. **OPEN DESIGN QUESTION for the phase's discuss step:** does the key-lock ADD a 4th barrier to the level (1 math door + 1 enemy + end gate + 1 key lock), or REPLACE the math door? Math density is currently LOCKED at 3 challenges per level. This must be decided explicitly — it changes the game's pacing either way.
+
+### Phase 34.6: Level Redesign — Rebuild and Double Every Level
 
 **Goal**: Every level's platform layout is REBUILT from scratch and roughly twice as long — the last geometry change of the milestone, landing before any art dresses it
 **Depends on**: Phase 34 (quality fixes, the headroom rule, and the bidirectional harness must all settle first — the harness fix is what makes a long, non-linear level's completion provable at all)
@@ -313,7 +334,21 @@ The standing convention — "extending kid-validated levels: append new sections
   4. Each level's explicit `bounds.right` hand-bumped to match its new extent (the documented bounds-convention trap — level-02+ carry bounds used AS-IS).
   5. The gentle difficulty ramp across levels 1→8 is preserved (level-01 must still be a soft landing for a 12-year-old; the arc calm→harsh is a design property, not an accident of the old layouts).
   6. Structural validator + coin-reachability + the bidirectional in-engine drive all green with zero HARD-FAILs across all 8 rebuilt levels — every level provably completable from spawn by a real driven player, and every coin provably collectable.
-  7. Level-07 and level-08 remain mechanically DIFFERENT end climbs (LVL-02 must not be undone by the rebuild).
+  7. Level-07 and level-08 remain mechanically DIFFERENT (LVL-02 must not be undone by the rebuild). NOTE: LVL-02 requires only that they are *not near-duplicates of each other* — it never mandated altitude. The end-climb was inherited design, not a requirement.
+
+**AGREED LEVEL-SHAPE BRIEF (user, 2026-07-15) — what the rebuilt levels must actually feel like:**
+
+  8. **ALTITUDE IS A CORE FEATURE, NOT AN ENDING.** Verticality runs through the whole game, not bolted onto the last two levels. `LEVEL-REVIEW.md` found the current arrangement is the defect: six of eight levels have ZERO overlapping tiers, and 07/08 carry the game's *easiest* gaps — the ramp is a cliff at the end, not a curve.
+
+  9. **THE BIOME-PAIR RHYTHM (the organising idea).** Biomes are already pairs — 1–2 swamp, 3–4 town, 5–6 cemetery, 7–8 castle. The **odd** level is the first visit to a biome (calmer, introduces it); the **even** level is the second visit and goes **intense and vertical**. So levels **2, 4, 6, 8** are the vertical ones. This gives every biome its own arc and makes the difficulty ramp structural rather than aspirational.
+
+  10. **DESCENTS, not only ascents.** Levels currently only ever go up. Author deliberate downward sections — drops onto ledges below, falling routes. (Cheap now: the Phase-34 bidirectional driver handles non-monotonic routes.)
+
+  11. **OPTIONAL HIGH ROUTES (risk/reward).** A harder upper path carrying more coins alongside the safe ground route. Rewards skill without punishing failure — consistent with the no-punishment mandate, and a natural companion to the existing secret alcove.
+
+  12. **BACKTRACKING — VISIBLE DOUBLING-BACK ONLY.** Routes may fold back on themselves (now provable, since the harness drives leftward), but she must ALWAYS be able to SEE where she is going next. **No hidden routes, no "where am I supposed to go?"** — a 12-year-old with ADHD who loses the thread stops playing, and that is the one failure this project cannot afford. Level-08's switchback is the reference: it doubles back in full view, and she read it fine.
+
+  13. **Keys/locks placed per Phase 34.5's mechanic** — and the softlock proof (34.5 SC2) must be green for every rebuilt level.
 
 ### Phase 35: Biome Re-dress & Props
 
