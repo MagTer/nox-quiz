@@ -30,6 +30,17 @@ atlas and hard-fails on the three failure modes that have ALREADY shipped undete
         aspect-preserving fit+bottom-pad (WR-01, 31-REVIEW.md) produced exactly this, and
         it sat undetected in the script for a full phase because nobody re-baked.
 
+  SLAB  (frame 2, added 2026-07-14) The PLATFORM frame's bottom half is not transparent.
+        A raised platform's collider is `p.h` (16px), but its visual used to be a 48px
+        slab (a 32px cap plus a 32px fill starting 16px down) -- 32px of ledge hanging
+        below the surface the player stands on, which ate the headroom under the tier
+        above (level-08's 75px rise measured -5px of VISUAL clearance: the player's head
+        rendered inside the ledge above her). The fix is frame 2: the cap's top 16px cell
+        over a FULLY TRANSPARENT bottom half, drawn at the cap's 32px frame height so it
+        reads as a 16px ledge that matches the collider exactly. If that bottom half ever
+        fills in, the 48px slab is silently back and no other gate would notice -- so it
+        is asserted here, in pixels, like everything else in this file.
+
 It deliberately does NOT re-implement the bake: it reads the committed PNGs, which is what
 the game actually loads. A bake that is "correct in theory" but produces a bad PNG fails.
 
@@ -44,7 +55,13 @@ from PIL import Image
 
 BIOMES = ("swamp", "town", "cemetery", "castle")
 
-CELL_W, CELL_H = 16, 32  # one native terrain tile cell; atlas = 2 frames (cap|fill)
+# One native terrain tile cell; the atlas is 3 frames: cap | fill | platform.
+# Frame 2 (platform) was added 2026-07-14 — see SLAB above.
+CELL_W, CELL_H = 16, 32
+FRAMES = 3
+CAP_X = 0 * CELL_W  # frame 0 — walkable ground surface (floors AND platforms draw it)
+PLATFORM_X = 2 * CELL_W  # frame 2 — the 16px WYSIWYG ledge (platforms only)
+PLATFORM_SOLID_H = CELL_H // 2  # 16px — the ledge; rows below this MUST be transparent
 
 # A cap tile's top edge may undulate organically (moss, grass blades, rubble). It may not
 # RAMP. Swamp's real moss line varies 3px; the roof triangle varied 70px, the arch peak 26.
@@ -73,75 +90,141 @@ MAX_TOP_EDGE_RANGE = 8
 MIN_MAX_CHROMA = 32  # sits between the remapped ceiling (11) and the native floor (76)
 
 
+def _frame_profile(px, x0, h=CELL_H):
+    """For the CELL_W-wide frame starting at x0: (top_edge, top_row_opaque_count).
+
+    top_edge is the y of the first opaque pixel in each column (columns that are fully
+    transparent contribute nothing) -- the frame's drawn top silhouette.
+    """
+    top_edge = []
+    top_row_opaque = 0
+    for x in range(x0, x0 + CELL_W):
+        if px[x, 0][3] > 0:
+            top_row_opaque += 1
+        for y in range(h):
+            if px[x, y][3] > 0:
+                top_edge.append(y)
+                break
+    return top_edge, top_row_opaque
+
+
+def _check_saw(out, biome, code, label, top_edge, tiles_across):
+    """SAW: a frame stamped once per 16px column must not have a RAMPED top edge."""
+    if not top_edge:
+        out.append((biome, code, False, f"{label} frame is fully transparent"))
+        return
+    rng = max(top_edge) - min(top_edge)
+    if rng > MAX_TOP_EDGE_RANGE:
+        out.append(
+            (
+                biome,
+                code,
+                False,
+                f"{label} top-edge range {rng}px > {MAX_TOP_EDGE_RANGE}px -- this silhouette "
+                f"repeats every 16px as a SAWTOOTH across every {tiles_across}. cap_rect is almost "
+                f"certainly pointing at non-ground art (a roof, an arch, a slope). "
+                f"profile={top_edge}",
+            )
+        )
+    else:
+        out.append(
+            (biome, code, True, f"{label} top-edge range {rng}px (<= {MAX_TOP_EDGE_RANGE}px, tiles cleanly)")
+        )
+
+
+def _check_gap(out, biome, code, label, top_row_opaque, where):
+    """GAP: a frame drawn at pos(tx, runY) -- where runY IS the collider's top edge --
+    must have SOME opaque pixel in row 0, or the art renders below its own collider.
+    (Partial transparency is legal: cemetery's grass blades are a silhouette, not a bar.)
+    """
+    if top_row_opaque == 0:
+        out.append(
+            (
+                biome,
+                code,
+                False,
+                f"{label} frame row 0 is fully transparent -- the ground surface would render BELOW "
+                f"its own collider line (build.js draws it at pos(tx, runY) for {where}, and runY IS "
+                f"the collider top). This is the aspect-preserving fit+bottom-pad failure (WR-01); "
+                f"terrain cells are native 16x32 and are never padded.",
+            )
+        )
+    else:
+        out.append(
+            (biome, code, True, f"{label} frame row 0 opaque (ground surface sits on the collider line)")
+        )
+
+
 def scan_atlas(path, biome, out):
     if not os.path.exists(path):
         out.append((biome, "missing", False, f"{path} does not exist"))
         return
 
     im = Image.open(path).convert("RGBA")
-    if im.size != (CELL_W * 2, CELL_H):
+    if im.size != (CELL_W * FRAMES, CELL_H):
         out.append(
             (
                 biome,
                 "geometry",
                 False,
-                f"atlas is {im.width}x{im.height}, expected {CELL_W * 2}x{CELL_H} "
-                f"(2 native frames of {CELL_W}x{CELL_H}; terrain cells are never scaled)",
+                f"atlas is {im.width}x{im.height}, expected {CELL_W * FRAMES}x{CELL_H} "
+                f"({FRAMES} native frames of {CELL_W}x{CELL_H} -- cap | fill | platform; terrain "
+                f"cells are never scaled). If this atlas is {CELL_W * 2}x{CELL_H} it predates the "
+                f"platform frame: re-run scripts/build-art-assets.py. main.js loads these with "
+                f"sliceX:{FRAMES}, so a stale 2-frame sheet would slice into garbage.",
             )
         )
         return
 
     px = im.load()
 
-    # --- SAW + GAP: cap frame is frame 0 (the left half) ---
-    top_edge = []
-    top_row_opaque = 0
-    for x in range(CELL_W):
-        if px[x, 0][3] > 0:
-            top_row_opaque += 1
-        for y in range(CELL_H):
+    # --- SAW + GAP: cap frame is frame 0 (floors AND platforms draw its surface) ---
+    cap_top_edge, cap_top_row_opaque = _frame_profile(px, CAP_X)
+    _check_saw(out, biome, "saw", "cap", cap_top_edge, "floor")
+    _check_gap(out, biome, "gap", "cap", cap_top_row_opaque, "every floor run")
+
+    # --- PLATFORM (frame 2): the 16px WYSIWYG ledge ---
+    # Same two surface checks as the cap (it IS the cap's top cell, so it is stamped once
+    # per 16px column across a platform and must neither ramp nor float)...
+    plat_top_edge, plat_top_row_opaque = _frame_profile(px, PLATFORM_X)
+    _check_saw(out, biome, "plat-saw", "platform", plat_top_edge, "platform")
+    _check_gap(out, biome, "plat-gap", "platform", plat_top_row_opaque, "every raised platform")
+
+    # ...plus the one check that is unique to it: the bottom half MUST be fully
+    # transparent. That emptiness is the entire point of the frame -- it is what makes a
+    # raised platform render as a 16px ledge matching its 16px collider instead of the old
+    # 48px slab that ate the headroom between tiers. A bake that fills it in would look
+    # "fine" to every other gate.
+    slab_px = 0
+    for x in range(PLATFORM_X, PLATFORM_X + CELL_W):
+        for y in range(PLATFORM_SOLID_H, CELL_H):
             if px[x, y][3] > 0:
-                top_edge.append(y)
-                break
+                slab_px += 1
 
-    if not top_edge:
-        out.append((biome, "saw", False, "cap frame is fully transparent"))
-    else:
-        rng = max(top_edge) - min(top_edge)
-        if rng > MAX_TOP_EDGE_RANGE:
-            out.append(
-                (
-                    biome,
-                    "saw",
-                    False,
-                    f"cap top-edge range {rng}px > {MAX_TOP_EDGE_RANGE}px -- this silhouette "
-                    f"repeats every 16px as a SAWTOOTH across every floor. cap_rect is almost "
-                    f"certainly pointing at non-ground art (a roof, an arch, a slope). "
-                    f"profile={top_edge}",
-                )
-            )
-        else:
-            out.append(
-                (biome, "saw", True, f"cap top-edge range {rng}px (<= {MAX_TOP_EDGE_RANGE}px, tiles cleanly)")
-            )
-
-    # A cap whose top row is transparent across its FULL width is a bottom-anchored pad:
-    # the ground would render below its own collider. (Partial transparency is legal --
-    # cemetery's grass blades are a silhouette, not a solid bar.)
-    if top_row_opaque == 0:
+    if slab_px > 0:
         out.append(
             (
                 biome,
-                "gap",
+                "slab",
                 False,
-                "cap frame row 0 is fully transparent -- the ground surface would render BELOW "
-                "its own collider line (build.js draws the cap at pos(tx, runY), and runY IS the "
-                "collider top). This is the aspect-preserving fit+bottom-pad failure (WR-01); "
-                "terrain cells are native 16x32 and are never padded.",
+                f"platform frame has {slab_px} opaque pixel(s) below row {PLATFORM_SOLID_H} -- its "
+                f"bottom half MUST be fully transparent. It is drawn at the cap's full {CELL_H}px "
+                f"frame height, so any opaque pixel down there hangs BELOW the platform's {PLATFORM_SOLID_H}px "
+                f"collider: the 48px slab is back and the headroom between tiers is eaten again. "
+                f"_bake_biome_atlas() builds this frame as the cap's TOP {PLATFORM_SOLID_H}px cell pasted "
+                f"into an otherwise EMPTY {CELL_W}x{CELL_H} frame -- never a scaled/squashed whole cap.",
             )
         )
     else:
-        out.append((biome, "gap", True, "cap frame row 0 opaque (ground surface sits on the collider line)"))
+        out.append(
+            (
+                biome,
+                "slab",
+                True,
+                f"platform frame rows {PLATFORM_SOLID_H}-{CELL_H - 1} fully transparent "
+                f"(renders as a {PLATFORM_SOLID_H}px ledge == its {PLATFORM_SOLID_H}px collider)",
+            )
+        )
 
     # --- GREY: has the luminance remap come back? ---
     max_chroma = 0

@@ -15,7 +15,9 @@
 #
 # Hard-fails on: SAW (jagged cap silhouette that tiles into a sawtooth), GREY (achromatic
 # atlas => the luminance remap is back), GAP (transparent cap top row => ground renders
-# below its own collider), and geometry drift (frames that aren't native 16x32).
+# below its own collider), SLAB (the platform frame's bottom half is not transparent =>
+# raised platforms render as a 48px slab over a 16px collider again, eating the headroom
+# between tiers), and geometry drift (an atlas that isn't 3 native 16x32 frames).
 #
 # The actual pixel math lives in scripts/lib/terrain_scan.py (Pillow); this wrapper is the
 # uniform invocation surface every other check-*.sh gate uses.

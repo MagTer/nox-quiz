@@ -110,7 +110,13 @@ export const CONFIG = {
   TERRAIN: {
     FILL_CHUNK_COLS: 40, // count — max columns per {tiled:true} fill chunk; the spike-proven ceiling from SPIKE-FINDINGS.md Spike B — an oversized chunk silently renders nothing
     FLOOR_FILL_DEPTH_PX: 64, // px — fill depth for floor runs; every shipped level's floor sits at FLOOR_Y 320 with bounds.bottom 360 (or the CONFIG.LEVEL_BOTTOM 360 fallback), a real 40px gap to the camera's lower clamp edge — 64px gives comfortable margin without a per-level bounds lookup
-    PLATFORM_FILL_DEPTH_PX: 32, // px — shallow 2-tile fill for floating platforms, per 32-CONTEXT.md's "not a deep mass" decision
+    // NOTE — PLATFORM_FILL_DEPTH_PX (a 32px "shallow fill" under raised platforms) was
+    // REMOVED on 2026-07-14. Platforms no longer draw any fill: they draw the biome
+    // atlas's PLATFORM frame (frame 2), a 16px ledge that exactly matches the 16px
+    // `p.h` collider (WYSIWYG). The old cap+fill emission drew a 48px slab over that
+    // 16px collider, so the ledge hung 32px below the surface the player stands on and
+    // ate the headroom under the tier above. Floors are unaffected and still fill to
+    // FLOOR_FILL_DEPTH_PX. Do not reintroduce a platform fill depth.
     OBJECT_BUDGET: 650, // count — hard-fail ceiling for the browser-boot per-level terrain object-count assertion; the spike measured ~410 objects safe at a synthetic 16-row stress depth, real levels land ~400-420 objects at this phase's actual ~2-4-row fill depth per 32-RESEARCH.md's level-04 Metadata calculation — headroom set above that real max
     // fps — hard-fail floor for the browser-boot debug.fps() sample. Guards the
     // perf-CLIFF class (one giant tiled quad silently rendering at 15fps), not

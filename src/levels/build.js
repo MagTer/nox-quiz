@@ -31,7 +31,9 @@ const T = CONFIG.TILE_SIZE; // 16px — floor visual-tile grid step (pure config
 const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run (pure config read, safe at top level)
 const FILL_CHUNK_COLS = CONFIG.TERRAIN.FILL_CHUNK_COLS; // <=40 cols — spike-proven {tiled:true} chunk ceiling (pure config read, safe at top level)
 const FLOOR_FILL_DEPTH_PX = CONFIG.TERRAIN.FLOOR_FILL_DEPTH_PX; // px — floor-run underground fill depth (pure config read, safe at top level)
-const PLATFORM_FILL_DEPTH_PX = CONFIG.TERRAIN.PLATFORM_FILL_DEPTH_PX; // px — shallow platform fill depth (pure config read, safe at top level)
+// NOTE: there is no platform fill depth any more. Platforms draw the atlas's PLATFORM
+// frame (a 16px ledge, see buildLevel below) and no fill at all, so the old
+// CONFIG.TERRAIN.PLATFORM_FILL_DEPTH_PX tunable was removed rather than left dangling.
 
 // Dark-grunge palette per CLAUDE.md — matches src/scenes/select.js's own text color exactly
 // (21-RESEARCH.md Finding 1 convention), now read from CONFIG.PALETTE.TEXT (VIS-01; Phase 26
@@ -78,11 +80,22 @@ export function buildLevel(levelData) {
   // groundSprite ternary this replaces.
   const atlasSprite = `atlas-${levelData.biome}`;
 
-  // Cap/fill frame order per docs/LEVEL-DESIGN.md §9: the baked atlas is a 32x32
-  // sheet of two 16x32 frames — frame 0 is the decorative cap (top surface), frame 1
-  // is the load-bearing fill (underground mass).
+  // Frame order per docs/LEVEL-DESIGN.md §9: the baked atlas is a 48x32 sheet of
+  // three 16x32 frames — frame 0 is the decorative cap (top surface), frame 1 is the
+  // load-bearing fill (underground mass), frame 2 is the PLATFORM ledge.
+  //
+  // Frame 2 is the cap's own top 16px cell over a fully-transparent bottom half
+  // (scripts/build-art-assets.py::_bake_biome_atlas). Drawn at the same CAP_FRAME_H
+  // as the cap, it renders a 16px-thick ledge that EXACTLY matches a platform's 16px
+  // `p.h` collider. It replaces the old cap+fill emission for platforms, which drew a
+  // 48px slab (32px cap + a 32px fill starting 16px down) over that same 16px
+  // collider — 32px of ledge hanging below the surface the player actually stands on,
+  // which ate the headroom under the tier above (level-08's 75px rise measured -5px of
+  // VISUAL clearance: the player's head rendered inside the ledge above her). FLOORS
+  // are unaffected — they still want a thick, solid, deep mass and keep cap + fill.
   const CAP_FRAME = 0;
   const FILL_FRAME = 1;
+  const PLATFORM_FRAME = 2;
   // WR-02 fix (32-REVIEW.md): each baked atlas frame is 16 wide x 32 tall (the "32x32
   // sheet of two 16x32 frames" from the comment above, confirmed against the real PNGs
   // — sliceX:2/sliceY:1 in main.js's load call). The last-tile width clamp below must
@@ -157,6 +170,28 @@ export function buildLevel(levelData) {
     }
   }
 
+  // Raised-platform ledge renderer (WYSIWYG platform fix). Emits ONE row of
+  // PLATFORM_FRAME tiles across the run and NO fill at all — the frame's transparent
+  // bottom half is what makes the drawn ledge 16px thick instead of the old 48px
+  // slab, so the visible platform matches its `rect(p.w, p.h)` collider exactly.
+  // Same last-tile width clamp as the cap loop in emitTerrainRun (a run whose width
+  // isn't a multiple of T must not overshoot its own right edge, WR-02), and the same
+  // explicit CAP_FRAME_H natural height (Kaplay treats a lone `width` as a UNIFORM
+  // x+y scale, which would vertically squash the ledge art). Visual-only: no area(),
+  // no body() — the caller's merged collider is the sole physics body, unchanged.
+  // Biome-agnostic: unlike emitTerrainRun there is no Cemetery special case, because
+  // there is no fill to composite under a partly-transparent cap.
+  function emitPlatformLedge(runX, runY, runW) {
+    for (let tx = runX; tx < runX + runW; tx += T) {
+      const tileW = Math.min(T, runX + runW - tx);
+      add([
+        sprite(atlasSprite, { frame: PLATFORM_FRAME, width: tileW, height: CAP_FRAME_H }),
+        pos(tx, runY),
+        "ground-cap",
+      ]);
+    }
+  }
+
   // --- Solid floor runs: ONE merged collider per run + separate visual tiles ---
   for (const run of g.floors) {
     // Merged wide static collider for the WHOLE run (fewer seams to stick on —
@@ -180,10 +215,10 @@ export function buildLevel(levelData) {
     emitTerrainRun(run.x, FLOOR_Y, run.w, FLOOR_FILL_DEPTH_PX);
   }
 
-  // --- Raised platforms: same merged-collider idiom + visual tiles on top ---
+  // --- Raised platforms: same merged-collider idiom + a WYSIWYG 16px ledge on top ---
   for (const p of g.platforms) {
-    // opacity(0): same reasoning as the floor-run collider above — p.h (e.g. 24px) can
-    // exceed the 16px visual tile height, exposing the collider's default gray fill.
+    // opacity(0): same reasoning as the floor-run collider above — without it the
+    // collider renders with Kaplay's default flat-gray rect fill.
     add([
       rect(p.w, p.h),
       pos(p.x, p.y),
@@ -192,7 +227,11 @@ export function buildLevel(levelData) {
       opacity(HIDDEN),
       "ground",
     ]);
-    emitTerrainRun(p.x, p.y, p.w, PLATFORM_FILL_DEPTH_PX);
+    // Ledge, NOT a terrain run: the drawn tile row is exactly as thick as this
+    // collider (see PLATFORM_FRAME above). Do NOT swap this back to emitTerrainRun —
+    // that is what drew a 48px slab over a 16px collider and stole the headroom
+    // between tiers.
+    emitPlatformLedge(p.x, p.y, p.w);
   }
 
   // --- Coins (REQUIRED — buildLevel owns creation; tag + area() so the scene wires) ---

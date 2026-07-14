@@ -106,7 +106,11 @@ loadSprite("logo-badge", "../assets/logo-badge.png");
 for (const a of ASSETS_MANIFEST) {
   const webPath = `../${a.path}`;
   if (a.kind === "biome-atlas") {
-    loadSprite(a.key, webPath, { sliceX: 2, sliceY: 1 });
+    // 3 frames of 16x32 (48x32 sheet): 0 = cap (ground surface), 1 = fill
+    // (underground mass), 2 = platform (the cap's top 16px cell over a transparent
+    // bottom half — the WYSIWYG 16px ledge that matches a platform's 16px collider).
+    // Bumped 2 -> 3 alongside the platform frame added to _bake_biome_atlas().
+    loadSprite(a.key, webPath, { sliceX: 3, sliceY: 1 });
   } else if (a.kind === "biome-bg") {
     loadSprite(a.key, webPath);
   }

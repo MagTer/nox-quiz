@@ -743,8 +743,8 @@ def _bottom_anchor(im, target_w, target_h):
 
 
 def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
-    """Shared crop -> [retint] -> paste -> save body for a 2-frame (cap + fill)
-    biome terrain atlas (16x32 each, 32x32 total).
+    """Shared crop -> [retint] -> paste -> save body for a 3-frame (cap | fill |
+    platform) biome terrain atlas (16x32 each, 48x32 total).
 
     NO SCALING and NO PALETTE REMAP -- both crops are taken at the source
     tileset's NATIVE resolution and keep their NATIVE Gothicvania colors. Every
@@ -779,8 +779,32 @@ def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
     `retint`, if given, is a (band_lo, band_hi, delta) tuple applied to both
     crops via hue_shift_band() -- the board's own no-pink pass, and now the ONLY
     color transform in this bake.
+
+    FRAME 2 -- THE PLATFORM FRAME (added 2026-07-14, WYSIWYG platform fix)
+    ---------------------------------------------------------------------
+    A raised platform's COLLIDER is `p.h` (16px on the current levels) but its
+    VISUAL used to be a 48px slab: build.js drew the 32px-tall cap at pos(x, y)
+    AND a 32px fill starting at y+16 (CONFIG.TERRAIN.PLATFORM_FILL_DEPTH_PX), so
+    the drawn ledge overhung its own collider by 32px and ate the headroom under
+    the tier above (level-08's 75px rise measured -5px of VISUAL clearance --
+    the player's head was drawn inside the ledge above her).
+
+    The fix is a third frame that is the ground SURFACE CELL ONLY: the cap crop's
+    TOP 16x16 cell pasted into the top half of a 16x32 frame whose bottom half is
+    fully TRANSPARENT. Drawn at the same 32px frame height as the cap, it renders
+    as a 16px-thick ledge with nothing below it -- an exact match for the 16px
+    collider. It is derived FROM `cap_rect` (each cap crop is a native 16x32
+    window = two stacked 16px source cells; the top one IS the walkable surface),
+    NOT from a fourth hardcoded rect -- one source of truth, so re-pointing a cap
+    can never desync the platform frame from it.
+
+    ZERO SCALING, as everywhere else in this bake: the platform cell is a 1:1
+    copy of pixels that already ship in frame 0. Squashing art into a cell is
+    exactly what produced the grey static this docstring's rule #2 exists to
+    prevent -- never "fit" the cap into 16px height to make this frame.
     """
     target_w, target_h = 16, 32
+    cell_h = target_h // 2  # 16px -- one native source cell; the cap crop is two of them
     im = Image.open(sheet_path).convert("RGBA")
     for rect_name, rect in (("cap_rect", cap_rect), ("fill_rect", fill_rect)):
         rx0, ry0, rx1, ry1 = rect
@@ -804,11 +828,19 @@ def _bake_biome_atlas(out_name, sheet_path, cap_rect, fill_rect, retint=None):
         cap = hue_shift_band(cap, band_lo, band_hi, delta)
         fill = hue_shift_band(fill, band_lo, band_hi, delta)
 
-    sheet = Image.new("RGBA", (target_w * 2, target_h), (0, 0, 0, 0))
+    # Frame 2 -- platform: the cap's own TOP cell (already retinted, since it is
+    # sliced from `cap` after the hue pass), top-anchored in an otherwise empty
+    # 16x32 frame. The empty bottom half is load-bearing: it is what makes the
+    # ledge read as 16px instead of the old 48px slab.
+    platform = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+    platform.paste(cap.crop((0, 0, target_w, cell_h)), (0, 0))
+
+    sheet = Image.new("RGBA", (target_w * 3, target_h), (0, 0, 0, 0))
     sheet.paste(cap, (0, 0), cap)
     sheet.paste(fill, (target_w, 0), fill)
+    sheet.paste(platform, (target_w * 2, 0), platform)
 
-    assert sheet.size == (target_w * 2, target_h), f"atlas-{out_name} wrong size: {sheet.size}"
+    assert sheet.size == (target_w * 3, target_h), f"atlas-{out_name} wrong size: {sheet.size}"
     save(sheet, os.path.join(ROOT, "assets", "tiles", f"atlas-{out_name}.png"))
 
 
