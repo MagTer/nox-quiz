@@ -320,7 +320,7 @@ export function bfsReachableSet(graph, startNodeId) {
  * one). Returns Map<nodeId, maxMarginRatioAlongFirstFoundPath>; startNodeId maps
  * to 0 (no hop needed to reach itself).
  */
-function bfsWithPathMargin(graph, startNodeId) {
+export function bfsWithPathMargin(graph, startNodeId) {
   const visited = new Map();
   if (!graph.has(startNodeId)) return visited;
   visited.set(startNodeId, 0);
@@ -403,7 +403,7 @@ const BARRIER_WIDTH = {
  * tried strict form: only candidate reaches whose implied take-off position
  * `point.x - reach` falls within `[n.xStart, n.xEnd]` count.
  */
-function bestMarginToPoint(point, nodes, spawnPaths, envelope) {
+export function bestMarginToPoint(point, nodes, spawnPaths, envelope) {
   let best = null;
 
   for (const n of nodes) {
