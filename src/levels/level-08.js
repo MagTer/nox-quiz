@@ -34,8 +34,11 @@ export const LEVEL_08 = {
   allowedTables: [6, 7, 8, 9],
 
   // COMPLETE 4-field bounds — all 4 present together in ONE literal (never
-  // partial, per Pitfall 2). top:-360 gives ~1 extra screen of climb headroom
-  // above the tallest tier (the summit balcony at y:-90).
+  // partial, per Pitfall 2). top:-360 still clears the tallest tier: the summit
+  // balcony rose from y:-90 to y:-125 when the climb's rises were widened for
+  // headroom, and the camera wants a top edge of about -125-32-180 = -337 with
+  // the player standing on it — inside -360, so `top` did NOT need a bump.
+  // The highest entity of any kind is the summit coin at y:-181.
   //
   // THE BOUNDS-CONVENTION TRAP (docs/LEVEL-DESIGN.md §7): level-01 derives its
   // camera right edge from geometry; level-02+ (this file) carry `bounds` and
@@ -82,12 +85,30 @@ export const LEVEL_08 = {
       // graph matches against the overlap window). For the two reversals that
       // means running PAST the target tier's far edge, turning, and jumping back
       // — which is the whole point: the turn is a real, deliberate move.
-      { x: 2410, y: 250, w: 300, h: 24 }, // T1  rise 70 from floor-3 (ends 2710)
-      { x: 2640, y: 180, w: 280, h: 24 }, // T2  rise 70, overlaps T1 by 70 (ends 2920)
-      { x: 2850, y: 115, w: 300, h: 24 }, // T3  rise 65, overlaps T2 by 70 (ends 3150) — the turn-around runway: 190px of T3 sticks out right of T4
-      { x: 2610, y: 45, w: 350, h: 24 }, // T4  rise 70, overlaps T3 by 110 (2850..2960) — REVERSAL 1: hop up-LEFT off T3's runway
-      { x: 2890, y: -25, w: 340, h: 24 }, // T5  rise 70, overlaps T4 by 70 (2890..2960) — REVERSAL 2: walk LEFT along T4 for run-up, then hop up-RIGHT
-      { x: 3160, y: -90, w: 380, h: 24 }, // T6  rise 65, overlaps T5 by 70 (3160..3230) — the SUMMIT BALCONY (380px wide; ends 3540 == bounds.right)
+      // VERTICAL HEADROOM (Phase 34 follow-up). The first cut of this climb shipped
+      // h:24 tiers at 65-70px rises, which leaves
+      //     headroom = rise - h - PLAYER_H(32)
+      // of only 9-14px between a tier's walking surface and the underside of the
+      // tier overhanging it — the climb was playable but felt claustrophobic
+      // ("a bit tight between the platforms vertically" — kid playtest). The fix
+      // is BOTH levers at once: thin the tiers to h:16 AND widen the rises to
+      // 72-75, giving headroom = 75 - 16 - 32 = 27px (~3x the old figure).
+      //
+      // 75 is the CEILING here: docs/LEVEL-DESIGN.md's soft rise band is 60-75px
+      // (65-75 explicitly allowed when the landing span is wide >= 80px — these
+      // spans are 280-380px), and the HARD maxRise is 88.33px. Staying at 75
+      // preserves the ~13px of margin a kid's imperfect jump needs. DO NOT go
+      // higher to buy more headroom — thin the tier instead.
+      //
+      // x and w are UNCHANGED from the first cut, which is deliberate: it keeps
+      // every ~70px overlap, the two reversals, the growing widths, and the
+      // rightmost edge (T6: 3160+380 = 3540 == bounds.right) exactly as approved.
+      { x: 2410, y: 248, w: 300, h: 16 }, // T1  rise 72 from floor-3 (ends 2710)
+      { x: 2640, y: 173, w: 280, h: 16 }, // T2  rise 75, overlaps T1 by 70 (ends 2920) — headroom over T1: 27
+      { x: 2850, y: 99, w: 300, h: 16 }, // T3  rise 74, overlaps T2 by 70 (ends 3150) — headroom over T2: 26 — the turn-around runway: 190px of T3 sticks out right of T4
+      { x: 2610, y: 24, w: 350, h: 16 }, // T4  rise 75, overlaps T3 by 110 (2850..2960) — headroom over T3: 27 — REVERSAL 1: hop up-LEFT off T3's runway
+      { x: 2890, y: -50, w: 340, h: 16 }, // T5  rise 74, overlaps T4 by 70 (2890..2960) — headroom over T4: 26 — REVERSAL 2: walk LEFT along T4 for run-up, then hop up-RIGHT
+      { x: 3160, y: -125, w: 380, h: 16 }, // T6  rise 75, overlaps T5 by 70 (3160..3230) — headroom over T5: 27 — the SUMMIT BALCONY (380px wide; ends 3540 == bounds.right)
     ],
 
     coins: [
@@ -111,12 +132,12 @@ export const LEVEL_08 = {
       // A coin at ~tier.y-56 is inside the walking player's pass-through box; at
       // ~tier.y-90 it needs a real hop. Both kinds are used, so the climb still
       // rewards jumping.
-      { x: 2480, y: 194 }, // T1 (y250-56)  — walk-through, on the run-up to T2
-      { x: 2760, y: 90 }, // T2 (y180-90)  — HOP; clear of T4's underside (y69) with 21px to spare
-      { x: 3040, y: 59 }, // T3 (y115-56)  — walk-through, out on the turn-around runway right of T4's edge (2960): rewards running to the turn
-      { x: 2700, y: -45 }, // T4 (y45-90)   — HOP, on the leftward leg, clear of T5's overhang (starts 2890)
-      { x: 3000, y: -81 }, // T5 (y-25-56)  — walk-through, clear of T6's overhang (starts 3160)
-      { x: 3400, y: -146 }, // T6 (y-90-56)  — walk-through on the summit balcony, near the goal
+      { x: 2480, y: 192 }, // T1 (y248-56)  — walk-through, on the run-up to T2
+      { x: 2760, y: 83 }, // T2 (y173-90)  — HOP; clear of T4's underside (y40) with 43px to spare
+      { x: 3040, y: 43 }, // T3 (y99-56)   — walk-through, out on the turn-around runway right of T4's edge (2960): rewards running to the turn
+      { x: 2700, y: -66 }, // T4 (y24-90)   — HOP, on the leftward leg, clear of T5's overhang (starts 2890)
+      { x: 3000, y: -106 }, // T5 (y-50-56)  — walk-through, clear of T6's overhang (starts 3160)
+      { x: 3400, y: -181 }, // T6 (y-125-56) — walk-through on the summit balcony, near the goal
     ],
 
     spikes: [
@@ -126,7 +147,7 @@ export const LEVEL_08 = {
     ],
 
     // Goal sits atop T6, the summit balcony, 80px before its right edge (3540).
-    goal: { x: 3460, y: -90 - CONFIG.GOAL_SIZE },
+    goal: { x: 3460, y: -125 - CONFIG.GOAL_SIZE },
 
     // One near-start checkpoint + one 64-80px before EVERY hazard/mechanic, PLUS
     // one at the start of EVERY climb tier (a fall during the long climb must
@@ -150,12 +171,12 @@ export const LEVEL_08 = {
       // hops that is near the tier's LEFT end; for REVERSAL 1 (the up-LEFT hop
       // onto T4) the player lands near T4's RIGHT end, so T4's checkpoint goes
       // there. Checkpoint y always matches the surface it sits on (tier.y - 48).
-      { x: 2430, y: 250 - 48 }, // T1 landing (left end)
-      { x: 2660, y: 180 - 48 }, // T2 landing (left end)
-      { x: 2870, y: 115 - 48 }, // T3 landing (left end)
-      { x: 2920, y: 45 - 48 }, // T4 landing — RIGHT end: this hop arrives travelling LEFT
-      { x: 2910, y: -25 - 48 }, // T5 landing (left end; the up-right hop off T4)
-      { x: 3190, y: -90 - 48 }, // T6 landing — the summit balcony
+      { x: 2430, y: 248 - 48 }, // T1 landing (left end)
+      { x: 2660, y: 173 - 48 }, // T2 landing (left end)
+      { x: 2870, y: 99 - 48 }, // T3 landing (left end)
+      { x: 2920, y: 24 - 48 }, // T4 landing — RIGHT end: this hop arrives travelling LEFT
+      { x: 2910, y: -50 - 48 }, // T5 landing (left end; the up-right hop off T4)
+      { x: 3190, y: -125 - 48 }, // T6 landing — the summit balcony
     ],
 
     doors: [
@@ -187,7 +208,7 @@ export const LEVEL_08 = {
     // x:2650 sits inside T4's own span (2610..2960) with T4.xStart < 2650, so it
     // is credited as an in-footprint hop off T4 and does not HARD-FAIL.
     secretAlcove: [
-      { x: 2650, y: -25 },
+      { x: 2650, y: -46 }, // ~70px above T4's new surface (y:24)
     ],
   },
 
