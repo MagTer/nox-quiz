@@ -44,6 +44,27 @@ export const WARN_MARGIN_RATIO = 0.9;
 // { levelId }). Safe as a fixed constant rather than a per-level parameter.
 export const SPAWN_X = 64;
 
+// --- HEADROOM (Phase 34, Plan 34-06, LVL-03) ---
+//
+// The minimum vertical clearance, in px, between the walkable surface of a lower
+// platform and the UNDERSIDE of any platform that overlaps it in x. Below this, a
+// 32px-tall player reads as wedged into a crawlspace.
+//
+// WHY THIS CONSTANT EXISTS AT ALL — read before touching it:
+// docs/LEVEL-DESIGN.md quantified rise, gap width and x-overlap for four milestones
+// and had NO headroom rule. So level-07 shipped its ENTIRE end climb at 9px of
+// headroom (65px rise, h:24 platforms, a 32px player -> a 41px slot), and level-08's
+// first switchback draft came in at 9-14px. Every gate in this project was green the
+// whole time, because no gate looked. A HUMAN found it, at a checkpoint, by looking
+// at the screen. This check is the gate that should have existed.
+//
+// 24px is the agreed floor (user sign-off, Phase 34): with the mandated 16px WYSIWYG
+// platform thickness it makes the rule `rise >= 72px` for any overlapping tier pair,
+// which is exactly where docs/LEVEL-DESIGN.md section 3.3's 72-75px overlapping-rise
+// band comes from. Raising the rise band without re-deriving this number, or lowering
+// this number to make a level green, both re-open the defect.
+export const MIN_HEADROOM_PX = 24;
+
 // --- Hitbox constants for the COIN model (Phase 34, LVL-01) ---
 //
 // PROVENANCE — these duplicate values OWNED by src/, and are model constants of
@@ -858,6 +879,68 @@ export function planCoinWitnesses(geometry, envelope = JUMP_ENVELOPE) {
   }));
 }
 
+// ===========================================================================
+// HEADROOM (Phase 34, Plan 34-06, LVL-03) — the rule that was only ever prose.
+// ===========================================================================
+
+/**
+ * Every x-overlapping platform pair whose vertical clearance is below
+ * MIN_HEADROOM_PX, as { upper, lower, upperIndex, lowerIndex, rise, overlap, headroom }.
+ *
+ * THE MEASUREMENT (docs/LEVEL-DESIGN.md section 3.2):
+ *
+ *   headroom = lower.y - (upper.y + upper.h) - PLAYER_H
+ *
+ * i.e. the lower platform's walkable surface, minus the upper platform's UNDERSIDE,
+ * minus the 32px player. Kaplay's y grows downward, so `upper` is the one with the
+ * SMALLER y.
+ *
+ * `upper.h` is used AS AUTHORED, never assumed to be 16. The 16px WYSIWYG thickness
+ * is its own HARD rule (LEVEL-DESIGN section 3.1), and a level that violates it must
+ * still be measured honestly here — a 24px-thick platform genuinely eats 8 more px of
+ * her head than a 16px one, which is precisely how level-07's 65px rise produces 9px
+ * of clearance rather than the 17px an assumed-16 model would have reported. With the
+ * mandated 16px thickness the rule reduces to `rise >= 72px`.
+ *
+ * FLOOR-vs-PLATFORM overlaps are deliberately OUT OF SCOPE, matching the agreed rule's
+ * wording ("any two platforms that overlap in x"): a bridging platform's short overlap
+ * with the lip of the floor run beside its gap is a different, milder situation than a
+ * climb tier forming a continuous ceiling over the tier you walk along. Several shipped
+ * levels do have low bridging platforms over a floor lip — they are recorded in
+ * docs/LEVEL-REVIEW.md as an input to the Phase 34.5 rebuild rather than silently
+ * folded into this gate.
+ *
+ * PURE: takes geometry, returns data. `?? []`-guarded — an omitted platforms array
+ * yields zero violations and never throws.
+ */
+export function findHeadroomViolations(geometry, minHeadroom = MIN_HEADROOM_PX) {
+  const platforms = geometry.platforms ?? [];
+  const violations = [];
+  for (let i = 0; i < platforms.length; i++) {
+    for (let j = 0; j < platforms.length; j++) {
+      if (i === j) continue;
+      const upper = platforms[i];
+      const lower = platforms[j];
+      if (!(upper.y < lower.y)) continue; // `upper` must actually be above `lower`
+      const overlap =
+        Math.min(upper.x + upper.w, lower.x + lower.w) - Math.max(upper.x, lower.x);
+      if (overlap <= 0) continue; // no shared x — no ceiling, nothing to clear
+      const headroom = lower.y - (upper.y + upper.h) - PLAYER_H;
+      if (headroom >= minHeadroom) continue;
+      violations.push({
+        upper,
+        lower,
+        upperIndex: i,
+        lowerIndex: j,
+        rise: lower.y - upper.y,
+        overlap,
+        headroom,
+      });
+    }
+  }
+  return violations;
+}
+
 /**
  * Compose buildNodes/buildGraph/bfsReachableSet into the three ROADMAP-named
  * checks: spawn-goal, gap-width, mechanic-reachability. Returns
@@ -1048,6 +1131,32 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
         descriptor: `mover[${i}] (${m.x1},${m.y1})<->(${m.x2},${m.y2}) worst-case reached (marginRatio=${worst.toFixed(3)})`,
       });
     }
+  }
+
+  // --- headroom: x-overlapping platform pairs must leave the 32px player at least
+  // MIN_HEADROOM_PX of clearance (LVL-03, Plan 34-06). HARD-FAIL only — deliberately
+  // no WARN tier: a cramped ceiling is an exact geometric fact about a fixed-size
+  // player, not a question of player imprecision, and a WARN row here would be a row
+  // that never fails anything (exactly the green-gate-that-lies this phase exists to
+  // end). One row per violating pair, so a climb that is cramped on five tiers reports
+  // five rows and the author can see the shape of it.
+  //
+  // EXPECTED RED (2026-07-14): level-07 HARD-FAILs this on all five of its end-climb
+  // tiers at 9px. That is the RED-first proof the check is load-bearing, not a
+  // regression introduced by it. level-07 is deliberately NOT retrofitted — Phase 34.5
+  // rebuilds every level from scratch against docs/LEVEL-DESIGN.md, so patching its
+  // geometry now would be throwaway work on geometry about to be replaced. Do NOT
+  // weaken this check to make the suite green.
+  for (const v of findHeadroomViolations(geometry)) {
+    rows.push({
+      check: "headroom",
+      status: "HARD-FAIL",
+      descriptor:
+        `platforms[${v.upperIndex}] (x:${v.upper.x} y:${v.upper.y} h:${v.upper.h}) over ` +
+        `platforms[${v.lowerIndex}] (x:${v.lower.x} y:${v.lower.y}): headroom=${v.headroom}px ` +
+        `(< ${MIN_HEADROOM_PX}px; rise=${v.rise}px, x-overlap=${v.overlap}px) — a 32px player in a ` +
+        `${v.headroom + PLAYER_H}px slot`,
+    });
   }
 
   const hardFailCount = rows.filter((r) => r.status === "HARD-FAIL").length;
@@ -1620,6 +1729,122 @@ if (isMain) {
     check(!threw, "checkLevelReachability must never throw when geometry.coins is omitted");
     const coinRows = result?.rows.filter((r) => r.check === "coin-reachability") ?? [];
     check(coinRows.length === 0, `expected zero coin-reachability rows when omitted, got ${coinRows.length}`);
+  }
+
+  // ==========================================================================
+  // Cases T/U/V — HEADROOM (Plan 34-06, LVL-03). PINNED IN BOTH DIRECTIONS.
+  //
+  // A one-directional test ("the compliant pair passes") would be satisfied by a
+  // check that never fires at all — which is exactly the state this rule was in for
+  // four milestones: prose in docs/LEVEL-DESIGN.md, enforced by nothing, while
+  // level-07 shipped 9px on every tier. So the failing direction is asserted FIRST,
+  // against level-07's REAL, SHIPPED coordinates.
+  // ==========================================================================
+
+  // Case T (the RED direction — level-07's real geometry): two consecutive tiers of
+  // level-07's actual end climb, verbatim from src/levels/level-07.js:
+  //   platform (2650, 255, w280, h24)   <- the lower walk
+  //   platform (2860, 190, w260, h24)   <- the ceiling above it
+  // rise 65px, x-overlap 70px, thickness 24px
+  //   headroom = 255 - (190 + 24) - 32 = 9px.
+  // A 32px player in a 41px slot. MUST HARD-FAIL.
+  {
+    const geometry = {
+      floors: [{ x: 0, w: 3000 }],
+      platforms: [
+        { x: 2650, y: 255, w: 280, h: 24 },
+        { x: 2860, y: 190, w: 260, h: 24 },
+      ],
+      goal: { x: 2900, y: 304 },
+    };
+    const violations = findHeadroomViolations(geometry);
+    check(
+      violations.length === 1,
+      `expected exactly 1 headroom violation for level-07's real 9px tier pair, got ${violations.length}`
+    );
+    check(
+      violations[0]?.headroom === 9,
+      `expected the measured headroom to be exactly 9px (level-07's shipped value), got ${JSON.stringify(violations[0])}`
+    );
+
+    const { rows, hardFailCount } = checkLevelReachability(geometry, testEnvelope);
+    const headroomRows = rows.filter((r) => r.check === "headroom");
+    check(headroomRows.length === 1, `expected exactly 1 headroom row, got ${headroomRows.length}`);
+    check(
+      headroomRows[0]?.status === "HARD-FAIL",
+      `HEADROOM CHECK BROKEN: level-07's real 9px tier pair MUST HARD-FAIL. Got ${JSON.stringify(headroomRows[0])}`
+    );
+    check(hardFailCount >= 1, `a headroom violation must increment hardFailCount, got ${hardFailCount}`);
+  }
+
+  // Case U (the GREEN direction — a compliant pair): the same shape rebuilt to the
+  // rulebook — 16px WYSIWYG thickness, 75px rise, ~70px x-overlap (level-08's Phase-34
+  // switchback numbers):
+  //   headroom = 248 - (173 + 16) - 32 = 27px  >= MIN_HEADROOM_PX (24)
+  // MUST PASS — a check that fails everything is as useless as one that fails nothing.
+  {
+    const geometry = {
+      floors: [{ x: 0, w: 3000 }],
+      platforms: [
+        { x: 2410, y: 248, w: 300, h: 16 },
+        { x: 2640, y: 173, w: 280, h: 16 },
+      ],
+      goal: { x: 2900, y: 304 },
+    };
+    const violations = findHeadroomViolations(geometry);
+    check(
+      violations.length === 0,
+      `expected ZERO headroom violations for a compliant 75px-rise / 16px-thick pair (27px headroom), got ${JSON.stringify(violations)}`
+    );
+    const headroomRows = checkLevelReachability(geometry, testEnvelope).rows.filter(
+      (r) => r.check === "headroom"
+    );
+    check(
+      headroomRows.length === 0,
+      `a compliant tier pair must emit ZERO headroom rows, got ${JSON.stringify(headroomRows)}`
+    );
+  }
+
+  // Case V (the boundary + the non-overlapping exemption + the ?? [] guard):
+  //   - a pair at EXACTLY MIN_HEADROOM_PX (rise 72, h16 -> headroom 24) passes: the
+  //     rule is >= 24, and the 72px rise floor in LEVEL-DESIGN 3.3 is derived from it.
+  //     If this flips, the two documents have silently drifted apart.
+  //   - a cramped-looking pair that shares NO x is exempt: no overlap, no ceiling.
+  //   - omitted platforms never throws.
+  {
+    const boundary = {
+      floors: [{ x: 0, w: 3000 }],
+      platforms: [
+        { x: 2400, y: 248, w: 300, h: 16 },
+        { x: 2630, y: 176, w: 280, h: 16 }, // rise 72 -> headroom exactly 24
+      ],
+      goal: { x: 2900, y: 304 },
+    };
+    check(
+      findHeadroomViolations(boundary).length === 0,
+      `headroom exactly == MIN_HEADROOM_PX (${MIN_HEADROOM_PX}) must PASS — LEVEL-DESIGN's 72px overlapping-rise floor is derived from this boundary`
+    );
+
+    const noOverlap = {
+      floors: [{ x: 0, w: 3000 }],
+      platforms: [
+        { x: 2650, y: 255, w: 200, h: 24 },
+        { x: 2900, y: 190, w: 200, h: 24 }, // 9px of "headroom" but ZERO shared x
+      ],
+      goal: { x: 2900, y: 304 },
+    };
+    check(
+      findHeadroomViolations(noOverlap).length === 0,
+      "platforms that share no x form no ceiling and must be exempt from the headroom rule"
+    );
+
+    let threw = false;
+    try {
+      findHeadroomViolations({ floors: [{ x: 0, w: 100 }] });
+    } catch {
+      threw = true;
+    }
+    check(!threw, "findHeadroomViolations must never throw on an omitted platforms array");
   }
 
   if (failures > 0) {
