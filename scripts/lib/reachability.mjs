@@ -821,6 +821,39 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
     }
   }
 
+  // --- coin-reachability: the 32x32 fly-through pickups (LVL-01, Phase 34).
+  // Reuses the ALREADY-COMPUTED nodes/spawnPaths above — never re-derived.
+  // `?? []`-guarded: an omitted geometry.coins produces zero rows, never throws.
+  //
+  // PASS or HARD-FAIL only — deliberately NO WARN tier. WARN exists to flag a hop
+  // tight enough that player imprecision could miss it, but a coin's 48x64
+  // pass-through box ALREADY absorbs exactly that imprecision (that is what the box
+  // model is for), and the real tightness arbiter is the in-engine witness replay
+  // (Plan 34-02), which either collects the coin or does not. A WARN tier here
+  // would be a row that never fails anything — precisely the kind of green gate
+  // this phase exists to eliminate. HARD-FAIL matches this project's exact-fact
+  // convention for any unreachable entity (the same convention
+  // secret-alcove-reachability follows).
+  //
+  // The witness is printed INTO the descriptor on PASS so that the coin-move plans
+  // (34-03/04/05) and the in-engine gate (34-02) can both act on it directly.
+  for (const [i, c] of (geometry.coins ?? []).entries()) {
+    const w = bestWitnessToCoin(c, nodes, spawnPaths, envelope);
+    if (w === null) {
+      rows.push({
+        check: "coin-reachability",
+        status: "HARD-FAIL",
+        descriptor: `coins[${i}] x:${c.x} y:${c.y} unreachable from spawn`,
+      });
+    } else {
+      rows.push({
+        check: "coin-reachability",
+        status: "PASS",
+        descriptor: `coins[${i}] x:${c.x} y:${c.y} reached (family=${w.family} from ${w.launchNodeId} takeoffX=${w.takeoffX.toFixed(1)} dir=${w.dir})`,
+      });
+    }
+  }
+
   // --- mover-reachability: worst-case-extreme rule (MOT-04). Reuses
   // bestMarginToPoint for both ping-pong endpoints — no duplicated reachability
   // math. A mover is available at EITHER endpoint independently (the player may
@@ -1196,6 +1229,147 @@ if (isMain) {
     check(!threw, "checkLevelReachability must never throw when geometry.movers is omitted");
     const moverRows = result?.rows.filter((r) => r.check === "mover-reachability") ?? [];
     check(moverRows.length === 0, `expected zero mover-reachability rows when omitted, got ${moverRows.length}`);
+  }
+
+  // --- Phase 34 (bestWitnessToCoin / coin-reachability) behavior cases ---
+  //
+  // All four use the same trivial arena: one floor {x:0, w:400} at CONFIG.FLOOR_Y
+  // (320), so the player's standing top-left y is 320 - PLAYER_H = 288. Only the
+  // coin's y moves between cases — which is exactly the axis the envelope clamp
+  // lives on.
+  const coinFloor = () => [{ id: "floor-0", xStart: 0, xEnd: 400, y: CONFIG.FLOOR_Y }];
+  const coinSpawnPaths = () => {
+    const nodes = coinFloor();
+    return bfsWithPathMargin(buildGraph(nodes, testEnvelope), "floor-0");
+  };
+
+  // Case N (walk witness): a coin at the standard shipped floor-coin height
+  // {x:200, y:264} — its box y-range is [232, 296], which CONTAINS the standing
+  // top-left y of 288. The player collects it just by walking through it: family
+  // `walk`, t = 0. This is the case that proves the coin model does NOT inherit the
+  // alcove model's landing question — the alcove model would ask whether the player
+  // can come to rest AT (200, 264), which is not a thing the game ever requires.
+  {
+    const nodes = coinFloor();
+    const w = bestWitnessToCoin({ x: 200, y: 264 }, nodes, coinSpawnPaths(), testEnvelope);
+    check(w !== null, `expected a non-null witness for a walk-through floor coin, got ${JSON.stringify(w)}`);
+    check(w?.family === "walk", `expected family="walk" for a floor-height coin, got ${JSON.stringify(w)}`);
+    check(w?.t === 0, `expected t=0 for a walk witness, got ${JSON.stringify(w)}`);
+  }
+
+  // Case O (jump witness): a coin at {x:200, y:176} — box y-range [144, 208], whose
+  // BOTTOM edge (208) needs a rise of 288-208 = 80px: comfortably inside the
+  // calibrated maxRise (88.331). Not walkable, but jumpable.
+  {
+    const nodes = coinFloor();
+    const w = bestWitnessToCoin({ x: 200, y: 176 }, nodes, coinSpawnPaths(), testEnvelope);
+    check(w !== null, `expected a non-null witness for an in-envelope airborne coin, got ${JSON.stringify(w)}`);
+    check(w?.family === "jump", `expected family="jump" for an airborne coin, got ${JSON.stringify(w)}`);
+    check(w?.t > 0, `expected t>0 for a jump witness, got ${JSON.stringify(w)}`);
+  }
+
+  // Case P (genuinely unreachable): a coin at {x:200, y:60} — box y-range [28, 124],
+  // whose bottom edge needs a rise of 288-124 = 164px, far beyond ANY jump from ANY
+  // x. Witness must be null AND checkLevelReachability must emit exactly one
+  // coin-reachability row, HARD-FAIL.
+  {
+    const nodes = coinFloor();
+    const w = bestWitnessToCoin({ x: 200, y: 60 }, nodes, coinSpawnPaths(), testEnvelope);
+    check(w === null, `expected null for a coin far beyond maxRise, got ${JSON.stringify(w)}`);
+
+    const geometry = {
+      floors: [{ x: 0, w: 400 }],
+      goal: { x: 350, y: 304 },
+      coins: [{ x: 200, y: 60 }],
+    };
+    const { rows } = checkLevelReachability(geometry, testEnvelope);
+    const coinRows = rows.filter((r) => r.check === "coin-reachability");
+    check(coinRows.length === 1, `expected exactly 1 coin-reachability row, got ${coinRows.length}`);
+    check(coinRows[0]?.status === "HARD-FAIL", `expected HARD-FAIL for an unreachable coin, got ${JSON.stringify(coinRows[0])}`);
+  }
+
+  // ==========================================================================
+  // Case Q — THE ENVELOPE CLAMP (PLAN-CHECK FIX FLAG-1).
+  //
+  // THE ONE CASE THAT PINS THE MODEL'S ONLY UNCATCHABLE ERROR DIRECTION.
+  //
+  // A coin at {x:200, y:160}: box y-range [128, 192]. The EASIEST part of that box
+  // to touch is its BOTTOM edge (192), which demands a rise of 288 - 192 = 96px.
+  //
+  //   theoretical apex = JUMP_FORCE^2/(2*GRAVITY) = 96.57px  -> 96px fits (barely)
+  //   calibrated maxRise (EMPIRICAL)              = 88.331px -> 96px does NOT fit
+  //
+  // So this coin sits squarely in the dead band BETWEEN the empirically-measured
+  // ceiling and the never-actually-observed theoretical apex. An UNCLAMPED py(t)
+  // model PASSES this coin (its raw parabola dips to py=191.43 at t~0.371s, just
+  // inside the box); the CLAMPED model correctly rejects it.
+  //
+  // This assertion is the only thing standing between the coin model and the one
+  // error it can make that Plan 34-02's in-engine replay is STRUCTURALLY UNABLE to
+  // catch: the real engine has the same theoretical apex, so a scripted, frame-
+  // perfect hold-jump WOULD collect this coin and turn 34-02's gate green — while a
+  // real 12-year-old, jumping imperfectly, never would. DO NOT weaken, skip, or
+  // re-tier this case.
+  //
+  // (NOTE, recorded as a deviation in 34-01-SUMMARY.md: the PLAN specified this
+  // coin at y:224. That coordinate is arithmetically wrong for its own stated
+  // intent — a coin at y:224 has box [192, 256], whose BOTTOM edge needs only a
+  // 32px rise, making it trivially reachable and the assertion vacuous. The plan's
+  // prose is unambiguous about what it wanted ("a rise of 288 - 192 = 96px",
+  // "inside the theoretical apex, OUTSIDE the calibrated envelope"), and y:160 is
+  // the coordinate that actually produces box [128, 192] and that 96px rise. The
+  // case is implemented at FULL strength, not weakened.)
+  // ==========================================================================
+  {
+    const nodes = coinFloor();
+    const deadBandCoin = { x: 200, y: 160 };
+
+    // Guard the guard: assert the fixture really does sit in the dead band, so a
+    // future retune of CONFIG/JUMP_ENVELOPE cannot silently make this case vacuous.
+    const box = coinTargetBox(deadBandCoin);
+    const surfaceTop = CONFIG.FLOOR_Y - PLAYER_H;
+    const requiredRise = surfaceTop - box.y1;
+    const theoreticalApex = CONFIG.JUMP_FORCE ** 2 / (2 * CONFIG.GRAVITY);
+    check(
+      requiredRise > testEnvelope.maxRise && requiredRise <= theoreticalApex,
+      `Case Q fixture must sit in the dead band (maxRise ${testEnvelope.maxRise} < requiredRise <= apex ${theoreticalApex.toFixed(2)}), got requiredRise=${requiredRise}`
+    );
+
+    const w = bestWitnessToCoin(deadBandCoin, nodes, coinSpawnPaths(), testEnvelope);
+    check(
+      w === null,
+      `ENVELOPE CLAMP BROKEN: a coin needing ${requiredRise}px of rise (> the empirical maxRise ${testEnvelope.maxRise}px, <= the never-observed theoretical apex ${theoreticalApex.toFixed(2)}px) MUST be unreachable — the model is over-crediting, the one error 34-02 cannot catch. Got ${JSON.stringify(w)}`
+    );
+
+    const geometry = {
+      floors: [{ x: 0, w: 400 }],
+      goal: { x: 350, y: 304 },
+      coins: [deadBandCoin],
+    };
+    const { rows } = checkLevelReachability(geometry, testEnvelope);
+    const coinRows = rows.filter((r) => r.check === "coin-reachability");
+    check(coinRows.length === 1, `expected exactly 1 coin-reachability row, got ${coinRows.length}`);
+    check(
+      coinRows[0]?.status === "HARD-FAIL",
+      `expected HARD-FAIL for a dead-band coin, got ${JSON.stringify(coinRows[0])}`
+    );
+  }
+
+  // Case R (omitted array): geometry.coins omitted entirely -> zero
+  // coin-reachability rows, never throws. (The plan labelled this "Case Q" too;
+  // renamed to R so the two are distinguishable.)
+  {
+    const geometry = { floors: [{ x: 0, w: 400 }], goal: { x: 100, y: 320 } };
+    let threw = false;
+    let result;
+    try {
+      result = checkLevelReachability(geometry, testEnvelope);
+    } catch {
+      threw = true;
+    }
+    check(!threw, "checkLevelReachability must never throw when geometry.coins is omitted");
+    const coinRows = result?.rows.filter((r) => r.check === "coin-reachability") ?? [];
+    check(coinRows.length === 0, `expected zero coin-reachability rows when omitted, got ${coinRows.length}`);
   }
 
   if (failures > 0) {
