@@ -45,6 +45,7 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 - `bash scripts/check-import-safety.sh` — a727c13 module-top-level engine-global trap
 - `bash scripts/check-progress.sh` — progress/save invariants (ends with `smoke-progress.mjs`)
 - `node scripts/check-assets-manifest.mjs` — asset manifest existence gate (every declared sprite/sound path exists on disk)
+- `bash scripts/check-terrain-atlas.sh` — terrain PIXEL gate (REQUIRED after any `assets/tiles/` or `build-art-assets.py` change). The ONLY gate that looks at rendered pixels: hard-fails a ground atlas that would tile into a sawtooth, render as achromatic grey (the `_remap_luminance` trap), or float above its own collider. Every other gate was green while the game shipped both a sawtoothed floor and grey-static ground — see `.planning/research/ART-PARITY-STEERING.md`.
 - `node scripts/validate-levels.mjs` — static level validator, REQUIRED for any level edit (green = zero HARD-FAIL)
 - `node scripts/browser-boot.mjs` — real-browser boot + drive across all levels
 - `node scripts/audit-phase21-mechanics.mjs` — interactive mechanic audit (`triggered: true` required for every encounter; `resolved: false` rows are known headless-timing flakiness)
