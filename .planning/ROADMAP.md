@@ -311,6 +311,14 @@ Plans:
   3. In-engine audit coverage: a real driven player picks up the key and opens the lock (`audit-*.mjs`). The static model is not sufficient — this milestone has repeatedly shipped bugs past a green static model.
   4. No timers, no punishment, no game-over. Missing the key means *go back and get it*, never death or a reset.
   5. **OPEN DESIGN QUESTION for the phase's discuss step:** does the key-lock ADD a 4th barrier to the level (1 math door + 1 enemy + end gate + 1 key lock), or REPLACE the math door? Math density is currently LOCKED at 3 challenges per level. This must be decided explicitly — it changes the game's pacing either way.
+     - **RESOLVED (discuss, 2026-07-15):** ADD a 4th NON-math barrier — do NOT replace the math door. Math density stays LOCKED at 3. The key opens the EXIT (locked corridor → end math gate → LEVEL CLEAR).
+
+**Plans**: 3 plans
+
+Plans:
+- [ ] 34.5-01-PLAN.md — Static softlock proof: key-lock-check.mjs + LOCK/KEY/HUD config + reachability exports + RED-first bad-level-key fixture composed into validate-levels.mjs (KEY-02)
+- [ ] 34.5-02-PLAN.md — Mechanic wiring: src/mechanics/key.js (pickup + lock-open) + build.js entity emission + game.js keyHeld run-state + hud.js indicator + import-safety guard (KEY-01)
+- [ ] 34.5-03-PLAN.md — In-engine proof: level-02 throwaway key-lock placement + audit-key-lock.mjs driven-player audit (KEY-01, KEY-02)
 
 ### Phase 34.6: Level Redesign — Rebuild and Double Every Level
 
