@@ -110,8 +110,8 @@ Rebranded Math Lab → Nox Run; doubled the game to 8 levels (levels 1–4 fixed
 - [x] **Phase 30: Harness Extensions** - The validator and interactive audit learn every new dynamic RED-first — alcove reachability + trigger signal, mover worst-case-extreme rule — before any level uses them (completed 2026-07-10)
 - [x] **Phase 31: Asset Bake & Style-Board Sign-off** - Gothicvania-anchored biome art vendored, conformed, and human-approved on a style board before one pixel is integrated (completed 2026-07-10)
 - [x] **Phase 32: Terrain & Parallax Rendering** - Solid autotiled ground and real multi-layer parallax replace floating strips and flat triangles — geometry byte-frozen (completed 2026-07-11)
-- [ ] **Phase 33: Player & Entity Animation** - Fully animated player and real animated mechanic-entity art on explicitly locked colliders
-- [ ] **Phase 34: Level Quality Pass** - Levels 5–8 reachability fixed, 07/08 climbs differentiated, soft-rules review done, and motion rules written into LEVEL-DESIGN.md
+- [x] **Phase 33: Player & Entity Animation** - Fully animated player and real animated mechanic-entity art on explicitly locked colliders (completed 2026-07-14)
+- [ ] **Phase 34: Level Quality Pass** - Coin reachability fixed across all 8 levels behind a new coin-shaped validator check + in-engine coin gate, 07/08 climbs differentiated, soft-rules review done, and motion rules written into LEVEL-DESIGN.md
 - [ ] **Phase 35: Biome Re-dress & Props** - All 8 levels dressed in their assigned biomes with a visual-only props layer — geometry byte-frozen
 - [ ] **Phase 36: World Motion & Ambient Life** - Patrolling enemies, moving platforms, ambient animation, and the alcove's persistent torch — the world moves, ADHD-safe
 - [ ] **Phase 37: Mobile — Responsive Canvas & Touch Controls** - Letterbox canvas migration + touch input layer — playable on a phone/tablet, keyboard untouched
@@ -235,7 +235,7 @@ Plans:
   3. Doors, checkpoint gates, enemy blockers, and the math gate show real animated art in place of flat-color panels, with their invisible blocker colliders untouched
   4. The full interactive mechanic audit still triggers every encounter across all 8 levels — the art swap is proven collision-neutral, not assumed
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -250,7 +250,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 33-05-PLAN.md — Full consolidated gate suite + genuine human sign-off superseding the v4.1 player-art lock — ART-04, ART-05
+- [x] 33-05-PLAN.md — Full consolidated gate suite + genuine human sign-off superseding the v4.1 player-art lock — ART-04, ART-05
 
 ### Phase 34: Level Quality Pass
 
@@ -259,12 +259,34 @@ Plans:
 **Requirements**: LVL-01, LVL-02, LVL-03
 **Success Criteria** (what must be TRUE):
 
-  1. Every pickup and ledge in levels 5–8 is actually reachable in play — validator-gated geometry fixes, landed in their own commits so drift can't hide in later art diffs
-  2. Level-07 and level-08's end climbs are visibly and mechanically different experiences, no longer near-duplicates (with level-07/08's explicit `bounds.right` hand-bumped where extended)
+  1. Every pickup and ledge is actually reachable in play across ALL 8 levels (34-CONTEXT.md decision 1 — measurement showed unreachable coins in every level, not just 5–8) — fixed by MOVING COINS, never geometry, validator-gated, landed in their own commits (levels 1–3 in a separate commit) so drift can't hide in later art diffs
+  2. Level-07 and level-08's end climbs are visibly and mechanically different experiences, no longer near-duplicates (with level-08's explicit `bounds.right` hand-bumped where extended)
   3. All 8 levels pass a documented review against `docs/LEVEL-DESIGN.md` soft rules, and motion design rules (checkpoint before every mover; missed platform = wait, not death; patrollers carry zero hurt wiring) are written into LEVEL-DESIGN.md BEFORE any motion authoring
   4. Structural validator green with zero HARD-FAILs across all 8 post-fix levels
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 34-01-PLAN.md — Coin-appropriate `coin-reachability` check in reachability.mjs (48×64 pass-through box, not the alcove point model), proven RED-first; re-derives the true work list — LVL-01
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 34-02-PLAN.md — `scripts/audit-coins.mjs`: in-engine witness replay proving every model-PASS coin is actually collected by a real driven player — LVL-01
+
+**Wave 3** *(blocked on Wave 2; the two plans are file-disjoint)*
+
+- [ ] 34-03-PLAN.md — Coin moves, levels 04–07 (coins only, zero geometry edits) + level-04 golden-fixture re-baseline — LVL-01
+- [ ] 34-04-PLAN.md — Level-08 switchback end climb + its coins/checkpoints/alcove/goal/bounds, with a blocking human sign-off on the shape — LVL-02, LVL-01
+
+**Wave 4** *(blocked on 34-03 — shares scripts/smoke-progress.mjs)*
+
+- [ ] 34-05-PLAN.md — Coin moves, kid-validated levels 01–03, in their own auditable commit — LVL-01
+
+**Wave 5** *(blocked on Waves 3–4)*
+
+- [ ] 34-06-PLAN.md — Motion rules + coin HARD rule into LEVEL-DESIGN.md, documented 8-level soft-rules review, full consolidated suite green — LVL-03, LVL-01, LVL-02
 
 ### Phase 35: Biome Re-dress & Props
 
@@ -364,8 +386,8 @@ Plans:
 | 30. Harness Extensions | v6.0 | 3/3 | Complete    | 2026-07-10 |
 | 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete    | 2026-07-10 |
 | 32. Terrain & Parallax Rendering | v6.0 | 5/5 | Complete    | 2026-07-11 |
-| 33. Player & Entity Animation | v6.0 | 4/5 | In Progress|  |
-| 34. Level Quality Pass | v6.0 | 0/TBD | Not started | - |
+| 33. Player & Entity Animation | v6.0 | 5/5 | Complete   | 2026-07-14 |
+| 34. Level Quality Pass | v6.0 | 0/6 | Planned | - |
 | 35. Biome Re-dress & Props | v6.0 | 0/TBD | Not started | - |
 | 36. World Motion & Ambient Life | v6.0 | 0/TBD | Not started | - |
 | 37. Mobile — Responsive Canvas & Touch Controls | v6.0 | 0/TBD | Not started | - |
