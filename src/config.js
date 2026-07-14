@@ -178,6 +178,35 @@ export const CONFIG = {
     SPRITES: ["door"], // real sprite art (VIS-04; Phase 26 Plan 05) — replaces the flat-color rect+glyph placeholder
   },
 
+  // --- Key/lock (mid-level NON-MATH gate seam; Phase 34.5, KEY-01/KEY-02) ---
+  // The game's first non-math barrier — reverses SEED-001's "no new play
+  // mechanics" clause (user's explicit override, 34.5-CONTEXT.md). Mirrors
+  // DOOR's W/H apex-blocker idiom so it reads as a related barrier, but
+  // PANEL_COLOR reuses PALETTE.MUTED (a colored-rect placeholder, not a
+  // sprite) so no new asset/manifest entry is needed — real art is Phase 35.
+  // W is load-bearing beyond visuals: scripts/lib/key-lock-check.mjs
+  // partitions the reachability graph on an x-band of exactly this width, so
+  // it MUST stay in sync with the footprint src/levels/build.js emits.
+  LOCK: {
+    W: 32, // px — lock footprint width (mirrors DOOR.W; the validator's x-partition band width)
+    H: 64, // px — lock panel height (mirrors DOOR.H)
+    PANEL_COLOR: PALETTE.MUTED, // dark grunge placeholder fill — real art is Phase 35
+    HINT_TEXT: "Find the key", // shown on a keyless collide; brief, non-blocking (NO pause, NO challenge)
+    HINT_SIZE: 12, // px — mirrors HINT.SIZE
+    HINT_Y: 120, // px — upper-center band; clear of the top HUD and the bottom-left HINT (Y:330)
+    HINT_MS: 1200, // ms — self-cleaning fade window (tween().onEnd() idiom, never a timer)
+  },
+
+  // --- Key (walk-through pickup; Phase 34.5, KEY-01) ---
+  // Visible and telegraphed — CONTEXT locks "no hidden/secret keys" (unlike
+  // secretAlcove, which IS a secret). COLOR is a bright gold, deliberately
+  // distinct from the dark LOCK.PANEL_COLOR so the pair reads as key-vs-barrier.
+  KEY: {
+    W: 20, // px — key trigger footprint width
+    H: 20, // px — key trigger footprint height
+    COLOR: [0xd4, 0xaf, 0x37], // muted gold — bright/telegraphed against the dark grunge palette
+  },
+
   // --- Checkpoint math gates (mid-level challenge seam; MECH-04) ---
   // Mirrors DOOR dimensions/palette so the locked checkpoint reads as a related barrier.
   MATH_GATE: {
@@ -239,6 +268,14 @@ export const CONFIG = {
     BAR_DY: 24, // px — XP bar vertical offset below the badge
     FLASH_SIZE: 36, // px — level-up flash text size
     FLASH_MS: 450, // ms — level-up flash duration (ADHD-safe window; NOT archive's 800)
+
+    // --- Key-held indicator (Phase 34.5, KEY-01) ---
+    // Persistent while the key is held; placed clear of the top-left badge/bar
+    // (HUD.X:16/HUD.Y:16 + BAR_W:160) and the top-right mute icon (AUDIO.ICON_X:600).
+    KEY_X: 540, // px — top band, left of the mute icon
+    KEY_Y: 8, // px — top band, level with the mute icon
+    KEY_SIZE: 16, // px — key-held indicator text size
+    KEY_GLYPH: "KEY", // plain string — TOFU-fallback caution (hud.js:91): no glyph risk
   },
 
   // --- Juice / game-feel tuning (Phase 12; Plan 01 consumes — squash/dust/pop/burst) ---

@@ -33,6 +33,7 @@ import { pathToFileURL } from "url";
 import { LEVEL_ORDER, getLevel } from "../src/levels/index.js";
 import { findOverHoleBarriers } from "./lib/over-hole-check.mjs";
 import { checkLevelReachability } from "./lib/reachability.mjs";
+import { checkKeyLockReachability } from "./lib/key-lock-check.mjs";
 
 // Phase 32 (WR-01, 32-REVIEW.md): the only 4 biome atlases build.js actually loads
 // (src/assets-manifest.js's biome-atlas/biome-bg entries) — must stay in sync with
@@ -101,6 +102,12 @@ async function main() {
       console.log(`${descriptor.id} | ${row.check} | ${row.status} | ${row.descriptor}`);
     }
     failures += hardFailCount;
+
+    const kl = checkKeyLockReachability(descriptor.geometry);
+    for (const row of kl.rows) {
+      console.log(`${descriptor.id} | ${row.check} | ${row.status} | ${row.descriptor}`);
+    }
+    failures += kl.hardFailCount;
   }
 
   if (failures > 0) {
