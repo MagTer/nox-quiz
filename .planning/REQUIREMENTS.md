@@ -40,6 +40,16 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **LVL-02**: Level-07 and level-08 end-climb sections differentiated (no longer near-duplicates)
 - [ ] **LVL-03**: All 8 levels reviewed against docs/LEVEL-DESIGN.md soft rules; motion design rules (checkpoint before every mover, missed platform = wait not death) written into LEVEL-DESIGN.md before any motion authoring
 
+### Key Mechanic (added 2026-07-15 — REVERSES SEED-001's "no new play mechanics" lock)
+
+- [ ] **KEY-01**: A key/lock mechanic exists (`geometry.keys` / `geometry.locks` + a `src/mechanics/key.js` seam) — the game's FIRST non-math gate. Accepted knowingly by the user; it changes the thesis that multiplication is the only gate to progress.
+- [ ] **KEY-02**: NO SOFTLOCK IS POSSIBLE. The validator HARD-proves, per level, that every lock's key is reachable from spawn AND reachable before the lock is required; an in-engine audit proves a real driven player picks it up and opens the lock. A key she can miss on a route she cannot re-traverse is a dead end — the worst failure a no-punishment game for a 12-year-old can ship.
+
+### Level Length & Shape (added 2026-07-15)
+
+- [ ] **LEN-01**: All 8 levels REBUILT from scratch (not appended to) at ~2x length, authored against the agreed `docs/LEVEL-DESIGN.md` rules — including the HARD headroom rule. Suspends the kid-validated byte-freeze; Phase 38's kid-UAT becomes a real re-approval.
+- [ ] **LEN-02**: Altitude is a CORE feature, not an ending. The biome-pair rhythm: odd levels introduce a biome (calmer), EVEN levels (2/4/6/8) are the second visit and go intense + vertical. Plus descents, optional high routes (risk/reward), and backtracking as VISIBLE doubling-back only — she must always see where she is going.
+
 ### Brand
 
 - [ ] **BRAND-01**: New "n0x" logo treatment (title hero + select badge) — a redesigned mark as part of the SNES identity, not a text swap, under the Phase-26-standard multi-round human sign-off
@@ -104,9 +114,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MOT-02 | Phase 36 | Pending |
 | MOT-03 | Phase 36 | Pending |
 | MOT-04 | Phase 30 | Complete |
-| LVL-01 | Phase 34 | Pending |
-| LVL-02 | Phase 34 | Pending |
-| LVL-03 | Phase 34 | Pending |
+| LVL-01 | Phase 34 | Done |
+| LVL-02 | Phase 34 | Done |
+| LVL-03 | Phase 34 | Done |
+| KEY-01 | Phase 34.5 | Pending |
+| KEY-02 | Phase 34.5 | Pending |
+| LEN-01 | Phase 34.6 | Pending |
+| LEN-02 | Phase 34.6 | Pending |
 | BRAND-01 | Phase 38 | Pending |
 | MOB-01 | Phase 37 | Pending |
 | MOB-02 | Phase 37 | Pending |
