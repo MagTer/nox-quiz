@@ -485,6 +485,130 @@ export function coinTargetBox(coin) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// OBSTRUCTION (Phase 34, Plan 34-02 — the model TIGHTENED by the running engine)
+// ---------------------------------------------------------------------------
+//
+// The coin model shipped in Plan 34-01 with THREE documented limitations, of which
+// limitation 1 — "IT MODELS NO OBSTRUCTION" — was the one that could make it
+// OVER-credit. Plan 34-02's in-engine witness replay (scripts/audit-coins.mjs) then
+// did exactly what it was built to do: it FALSIFIED the model. Nine coins the model
+// called reachable were driven, in the real engine, with real key input, and the real
+// onCollide("coin") handler never fired. Every one of them was tucked under (or
+// embedded inside) an overhanging platform's solid collider — the ceiling-bonk bug
+// class docs/LEVEL-DESIGN.md section 3 records as SHIPPED. E.g. level-01's coins[10]
+// at (2280, 264) sits beneath platform 2240..2368 @ y250: the rising arc's head hits
+// the platform underside and the coin is never touched.
+//
+// Limitation 1 is therefore now CLOSED, in the only sanctioned direction — the model
+// was tightened, not the gate loosened. The two remaining limitations (no cut-jump,
+// clamped rise) both UNDER-credit and stay exactly as they were.
+
+// Half a pixel: a player RESTING on a surface (AABB bottom exactly == surface top) is
+// touching it, not penetrating it. Overlap must be strict, or every launch would read
+// as an instant collision with the ground it is standing on.
+const OBSTRUCTION_EPS = 0.5;
+
+// Arc-tracing resolution for the obstruction check. Coarser than SAMPLE_DT (which
+// scans for the collection instant) because this only has to notice that a 16x32 body
+// entered a solid box: at CONFIG.RUN_SPEED-scale speeds a 1/120s step advances the
+// body ~2px horizontally and a few px vertically — far finer than the smallest solid
+// in any shipped level (a 24px-tall platform).
+const OBSTRUCTION_DT = 1 / 120;
+
+// A single witness search may trace at most this many arcs. Exhausting the budget is
+// treated as OBSTRUCTED (the candidate is rejected), never as clear — the model's
+// stated invariant is that it must only ever UNDER-credit, so the fail-safe direction
+// for "we ran out of budget to prove this arc is clear" is "then it is not a witness."
+const MAX_OBSTRUCTION_TRACES = 400;
+
+// Candidate takeoff x positions sampled across the [lo, hi] interval a jump witness
+// admits, in preference order (midpoint first — it preserves Plan 34-01's takeoffX for
+// every unobstructed witness, so no already-verified witness moves). The endpoints and
+// quartiles give an obstructed midpoint a fair chance at a genuinely clear line before
+// the candidate is rejected — without this, a coin reachable from one end of a wide
+// ledge would be needlessly HARD-FAILed just because the ledge's centre is blocked.
+const TAKEOFF_FRACTIONS = [0.5, 0, 1, 0.25, 0.75];
+
+/**
+ * Every SOLID collider in a level, in the EXACT geometry src/levels/build.js emits:
+ *
+ *   floor run  -> rect(run.w, CONFIG.FLOOR_THICKNESS) at (run.x, CONFIG.FLOOR_Y)
+ *                 (build.js:170-171 — one merged static collider per run)
+ *   platform   -> rect(p.w, p.h) at (p.x, p.y)
+ *                 (build.js:188-189 — same merged-collider idiom)
+ *
+ * Ids MATCH buildNodes' ids (`floor-N` / `platform-N`) so a witness's launchNodeId can
+ * be excluded from its own obstruction test — see arcIsClear.
+ *
+ * Barriers (door / math-gate / enemy blockers) are DELIBERATELY NOT solids here, for
+ * the same reason this file's header gives for never modelling them as blocking
+ * edges: the math mechanics have no lockout state, so a barrier is always eventually
+ * passable and can never make a coin permanently unreachable. Spikes likewise: a spike
+ * hit costs a free checkpoint respawn, never a game-over.
+ */
+export function solidBoxes(geometry) {
+  const boxes = [];
+  (geometry.floors ?? []).forEach((f, i) =>
+    boxes.push({
+      id: `floor-${i}`,
+      x0: f.x,
+      x1: f.x + f.w,
+      y0: CONFIG.FLOOR_Y,
+      y1: CONFIG.FLOOR_Y + CONFIG.FLOOR_THICKNESS,
+    })
+  );
+  (geometry.platforms ?? []).forEach((p, i) =>
+    boxes.push({ id: `platform-${i}`, x0: p.x, x1: p.x + p.w, y0: p.y, y1: p.y + p.h })
+  );
+  return boxes;
+}
+
+/** Strict AABB overlap between the player body at top-left (px, py) and a solid box. */
+function bodyHitsSolid(px, py, solids, launchNodeId) {
+  for (const b of solids) {
+    // The launch node is the surface the player is STANDING ON or DEPARTING FROM. A
+    // player never bonks the ledge they just left, and the model's `fall` family
+    // (x0 pinned to the departure edge, descending immediately) would otherwise read
+    // as an instant self-collision with its own floor on every single fall witness.
+    if (b.id === launchNodeId) continue;
+    if (
+      px + PLAYER_W > b.x0 + OBSTRUCTION_EPS &&
+      px < b.x1 - OBSTRUCTION_EPS &&
+      py + PLAYER_H > b.y0 + OBSTRUCTION_EPS &&
+      py < b.y1 - OBSTRUCTION_EPS
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Does the arc from (x0, surfaceTop) reach the collection instant tHit WITHOUT driving
+ * the player's 16x32 body into a solid collider first?
+ *
+ * This is the whole tightening. The engine does not let a body pass through a static
+ * body: an arc that clips a platform underside is REDIRECTED (ceiling bonk), so its
+ * modelled position at tHit is fiction and the "collection" it predicts never happens.
+ * Any such candidate is not a witness.
+ *
+ * Both the sampled grid AND the exact tHit are tested, so a collection instant falling
+ * between two grid steps can never dodge the check.
+ */
+function arcIsClear(surfaceTop, x0, dir, jumpForce, tHit, solids, launchNodeId, envelope) {
+  const at = (t) => ({
+    px: x0 + dir * envelope.runSpeed * t,
+    py: surfaceTop + 0.5 * CONFIG.GRAVITY * t ** 2 - jumpForce * t,
+  });
+  for (let t = 0; t < tHit; t += OBSTRUCTION_DT) {
+    const { px, py } = at(t);
+    if (bodyHitsSolid(px, py, solids, launchNodeId)) return false;
+  }
+  const { px, py } = at(tHit);
+  return !bodyHitsSolid(px, py, solids, launchNodeId);
+}
+
 // Simplest-to-replay-first ordering, so Plan 34-02's in-engine replay is robust:
 // a walk witness needs only "hold a direction"; a fall witness needs "hold a
 // direction off a known edge"; a jump witness needs "hold a direction + tap jump".
@@ -552,14 +676,21 @@ function witnessIsBetter(candidate, best) {
  *
  * THREE DELIBERATE, LOAD-BEARING LIMITATIONS — documented, never papered over:
  *
- * 1. IT MODELS NO OBSTRUCTION. It does not know that a platform underside can bonk
- *    the rising arc, that a spike sits in the walk path, or that a door blocker
- *    stands between the takeoff and the coin. docs/LEVEL-DESIGN.md section 3
- *    records ceiling-bonk as a real, SHIPPED bug class, so this is not theoretical.
- *    This is the ONE limitation that can make the model OVER-credit — and it is
- *    precisely why Plan 34-02 exists: scripts/audit-coins.mjs replays every witness
- *    emitted here in the real engine and falsifies any coin this model wrongly
- *    PASSes. This model is the cheap filter; the running game is the arbiter.
+ * 1. [CLOSED by Plan 34-02 — see the OBSTRUCTION section above.] It ORIGINALLY
+ *    modelled no obstruction: it did not know that a platform underside can bonk the
+ *    rising arc. docs/LEVEL-DESIGN.md section 3 records ceiling-bonk as a real,
+ *    SHIPPED bug class, so this was not theoretical — and it was the ONE limitation
+ *    that could make the model OVER-credit. scripts/audit-coins.mjs (34-02) replayed
+ *    every witness in the real engine and FALSIFIED nine of them, all coins tucked
+ *    under overhanging platforms. The model was then TIGHTENED (`arcIsClear`): a
+ *    candidate whose arc drives the player's AABB into a platform/floor collider
+ *    before it reaches the coin box is no longer a witness. The in-engine gate stays
+ *    the arbiter — this model is still only the cheap filter.
+ *
+ *    Spikes and door/math-gate/enemy blockers remain UNMODELLED, deliberately: neither
+ *    can make a coin permanently unreachable (no lockout state, no game-over, free
+ *    checkpoint respawn), so treating them as obstructions would under-credit for no
+ *    safety gain. See solidBoxes' comment.
  *
  * 2. It omits the variable-height cut-jump family (CONFIG.JUMP_CUT), so it
  *    UNDER-credits rather than over-credits, and every PASS witness stays
@@ -586,9 +717,12 @@ function witnessIsBetter(candidate, best) {
  *    forgiving). Self-test Case Q is the guard on this clamp: an unclamped py(t)
  *    passes it, the clamped one fails it. Do not weaken it.
  */
-export function bestWitnessToCoin(coin, nodes, spawnPaths, envelope) {
+export function bestWitnessToCoin(coin, nodes, spawnPaths, envelope, solids = []) {
   const box = coinTargetBox(coin);
   let best = null;
+  // Trace budget is per-coin, shared across every node/family/direction searched for
+  // this coin (see MAX_OBSTRUCTION_TRACES — exhaustion rejects, never accepts).
+  let traces = 0;
 
   const consider = (candidate) => {
     if (witnessIsBetter(candidate, best)) best = candidate;
@@ -606,14 +740,22 @@ export function bestWitnessToCoin(coin, nodes, spawnPaths, envelope) {
       const lo = Math.max(x0min, box.x0);
       const hi = Math.min(x0max, box.x1);
       if (lo <= hi) {
-        consider({
-          launchNodeId: n.id,
-          launchY: n.y,
-          takeoffX: (lo + hi) / 2,
-          dir: 1,
-          family: "walk",
-          t: 0,
-        });
+        // Obstruction-checked too (t=0, so this is just the standing body): a coin
+        // walled off by an overhanging platform's collider at head height is not
+        // walkable, however inviting its x-span looks.
+        const walkX = TAKEOFF_FRACTIONS.map((f) => lo + (hi - lo) * f).find(
+          (x) => !bodyHitsSolid(x, surfaceTop, solids, n.id)
+        );
+        if (walkX !== undefined) {
+          consider({
+            launchNodeId: n.id,
+            launchY: n.y,
+            takeoffX: walkX,
+            dir: 1,
+            family: "walk",
+            t: 0,
+          });
+        }
       }
     }
 
@@ -641,12 +783,24 @@ export function bestWitnessToCoin(coin, nodes, spawnPaths, envelope) {
 
         for (const dir of [1, -1]) {
           const dx = dir * envelope.runSpeed * t;
+          const jf = jumpForce;
+
+          // Reject any candidate whose arc bonks a solid before it gets to the coin
+          // (34-02's tightening). Budget exhaustion counts as OBSTRUCTED — the model
+          // must only ever under-credit. Note the t-loop CONTINUES past a blocked
+          // candidate rather than abandoning the family: a rising arc blocked by a
+          // ceiling can still be clear later on the DESCENT, and vice versa.
+          const clear = (x0) => {
+            if (traces >= MAX_OBSTRUCTION_TRACES) return false;
+            traces += 1;
+            return arcIsClear(surfaceTop, x0, dir, jf, t, solids, n.id, envelope);
+          };
 
           if (family === "fall") {
             // x0 PINNED to the departure edge — a fall starts by walking OFF it.
             const x0 = dir > 0 ? x0max : x0min;
             const px = x0 + dx;
-            if (px >= box.x0 && px <= box.x1) {
+            if (px >= box.x0 && px <= box.x1 && clear(x0)) {
               found = { launchNodeId: n.id, launchY: n.y, takeoffX: x0, dir, family, t };
               break;
             }
@@ -656,15 +810,21 @@ export function bestWitnessToCoin(coin, nodes, spawnPaths, envelope) {
             const lo = Math.max(x0min, box.x0 - dx);
             const hi = Math.min(x0max, box.x1 - dx);
             if (lo <= hi) {
-              found = {
-                launchNodeId: n.id,
-                launchY: n.y,
-                takeoffX: (lo + hi) / 2,
-                dir,
-                family,
-                t,
-              };
-              break;
+              // Midpoint first (preserves every already-verified 34-01 takeoffX), then
+              // the endpoints/quartiles — an obstructed centre line does not condemn a
+              // coin that a clear line from the same ledge can still collect.
+              const x0 = TAKEOFF_FRACTIONS.map((f) => lo + (hi - lo) * f).find((c) => clear(c));
+              if (x0 !== undefined) {
+                found = {
+                  launchNodeId: n.id,
+                  launchY: n.y,
+                  takeoffX: x0,
+                  dir,
+                  family,
+                  t,
+                };
+                break;
+              }
             }
           }
         }
@@ -689,11 +849,12 @@ export function planCoinWitnesses(geometry, envelope = JUMP_ENVELOPE) {
   const graph = buildGraph(nodes, envelope);
   const spawnNode = nodeContaining(nodes, SPAWN_X);
   const spawnPaths = spawnNode ? bfsWithPathMargin(graph, spawnNode.id) : new Map();
+  const solids = solidBoxes(geometry);
 
   return (geometry.coins ?? []).map((coin, index) => ({
     index,
     coin,
-    witness: bestWitnessToCoin(coin, nodes, spawnPaths, envelope),
+    witness: bestWitnessToCoin(coin, nodes, spawnPaths, envelope, solids),
   }));
 }
 
@@ -837,8 +998,11 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
   //
   // The witness is printed INTO the descriptor on PASS so that the coin-move plans
   // (34-03/04/05) and the in-engine gate (34-02) can both act on it directly.
+  // 34-02: the SAME obstruction-aware model the in-engine gate consumes — the static
+  // claim and the replayed claim must never diverge.
+  const coinSolids = solidBoxes(geometry);
   for (const [i, c] of (geometry.coins ?? []).entries()) {
-    const w = bestWitnessToCoin(c, nodes, spawnPaths, envelope);
+    const w = bestWitnessToCoin(c, nodes, spawnPaths, envelope, coinSolids);
     if (w === null) {
       rows.push({
         check: "coin-reachability",
@@ -1352,6 +1516,92 @@ if (isMain) {
     check(
       coinRows[0]?.status === "HARD-FAIL",
       `expected HARD-FAIL for a dead-band coin, got ${JSON.stringify(coinRows[0])}`
+    );
+  }
+
+  // ==========================================================================
+  // Case S — THE OBSTRUCTION CHECK (Plan 34-02; the model tightened BY the engine).
+  //
+  // This is the fixture the real engine handed us. It is level-01's actual, shipped
+  // geometry around coins[10], reduced to its load-bearing parts:
+  //
+  //   floor  1360..2240 @ y320   (the launch ledge)
+  //   floor  2400..2880 @ y320   (the far side of the gap)
+  //   platform 2240..2368 @ y250 h24   (an overhang jutting out over the gap)
+  //   coin   (2280, 264)         (tucked UNDER that overhang)
+  //
+  // The OBSTRUCTION-BLIND model (Plan 34-01) PASSED this coin: its raw parabola from
+  // the ledge sails right through the platform's solid box and clips the coin's
+  // 48x64 target box on the way. scripts/audit-coins.mjs then drove the real player,
+  // with real key input, on that exact witness — and the real onCollide("coin")
+  // handler never fired. The player's head hits the platform underside (y274) and the
+  // arc is redirected: a CEILING BONK, the shipped bug class in LEVEL-DESIGN.md
+  // section 3.
+  //
+  // So this case pins the fix in BOTH directions, which is the only way to prove the
+  // check is load-bearing rather than decorative:
+  //   - WITHOUT solids (the old blind model): a witness IS found  -> it over-credited.
+  //   - WITH solids    (the tightened model): the witness is null -> HARD-FAIL.
+  // Delete the obstruction check and the second assertion fails immediately.
+  // ==========================================================================
+  {
+    const geometry = {
+      floors: [
+        { x: 0, w: 200 }, // spawn (x:64) sits here
+        { x: 1360, w: 880 }, // the launch ledge (reachable via the chain below)
+        { x: 2400, w: 480 },
+      ],
+      platforms: [
+        // A stepping chain from spawn out to the launch ledge, so the ledge is
+        // genuinely spawn-reachable and the case tests OBSTRUCTION, not connectivity.
+        { x: 300, y: 260, w: 160, h: 24 },
+        { x: 560, y: 260, w: 160, h: 24 },
+        { x: 820, y: 260, w: 160, h: 24 },
+        { x: 1080, y: 260, w: 160, h: 24 },
+        // The overhang that actually bonks the arc — level-01's real one.
+        { x: 2240, y: 250, w: 128, h: 24 },
+      ],
+      goal: { x: 2800, y: 304 },
+      coins: [{ x: 2280, y: 264 }],
+    };
+    const nodes = buildNodes(geometry);
+    const graph = buildGraph(nodes, testEnvelope);
+    const spawnPaths = bfsWithPathMargin(graph, nodeContaining(nodes, SPAWN_X).id);
+    const coin = geometry.coins[0];
+
+    // Guard the guard: the launch ledge must really be spawn-reachable, or this case
+    // would "pass" for the wrong reason (connectivity, not obstruction).
+    const ledge = nodes.find((n) => n.xStart === 1360);
+    check(
+      spawnPaths.has(ledge.id),
+      "Case S fixture broken: the launch ledge must be spawn-reachable, or the case tests connectivity instead of obstruction"
+    );
+
+    const blind = bestWitnessToCoin(coin, nodes, spawnPaths, testEnvelope); // no solids
+    check(
+      blind !== null,
+      `Case S fixture must be a coin the OBSTRUCTION-BLIND model over-credits (that is the whole point of the case) — got ${JSON.stringify(blind)}`
+    );
+
+    const tightened = bestWitnessToCoin(
+      coin,
+      nodes,
+      spawnPaths,
+      testEnvelope,
+      solidBoxes(geometry)
+    );
+    check(
+      tightened === null,
+      `OBSTRUCTION CHECK BROKEN: a coin tucked under a solid platform overhang (level-01's real coins[10]) MUST be unreachable — the real engine refused to collect it on this exact witness (34-02's audit-coins.mjs run). Got ${JSON.stringify(tightened)}`
+    );
+
+    const coinRows = checkLevelReachability(geometry, testEnvelope).rows.filter(
+      (r) => r.check === "coin-reachability"
+    );
+    check(coinRows.length === 1, `expected exactly 1 coin-reachability row, got ${coinRows.length}`);
+    check(
+      coinRows[0]?.status === "HARD-FAIL",
+      `expected HARD-FAIL for a ceiling-bonked coin, got ${JSON.stringify(coinRows[0])}`
     );
   }
 
