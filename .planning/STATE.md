@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 33
-current_phase_name: Player & Entity Animation
-status: executing
-stopped_at: "Phase 32 (Terrain & Parallax Rendering) complete — 5 plans executed across 3 waves (2 parallel worktree pairs + 1 solo), autotile terrain + biome parallax + assets manifest all landed with geometry byte-frozen. Code review found and fixed a genuine critical bug (the new far-end proof check silently never reached the goal), and chasing the real fix surfaced a deeper pre-existing pathfinding bug in scripts/lib/route-planner.mjs affecting levels 03/04, root-caused and fixed with live in-engine verification (3 consecutive full 8-level browser-boot passes). Verification passed 5/5 must-haves. Continuing the autonomous run into Phase 33 — the first checkpoint:human-verify phase since Phase 31 (player art sign-off)."
-last_updated: "2026-07-13T07:42:58.312Z"
-last_activity: 2026-07-13
-last_activity_desc: Phase 33 execution started
+current_phase: 34.5
+current_phase_name: Key & Lock Mechanic
+status: ready-to-discuss
+stopped_at: "Phase 34 (Level Quality Pass) COMPLETE — 6 of 7 plans executed; 34-05 (coin moves, levels 01-03) DELIBERATELY SKIPPED because Phase 34.6 rebuilds those levels from scratch. SC4 (validator green) is knowingly deferred: 13 HARD-FAILs remain, ALL on geometry 34.6 deletes (8 coin rows on levels 01-03, 5 headroom rows on level-07 — the latter is the RED-first proof the new headroom gate works). DO NOT fix them; that is the throwaway work the skip exists to avoid. Every other gate is green, including browser-boot across all 8 levels. NEXT: Phase 34.5 (Key & Lock Mechanic) — a NEW phase that reverses SEED-001s no-new-mechanics lock at the user request; it must land BEFORE 34.6 because a key is code, not geometry."
+last_updated: "2026-07-15"
+last_activity: 2026-07-15
+last_activity_desc: Phase 34 complete (SC4 deferred to 34.6); Phases 34.5 + 34.6 inserted
 progress:
-  total_phases: 10
-  completed_phases: 4
+  total_phases: 12
+  completed_phases: 6
   total_plans: 21
   completed_plans: 20
-  percent: 40
+  percent: 50
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 33 — Player & Entity Animation
+**Current Focus:** Phase 34.5 — Key & Lock Mechanic (the first non-math gate; must land before the 34.6 level rebuild)
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -36,12 +36,12 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 33 (Player & Entity Animation) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 33
-Last activity: 2026-07-13 — Phase 33 execution started
+Phase: 34.5 — Key & Lock Mechanic (NOT STARTED)
+Plan: Not started — needs discuss
+Status: Phase 34 complete. Next: 34.5 (key mechanic, code) -> 34.6 (rebuild all 8 levels) -> 35 (re-dress)
+Last activity: 2026-07-15 — Phase 34 closed; 34.5 + 34.6 inserted at user request
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%  (6 of 12 phases — 34.5 and 34.6 inserted mid-milestone)
 
 ## v6.0 Roadmap Summary
 
@@ -52,7 +52,9 @@ Progress: [████░░░░░░] 40%
 | 31. Asset Bake & Style-Board Sign-off | Gothicvania biome art vendored + conformed; style-board sign-off hard-gates ALL downstream art; pink-scan gate | ART-01 |
 | 32. Terrain & Parallax Rendering | Solid autotiled ground + real multi-layer parallax, geometry byte-frozen, manifest gate | ART-02, ART-03 |
 | 33. Player & Entity Animation | Fully animated player + entity art on locked 16×32 collider | ART-04, ART-05 |
-| 34. Level Quality Pass | 5–8 reachability fixed, 07/08 climbs differentiated, soft-rules review, motion rules written | LVL-01..03 |
+| 34. Level Quality Pass ✅ | Coin model + in-engine audit, 07/08 differentiated, AGREED+ENFORCED rulebook (headroom HARD), bidirectional harness | LVL-01..03 |
+| **34.5 Key & Lock Mechanic** 🆕 | The first NON-MATH gate. Reverses SEED-001's no-new-mechanics lock. Code, not geometry — must land BEFORE the rebuild. HARD: no softlock | KEY-01/02 |
+| **34.6 Level Redesign** 🆕 | REBUILD all 8 levels from scratch, ~2x length. Biome-pair rhythm: odd = calm intro, EVEN (2/4/6/8) = intense + vertical. Descents, optional high routes, VISIBLE doubling-back only | LEN-01/02 |
 | 35. Biome Re-dress & Props | All 8 levels dressed in their biomes + visual-only props layer, geometry byte-frozen | ART-06, ART-07 |
 | 36. World Motion & Ambient Life | Patrols, moving platforms, ambient animation, alcove torch — dt-based, ADHD-safe | MOT-01..03, MECH-05 |
 | 37. Mobile — Responsive Canvas & Touch | RED-first letterbox probe, touch buttons with hold semantics, tappable answers/mute/reset | MOB-01..05 |
@@ -64,7 +66,7 @@ Progress: [████░░░░░░] 40%
 
 **Velocity (through v5.0):** 28 phases, 107 plans completed across 6 shipped milestones (2026-06-20 → 2026-07-09). Per-plan history archived in `.planning/milestones/`.
 
-**v6.0:** 16 plans completed (Phases 29-32).
+**v6.0:** 20 plans completed (Phases 29-34). Phase 34 ran 7 plans (6 executed, 34-05 deliberately skipped).
 
 ## Accumulated Context
 
@@ -73,8 +75,8 @@ Progress: [████░░░░░░] 40%
 Full log in PROJECT.md Key Decisions. Binding for v6.0:
 
 - **Sonnet 5 executes this milestone's implementation — phases sized accordingly:** small and single-concern (user decision, 2026-07-09; roadmap resized 8 → 10 phases at user request before approval)
-- **SEED-001's four locked decisions stand (2026-07-07):** visuals + cosmetic world motion only (no new play mechanics), dark-SNES register (Castlevania IV / Demon's Crest), CC0/CC-BY sourcing, and `.planning/research/v6-scouting/` (ASSET-SCOUTING.md, SPIKE-FINDINGS.md, styleboard.py) consumed as verified fact — not re-researched
-- **Guardrails unchanged:** all gates stay green; kid-validated geometry re-dressed not rebuilt (byte-frozen outside sanctioned Phase-34 fixes); no new runtime deps; no Kaplay upgrade; math brain LOCKED; no timers; no pink (new automated pink-scan gate in Phase 31)
+- **SEED-001 (2026-07-07) — PARTIALLY REVERSED 2026-07-15.** Its dark-SNES register (Castlevania IV / Demon's Crest), CC0/CC-BY sourcing, and `.planning/research/v6-scouting/` as verified-fact still stand. **But its "no new play mechanics" clause is REVERSED** — the user explicitly added a key/lock mechanic (Phase 34.5), the game's first non-math gate. See the key-mechanic entry below.
+- **Guardrails, AMENDED 2026-07-15:** all gates stay green (EXCEPT the 13 deliberate validator HARD-FAILs on geometry Phase 34.6 deletes — see `34-VERIFICATION.md`); no new runtime deps; no Kaplay upgrade; math brain LOCKED; no timers; no punishment/game-over; no pink (though the user has said not to over-index on the pink gate — "it's ok if there is some pink in there, the design is already approved", 2026-07-14). **The "kid-validated geometry byte-frozen" guardrail is SUSPENDED for Phase 34.6**, which rebuilds every level from scratch at the user's explicit instruction.
 - **The CSS `transform: scale(1.5)` trick and touch input are mutually exclusive** (source-verified): mouse reads `offsetX` (transform-immune), touch reads `clientX − rect()` (transform-affected). Phase 37 opens with a RED-first Playwright touch probe; `letterbox: true` is the primary fix candidate, DOM overlay the fallback — the probe decides
 - **Check-safety-compliant motion idioms come from `spike-code/` ONLY** — web Kaplay examples use banned `wait()`/`loop()`
 - **Player sprite swap must lock the collider explicitly** via `area({ shape: 16×32 })` — a bare swap silently resizes the physics body and invalidates the calibrated jump envelope + kid-validated feel
