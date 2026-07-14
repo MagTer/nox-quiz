@@ -316,8 +316,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 34.5-01-PLAN.md — Static softlock proof: key-lock-check.mjs + LOCK/KEY/HUD config + reachability exports + RED-first bad-level-key fixture composed into validate-levels.mjs (KEY-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 34.5-02-PLAN.md — Mechanic wiring: src/mechanics/key.js (pickup + lock-open) + build.js entity emission + game.js keyHeld run-state + hud.js indicator + import-safety guard (KEY-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 34.5-03-PLAN.md — In-engine proof: level-02 throwaway key-lock placement + audit-key-lock.mjs driven-player audit (KEY-01, KEY-02)
 
 ### Phase 34.6: Level Redesign — Rebuild and Double Every Level

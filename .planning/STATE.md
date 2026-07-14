@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
 current_phase: 34.5
-current_phase_name: Key & Lock Mechanic
-status: ready-to-discuss
+status: executing
 stopped_at: "Phase 34 (Level Quality Pass) COMPLETE — 6 of 7 plans executed; 34-05 (coin moves, levels 01-03) DELIBERATELY SKIPPED because Phase 34.6 rebuilds those levels from scratch. SC4 (validator green) is knowingly deferred: 13 HARD-FAILs remain, ALL on geometry 34.6 deletes (8 coin rows on levels 01-03, 5 headroom rows on level-07 — the latter is the RED-first proof the new headroom gate works). DO NOT fix them; that is the throwaway work the skip exists to avoid. Every other gate is green, including browser-boot across all 8 levels. NEXT: Phase 34.5 (Key & Lock Mechanic) — a NEW phase that reverses SEED-001s no-new-mechanics lock at the user request; it must land BEFORE 34.6 because a key is code, not geometry."
-last_updated: "2026-07-15"
+last_updated: "2026-07-14T23:35:32.953Z"
 last_activity: 2026-07-15
-last_activity_desc: Phase 34 complete (SC4 deferred to 34.6); Phases 34.5 + 34.6 inserted
+last_activity_desc: Phase 34 closed; 34.5 + 34.6 inserted at user request
 progress:
   total_phases: 12
   completed_phases: 6
   total_plans: 21
   completed_plans: 20
   percent: 50
+current_phase_name: Key & Lock Mechanic
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -38,7 +38,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 Phase: 34.5 — Key & Lock Mechanic (NOT STARTED)
 Plan: Not started — needs discuss
-Status: Phase 34 complete. Next: 34.5 (key mechanic, code) -> 34.6 (rebuild all 8 levels) -> 35 (re-dress)
+Status: Ready to execute
 Last activity: 2026-07-15 — Phase 34 closed; 34.5 + 34.6 inserted at user request
 
 Progress: [█████░░░░░] 50%  (6 of 12 phases — 34.5 and 34.6 inserted mid-milestone)
