@@ -9,8 +9,8 @@
 //
 // Reuses scripts/screenshot-phase20.mjs's server/MIME/chromium/try-finally skeleton
 // and scripts/browser-boot.mjs's title->select->level navigation + SAVE_KEY/SAVE_BLOB
-// pattern verbatim. PORT 8768 (8765/6/7 already taken by browser-boot.mjs/
-// screenshot-phase18.mjs/screenshot-phase20.mjs).
+// pattern verbatim. Serves on an EPHEMERAL port by default (Plan 34-07 — the old fixed
+// PORT 8768 collided across parallel runs; override with AUDIT_PORT).
 //
 // Phase 23 (VALID-03 groundwork) upgrade: each level is now driven through
 // scripts/lib/audit-retry.mjs's auditLevelWithRetries (maxAttempts: 5) instead of a
@@ -76,7 +76,21 @@ const { chromium } = await resolvePlaywright();
 
 const ROOT = new URL("../", import.meta.url);
 const ROOT_ABS = resolve(ROOT.pathname);
-const PORT = 8768;
+
+// Plan 34-07: the same hard-coded-port fix browser-boot.mjs just took, applied here BY
+// HAND rather than by extracting a shared module — the Playwright server/guard
+// duplication across these scripts is DELIBERATE (CLAUDE.md), so each copy is fixed
+// independently. A fixed port makes the script un-runnable more than once at a time:
+// two parallel worktree executors (or a stale server from a killed run) collide with
+// EADDRINUSE and the audit dies before proving anything.
+//
+// Default to an EPHEMERAL port (listen(0) => a guaranteed-free one from the OS, read
+// back from server.address().port below). AUDIT_PORT overrides when a fixed port is
+// genuinely needed.
+//
+// `let`, not `const`: the real port is only known after listen() resolves, and every
+// read of PORT (the request handler's URL base, page.goto) happens after that.
+let PORT = Number(process.env.AUDIT_PORT ?? 0);
 
 const MIME = {
   ".html": "text/html",
@@ -132,6 +146,9 @@ const server = createServer(async (req, res) => {
 });
 
 await new Promise((res) => server.listen(PORT, "127.0.0.1", res));
+// Read back the port the OS actually bound (the whole point of listen(0)) before any
+// consumer of PORT runs.
+PORT = server.address().port;
 
 const browser = await chromium.launch({ headless: true });
 
