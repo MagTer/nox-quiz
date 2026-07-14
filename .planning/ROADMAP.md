@@ -264,21 +264,24 @@ Plans:
   3. All 8 levels pass a documented review against `docs/LEVEL-DESIGN.md` soft rules, and motion design rules (checkpoint before every mover; missed platform = wait, not death; patrollers carry zero hurt wiring) are written into LEVEL-DESIGN.md BEFORE any motion authoring
   4. Structural validator green with zero HARD-FAILs across all 8 post-fix levels
 
-**Plans**: 6 plans
+**Plans**: 6/7 plans executed
 
 Plans:
+
+- [x] 34-07-PLAN.md
+
 **Wave 1**
 
-- [ ] 34-01-PLAN.md — Coin-appropriate `coin-reachability` check in reachability.mjs (48×64 pass-through box, not the alcove point model), proven RED-first; re-derives the true work list — LVL-01
+- [x] 34-01-PLAN.md — Coin-appropriate `coin-reachability` check in reachability.mjs (48×64 pass-through box, not the alcove point model), proven RED-first; re-derives the true work list — LVL-01
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 34-02-PLAN.md — `scripts/audit-coins.mjs`: in-engine witness replay proving every model-PASS coin is actually collected by a real driven player — LVL-01
+- [x] 34-02-PLAN.md — `scripts/audit-coins.mjs`: in-engine witness replay proving every model-PASS coin is actually collected by a real driven player — LVL-01
 
 **Wave 3** *(blocked on Wave 2; the two plans are file-disjoint)*
 
-- [ ] 34-03-PLAN.md — Coin moves, levels 04–07 (coins only, zero geometry edits) + level-04 golden-fixture re-baseline — LVL-01
-- [ ] 34-04-PLAN.md — Level-08 switchback end climb + its coins/checkpoints/alcove/goal/bounds, with a blocking human sign-off on the shape — LVL-02, LVL-01
+- [x] 34-03-PLAN.md — Coin moves, levels 04–07 (coins only, zero geometry edits) + level-04 golden-fixture re-baseline — LVL-01
+- [x] 34-04-PLAN.md — Level-08 switchback end climb + its coins/checkpoints/alcove/goal/bounds, with a blocking human sign-off on the shape — LVL-02, LVL-01
 
 **Wave 4** *(blocked on 34-03 — shares scripts/smoke-progress.mjs)*
 
@@ -286,7 +289,7 @@ Plans:
 
 **Wave 5** *(blocked on Waves 3–4)*
 
-- [ ] 34-06-PLAN.md — Motion rules + coin HARD rule into LEVEL-DESIGN.md, documented 8-level soft-rules review, full consolidated suite green — LVL-03, LVL-01, LVL-02
+- [x] 34-06-PLAN.md — Motion rules + coin HARD rule into LEVEL-DESIGN.md, documented 8-level soft-rules review, full consolidated suite green — LVL-03, LVL-01, LVL-02
 
 ### Phase 34.5: Level Redesign — Rebuild and Double Every Level
 
@@ -411,7 +414,7 @@ The standing convention — "extending kid-validated levels: append new sections
 | 31. Asset Bake & Style-Board Sign-off | v6.0 | 6/6 | Complete    | 2026-07-10 |
 | 32. Terrain & Parallax Rendering | v6.0 | 5/5 | Complete    | 2026-07-11 |
 | 33. Player & Entity Animation | v6.0 | 5/5 | Complete   | 2026-07-14 |
-| 34. Level Quality Pass | v6.0 | 0/6 | Planned | - |
+| 34. Level Quality Pass | v6.0 | 6/7 | In Progress|  |
 | 35. Biome Re-dress & Props | v6.0 | 0/TBD | Not started | - |
 | 36. World Motion & Ambient Life | v6.0 | 0/TBD | Not started | - |
 | 37. Mobile — Responsive Canvas & Touch Controls | v6.0 | 0/TBD | Not started | - |
