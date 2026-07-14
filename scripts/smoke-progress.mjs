@@ -634,6 +634,19 @@ const deepEqual = (a, b) => {
 //     over-hole per VALID-04, repositioned to x:1728; then re-repositioned to x:1300
 //     (x:1728 sat at floor-2's edge right before the gap-crossing platform — a
 //     forward-only traversal trap; see level-04.js's inline comment)
+//
+// Phase 34 re-baseline (LVL-01, Plan 34-03): THREE COINS MOVED, zero geometry change
+// — the floors/platforms/spikes/goal/checkpoints/doors/enemies golden values below are
+// untouched (asserted independently by a sha256 fingerprint of floors+platforms).
+// The three coins were unreachable in the real engine, per the in-engine witness gate
+// `scripts/audit-coins.mjs` (Plan 34-02). OLD (pre-Phase-34) coin values:
+//   { x: 4040, y: 264 } — ceiling-bonk: floated in gap 4000..4160 UNDER the bridging
+//     platform (4000..4128 @ y250, collider 250..274). Now { x: 4040, y: 194 } (on the
+//     bridge's walk band).
+//   { x: 4460, y: 136 } — 120px rise over bare floor-7, past even the theoretical apex
+//     (96.57px). Now { x: 4460, y: 176 } (80px rise, inside the 88.331px envelope).
+//   { x: 4760, y: 264 } — ceiling-bonk under the bridging platform (4720..4848 @ y250).
+//     Now { x: 4760, y: 194 } (on that bridge's walk band).
 {
   const FLOOR_Y = CONFIG.FLOOR_Y;
   const expectedGeometry = {
@@ -677,10 +690,10 @@ const deepEqual = (a, b) => {
       { x: 2600, y: 264 },
       { x: 3000, y: 264 },
       { x: 3560, y: 264 },
-      { x: 4040, y: 264 },
+      { x: 4040, y: 194 }, // Phase 34 (LVL-01): was y:264 (ceiling-bonk)
       { x: 4260, y: 184 },
-      { x: 4460, y: 136 },
-      { x: 4760, y: 264 },
+      { x: 4460, y: 176 }, // Phase 34 (LVL-01): was y:136 (120px rise, impossible)
+      { x: 4760, y: 194 }, // Phase 34 (LVL-01): was y:264 (ceiling-bonk)
       { x: 5060, y: 176 },
       { x: 5300, y: 264 },
       { x: 5900, y: 264 },
