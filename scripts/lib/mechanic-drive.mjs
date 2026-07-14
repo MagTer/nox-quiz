@@ -280,21 +280,74 @@ export async function driveToXClimbing(page, targetX, opts = {}) {
  * register naturally — and jump ONLY at takeoff points planned by route-planner.mjs
  * from the same level.geometry the structural validator models.
  *
- * Takeoff matching is positional and stateless-per-window: each takeoff fires once
- * per approach (a `consumed` set), and a detected death (a large backward x warp —
- * the respawn signature) clears the set so the re-walk re-executes every takeoff it
- * passes. Gap-kind takeoffs fire even when not grounded: walking a few px off the
- * lip before the press lands is COVERED by the engine's own coyote time
- * (CONFIG.COYOTE_MS) and actually maximizes the arc's range — the measured full-jump
- * range (~156px + 16px player width) clears this game's 160px gaps only from the
- * lip itself.
+ * ===========================================================================
+ * PLAN 34-07: THIS DRIVER IS NOW BIDIRECTIONAL.
+ * ===========================================================================
  *
- * If the target x is reached without the challenge count rising (e.g. an arc carried
- * the player past a 32px-wide trigger), a short ArrowLeft back-walk re-approaches the
- * trigger from the far side before giving up — collision triggers fire on contact
- * from either direction.
+ * Until this plan it pressed ArrowRight ONCE, HELD it for the entire drive, and
+ * measured progress as a monotonically-increasing `maxX`. Both halves of that were
+ * load-bearing assumptions that a level-08 could not satisfy: Plan 34-04 gave the
+ * capstone a SWITCHBACK climb that reverses direction TWICE, so a leftward leg read
+ * as a stall, and the bot walked off the tier and died (8 deaths, stalling at
+ * x~2878, `browser-boot.mjs` RED on level-08 and the alcove there `triggered: false`).
  *
- * Returns { reachedX, triggered } — same shape as driveToXClimbing.
+ * Nothing about the geometry was wrong and nothing about the reachability graph was
+ * wrong — reachability.mjs has ALWAYS modelled leftward hops (`canReach` handles
+ * `toNode.xEnd <= fromNode.xStart`; `buildGraph` tests every ordered pair both ways),
+ * and Plans 34-01/34-02 had already made the COIN model bidirectional citing this very
+ * switchback. The graph knew the path existed. Only the DRIVER could not follow it.
+ *
+ * The three changes, all of which fall out of one idea — A ROUTE IS A SEQUENCE OF
+ * LEGS, EACH WITH ITS OWN DIRECTION:
+ *
+ *   1. HELD DIRECTION is per-leg, not per-drive. The current leg is DERIVED from live
+ *      player state every grounded tick (which surface the feet are on), never from a
+ *      stored cursor — so a death/respawn anywhere on the route self-heals for free,
+ *      exactly as the old position-matched `consumed` reset did. While airborne the
+ *      last direction is HELD (a jump arc needs sustained input to keep its velocity).
+ *
+ *   2. TAKEOFF FIRING is direction-relative: `along = t.dir * (x - t.x)`, fire when
+ *      `0 <= along <= fireWindow`. For a rightward takeoff this is byte-identical to
+ *      the old `x >= t.x && x <= t.x + window`. A takeoff mark is a position AND a
+ *      heading — firing a leftward mount while walking right just launches the player
+ *      off the tier.
+ *
+ *   3. PROGRESS IS NON-MONOTONIC. "Progress" now means ADVANCED ALONG THE ROUTE
+ *      (leg index, then `dir * x` within the leg), never "x got bigger". Death
+ *      detection likewise stops being directional: it is a position WARP (a >200px
+ *      jump between consecutive ~55ms samples — no walk or arc can do that; only a
+ *      respawn can), so a leftward leg's perfectly legitimate ~13px/tick backward walk
+ *      can never be misread as a respawn.
+ *
+ * THE APPROACH/BACKUP PHASE is the one genuinely new behavior, and it is what actually
+ * flies both of level-08's reversals. If the current leg's takeoff is pending and the
+ * player has OVERSHOT its mark (`along > fireWindow`), hold `-dir` to walk back onto
+ * the mark, then turn and fire. That single rule produces, with no level-specific code:
+ *   - REVERSAL 1 (T3 -> T4, up-LEFT): land at T3's left end, walk RIGHT past T4's far
+ *     edge out onto T3's runway, turn around, jump back up-left onto T4.
+ *   - REVERSAL 2 (T4 -> T5, up-RIGHT): land at T4's RIGHT end (~2913), walk LEFT to
+ *     ~2802 for run-up, then sprint right and jump.
+ * Which is, word for word, the maneuver level-08's own descriptor documents. Backup
+ * engages ONLY for route takeoffs (never spike hops — a missed spike is a cheap
+ * checkpoint respawn, not a route failure) and is clamped to the launch surface's own
+ * span, so backing up can never walk the player into the gap behind them.
+ *
+ * ARRIVAL (once standing on the target node) walks toward `targetX` from EITHER side,
+ * which is what finally makes level-08's secret alcove reachable: it sits at x:2650,
+ * to the LEFT of where the T3->T4 arc lands the player (~2913). The old driver, holding
+ * ArrowRight, was structurally incapable of ever touching it. This subsumes the old
+ * "well past the target, back-walk to re-contact the trigger" special case — collision
+ * triggers fire on contact from either direction, and the arrival walk simply closes
+ * whatever signed distance remains.
+ *
+ * Gap-kind takeoffs still fire even when not grounded: walking a few px off the lip
+ * before the press lands is COVERED by the engine's own coyote time (CONFIG.COYOTE_MS)
+ * and actually maximizes the arc's range — the measured full-jump range (~156px + 16px
+ * player width) clears this game's 160px gaps only from the lip itself.
+ *
+ * Returns { reachedX, triggered } — the SAME shape, and the same contract, as before.
+ * Every caller (browser-boot.mjs, audit-retry.mjs, screenshot-phase26.mjs, and
+ * driveAndDetectAlcove below) is unchanged.
  */
 export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
   const {
@@ -315,37 +368,96 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
     // sooner, leaving room for whatever takeoff comes next.
     spikeJumpHoldMs = 150,
     maxMs = 90_000, // hard wall-clock budget per encounter approach
-    stallMs = 15_000, // no NEW forward progress for this long => stalled
+    stallMs = 15_000, // no NEW route progress for this long => stalled
     maxDeaths = 8,
+    // A respawn is the ONLY thing that can move the player >200px between two
+    // consecutive samples: at CONFIG.RUN_SPEED (240px/s) a 55ms tick advances ~13px,
+    // and even a terminal-velocity fall covers well under 100px in that time. Replaces
+    // the old `maxX - x > 250` backward-only signature, which a leftward leg trips
+    // just by walking.
+    warpPx = 200,
+    // How far PAST a missed takeoff mark (against the direction of travel) to back up
+    // before turning around and re-approaching it — enough run-up that the turn lands
+    // the player back on the mark at full RUN_SPEED, not still accelerating out of it.
+    backupClearPx = 20,
+    // Per-leg takeoff attempt cap. A hop that has been genuinely flown 8 times without
+    // ever landing is a real "cannot fly this hop" finding, not a timing flake.
+    maxLegFires = 8,
+    // Bound on arrival-walk direction reversals, so a trigger that never fires can
+    // never become an infinite ping-pong across targetX.
+    maxArrivalTurns = 6,
   } = opts;
 
-  // Per-kind fire windows (px past the takeoff mark). Mounts are tightest: a late
-  // fire crosses the platform's leading edge too low and bonks its side — the arc
-  // math (route-planner.mjs's offsets) tolerates ~16px of lateness for high rises.
-  // Gap marks sit 2px past the lip and the whole window must stay inside the
-  // engine's coyote grace (~21px at run speed), so the fire always lands the
-  // forward-shifted arc (see route-planner.mjs's corner-clip note). Spike hops just
-  // need the spike mid-arc — plenty of slack.
+  // Per-kind fire windows (px past the takeoff mark, IN THE DIRECTION OF TRAVEL).
+  // Mounts are tightest: a late fire crosses the platform's leading edge too low and
+  // bonks its side — the arc math (route-planner.mjs's offsets) tolerates ~16px of
+  // lateness for high rises. Gap marks sit 2px past the lip and the whole window must
+  // stay inside the engine's coyote grace (~21px at run speed), so the fire always
+  // lands the forward-shifted arc (see route-planner.mjs's corner-clip note). Spike
+  // hops just need the spike mid-arc — plenty of slack.
   const FIRE_WINDOW = { mount: 16, gap: 18, spike: 26 };
 
   // Feet-height tolerance for matching a takeoff's launch surface (player is 16x32,
   // pos.y is the top-left corner, so feet = pos.y + 32).
   const FROM_Y_TOL = 30;
+  const PLAYER_H = 32;
+
+  // Arrival tolerance: how close to targetX counts as "there". Kept comfortably above
+  // the ~5px/tick the arrival walk moves at nearPollMs so it converges instead of
+  // oscillating, and well inside every trigger's own >=32px footprint.
+  const ARRIVE_TOL = 10;
 
   // Phase 30 (MECH-04): opts.targetY (default undefined) threads through to
   // planTakeoffs' own optional 4th param — a no-op for every existing caller that
   // never sets it, and the mechanism driveAndDetectAlcove below relies on to correctly
   // target a platform node instead of an overlapping floor node.
-  const { takeoffs } = planTakeoffs(geometry, targetX, undefined, opts.targetY);
+  const { takeoffs, legs, targetNode } = planTakeoffs(geometry, targetX, undefined, opts.targetY);
   const baseline = await page.evaluate(() => get("challenge").length);
 
-  await page.keyboard.down("ArrowRight");
+  // --- Held-direction management (replaces the single keyboard.down("ArrowRight")) ---
+  // `held` is -1 / 0 / +1. Kaplay reads isKeyDown() every frame (src/player.js), so a
+  // key swap takes effect on the very next frame — there is no acceleration ramp to
+  // wait out, which is what makes the turn-around maneuvers crisp.
+  const DIR_KEY = { "-1": "ArrowLeft", 1: "ArrowRight" };
+  let held = 0;
+  const hold = async (d) => {
+    if (d === held) return;
+    if (held !== 0) await page.keyboard.up(DIR_KEY[held]);
+    held = d;
+    if (held !== 0) await page.keyboard.down(DIR_KEY[held]);
+  };
+
+  // Is the player standing on this node? The x slack absorbs the player's own 16px
+  // width at a surface's edges; the feet-height check is what disambiguates a platform
+  // from the floor it overlaps (every tier in this game is >=65px above the last, far
+  // outside FROM_Y_TOL).
+  const onNode = (n, x, feetY) =>
+    n && x >= n.xStart - 12 && x <= n.xEnd + 12 && Math.abs(feetY - n.y) <= FROM_Y_TOL;
+
+  // The leg the player is CURRENTLY on, derived from live state — never a stored
+  // cursor. Returns legs.length ("arrived") when standing on the target node, or null
+  // when the answer is unknown (airborne, or knocked somewhere off-route) in which case
+  // the caller keeps the last known leg.
+  const deriveLeg = (x, feetY) => {
+    for (let k = 0; k < legs.length; k++) {
+      if (onNode(legs[k].from, x, feetY)) return k;
+    }
+    if (onNode(targetNode, x, feetY)) return legs.length;
+    return null;
+  };
 
   let x = null;
+  let y = null;
   let triggered = false;
   const consumed = new Set();
-  let maxX = -Infinity;
+  const legFires = new Map(); // leg index -> takeoff attempts (cumulative, never cleared)
+  let legIndex = 0;
+  let backingUp = false;
   let deaths = 0;
+  let arrivalTurns = 0;
+  let prev = null; // last sample, for the warp/respawn detector
+  let bestLeg = -1; // the leg `bestAlong` is measured on
+  let bestAlong = -Infinity; // furthest ALONG-THE-ROUTE progress seen on that leg
   let lastProgressAt = Date.now();
   const deadline = Date.now() + maxMs;
 
@@ -359,72 +471,29 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
       });
       if (!s) break;
       x = s.x;
+      y = s.y;
       triggered = s.ch > baseline;
       if (triggered) break;
 
-      if (x >= targetX + 8) {
-        // WELL past the target x (inside/beyond the trigger's own footprint — every
-        // trigger kind is >= 32px wide) without the challenge count rising: the last
-        // arc may have sailed clean over the trigger. Back-walk briefly to
-        // re-contact it from the far side — but NEVER below the target's own
-        // surface's left edge (the previous crossing's gap is right there; walking
-        // back into it is a guaranteed death — observed empirically). Note the
-        // earlier `x >= targetX - 16` break of the old driver stopped at exact
-        // first-contact WITHOUT overlap (a 0px touch does not collide), reporting
-        // false "unreached"; +8 guarantees real overlap before giving up.
-        await page.keyboard.up("ArrowRight");
-        await page.keyboard.down("ArrowLeft");
-        // Phase 30 (MECH-04) fix: floors are listed before platforms, and a plain
-        // `.find()` always returns the FIRST x-span match — for a targetX whose x
-        // sits inside BOTH an overlapping floor's span AND a platform's span (e.g. a
-        // secret alcove floating above a stepping-stone platform, level-01's real
-        // case), this always picked the floor even when the player just landed on
-        // the platform, so backLimit anchored to the floor's own (much lower) left
-        // edge — the back-walk then retreated the player clean off the platform's
-        // left edge and back down to the floor below, missing the elevated target
-        // entirely. Disambiguate by the player's CURRENT feet height (s.y + 32,
-        // captured this same loop iteration, before the overshoot check) — mirrors
-        // this same function's own FROM_Y_TOL surface-matching convention used for
-        // takeoff firing, and nodeContaining's targetY-closest-match convention.
-        const feetY = s.y + 32;
-        const surfaces = [
-          ...(geometry.floors ?? []).map((f) => ({ x0: f.x, x1: f.x + f.w, y: CONFIG.FLOOR_Y })),
-          ...(geometry.platforms ?? []).map((p) => ({ x0: p.x, x1: p.x + p.w, y: p.y })),
-        ];
-        const targetSurface = surfaces
-          .filter((sf) => targetX >= sf.x0 && targetX <= sf.x1)
-          .sort((a, b) => Math.abs(a.y - feetY) - Math.abs(b.y - feetY))[0];
-        const backLimit = Math.max(targetX - 40, (targetSurface?.x0 ?? targetX - 40) + 8);
-        for (let j = 0; j < 14; j++) {
-          await page.waitForTimeout(110);
-          const st = await page.evaluate(() => {
-            const p = get("player")[0];
-            return p ? { x: p.pos.x, ch: get("challenge").length } : null;
-          });
-          if (!st) break;
-          if (st.ch > baseline) {
-            triggered = true;
-            break;
-          }
-          if (st.x <= backLimit) break;
-        }
-        await page.keyboard.up("ArrowLeft");
-        await page.keyboard.down("ArrowRight"); // finally-block symmetry
-        break;
-      }
-
-      if (x > maxX + 1) {
-        maxX = x;
-        lastProgressAt = Date.now();
-      } else if (maxX - x > 250) {
-        // Respawn signature: a large instantaneous backward warp. Reset takeoff
-        // consumption so the re-walk re-executes every takeoff on the way back out.
+      // --- Respawn: a position WARP, direction-agnostic (see warpPx above). ---
+      if (prev && Math.hypot(x - prev.x, y - prev.y) > warpPx) {
         deaths++;
         if (process.env.AUDIT_DEBUG) {
-          console.error(`driveToXPlanned: death #${deaths} at maxX=${maxX.toFixed(0)} (respawned to x=${x.toFixed(0)}), approaching targetX=${targetX}`);
+          console.error(
+            `driveToXPlanned: death #${deaths} (warped to x=${x.toFixed(0)} y=${y.toFixed(0)}) ` +
+              `on leg ${legIndex}/${legs.length}, approaching targetX=${targetX}`
+          );
         }
+        // Re-arm every takeoff so the re-walk out of the checkpoint re-executes each one
+        // it passes. `legFires` is deliberately NOT cleared: it is the cumulative
+        // "how many times have we genuinely tried to fly this hop" budget, and resetting
+        // it on death would let an unflyable hop retry forever.
         consumed.clear();
-        maxX = x;
+        backingUp = false;
+        bestLeg = -1;
+        bestAlong = -Infinity;
+        lastProgressAt = Date.now();
+        prev = { x, y };
         if (deaths >= maxDeaths) {
           console.error(
             `driveToXPlanned: ${deaths} deaths while approaching targetX=${targetX} ` +
@@ -432,80 +501,181 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
           );
           break;
         }
-        // A respawn checkpoint can sit PAST the takeoff the player just missed
-        // (e.g. it missed a platform mount, walked forward on the floor, touched a
-        // checkpoint, then died in the next gap) — walking right from the respawn
-        // would skip the route's only way up, deterministically dying forever.
-        // Retreat to just before the nearest takeoff behind the respawn point,
-        // clamped to the current surface's left edge so the retreat itself never
-        // walks off into a gap.
-        const behind = [...takeoffs].reverse().find((t) => t.x < x - 10);
-        if (behind) {
-          const feetY = s.y + 32;
-          const surfaces = [
-            ...(geometry.floors ?? []).map((f) => ({ x0: f.x, x1: f.x + f.w, y: CONFIG.FLOOR_Y })),
-            ...(geometry.platforms ?? []).map((p) => ({ x0: p.x, x1: p.x + p.w, y: p.y })),
-          ];
-          const surface = surfaces
-            .filter((sf) => x >= sf.x0 && x <= sf.x1)
-            .sort((a, b) => Math.abs(a.y - feetY) - Math.abs(b.y - feetY))[0];
-          const retreatTo = Math.max(behind.x - 24, (surface?.x0 ?? x) + 8);
-          if (retreatTo < x - 10) {
-            await page.keyboard.up("ArrowRight");
-            await page.keyboard.down("ArrowLeft");
-            const retreatDeadline = Date.now() + 4000;
-            while (Date.now() < retreatDeadline) {
-              const rx = await page.evaluate(() => get("player")[0]?.pos.x ?? null);
-              if (rx === null || rx <= retreatTo) break;
-              await page.waitForTimeout(40);
-            }
-            await page.keyboard.up("ArrowLeft");
-            await page.keyboard.down("ArrowRight");
-            maxX = -Infinity; // deliberate backward move — re-arm the death detector
-            lastProgressAt = Date.now();
-            continue;
+        await page.waitForTimeout(pollMs);
+        continue;
+      }
+      prev = { x, y };
+
+      const feetY = y + PLAYER_H;
+      const derived = s.grounded ? deriveLeg(x, feetY) : null;
+      if (derived !== null && derived !== legIndex) {
+        // Landed on a different surface — the route cursor moves with the player (this
+        // is what makes a respawn onto ANY checkpoint, on any tier, self-heal: the leg
+        // is re-derived from where the feet actually are, so the driver simply resumes
+        // the hop that surface owes).
+        legIndex = derived;
+        backingUp = false;
+      }
+
+      // --- ARRIVED (legIndex === legs.length): standing on the target node. Close the
+      // remaining signed distance to targetX from whichever side we landed on. This is
+      // the half that makes level-08's alcove (x:2650, LEFT of the T3->T4 landing at
+      // ~2913) reachable at all, and it subsumes the old rightward-only "well past the
+      // target, back-walk to re-contact it" special case.
+      //
+      // NOTE this only computes the DIRECTION and the progress metric. It must NOT
+      // short-circuit the tick: the spike fire loop below still has to run on the
+      // arrival stretch. An earlier cut of this rewrite `continue`d straight from here,
+      // and level-01's spike@880 — which sits between checkpoint@800 and the enemy@1000
+      // this drive is targeting — then never got hopped: the player walked into it,
+      // respawned 80px back at the checkpoint (a warp far too small to read as a death),
+      // walked into it again, and bounced there until the stall guard fired. The old
+      // driver had ONE loop that always ran the fire loop; keep that property. ---
+      const arrived = legIndex >= legs.length;
+      const leg = arrived ? null : legs[legIndex];
+      let want;
+      let pending = null;
+
+      if (arrived) {
+        const delta = targetX - x;
+        if (Math.abs(delta) <= ARRIVE_TOL) break;
+        want = delta > 0 ? 1 : -1;
+        if (held !== 0 && want !== held && s.grounded) {
+          arrivalTurns++;
+          if (arrivalTurns > maxArrivalTurns) {
+            console.error(
+              `driveToXPlanned: arrival walk reversed ${arrivalTurns}x around targetX=${targetX} ` +
+                `(x=${x}) without triggering — giving up.`
+            );
+            break;
           }
         }
-      }
+      } else {
+        const legTakeoffIdx = takeoffs.findIndex((t) => t.leg === legIndex);
 
-      if (Date.now() - lastProgressAt > stallMs) {
-        console.error(
-          `driveToXPlanned: no forward progress for ${stallMs}ms while approaching ` +
-            `targetX=${targetX} (maxX=${maxX}, x=${x}) — genuine "cannot progress" finding.`
-        );
-        break;
-      }
+        if (legTakeoffIdx >= 0 && (legFires.get(legIndex) ?? 0) >= maxLegFires) {
+          console.error(
+            `driveToXPlanned: leg ${legIndex} (${leg.from.id} -> ${leg.to.id}, dir ${leg.dir}) ` +
+              `never landed after ${maxLegFires} takeoff attempts while approaching ` +
+              `targetX=${targetX} (x=${x}) — genuine "cannot fly this hop" finding.`
+          );
+          break;
+        }
 
+        // Re-arm this leg's takeoff if we fired it but are back on the launch surface —
+        // the jump failed and we landed where we started. Without this the player would
+        // simply walk on off the edge and have to die to get another attempt; with it, a
+        // marginal hop just gets retried (bounded by maxLegFires above).
+        if (
+          legTakeoffIdx >= 0 &&
+          consumed.has(legTakeoffIdx) &&
+          s.grounded &&
+          onNode(leg.from, x, feetY)
+        ) {
+          consumed.delete(legTakeoffIdx);
+          backingUp = false;
+        }
+
+        pending =
+          legTakeoffIdx >= 0 && !consumed.has(legTakeoffIdx) ? takeoffs[legTakeoffIdx] : null;
+
+        // --- Direction for this tick: the leg's, unless we have to back up to a takeoff
+        // mark we have already walked past. ---
+        want = leg.dir;
+        if (pending) {
+          const along = pending.dir * (x - pending.x);
+          const win = pending.fireWindow ?? FIRE_WINDOW[pending.kind];
+          if (!backingUp && along > win && s.grounded) backingUp = true;
+          if (backingUp) {
+            const backDir = -pending.dir;
+            // Far enough back to have real run-up again — turn and go for it.
+            if (along <= -backupClearPx) backingUp = false;
+            else {
+              // Never back up off the launch surface's own far edge (that is a gap, and
+              // walking into it is a guaranteed death). If we run out of runway, turn
+              // and take the best shot available from here.
+              const edge = backDir > 0 ? leg.from.xEnd - 8 : leg.from.xStart + 8;
+              if ((backDir > 0 && x >= edge) || (backDir < 0 && x <= edge)) backingUp = false;
+            }
+          }
+          want = backingUp ? -pending.dir : pending.dir;
+        }
+      }
+      await hold(want);
+
+      // --- Fire any takeoff whose window we are inside, travelling its way. ---
       let fired = false;
       for (let i = 0; i < takeoffs.length; i++) {
         const t = takeoffs[i];
         if (consumed.has(i)) continue;
+        // Route takeoffs belong to exactly one leg and may only fire on it. Spike hops
+        // (leg === null) stay opportunistic and can fire on any leg, exactly as before.
+        if (t.leg !== null && t.leg !== legIndex) continue;
+        // A takeoff mark is a position AND a heading: firing a leftward mount while
+        // walking right just launches the player off the tier.
+        if (t.dir !== held) continue;
         // Phase 32 far-end-check fix (route-planner.mjs's spike-before-mount conflict
         // fix): a takeoff may carry its own `fireWindow` override (wider than the
         // per-kind default) for cases where the PRECEDING hop's exact landing spot
         // varies run-to-run (a short-held spike hop's real landing distance isn't
-        // perfectly predictable) — the takeoff still only fires once genuinely
-        // grounded there (the checks below), a wide window just means it doesn't
-        // miss whichever spot that turns out to be. Every pre-existing takeoff
-        // (mount/gap/spike from pushHopTakeoffs' plain branches) never sets this,
-        // so `?? FIRE_WINDOW[t.kind]` reproduces the exact prior per-kind default.
-        if (x < t.x || x > t.x + (t.fireWindow ?? FIRE_WINDOW[t.kind])) continue;
-        if (Math.abs(s.y + 32 - t.fromY) > FROM_Y_TOL) continue; // wrong surface — skip
+        // perfectly predictable) — the takeoff still only fires once genuinely grounded
+        // there (the checks below), a wide window just means it doesn't miss whichever
+        // spot that turns out to be. Every other takeoff never sets this, so
+        // `?? FIRE_WINDOW[t.kind]` reproduces the exact per-kind default.
+        const along = t.dir * (x - t.x);
+        if (along < 0 || along > (t.fireWindow ?? FIRE_WINDOW[t.kind])) continue;
+        if (Math.abs(feetY - t.fromY) > FROM_Y_TOL) continue; // wrong surface — skip
         if (!s.grounded && t.kind !== "gap") continue; // gap fires airborne too (coyote)
         consumed.add(i);
-        await page.keyboard.press("Space", { delay: t.kind === "spike" ? spikeJumpHoldMs : jumpHoldMs });
+        if (t.leg !== null) legFires.set(t.leg, (legFires.get(t.leg) ?? 0) + 1);
+        lastProgressAt = Date.now(); // flying the hop IS progress, even if it fails
+        await page.keyboard.press("Space", {
+          delay: t.kind === "spike" ? spikeJumpHoldMs : jumpHoldMs,
+        });
         fired = true;
         break;
       }
       if (fired) continue;
 
-      const nearTakeoff = takeoffs.some(
-        (t, i) => !consumed.has(i) && t.x - x > -30 && t.x - x < lookaheadPx
-      );
-      await page.waitForTimeout(nearTakeoff ? nearPollMs : pollMs);
+      // --- Route progress: advanced ALONG the route, never "x got bigger". For a
+      // leftward leg `dir * x` rises as x falls, so a legitimate leftward walk reads as
+      // progress instead of as a stall — the exact inversion that made the old driver
+      // give up on level-08. On the arrival stretch, CLOSING the signed distance to
+      // targetX is the progress (which is likewise direction-free). Backing up
+      // deliberately does not count as progress, but a takeoff fire (above) and a leg
+      // change both refresh the timer, so the back-up/turn/jump cycle can never trip the
+      // stall guard on its own. ---
+      if (bestLeg !== legIndex) {
+        bestLeg = legIndex;
+        bestAlong = -Infinity;
+        lastProgressAt = Date.now();
+      }
+      const along = arrived ? -Math.abs(targetX - x) : leg.dir * x;
+      if (along > bestAlong + 1) {
+        bestAlong = along;
+        lastProgressAt = Date.now();
+      }
+      if (Date.now() - lastProgressAt > stallMs) {
+        console.error(
+          `driveToXPlanned: no route progress for ${stallMs}ms ` +
+            (arrived
+              ? `on the arrival walk to targetX=${targetX}`
+              : `on leg ${legIndex}/${legs.length} (${leg.from.id} -> ${leg.to.id}, dir ${leg.dir}) ` +
+                `while approaching targetX=${targetX}`) +
+            ` (x=${x}) — genuine "cannot progress" finding.`
+        );
+        break;
+      }
+
+      const nearTakeoff = pending !== null && Math.abs(x - pending.x) < lookaheadPx;
+      await page.waitForTimeout(nearTakeoff || arrived ? nearPollMs : pollMs);
     }
   } finally {
+    // Release BOTH arrows unconditionally — a latched key would poison the caller's own
+    // subsequent input (driveAndDetectAlcove's nudge, resolveIfBoxed's answer keys).
+    await page.keyboard.up("ArrowLeft");
     await page.keyboard.up("ArrowRight");
+    held = 0;
   }
 
   return { reachedX: x, triggered };

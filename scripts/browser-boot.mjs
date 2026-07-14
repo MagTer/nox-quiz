@@ -55,7 +55,21 @@ const { chromium } = await resolvePlaywright();
 
 const ROOT = new URL("../", import.meta.url);
 const ROOT_ABS = resolve(ROOT.pathname);
-const PORT = 8765;
+
+// Plan 34-07: this used to be a hard-coded `const PORT = 8765`, which made the script
+// un-runnable more than once at a time — two parallel worktree executors (or a stale
+// server from a killed run) collide with EADDRINUSE and the whole boot check dies
+// before it proves anything. Hit for real during Phase 34.
+//
+// Default to an EPHEMERAL port (listen(0) => the OS hands back a guaranteed-free one,
+// read back from server.address().port below) so any number of copies can run
+// concurrently. BOOT_PORT overrides for the cases that genuinely need a fixed port
+// (attaching a debugger, an external tool pointing at a known URL).
+//
+// `let`, not `const`: the real port is only known after listen() resolves. Every read
+// of PORT (the request handler's URL base, page.goto) happens after that, so it is
+// always the bound port by then.
+let PORT = Number(process.env.BOOT_PORT ?? 0);
 
 const MIME = {
   ".html": "text/html",
@@ -348,6 +362,9 @@ const server = createServer(async (req, res) => {
 });
 
 await new Promise((res) => server.listen(PORT, "127.0.0.1", res));
+// Read back the port the OS actually bound (the whole point of listen(0)) before any
+// consumer of PORT runs.
+PORT = server.address().port;
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 960, height: 540 } });

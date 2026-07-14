@@ -186,6 +186,57 @@ const REACH_EDGE_BUFFER = 20;
 const DEDUPE_PX = 34;
 const PRIORITY = { mount: 0, gap: 1, spike: 2 };
 
+// ---------------------------------------------------------------------------
+// BIDIRECTIONAL ROUTES (Phase 34, Plan 34-07)
+// ---------------------------------------------------------------------------
+//
+// Until this plan, EVERY takeoff this planner emitted assumed rightward travel
+// (`to.xStart - offset`, `from.xEnd + GAP_COYOTE_MARK`), and the driver that
+// consumes them held ArrowRight for the whole drive. That was fine while every
+// shipped level was a monotonic left-to-right march — and it silently became
+// WRONG the moment Plan 34-04 gave level-08 a SWITCHBACK climb that reverses
+// direction twice (T3 -> T4 is a hop up-LEFT).
+//
+// The reachability GRAPH was never the problem: reachability.mjs's `canReach`
+// explicitly handles the `toNode.xEnd <= fromNode.xStart` (leftward) case, and
+// `buildGraph` tests every ordered node pair BOTH ways. `bottleneckPath` duly
+// FINDS the switchback path through all 10 of level-08's nodes. The graph knew
+// the path existed; only the takeoff model — and the driver — could not follow it.
+// (`edgeCost` still penalises leftward edges heavily, which is correct: a leftward
+// hop is a genuinely harder, more deliberate move, so it should lose to a rightward
+// route whenever one exists. It is a PREFERENCE, never a prohibition — the cost is
+// 2, not Infinity, so a switchback whose only path is leftward is still chosen.)
+//
+// Plans 34-01/34-02 had already made the COIN model bidirectional for exactly this
+// level (see reachability.mjs's `bestWitnessToCoin`: "level-08's Phase-34 switchback
+// climb reverses direction twice, so a rightward-only coin model would fabricate
+// false HARD-FAILs on it"). Nobody extended the same reasoning to the ROUTE. This
+// does.
+//
+// The route is now a chain of LEGS, each carrying its own direction. A takeoff's
+// position mirrors about the target's near edge for a leftward hop, and every
+// takeoff records the `dir` the driver must be HOLDING when it fires plus the `leg`
+// it belongs to (spike hops carry `leg: null` — they are opportunistic hazard
+// clearance, not route structure).
+
+/**
+ * Travel direction for one hop: +1 rightward, -1 leftward.
+ *
+ * Disjoint spans are unambiguous. OVERLAPPING spans — which is EVERY consecutive
+ * pair in a switchback climb, since docs/LEVEL-DESIGN.md's ~70px-overlap rule
+ * forces consecutive tiers to overlap in x — are resolved by span midpoint: the
+ * player travels toward whichever side the target tier extends to. Verified against
+ * level-08's real geometry: T3(2850..3150) -> T4(2610..2960) gives -1 (the up-LEFT
+ * reversal), T4 -> T5(2890..3230) gives +1 (the up-RIGHT reversal back).
+ */
+function hopDir(from, to) {
+  if (to.xStart >= from.xEnd) return 1;
+  if (to.xEnd <= from.xStart) return -1;
+  const fromMid = (from.xStart + from.xEnd) / 2;
+  const toMid = (to.xStart + to.xEnd) / 2;
+  return toMid >= fromMid ? 1 : -1;
+}
+
 /**
  * Tightness cost (0..1+) for a feasibility edge, used ONLY for route choice —
  * feasibility itself always comes from reachability.mjs's canReach-built graph.
@@ -359,12 +410,31 @@ function maxReachForRise(dy) {
 // Strategy-1-merged) case — mechanic-drive.mjs's driver falls back to its own
 // per-kind FIRE_WINDOW.mount default (16px) exactly as before this fix. Strategy 2
 // (below) sets a real, much wider fireWindow instead of pinning a single predicted x.
-function computeMountTakeoffX(from, to, rise, spikes, absorbedSpikes) {
+// `dir` (Plan 34-07) is the hop's travel direction (hopDir). For dir === +1 every
+// line below is byte-identical to the pre-34-07 rightward-only version. For dir === -1
+// the mount mark MIRRORS about the target's FAR (right) edge — the player must cross
+// `to.xEnd` while rising, travelling leftward, so the launch mark sits `offset` px to
+// the RIGHT of it, out on the launch surface's runway. Worked against level-08's real
+// REVERSAL 1 (T3 y:99 -> T4 y:24, rise 75 -> MOUNT_OFFSET_LOW): the mark lands at
+// 2960 + 68 = 3028 on T3, the arc crosses T4's right edge ~20px above its surface and
+// lands at ~2913 — 47px inside T4, right where the level's own T4 checkpoint (x:2920)
+// was authored to catch it. That is precisely the maneuver level-08's descriptor
+// documents: "run right past T4's edge on T3's runway, turn around, jump back up-left."
+//
+// The spike-conflict merge (Strategies 1 and 2 below) is deliberately gated to dir > 0:
+// its whole walk-order model ("a spike whose own takeoff fires BEFORE this mount's")
+// assumes rightward travel, and no spike in this game sits on a climb tier — spikes are
+// floor hazards on the rightward main run. Leaving it unreachable for leftward hops
+// keeps every existing rightward behavior bit-for-bit intact instead of generalising a
+// model that has no leftward case to serve.
+function computeMountTakeoffX(from, to, rise, spikes, absorbedSpikes, dir = 1) {
   const offset = rise >= 76 ? MOUNT_OFFSET_HIGH : MOUNT_OFFSET_LOW;
-  let x = to.xStart - offset;
+  let x = dir > 0 ? to.xStart - offset : to.xEnd + offset;
   x = Math.min(x, from.xEnd - 4); // never past the takeoff surface's own lip
   x = Math.max(x, from.xStart + 4);
   let fireWindow;
+
+  if (dir < 0) return { x, fireWindow };
 
   // Closest spike whose OWN standalone-hop takeoff (spike.x - SPIKE_OFFSET, the
   // actual position the player launches from, per the spike-emission loop in
@@ -453,19 +523,25 @@ function computeMountTakeoffX(from, to, rise, spikes, absorbedSpikes) {
 }
 
 /**
- * Compute and push the takeoff(s) needed for one leg of the planned path (from ->
- * to), recursing through a real avoiding-the-obstruction sub-path when the direct
- * hop is physically blocked by another node's footprint (see this file's header).
- * `depth` bounds recursion — level graphs are small (<20 nodes), so this only ever
- * recurses a couple of levels deep for a genuine multi-platform chain.
+ * Expand one hop of the bottleneck path into the EFFECTIVE NODE CHAIN the driver
+ * will actually walk — i.e. the real sequence of surfaces the player's feet touch,
+ * recursing through an avoiding-the-obstruction sub-path when the direct hop is
+ * physically blocked by another node's footprint (see this file's header). `depth`
+ * bounds recursion — level graphs are small (<20 nodes), so this only ever recurses
+ * a couple of levels deep for a genuine multi-platform chain.
+ *
+ * Plan 34-07 split this out of the old `pushHopTakeoffs`, which fused "find the real
+ * chain" and "emit takeoffs for it" into one recursive pass. Separating them is what
+ * lets each adjacent pair of the chain become a LEG with its own travel direction —
+ * the obstruction sub-paths land in the chain too, so their legs get directions and
+ * takeoffs exactly like any other. Takeoff emission is now `emitLegTakeoff` below,
+ * whose per-branch logic is otherwise carried over unchanged.
  */
-function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, spikes, absorbedSpikes, depth = 0) {
+function expandHop(from, to, nodes, graph, envelope, chain, depth = 0) {
   const rise = Math.max(0, from.y - to.y);
 
   if (rise > 12) {
-    // Mount: cross the leading edge while rising, near apex for high rises.
-    const { x, fireWindow } = computeMountTakeoffX(from, to, rise, spikes, absorbedSpikes);
-    takeoffs.push({ x, kind: "mount", fromY: from.y, ...(fireWindow !== undefined && { fireWindow }) });
+    chain.push(to); // a real rising mount — never obstructed by a third node's footprint
     return;
   }
 
@@ -481,68 +557,120 @@ function pushHopTakeoffs(from, to, nodes, graph, envelope, takeoffs, spikes, abs
       const subPath = pathAvoidingDirectEdge(nodes, graph, from.id, to.id, envelope);
       if (subPath && subPath.length > 2) {
         for (let j = 0; j < subPath.length - 1; j++) {
-          pushHopTakeoffs(subPath[j], subPath[j + 1], nodes, graph, envelope, takeoffs, spikes, absorbedSpikes, depth + 1);
+          expandHop(subPath[j], subPath[j + 1], nodes, graph, envelope, chain, depth + 1);
         }
         return;
       }
     }
     // No real alternate chain found (or recursion budget exhausted) — best-effort
-    // fallback: mount onto the nearest obstacle; descending off its far edge needs
-    // no separate takeoff (natural gravity walk-off, same as the plain case below).
-    const obsRise = from.y - obstacle.y;
-    const { x, fireWindow } = computeMountTakeoffX(from, obstacle, obsRise, spikes, absorbedSpikes);
-    takeoffs.push({ x, kind: "mount", fromY: from.y, ...(fireWindow !== undefined && { fireWindow }) });
+    // fallback: step onto the nearest obstacle, then continue to `to`. Descending off
+    // the obstacle's far edge needs no takeoff of its own (natural gravity walk-off);
+    // emitLegTakeoff's own flat/descending branch reaches exactly that conclusion for
+    // the obstacle -> to leg, since the two always overlap or touch in this case
+    // (level-01's gap-2 platform ends exactly where floor-2 begins; level-07's gap-1
+    // platform overlaps its far floor) — so this reproduces the pre-34-07 takeoff set.
+    chain.push(obstacle);
+    chain.push(to);
     return;
   }
 
-  if (to.xStart > from.xEnd + 4) {
-    // Flat/descending across a real gap. A DESCENDING gap (to.y > from.y) may
-    // already be crossable by pure momentum — walking off the ledge with no jump
-    // press at all, landing sooner and more predictably than an active jump would.
-    // Skipping the press here when it isn't needed matters: an unnecessary jump's
-    // longer, higher arc can sail clean over a ground-level trigger (a checkpoint's
-    // 8px-wide marker) sitting just past the landing spot — confirmed empirically
-    // on level-03's platform-1 -> floor-1 drop, where an unconditional jump press
-    // landed AT/PAST the x:740 checkpoint, causing every subsequent death on that
-    // approach to respawn all the way back at x:340 instead of x:740.
-    const dy = to.y - from.y;
-    const spanMin = to.xStart - from.xEnd;
-    const fallT = dy > 0 ? Math.sqrt((2 * dy) / CONFIG.GRAVITY) : 0;
-    const fallReach = AIR_SPEED * fallT;
-    if (fallReach < spanMin) {
-      // Plan 25-07 fix: a perfectly flat gap (dy === 0) with comfortable range
-      // margin fires EARLY, while still solidly grounded, instead of gambling on
-      // the fragile coyote window — see this file's header (MAX_FLAT_RANGE /
-      // EARLY_LEAD_MARGIN). Descending gaps (dy > 0) keep the proven coyote mark
-      // unchanged; their arc geometry differs and was never the failing case.
-      const flatMargin = MAX_FLAT_RANGE - spanMin;
-      if (dy === 0 && flatMargin >= EARLY_LEAD_MARGIN) {
-        const x = Math.max(from.xStart + 4, from.xEnd - EARLY_LEAD_PX);
-        takeoffs.push({ x, kind: "gap", fromY: from.y });
-      } else {
-        takeoffs.push({ x: from.xEnd + GAP_COYOTE_MARK, kind: "gap", fromY: from.y });
-      }
-    }
-    // else: pure fall momentum already clears the gap — no takeoff needed, walk off.
-  }
-  // else: descending onto an overlapping/touching lower surface — just walk off.
+  chain.push(to);
 }
 
 /**
- * Plan the ordered takeoff list for driving from spawn to `targetX`.
+ * Emit the takeoff (if any) for ONE leg of the effective chain, in the leg's own
+ * travel direction. Every branch below is the pre-34-07 logic with its rightward
+ * assumptions replaced by `dir`-relative ones; for dir === +1 the emitted x values
+ * are unchanged.
+ */
+function emitLegTakeoff(leg, takeoffs, spikes, absorbedSpikes) {
+  const { from, to, dir, index } = leg;
+  const rise = Math.max(0, from.y - to.y);
+
+  if (rise > 12) {
+    // Mount: cross the target's NEAR edge (near in the direction of travel) while
+    // rising, near apex for high rises.
+    const { x, fireWindow } = computeMountTakeoffX(from, to, rise, spikes, absorbedSpikes, dir);
+    takeoffs.push({
+      x,
+      kind: "mount",
+      fromY: from.y,
+      dir,
+      leg: index,
+      ...(fireWindow !== undefined && { fireWindow }),
+    });
+    return;
+  }
+
+  // Flat/descending. `spanMin` is the open-air distance AHEAD of the launch surface
+  // in the direction of travel; <= 4 means the surfaces overlap or touch, so the
+  // player just walks off onto the lower one — no takeoff at all.
+  const spanMin = dir > 0 ? to.xStart - from.xEnd : from.xStart - to.xEnd;
+  if (spanMin <= 4) return;
+
+  // A DESCENDING gap (to.y > from.y) may already be crossable by pure momentum —
+  // walking off the ledge with no jump press at all, landing sooner and more
+  // predictably than an active jump would. Skipping the press here when it isn't
+  // needed matters: an unnecessary jump's longer, higher arc can sail clean over a
+  // ground-level trigger (a checkpoint's 8px-wide marker) sitting just past the
+  // landing spot — confirmed empirically on level-03's platform-1 -> floor-1 drop,
+  // where an unconditional jump press landed AT/PAST the x:740 checkpoint, causing
+  // every subsequent death on that approach to respawn all the way back at x:340
+  // instead of x:740.
+  const dy = to.y - from.y;
+  const fallT = dy > 0 ? Math.sqrt((2 * dy) / CONFIG.GRAVITY) : 0;
+  const fallReach = AIR_SPEED * fallT;
+  if (fallReach >= spanMin) return; // pure fall momentum already clears it — walk off
+
+  // Plan 25-07 fix: a perfectly flat gap (dy === 0) with comfortable range margin
+  // fires EARLY, while still solidly grounded, instead of gambling on the fragile
+  // coyote window — see this file's header (MAX_FLAT_RANGE / EARLY_LEAD_MARGIN).
+  // Descending gaps (dy > 0) keep the proven coyote mark unchanged; their arc
+  // geometry differs and was never the failing case.
+  const flatMargin = MAX_FLAT_RANGE - spanMin;
+  let x;
+  if (dy === 0 && flatMargin >= EARLY_LEAD_MARGIN) {
+    x =
+      dir > 0
+        ? Math.max(from.xStart + 4, from.xEnd - EARLY_LEAD_PX)
+        : Math.min(from.xEnd - 4, from.xStart + EARLY_LEAD_PX);
+  } else {
+    // The coyote mark sits GAP_COYOTE_MARK px PAST the lip — past in the direction
+    // of travel, so it mirrors for a leftward hop.
+    x = dir > 0 ? from.xEnd + GAP_COYOTE_MARK : from.xStart - GAP_COYOTE_MARK;
+  }
+  takeoffs.push({ x, kind: "gap", fromY: from.y, dir, leg: index });
+}
+
+/**
+ * Plan the directional route for driving from spawn to `targetX`.
  *
- * Returns { takeoffs, path } where takeoffs is ascending-x sorted:
- *   { x, kind: "mount"|"gap"|"spike", fromY }
+ * Returns { takeoffs, path, legs, targetNode }.
+ *
+ * `takeoffs` is ascending-x sorted:
+ *   { x, kind: "mount"|"gap"|"spike", fromY, dir, leg, fireWindow? }
  * `fromY` is the y (surface top) of the surface this takeoff launches FROM. The
  * driver only fires a takeoff when the player's feet are at that height — so a
  * MISSED mount earlier in the chain can never cascade into firing later takeoffs
  * that were planned for a different surface (e.g. a lip jump planned from a raised
  * platform must not fire from the floor beneath it), and a spike hop must never
  * interrupt a platform-chain traversal happening overhead.
+ * `dir` (Plan 34-07) is the direction the driver must be HOLDING when it fires: a
+ * takeoff mark is a position AND a heading, and firing a leftward mount while walking
+ * right just launches the player off the tier.
+ * `leg` is the index into `legs` this takeoff belongs to, or `null` for a spike hop
+ * (opportunistic hazard clearance, not route structure — so the driver never plans a
+ * turn-around for one).
  *
- * Position-based and stateless: the driver re-matches takeoffs against the live player
- * x every tick, so a death/respawn behind a takeoff self-heals (the player walks back
- * into the same window and re-executes it).
+ * `legs` (Plan 34-07) is the EFFECTIVE node chain as ordered hops:
+ *   { index, from, to, dir }
+ * This is the route's spine. The driver derives which leg it is on from the player's
+ * LIVE position each tick (which surface the feet are on), never from a stored cursor
+ * — so a death/respawn anywhere along the route self-heals, exactly as the old
+ * position-matched takeoff model did.
+ *
+ * Still position-based and stateless: the driver re-matches takeoffs against the live
+ * player x every tick, so a death/respawn behind a takeoff re-executes it.
  */
 export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, targetY = undefined) {
   const nodes = buildNodes(geometry);
@@ -557,10 +685,24 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, target
   // targetX) — byte-identical behavior, proven by this file's own self-test staying
   // green.
   const targetNode = nodeContaining(nodes, targetX, targetY);
-  if (!startNode || !targetNode) return { takeoffs: [], path: null };
+  if (!startNode || !targetNode) return { takeoffs: [], path: null, legs: [], targetNode: null };
 
   const path = bottleneckPath(nodes, graph, startNode.id, targetNode.id, envelope);
-  if (!path) return { takeoffs: [], path: null };
+  if (!path) return { takeoffs: [], path: null, legs: [], targetNode: null };
+
+  // The EFFECTIVE chain: every surface the player's feet will actually touch, including
+  // the stepping stones an obstructed flat hop has to be re-routed through.
+  const chain = [path[0]];
+  for (let i = 0; i < path.length - 1; i++) {
+    expandHop(path[i], path[i + 1], nodes, graph, envelope, chain, 0);
+  }
+
+  const legs = chain.slice(0, -1).map((from, index) => ({
+    index,
+    from,
+    to: chain[index + 1],
+    dir: hopDir(from, chain[index + 1]),
+  }));
 
   const takeoffs = [];
   // Spike-before-mount conflict fix (SPIKE_MOUNT_CONFLICT_RANGE's header comment): spikes
@@ -569,13 +711,15 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, target
   // does not ALSO emit a separate (now-redundant, and conflict-prone) takeoff for them.
   const absorbedSpikes = new Set();
 
-  for (let i = 0; i < path.length - 1; i++) {
-    pushHopTakeoffs(path[i], path[i + 1], nodes, graph, envelope, takeoffs, geometry.spikes, absorbedSpikes);
+  for (const leg of legs) {
+    emitLegTakeoff(leg, takeoffs, geometry.spikes, absorbedSpikes);
   }
 
-  // Spike hops for every spike on a path FLOOR node before the target. fromY pins
-  // them to floor level so a platform-chain pass overhead never triggers them.
-  const pathFloorIds = new Set(path.filter((n) => n.id.startsWith("floor-")).map((n) => n.id));
+  // Spike hops for every spike on a chain FLOOR node before the target. fromY pins
+  // them to floor level so a platform-chain pass overhead never triggers them, and
+  // `leg: null` marks them as opportunistic (the driver never backs up to retry one —
+  // a missed spike is a cheap checkpoint respawn, not a route failure).
+  const chainFloorIds = new Set(chain.filter((n) => n.id.startsWith("floor-")).map((n) => n.id));
   for (const spike of geometry.spikes ?? []) {
     if (spike.x >= targetX - 8) continue;
     if (absorbedSpikes.has(spike.x)) continue;
@@ -583,8 +727,8 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, target
       nodes.filter((n) => n.id.startsWith("floor-")),
       spike.x
     );
-    if (node && pathFloorIds.has(node.id)) {
-      takeoffs.push({ x: spike.x - SPIKE_OFFSET, kind: "spike", fromY: CONFIG.FLOOR_Y });
+    if (node && chainFloorIds.has(node.id)) {
+      takeoffs.push({ x: spike.x - SPIKE_OFFSET, kind: "spike", fromY: CONFIG.FLOOR_Y, dir: 1, leg: null });
     }
   }
 
@@ -598,11 +742,28 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, target
   // (well inside the normal 34px DEDUPE_PX), so the unmodified merge step silently
   // dropped the spike's own takeoff, turning a fixed conflict into a guaranteed
   // spike death instead.
+  //
+  // Plan 34-07 additionally requires SAME-SURFACE + SAME-DIRECTION for a merge. A
+  // folded switchback route puts takeoffs from DIFFERENT tiers close together in raw
+  // x — level-08's T2->T3 mount (x:2782, launched from y:173) sits only 40px from its
+  // T4->T5 mount (x:2822, launched from y:24), two tiers and three hops apart. Merging
+  // on bare x-proximity across surfaces would silently delete a load-bearing takeoff
+  // and strand the climb. The pre-34-07 intent — "one jump covers both of these
+  // near-coincident marks" — is only ever true for two marks the player passes on the
+  // SAME surface travelling the SAME way, which is exactly what this now requires (and
+  // is what every pre-34-07 merge actually was, since every route was monotonic).
   takeoffs.sort((a, b) => a.x - b.x || PRIORITY[a.kind] - PRIORITY[b.kind]);
   const deduped = [];
   for (const t of takeoffs) {
     const last = deduped[deduped.length - 1];
-    if (last && t.x - last.x < DEDUPE_PX && t.fireWindow === undefined && last.fireWindow === undefined) {
+    if (
+      last &&
+      t.x - last.x < DEDUPE_PX &&
+      t.dir === last.dir &&
+      t.fromY === last.fromY &&
+      t.fireWindow === undefined &&
+      last.fireWindow === undefined
+    ) {
       if (PRIORITY[t.kind] < PRIORITY[last.kind]) deduped[deduped.length - 1] = t;
       continue;
     }
@@ -613,14 +774,26 @@ export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, target
   // 32px-wide gate mid-arc records a false "unreached"). Cross-gap/mount takeoffs are
   // never suppressed (they're mandatory to get there at all); spike hops are never
   // suppressed (walking into a spike is a guaranteed respawn loop).
+  //
+  // Plan 34-07: the node lookup now passes `t.fromY`, so it resolves to the surface the
+  // takeoff actually LAUNCHES FROM rather than to whichever node happens to be first in
+  // buildNodes' order (floors are always pushed before platforms). Under a folded
+  // switchback, one x can sit inside several tiers' spans at once — level-08's T2->T3
+  // mount at x:2782 falls inside BOTH T2 (2640..2920, its real launch surface) and T4
+  // (2610..2960, three hops later) — so the bare x-only lookup was resolving that
+  // takeoff's node by declaration-order luck. It happened to pick T2 and survive; a
+  // reordered descriptor would have suppressed a load-bearing mount and stranded the
+  // climb, silently. `fromY` makes it a fact instead of a coincidence. For every
+  // pre-34-07 (monotonic, floor-launched) takeoff this resolves to the same node the
+  // x-only lookup already returned.
   const filtered = deduped.filter((t) => {
     if (t.kind === "spike") return true;
     if (t.x <= targetX - 130) return true;
-    const tNode = nodeContaining(nodes, t.x);
+    const tNode = nodeContaining(nodes, t.x, t.fromY);
     return !(tNode && tNode.id === targetNode.id);
   });
 
-  return { takeoffs: filtered, path };
+  return { takeoffs: filtered, path, legs, targetNode };
 }
 
 // --- Self-test (runs only when executed directly) — smoke-progress.mjs idiom ---
@@ -693,6 +866,71 @@ if (isMain) {
       `expected a non-empty "mount" takeoff when targetY:170 disambiguates to the platform node, got ${JSON.stringify(withTargetY)}`
     );
   }
+
+  // Plan 34-07 — THE SWITCHBACK. A trimmed copy of level-08's real capstone climb:
+  // floor 1800..2360, then T1 (2410..2710 @248), T2 (2640..2920 @173), T3 (2850..3150
+  // @99), then the REVERSAL — T4 (2610..2960 @24) sits UP AND TO THE LEFT of T3 — then
+  // T5 (2890..3230 @-50) reverses back up-right. This is the exact shape the old
+  // rightward-only planner could not express: it emitted a "mount" whose mark clamped to
+  // T3's own left edge and pointed the jump away from T4 entirely.
+  {
+    const switchback = {
+      floors: [{ x: 0, w: 2360 }],
+      platforms: [
+        { x: 2410, y: 248, w: 300, h: 16 }, // T1
+        { x: 2640, y: 173, w: 280, h: 16 }, // T2
+        { x: 2850, y: 99, w: 300, h: 16 }, // T3
+        { x: 2610, y: 24, w: 350, h: 16 }, // T4 — up-LEFT of T3 (REVERSAL 1)
+        { x: 2890, y: -50, w: 340, h: 16 }, // T5 — up-RIGHT of T4 (REVERSAL 2)
+      ],
+      spikes: [],
+    };
+    // Target the summit tier (T5) by its own y, so nodeContaining can't resolve the
+    // target to a lower tier whose span also covers this x.
+    const { takeoffs: sb, legs: sbLegs } = planTakeoffs(switchback, 3100, JUMP_ENVELOPE, -50);
+
+    check(sbLegs.length === 5, `expected 5 switchback legs (floor->T1..T4->T5), got ${sbLegs.length}`);
+    check(
+      sbLegs.map((l) => l.dir).join(",") === "1,1,1,-1,1",
+      `expected leg directions 1,1,1,-1,1 (two reversals), got ${sbLegs.map((l) => l.dir).join(",")}`
+    );
+
+    // THE ASSERTION THIS WHOLE PLAN EXISTS FOR: a real, leftward takeoff for T3 -> T4.
+    const leftward = sb.filter((t) => t.dir === -1);
+    check(
+      leftward.length === 1 && leftward[0].kind === "mount",
+      `expected exactly one leftward "mount" takeoff (the T3->T4 reversal), got ${JSON.stringify(leftward)}`
+    );
+    // It must launch FROM T3 (fromY 99) and sit to the RIGHT of T4's far edge (2960) —
+    // out on T3's turn-around runway, so the player runs past T4, turns, and jumps back
+    // up-left onto it. A mark at/left of 2960 would be launching from underneath the
+    // target and could never cross its edge while rising.
+    check(
+      leftward[0].fromY === 99 && leftward[0].x > 2960 && leftward[0].x <= 3150,
+      `leftward mount must launch from T3 (fromY 99) on the runway right of T4's far edge, got ${JSON.stringify(leftward[0])}`
+    );
+    // Every takeoff must carry the direction the driver has to be HOLDING to fire it,
+    // and route takeoffs must name the leg they belong to.
+    check(
+      sb.every((t) => (t.dir === 1 || t.dir === -1) && (t.leg === null || typeof t.leg === "number")),
+      "every takeoff must carry a dir and a leg (null for spike hops)"
+    );
+    // Each of the 5 legs is a real hop (rise > 12), so each must have its own takeoff —
+    // none may be silently swallowed by the near-coincident-x dedupe, which is exactly
+    // the trap a folded route sets (T2->T3's mark and T4->T5's mark land ~40px apart in
+    // raw x while being three hops and two tiers apart).
+    check(
+      [0, 1, 2, 3, 4].every((i) => sb.some((t) => t.leg === i)),
+      `every switchback leg needs its own takeoff, got legs ${JSON.stringify(sb.map((t) => t.leg))}`
+    );
+  }
+
+  // Spike hops stay opportunistic (leg: null) and rightward — regression guard on the
+  // first synthetic level above.
+  check(
+    spikeHop && spikeHop.leg === null && spikeHop.dir === 1,
+    `spike hops must be dir:1 / leg:null (opportunistic, never route structure), got ${JSON.stringify(spikeHop)}`
+  );
 
   if (failures > 0) {
     console.error(`route-planner-selftest: FAIL — ${failures} assertion(s) failed`);
