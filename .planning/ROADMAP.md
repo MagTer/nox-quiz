@@ -288,10 +288,34 @@ Plans:
 
 - [ ] 34-06-PLAN.md — Motion rules + coin HARD rule into LEVEL-DESIGN.md, documented 8-level soft-rules review, full consolidated suite green — LVL-03, LVL-01, LVL-02
 
+### Phase 34.5: Level Redesign — Rebuild and Double Every Level
+
+**Goal**: Every level's platform layout is REBUILT from scratch and roughly twice as long — the last geometry change of the milestone, landing before any art dresses it
+**Depends on**: Phase 34 (quality fixes, the headroom rule, and the bidirectional harness must all settle first — the harness fix is what makes a long, non-linear level's completion provable at all)
+**Requirements**: LEN-01, LEN-02
+**Added**: 2026-07-14, at the user's request, mid-Phase-34.
+
+**Why HERE and not later** — this is the only cheap moment. The roadmap's own ordering principle is "geometry settles before re-dress." Terrain and parallax are procedural (autotiled per floor-run, camera-driven), so new geometry gets dressed for FREE by the renderer; but the **props layer (Phase 35)** and **motion placement (Phase 36)** are hand-placed and would have to be re-run over any geometry that changes after them. Geometry settles once, art dresses it once, motion is placed on it once.
+
+**⚠ THIS PHASE DELIBERATELY BREAKS THE KID-VALIDATED FREEZE (explicit user decision, 2026-07-14).**
+The standing convention — "extending kid-validated levels: append new sections after the existing geometry, never edit inside it" (CLAUDE.md) — is **suspended for this phase and this phase only**. The user's instruction was unambiguous: *"make sure to redo the entire level. not just extending, as the current placements are a bit 'beta'."* A full rebuild is judged better than dressing a weak layout in SNES-fidelity art.
+
+**The cost, stated plainly so nobody is surprised by it:** levels 01–03's kid-validated platforming is being thrown away. Her prior sign-off no longer covers them. **Every level must therefore be re-validated by the kid in Phase 38's UAT (VER-02)** — that is no longer a formality on unchanged levels, it is a real re-approval of new content. Phase 38 must budget for a rejection.
+
+**Success Criteria** (what must be TRUE):
+
+  1. Every level's `floors`/`platforms` layout is REBUILT (not appended to) and each level is ~2x its current length. The "append-only" rule does not apply here; the CLAUDE.md convention is explicitly overridden for this phase.
+  2. **Math density stays LOCKED at 1 door + 1 enemy + the end gate per level** (user decision, reaffirmed 2026-07-14). Twice the level with the same 3 challenges means twice the platforming per math gate — this is the INTENT, not a dilution: "the platforming is the intrinsically fun part; math is what stands between her and the next stage."
+  3. A documented platform-placement review across every level against the FULL `docs/LEVEL-DESIGN.md` rule set — **including the headroom rule added in Phase 34** (`rise − thickness − 32 ≥ 24px`; 9px headroom shipped unnoticed on every tier of level-07 because no rule and no gate existed for it). The new layouts are authored against the rules from the start, not retrofitted to them.
+  4. Each level's explicit `bounds.right` hand-bumped to match its new extent (the documented bounds-convention trap — level-02+ carry bounds used AS-IS).
+  5. The gentle difficulty ramp across levels 1→8 is preserved (level-01 must still be a soft landing for a 12-year-old; the arc calm→harsh is a design property, not an accident of the old layouts).
+  6. Structural validator + coin-reachability + the bidirectional in-engine drive all green with zero HARD-FAILs across all 8 rebuilt levels — every level provably completable from spawn by a real driven player, and every coin provably collectable.
+  7. Level-07 and level-08 remain mechanically DIFFERENT end climbs (LVL-02 must not be undone by the rebuild).
+
 ### Phase 35: Biome Re-dress & Props
 
 **Goal**: All 8 levels are fully dressed in their assigned biomes with a props layer — purely visual, on geometry that has already settled
-**Depends on**: Phases 32 + 33 (terrain/parallax/entity art integrated), Phase 34 (sanctioned geometry fixes landed and settled first)
+**Depends on**: Phases 32 + 33 (terrain/parallax/entity art integrated), Phase 34 + 34.5 (sanctioned geometry fixes AND the level-length change landed and settled first — Phase 35 must dress FINAL geometry, or the props layer gets re-run)
 **Requirements**: ART-06, ART-07
 **Success Criteria** (what must be TRUE):
 

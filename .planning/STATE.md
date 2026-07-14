@@ -4,16 +4,16 @@ milestone: v6.0
 milestone_name: SNES-Fidelity World
 current_phase: 33
 current_phase_name: Player & Entity Animation
-status: planning
-stopped_at: Phase 32 (Terrain & Parallax Rendering) complete — 5 plans executed across 3 waves (2 parallel worktree pairs + 1 solo), autotile terrain + biome parallax + assets manifest all landed with geometry byte-frozen. Code review found and fixed a genuine critical bug (the new far-end proof check silently never reached the goal), and chasing the real fix surfaced a deeper pre-existing pathfinding bug in scripts/lib/route-planner.mjs affecting levels 03/04, root-caused and fixed with live in-engine verification (3 consecutive full 8-level browser-boot passes). Verification passed 5/5 must-haves. Continuing the autonomous run into Phase 33 — the first checkpoint:human-verify phase since Phase 31 (player art sign-off).
-last_updated: "2026-07-11T10:46:58.073Z"
-last_activity: 2026-07-11
-last_activity_desc: Phase 32 complete, transitioned to Phase 33
+status: executing
+stopped_at: "Phase 32 (Terrain & Parallax Rendering) complete — 5 plans executed across 3 waves (2 parallel worktree pairs + 1 solo), autotile terrain + biome parallax + assets manifest all landed with geometry byte-frozen. Code review found and fixed a genuine critical bug (the new far-end proof check silently never reached the goal), and chasing the real fix surfaced a deeper pre-existing pathfinding bug in scripts/lib/route-planner.mjs affecting levels 03/04, root-caused and fixed with live in-engine verification (3 consecutive full 8-level browser-boot passes). Verification passed 5/5 must-haves. Continuing the autonomous run into Phase 33 — the first checkpoint:human-verify phase since Phase 31 (player art sign-off)."
+last_updated: "2026-07-13T07:42:58.312Z"
+last_activity: 2026-07-13
+last_activity_desc: Phase 33 execution started
 progress:
   total_phases: 10
   completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 21
+  completed_plans: 20
   percent: 40
 ---
 
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 33 — Player & Entity Animation
-Plan: Not started
-Status: Ready to plan Phase 33
-Last activity: 2026-07-11 — Phase 32 complete, transitioned to Phase 33
+Phase: 33 (Player & Entity Animation) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 33
+Last activity: 2026-07-13 — Phase 33 execution started
 
 Progress: [████░░░░░░] 40%
 
@@ -87,6 +87,10 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
   3. A subsequent `browser-boot.mjs` FPS-floor failure (levels 2-4, ~40fps vs floor 45) was diagnosed as a load-contention flake, not a regression — confirmed via a Fable 5 subagent consultation (user's explicit request) and a clean isolated re-run (all green, 49-60fps) once no other Playwright/gate processes were running concurrently. Both fixes are Python/build-time-only; zero runtime code changed.
   - Full 9-command gate suite reverified green after both fixes, including `check-pink-gate.sh`. User's explicit instruction (2026-07-11 night): investigate/fix root causes and get back to the Phase 33 checkpoint autonomously without reopening Phase 31/32 planning or asking further questions — only the final human sign-off itself stays a real pause.
   4. **Commit `f6a386e` (2026-07-12, Fable 5 escalation at the user's request):** third human look showed the real root cause was ARCHITECTURAL — the bake bottom-cropped every 179–304px-tall source into a 90–144px strip (showing only the bottom sixth of the approved art) and the runtime floor-anchored those strips in a viewport whose camera climbs 360px (levels 07/08 `bounds.top: -360`), so most of the screen was `#0a0a0a` by construction. Rebuilt to mirror `styleboard.py` scene composition exactly: far = full 640×360 plate (stretch_top sky; swamp keeps its (30,32,30) base), mid/near = native-height RGBA with transparency preserved, single-plate boards bake transparent placeholders, castle drops the two multi-panel preview sheets (the "bits and pieces" + purple clash) for the pack's dedicated interior plate at the board's x=250 crop, and `src/parallax.js` pins layers vertically to the camera (byte-identical placement for levels 01–06, full coverage on 07/08 climbs). Verified: 4-biome + climb-altitude screenshots vs boards, zero console errors, full gate suite green. **Binding steering for Phases 34–38 art work: `.planning/research/ART-PARITY-STEERING.md`** (styleboard.py is the normative spec; art plans must name exact sources/crops/retints; visual tasks require side-by-side board comparisons; gates don't look at pixels — recommend a Phase-35 `check-biome-coverage.mjs`).
+
+- **Phase 34.5 inserted (2026-07-14, user request, mid-Phase-34): REBUILD every level from scratch and double its length.** Lands between Phase 34 and Phase 35 — the only cheap moment, because terrain/parallax are procedural (new geometry dresses itself) but the Phase-35 props layer and Phase-36 motion placement are hand-placed and would be re-run over any later geometry change. **This deliberately SUSPENDS the "append to kid-validated levels, never edit inside" convention** — the user's instruction was explicit ("redo the entire level, not just extending, as the current placements are a bit 'beta'"). **Consequence, accepted knowingly: levels 01–03's kid-validated platforming is discarded and her prior sign-off no longer covers them — Phase 38's kid-UAT (VER-02) becomes a real re-approval of new content and must budget for a rejection.** Math density stays LOCKED at 1 door + 1 enemy + end gate — twice the platforming per math gate is the intent, not a dilution.
+- **Headroom is a real, unruled defect class (found 2026-07-14 at Phase 34's level-08 checkpoint):** `headroom = rise − thickness − 32`. Every tier of level-07's end climb ships with **9px** of headroom, and level-08's new switchback had 9–14px — the player is 32px tall in a 41–46px slot. `docs/LEVEL-DESIGN.md` quantifies rise, gap and overlap but had **NO headroom rule**, and no gate checked it, which is exactly why it shipped unnoticed. Fix: climb tiers to `h:16` + rises to 72–75 (~27px headroom); a headroom rule goes into LEVEL-DESIGN.md and a headroom check into the validator (Phase 34-06). All 60 platforms in the game use `h:24`.
+- **The verification harness is RIGHTWARD-ONLY (found 2026-07-14):** `driveToXPlanned` presses ArrowRight once and holds it, measuring progress as monotonically-increasing x; `planTakeoffs` emits no leftward takeoffs. So a switchback climb reads as a stall and the bot dies. User chose **Option A — fix the harness** (its own plan), because Phase 36's moving platforms and patrols need bidirectional driving anyway: the cost is paid once and reused. Note `audit-coins.mjs` *teleports* the player onto each tier rather than driving from spawn — so until the harness is bidirectional, **nothing automated proves a switchback level is navigable from spawn**.
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
