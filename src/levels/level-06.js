@@ -39,7 +39,7 @@ export const LEVEL_06 = {
       { x: 260, y: 184 },
       { x: 440, y: 128 },
       { x: 700, y: 264 },
-      { x: 860, y: 176 },
+      { x: 790, y: 184 }, // Phase 34 (LVL-01): was (860,176) — EMBEDDED in platform 840..952 @ y190's own collider (190..214); from below the head bonks the underside long before the coin's box, and that platform is itself unreachable (130px rise from the floor, vs the 88.331px ceiling). Moved LEFT of the overhang onto the real jump arc off floor-1 (72px rise), keeping its "arc between the two floor coins" role.
       { x: 1080, y: 264 },
       { x: 1360, y: 264 },
       { x: 1560, y: 176 },

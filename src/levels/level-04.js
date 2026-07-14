@@ -56,10 +56,10 @@ export const LEVEL_04 = {
       { x: 2600, y: 264 },
       { x: 3000, y: 264 },
       { x: 3560, y: 264 },
-      { x: 4040, y: 264 }, // Phase 24 extension
+      { x: 4040, y: 194 }, // Phase 24 extension. Phase 34 (LVL-01): was y:264 — CEILING-BONK, it floated inside gap 4000..4160 UNDER the bridging platform (4000..4128 @ y250, collider 250..274), so the rising arc bonked the underside and the coin could never be touched. Moved ONTO the bridge's walk band (platform top 250 - 56), collected while crossing it.
       { x: 4260, y: 184 }, // Phase 24 extension
-      { x: 4460, y: 136 }, // Phase 24 extension
-      { x: 4760, y: 264 }, // Phase 24 extension
+      { x: 4460, y: 176 }, // Phase 24 extension. Phase 34 (LVL-01): was y:136 — a 120px rise over bare floor-7 (4160..4720, no platform beneath), beyond even the theoretical apex. Lowered onto the real jump arc off floor-7 (80px rise, inside the 88.331px calibrated ceiling — the same arc height as this level's engine-proven coin@5060).
+      { x: 4760, y: 194 }, // Phase 24 extension. Phase 34 (LVL-01): was y:264 — CEILING-BONK under the bridging platform (4720..4848 @ y250). Moved ONTO that bridge's walk band (250 - 56).
       { x: 5060, y: 176 }, // Phase 24 extension
       { x: 5300, y: 264 }, // Phase 24 extension
       { x: 5900, y: 264 }, // Phase 24 extension

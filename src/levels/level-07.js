@@ -80,7 +80,7 @@ export const LEVEL_07 = {
     coins: [
       { x: 120, y: 264 },
       { x: 260, y: 184 },
-      { x: 420, y: 128 },
+      { x: 420, y: 176 }, // Phase 34 (LVL-01): was y:128 — a 128px rise over bare floor-0 (0..460, no platform beneath), beyond even the theoretical apex. Lowered onto the real jump arc off floor-0 (80px rise, inside the 88.331px calibrated ceiling).
       { x: 650, y: 264 },
       { x: 1050, y: 264 },
       { x: 1300, y: 176 },
