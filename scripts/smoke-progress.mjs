@@ -428,100 +428,121 @@ const deepEqual = (a, b) => {
 }
 
 // --- LVL-02 regression: level-02 geometry matches authored descriptor ---
-// Phase 24 re-baseline: level-02 extended + bounds bumped (VALID-04/LVL-01).
-// OLD (pre-Phase-24, v4.1) values, retained for historical traceability:
-//   floors: [{ x: 0, w: 520 }, { x: 700, w: 560 }, { x: 1420, w: 600 }, { x: 2180, w: 620 }]
-//   platforms: [{ x: 280, y: 240, w: 160, h: 24 }, { x: 500, y: 192, w: 128, h: 24 },
-//     { x: 640, y: 232, w: 128, h: 24 }, { x: 1200, y: 232, w: 128, h: 24 },
-//     { x: 1360, y: 192, w: 96, h: 24 }, { x: 2020, y: 232, w: 128, h: 24 },
-//     { x: 2360, y: 240, w: 128, h: 24 }]
-//   coins: [{ x: 160, y: 264 }, { x: 320, y: 184 }, { x: 540, y: 136 }, { x: 760, y: 264 },
-//     { x: 1040, y: 264 }, { x: 1260, y: 176 }, { x: 1560, y: 264 }, { x: 1900, y: 176 },
-//     { x: 2280, y: 264 }, { x: 2600, y: 264 }]
-//   spikes: [{ x: 920 }, { x: 1180 }, { x: 1760 }, { x: 2560 }] (y: FLOOR_Y - CONFIG.SPIKE_SIZE)
-//   goal: { x: 2720, y: FLOOR_Y - CONFIG.GOAL_SIZE }
-//   checkpoints: [{ x: 96 }, { x: 340 }, { x: 840 }, { x: 1020 }, { x: 1120 }, { x: 1460 },
-//     { x: 1680 }, { x: 2480 }] (y: FLOOR_Y - 48)
-//   mathGates: [{ x: 420 }, { x: 1100 }] (y: FLOOR_Y - CONFIG.MATH_GATE.H)
+// Phase 34.6 re-baseline (LEN-01/LEN-02/KEY-02): level-02 REBUILT from scratch as
+// the intense + vertical swamp archetype at ~2x length (goal.x 4200 -> 8180), with
+// THREE open-air ascent/descent humps (two plain, one carrying the optional
+// math-skip KEY on its peak tier) instead of the old flat run + throwaway 34.5
+// key+lock pair. NO geometry.locks (math-skip = keys without locks). See
+// src/levels/level-02.js's header for the full design rationale; the pre-Phase-24
+// and pre-Phase-34.6 historical values are no longer reproduced here — see git
+// history for that lineage.
 {
   const FLOOR_Y = CONFIG.FLOOR_Y;
   const expectedGeometry = {
     floors: [
-      { x: 0, w: 520 },
-      { x: 700, w: 560 },
-      { x: 1420, w: 600 },
-      { x: 2180, w: 620 },
-      { x: 2960, w: 560 },
-      { x: 3680, w: 600 },
+      { x: 0, w: 600 },
+      { x: 720, w: 460 },
+      { x: 1300, w: 520 },
+      { x: 1940, w: 360 },
+      { x: 2710, w: 520 },
+      { x: 3350, w: 600 },
+      { x: 4070, w: 520 },
+      { x: 4710, w: 520 },
+      { x: 5350, w: 360 },
+      { x: 6120, w: 520 },
+      { x: 6760, w: 520 },
+      { x: 7400, w: 900 },
     ],
     platforms: [
-      { x: 280, y: 240, w: 160, h: 24 },
-      { x: 500, y: 192, w: 128, h: 24 },
-      { x: 640, y: 232, w: 128, h: 24 },
-      { x: 1200, y: 232, w: 128, h: 24 },
-      { x: 1360, y: 192, w: 96, h: 24 },
-      { x: 2020, y: 232, w: 128, h: 24 },
-      { x: 2360, y: 240, w: 128, h: 24 },
-      { x: 2800, y: 250, w: 128, h: 24 },
-      { x: 3520, y: 250, w: 112, h: 24 },
+      { x: 280, y: 254, w: 120, h: 16 },
+      { x: 2320, y: 250, w: 100, h: 16 },
+      { x: 2440, y: 185, w: 110, h: 16 },
+      { x: 2560, y: 250, w: 110, h: 16 },
+      { x: 3740, y: 254, w: 110, h: 16 },
+      { x: 3890, y: 188, w: 140, h: 16 },
+      { x: 4070, y: 254, w: 110, h: 16 },
+      { x: 5730, y: 250, w: 100, h: 16 },
+      { x: 5850, y: 185, w: 110, h: 16 },
+      { x: 5970, y: 250, w: 110, h: 16 },
     ],
     coins: [
-      { x: 160, y: 264 },
-      { x: 320, y: 184 },
-      { x: 540, y: 136 },
-      { x: 760, y: 264 },
-      { x: 1040, y: 264 },
-      { x: 1260, y: 176 },
-      { x: 1560, y: 264 },
-      { x: 1900, y: 176 },
-      { x: 2280, y: 264 },
-      { x: 2600, y: 264 },
-      { x: 2840, y: 264 },
-      { x: 3040, y: 184 },
-      { x: 3260, y: 136 },
-      { x: 3560, y: 264 },
-      { x: 3900, y: 176 },
+      { x: 150, y: 264 },
+      { x: 340, y: 198 },
+      { x: 520, y: 264 },
+      { x: 800, y: 264 },
+      { x: 1080, y: 264 },
+      { x: 1350, y: 264 },
+      { x: 1700, y: 264 },
+      { x: 2000, y: 264 },
+      { x: 2200, y: 264 },
+      { x: 2360, y: 194 },
+      { x: 2480, y: 129 },
+      { x: 2600, y: 194 },
+      { x: 2760, y: 264 },
+      { x: 3080, y: 264 },
+      { x: 3420, y: 264 },
+      { x: 3700, y: 264 },
+      { x: 3770, y: 198 },
+      { x: 3980, y: 132 },
+      { x: 4110, y: 198 },
+      { x: 4150, y: 264 },
+      { x: 4470, y: 264 },
+      { x: 4750, y: 264 },
+      { x: 5120, y: 264 },
+      { x: 5420, y: 264 },
+      { x: 5620, y: 264 },
+      { x: 5770, y: 194 },
+      { x: 5900, y: 129 },
+      { x: 6020, y: 194 },
+      { x: 6180, y: 264 },
+      { x: 6560, y: 264 },
+      { x: 6820, y: 264 },
+      { x: 7180, y: 264 },
+      { x: 7460, y: 264 },
+      { x: 7760, y: 264 },
+      { x: 8060, y: 264 },
     ],
     spikes: [
-      { x: 920, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1180, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1760, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 2560, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 3200, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1560, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2970, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 4330, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 4970, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 6380, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 7020, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
-    goal: { x: 4200, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 8180, y: FLOOR_Y - CONFIG.GOAL_SIZE },
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
-      { x: 340, y: FLOOR_Y - 48 },
-      { x: 840, y: FLOOR_Y - 48 },
-      { x: 1020, y: FLOOR_Y - 48 },
-      { x: 1120, y: FLOOR_Y - 48 },
-      { x: 1460, y: FLOOR_Y - 48 },
-      { x: 1680, y: FLOOR_Y - 48 },
-      { x: 2480, y: FLOOR_Y - 48 },
-      { x: 3120, y: FLOOR_Y - 48 },
-      { x: 3680, y: FLOOR_Y - 48 },
+      { x: 740, y: FLOOR_Y - 48 },
+      { x: 1480, y: FLOOR_Y - 48 },
+      { x: 1960, y: FLOOR_Y - 48 },
+      { x: 2890, y: FLOOR_Y - 48 },
+      { x: 3370, y: FLOOR_Y - 48 },
+      { x: 4250, y: FLOOR_Y - 48 },
+      { x: 4890, y: FLOOR_Y - 48 },
+      { x: 5370, y: FLOOR_Y - 48 },
+      { x: 6300, y: FLOOR_Y - 48 },
+      { x: 6940, y: FLOOR_Y - 48 },
+      { x: 7420, y: FLOOR_Y - 48 },
     ],
     doors: [
-      { x: 1540, y: FLOOR_Y - CONFIG.DOOR.H },
+      { x: 940, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
-    // 2026-07-12 re-baseline (user decision): density locked at 1 door + 1
-    // enemy + end gate. OLD: mathGates x:420/1100/3760, enemies [].
     mathGates: [],
     enemies: [
-      { x: 1860, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
+      { x: 3600, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],
     secretAlcove: [
-      { x: 320, y: 170 },
+      { x: 320, y: 184 },
     ],
-    // Phase 34.5 (KEY-01/KEY-02) — throwaway in-engine proof vehicle.
-    keys: [{ x: 900, y: FLOOR_Y - 32 }],
-    locks: [{ x: 3960, y: FLOOR_Y - CONFIG.LOCK.H }],
+    // Phase 34.6 (KEY-02/LEN-02) — the math-skip KEY, no locks. Sits on the
+    // optional high route's peak tier (x:3890..4030, y:188).
+    keys: [{ x: 3950, y: 188 - 32 }],
   };
 
   const actual = getLevel("level-02").geometry;
   check(deepEqual(actual, expectedGeometry),
-    `LVL-02 regression: getLevel("level-02").geometry must match the authored descriptor`);
+    `LVL-02 regression: getLevel("level-02").geometry must match the Phase-34.6 rebuilt descriptor`);
 }
 
 // --- LVL-02 regression: level-03 geometry matches authored descriptor ---
