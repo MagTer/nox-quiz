@@ -384,6 +384,12 @@ export function buildLevel(levelData) {
     // Stash the panel on the blocker so key.js's lock-open branch destroys both
     // together (same idiom as the door blocker's blocker.panelObj above).
     blocker.panelObj = panel;
+
+    // WR-01: stash the descriptor's keyId (or null for the common no-id single-
+    // pair case) on the blocker so key.js's lock-open branch can check it holds
+    // the MATCHING key, not just any key. Direct property assignment, same
+    // pattern as panelObj above — no new component needed.
+    blocker.keyId = l.keyId ?? null;
   }
 
   // --- Key (walk-through pickup; Phase 34.5, KEY-01) ---
@@ -391,7 +397,7 @@ export function buildLevel(levelData) {
   // secretAlcove below, which IS a secret). The player walks THROUGH it (no
   // body() — pickup is wired via onCollide, not a blocker).
   for (const k of g.keys ?? []) {
-    add([
+    const keyObj = add([
       rect(CONFIG.KEY.W, CONFIG.KEY.H),
       pos(k.x, k.y),
       area(),
@@ -400,6 +406,9 @@ export function buildLevel(levelData) {
         : [color(CONFIG.KEY.COLOR[0], CONFIG.KEY.COLOR[1], CONFIG.KEY.COLOR[2]), opacity(1)]),
       "key",
     ]);
+    // WR-01: mirrors the lock blocker's keyId stash above — null for the common
+    // no-id single-pair case.
+    keyObj.keyId = k.keyId ?? null;
   }
 
   // --- Secret XP alcoves (LVL-06 — optional, silent, walk-through-only bonus) ---

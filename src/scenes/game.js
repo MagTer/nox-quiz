@@ -64,12 +64,18 @@ export function gameScene(data) {
   let goalReached = false;
 
   // Key-held run-state (KEY-01; Phase 34.5) — closure-local (same anti-leak
-  // contract: never module-level). Flipped true by wireKey's onPickup callback
-  // and read by its hasKey() callback to decide whether a lock opens or shows a
-  // hint. Survives respawn() automatically (reposition-in-place, no go()) and is
-  // NEVER serialized — resets only on a full scene re-entry, which is correct
-  // (a new run starts without the key).
-  let keyHeld = false;
+  // contract: never module-level). WR-01: tracked as a Set of held keyIds (not
+  // a single boolean) so a future multi-lock level's distinct key-lock pairs
+  // are correctly gated by identity — picking up one key no longer opens every
+  // lock. Keys/locks with no keyId (today's single-pair level-02 case) share
+  // KEY_DEFAULT_ID, so that case behaves EXACTLY as before: any key opens the
+  // one lock. Flipped by wireKey's onPickup callback and read by its hasKey()
+  // callback to decide whether a lock opens or shows a hint. Survives
+  // respawn() automatically (reposition-in-place, no go()) and is NEVER
+  // serialized — resets only on a full scene re-entry, which is correct (a new
+  // run starts without any key).
+  const KEY_DEFAULT_ID = "__default__";
+  const heldKeyIds = new Set();
 
   // Handle for the clear->select transition tween (see onReachGoal's onClear below).
   // Closure-local, same anti-leak contract as player._fxScaleTween in fx.js: if the
@@ -295,13 +301,20 @@ export function gameScene(data) {
   });
 
   // KEY-01 (Phase 34.5): the key/lock mechanic — the game's FIRST non-math gate.
-  // onPickup flips the closure-local keyHeld run-state (above); hasKey reads it so
-  // the lock's collision handler decides open-vs-hint. keyHeld is threaded as
-  // callbacks (not passed by value) so the lock always reads the LIVE flag. This is
-  // a NON-math spatial gate — it never opens the shared challenge seam, so the math
-  // density (3 challenges/level) is unchanged. Inert on every level with no
-  // keys/locks (build.js emits nothing there).
-  wireKey({ player, hud, onPickup: () => { keyHeld = true; }, hasKey: () => keyHeld });
+  // onPickup adds the touched key's id (or the shared default) to the
+  // closure-local heldKeyIds run-state (above); hasKey checks membership for the
+  // SPECIFIC id a collided lock carries, so a future multi-lock level's pairs
+  // stay independently gated (WR-01). heldKeyIds is threaded as callbacks (not
+  // passed by value) so the lock always reads the LIVE set. This is a NON-math
+  // spatial gate — it never opens the shared challenge seam, so the math density
+  // (3 challenges/level) is unchanged. Inert on every level with no keys/locks
+  // (build.js emits nothing there).
+  wireKey({
+    player,
+    hud,
+    onPickup: (keyId) => { heldKeyIds.add(keyId ?? KEY_DEFAULT_ID); },
+    hasKey: (keyId) => heldKeyIds.has(keyId ?? KEY_DEFAULT_ID),
+  });
 
   // --- Escape → level-select (NAV-03 agency) ---
   // Lets her bail back to select mid-level with no forced replay of earlier levels.

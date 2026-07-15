@@ -39,10 +39,16 @@ import * as audio from "../audio.js";
  * @param {object} args
  * @param {GameObj} args.player      the player entity (must have onCollide).
  * @param {object} args.hud          the scene's HUD controller — must expose showKey().
- * @param {() => void} args.onPickup called once, on the first key touched; the scene
- *   flips its closure-local keyHeld run-state here (never serialized).
- * @param {() => boolean} args.hasKey reads the scene's keyHeld run-state; the lock
- *   branch decides open-vs-hint from this.
+ * @param {(keyId: string|null) => void} args.onPickup called once per distinct key
+ *   entity touched (`collected` is fire-once PER key, not fire-once overall); the
+ *   scene records the touched key's id (build.js's `keyObj.keyId`, or null for the
+ *   common no-id single-pair case) into its closure-local held-keys run-state
+ *   (never serialized). WR-01: threading the id lets a future multi-lock level
+ *   distinguish which key was picked up.
+ * @param {(keyId: string|null) => boolean} args.hasKey reads the scene's held-keys
+ *   run-state for the SPECIFIC keyId the collided lock carries (null for the
+ *   common no-id case, which behaves as one shared default so a single key-lock
+ *   pair works exactly as before); the lock branch decides open-vs-hint from this.
  */
 export function wireKey({ player, hud, onPickup, hasKey }) {
   // --- KEY half (mirror secretAlcove.js:47) ---
@@ -55,7 +61,9 @@ export function wireKey({ player, hud, onPickup, hasKey }) {
     if (collected.has(keyObj)) return;
     collected.add(keyObj);
 
-    onPickup(); // flips the scene's closure-local keyHeld = true (never persisted)
+    // WR-01: pass this key's own id (or null) so the scene can track held keys
+    // per-id rather than as one undifferentiated boolean.
+    onPickup(keyObj.keyId ?? null);
     hud.showKey(); // persistent HUD "key held" indicator
 
     // Discovery feedback (burst + chime + rising popup) — mirrors secretAlcove.js's
@@ -81,7 +89,9 @@ export function wireKey({ player, hud, onPickup, hasKey }) {
   player.onCollide("lock", (lockObj) => {
     if (opened.has(lockObj)) return;
 
-    if (hasKey()) {
+    // WR-01: check the SPECIFIC keyId this lock requires (null for the common
+    // no-id single-pair case), not just "any key held at all".
+    if (hasKey(lockObj.keyId ?? null)) {
       opened.add(lockObj);
       audio.playSfx("door"); // reuse the existing door sfx — no new asset
       fx.clearBurst(); // optional celebratory beat (door.js precedent)
