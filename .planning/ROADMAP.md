@@ -364,7 +364,39 @@ The standing convention — "extending kid-validated levels: append new sections
 
   12. **BACKTRACKING — VISIBLE DOUBLING-BACK ONLY.** Routes may fold back on themselves (now provable, since the harness drives leftward), but she must ALWAYS be able to SEE where she is going next. **No hidden routes, no "where am I supposed to go?"** — a 12-year-old with ADHD who loses the thread stops playing, and that is the one failure this project cannot afford. Level-08's switchback is the reference: it doubles back in full view, and she read it fine.
 
-  13. **Keys/locks placed per Phase 34.5's mechanic** — and the softlock proof (34.5 SC2) must be green for every rebuilt level.
+  13. **Keys/locks placed per Phase 34.5's mechanic** — and the softlock proof (34.5 SC2) must be green for every rebuilt level. **REFINED (34.6-CONTEXT.md, overrides 34.5's shipped design):** on EVEN levels the key is an OPTIONAL "math-skip token" on a high risk/reward route — NO physical lock; key-held clears the level FREE with FULL XP (skip the end math), no key answers the end math. Use `geometry.keys` WITHOUT `geometry.locks`; the 34.5 physical-lock code + its softlock validator stay dormant (not deleted).
+
+**Plans**: 11 plans
+
+Plans:
+**Wave 1** *(parallel — file-disjoint)*
+
+- [ ] 34.6-01-PLAN.md — End-gate key-conditional mechanic seam (game.js shared clearLevel() + heldKeyIds branch; config XP_KEY_SKIP) — LEN-02
+- [ ] 34.6-02-PLAN.md — Rebuild level-01 (calm swamp intro, ~2x, no ceilings) + smoke re-baseline — LEN-01, LEN-02
+
+**Wave 2**
+
+- [ ] 34.6-03-PLAN.md — Rebuild level-02 (intense/vertical + math-skip key, no lock) + two-path audit-endgate-key.mjs + smoke re-baseline — LEN-01, LEN-02
+
+**Wave 3** *(mandated mid-phase human checkpoint)*
+
+- [ ] 34.6-04-PLAN.md — checkpoint:human-verify on the 01+02 prototype shape + lock A1 (key-skip XP) / A3 (level-02 verticality) — LEN-01, LEN-02
+
+**Wave 4** *(parallel — blocked on the checkpoint)*
+
+- [ ] 34.6-05-PLAN.md — Rebuild level-03 (town intro, calm) + smoke re-baseline — LEN-01, LEN-02
+- [ ] 34.6-06-PLAN.md — Rebuild level-05 (cemetery intro, calm) — LEN-01, LEN-02
+- [ ] 34.6-07-PLAN.md — Rebuild level-06 (cemetery, intense/vertical + math-skip key) — LEN-01, LEN-02
+- [ ] 34.6-08-PLAN.md — Rebuild level-07 (castle intro, monotonic staircase — deletes the 5 headroom fails) — LEN-01, LEN-02
+- [ ] 34.6-09-PLAN.md — Rebuild level-08 (castle finale, switchback + math-skip key) — LEN-01, LEN-02
+
+**Wave 5** *(serialized after 34.6-05 — shared smoke-progress fixture)*
+
+- [ ] 34.6-10-PLAN.md — Rebuild level-04 (town, intense/vertical + math-skip key) + smoke re-baseline — LEN-01, LEN-02
+
+**Wave 6**
+
+- [ ] 34.6-11-PLAN.md — Final consolidation: full 8-level gate suite green (zero HARD-FAIL) + documented LEVEL-DESIGN review — LEN-01, LEN-02
 
 ### Phase 35: Biome Re-dress & Props
 
