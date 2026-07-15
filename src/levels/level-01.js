@@ -1,150 +1,166 @@
-// src/levels/level-01.js — the v3.0 shipped level, lifted VERBATIM as plain DATA.
+// src/levels/level-01.js — "The First Descent" descriptor, REBUILT from scratch
+// (Phase 34.6, LEN-01/LEN-02). The append-only convention (LEVEL-DESIGN.md §9.1) is
+// explicitly SUSPENDED for this phase — this is a whole-cloth rewrite, not an
+// extension of the old v3.0-lineage geometry. The old byte-for-byte-frozen v3.0
+// geometry (floors to 3640, goal at 3560) is gone; see git history for it.
 //
-// Single responsibility: hold ONE author-written ~3.5-screen linear level as a
-// forward-looking DESCRIPTOR (id / displayName / allowedTables / geometry plus the
-// unset optional mechanics/theme/parallax slots) so the parameterized buildLevel in
-// ./build.js can instantiate it. The geometry here is a byte-for-byte lift of the
-// hand-tuned v3.0 level in src/level.js (Phase 8/9): merged-floor runs, the gap
-// layout, the arced coins, the floor spikes, the goal, and the respawn checkpoints.
+// ODD level (calm swamp intro / soft landing, LEVEL-DESIGN §8 L1-2 band): 120px
+// gaps, gentle 60-70px rises, and ZERO overlapping platform tiers anywhere — no
+// ceilings at all. Roughly doubled in length (goal.x 3560 -> 7100) with a
+// deliberate DESCENT (the hump climb that bridges the 2240..2650 gap: up two
+// tiers, then explicitly back DOWN two tiers to the next floor) and one OPTIONAL
+// visible high route over floor-2 (bonus coins, no key — keys are even-level
+// only). No `bounds` field: level-01 alone derives its right edge from geometry
+// (game.js), per the bounds-convention trap in LEVEL-DESIGN.md §7.
 //
-// This is a PURE data module: it references NO engine globals at all (no
-// add/rect/sprite/vec2/Rect/typeof Rect). The ONLY import is ../config.js — this file
-// lives in src/levels/, so the config sibling is TWO dirs up (`../`), mirroring
-// src/math/brain.js. The Wave-0 negative grep asserts the no-engine-global invariant
-// (a727c13); the Wave-0 regression smoke deep-equals this geometry against the v3.0
-// values, so the numbers must stay byte-for-byte identical.
+// This is a PURE data module: no engine globals (a727c13). The ONLY import is
+// ../config.js.
 
 import { CONFIG } from "../config.js";
 
-const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run (supports the spike/goal/checkpoint expressions)
+const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run
 
-// --- The level-01 descriptor (v3.0 geometry inside the forward-looking schema) ---
 export const LEVEL_01 = {
   id: "level-01",
   displayName: "The First Descent",
 
-  // Difficulty seam — DATA only (wired through in Wave 2; enforced for real in
-  // Phase 16). NOT a behavior change here.
-  // Reminder: level-01 stays on the v3.0 hard pool (tables 6–9); do not soften.
+  // Level-01 stays on the v3.0 hard pool (tables 6-9) — do not soften.
   allowedTables: [6, 7, 8, 9],
 
-  // --- Authored level geometry (gentle left-to-right difficulty curve) ---
-  //
-  // Floor runs are { x, w } at FLOOR_Y; the empty spans between them are the gaps.
-  // Platforms are raised { x, y, w, h } ledges spanning the gaps so every gap is
-  // crossable. Coins arc over jumps; spikes sit on the floor with a generous
-  // checkpoint placed just before each (a respawn never costs meaningful progress —
-  // ADHD-safe). The goal caps the final run. Level extent 3640px since the Phase 24
-  // extension (was 2240 = CONFIG.LEVEL_RIGHT in v3.0/v4.x; the camera right edge is
-  // now DERIVED from geometry in game.js — this level carries no explicit bounds).
   geometry: {
-    // Contiguous floor runs (one merged collider each). Gaps: 560..720, 1200..1360.
+    // Contiguous floor runs (one merged collider each), pinned to FLOOR_Y.
+    // Standard 120px gaps throughout (bare running-jump crossable per
+    // LEVEL-DESIGN §2); the 2240..2650 span is the one wide exception — it is
+    // bridged entirely by the ascent/descent platform hump below, and the
+    // 4330..4490 span (160px) is bridged by a single mid-gap stepping stone.
     floors: [
-      { x: 0, w: 560 }, // opening run
-      { x: 720, w: 480 }, // middle run (after gap 1)
-      { x: 1360, w: 880 }, // final run to the goal (after gap 2), ends at 2240
-      { x: 2400, w: 480 }, // new run after gap 3 (Phase 24 extension), ends at 2880
-      { x: 3040, w: 600 }, // final run to the new goal (Phase 24 extension), ends at 3640
+      { x: 0, w: 560 }, // opening run — calm, no hazards
+      { x: 680, w: 440 }, // gap 560..680 (120)
+      { x: 1240, w: 480 }, // gap 680+440=1120..1240 (120) — door + optional high route + first spike
+      { x: 1840, w: 400 }, // gap 1720..1840 (120) — second spike, leads into the hump
+      { x: 2650, w: 500 }, // gap 2240..2650 (410, bridged by the hump platforms) — enemy + third spike
+      { x: 3270, w: 460 }, // gap 3150..3270 (120) — fourth spike
+      { x: 3850, w: 480 }, // gap 3730..3850 (120) — fifth spike
+      { x: 4490, w: 460 }, // gap 4330..4490 (160, bridged by one stepping stone) — sixth spike
+      { x: 5070, w: 480 }, // gap 4950..5070 (120) — seventh spike
+      { x: 5670, w: 500 }, // gap 5550..5670 (120) — eighth spike
+      { x: 6290, w: 900 }, // gap 6170..6290 (120) — final calm run to the goal
     ],
 
-    // Raised platforms (own merged collider each) — stepping stones over the gaps
-    // and a small height-variety hop on the final run.
+    // Raised platforms — ALL h:16 (WYSIWYG, LEVEL-DESIGN §3.1), every y
+    // deliberately off the 16px grid (the "don't snap climb-tier y" trap, §3.4).
+    // ZERO platform pairs overlap in x anywhere in this level (L1-2's "no
+    // ceilings at all" rule, §8) — every rise is 60-70px, non-overlapping tiers.
     platforms: [
-      { x: 360, y: 240, w: 160, h: 24 }, // hop up before gap 1
-      { x: 560, y: 192, w: 128, h: 24 }, // mid-gap-1 stepping stone
-      { x: 1208, y: 232, w: 152, h: 24 }, // stepping stone across gap 2
-      { x: 1640, y: 232, w: 160, h: 24 }, // late height-variety ledge
-      { x: 2240, y: 250, w: 128, h: 24 }, // bridges new gap 3 (2240..2400), touches floor-2's end (Phase 24 extension)
-      { x: 2880, y: 250, w: 112, h: 24 }, // bridges new gap 4 (2880..3040), touches floor-3's end (Phase 24 extension)
+      { x: 280, y: 254, w: 120, h: 16 }, // early optional hop over floor-0 — hosts the secret alcove
+      { x: 850, y: 254, w: 90, h: 16 }, // height-variety hop over floor-1
+      { x: 1480, y: 254, w: 90, h: 16 }, // optional HIGH ROUTE tier 1, over floor-2 (bonus coins, no key)
+      { x: 1600, y: 191, w: 90, h: 16 }, // optional HIGH ROUTE tier 2 (peak) — rise 63 from tier 1
+      { x: 2260, y: 250, w: 100, h: 16 }, // the HUMP: ascent tier 1 (rise 70 from floor-3)
+      { x: 2380, y: 185, w: 110, h: 16 }, // the HUMP: ascent tier 2 / peak (rise 65 from tier 1)
+      { x: 2500, y: 250, w: 110, h: 16 }, // the HUMP: DESCENT tier 1 (drop 65 from the peak — the deliberate descent)
+      { x: 4370, y: 260, w: 100, h: 16 }, // mid-gap stepping stone bridging the 160px gap6
+      { x: 5850, y: 254, w: 90, h: 16 }, // late height-variety hop over floor-9
     ],
 
-    // 10 coins arced over the jumps and along the runs (count exercised in Plan 03).
-    //
-    // NOTE — intentional off-grid placement: coins render at 32x32 (default `topleft`
-    // anchor) while everything else is 16px and grid-aligned. The {x, y} below are the
-    // coin's TOP-LEFT corner, so its visual CENTER sits 16px right/down of {x, y}. This
-    // is deliberate hand-tuning (the 32px area() matches the sprite, so collection is
-    // unaffected) — these are authored visual positions, NOT grid coordinates. When
-    // editing, read {x, y} as the top-left, and add ~16px to picture the center.
+    // 34 coins (roughly double the old 16) — every one a fly-through box a
+    // driven player actually reaches (walk-family: coin.y = surfaceY - 56, the
+    // "walking height" convention that makes it collectable by simply passing
+    // through, no jump required). The high-route tier-2 platform (x:1600,y:191)
+    // carries the two bonus coins — the optional-route reward.
     coins: [
-      { x: 200, y: 264 },
-      { x: 392, y: 184 },
-      { x: 592, y: 136 },
-      { x: 800, y: 264 },
-      { x: 960, y: 264 },
-      { x: 1240, y: 176 },
-      { x: 1440, y: 264 },
-      { x: 1680, y: 176 },
+      { x: 150, y: 264 },
+      { x: 450, y: 264 },
+      { x: 340, y: 198 }, // on the early optional hop platform (near the secret alcove)
+      { x: 750, y: 264 },
+      { x: 1030, y: 264 },
+      { x: 890, y: 198 }, // on the floor-1 height-variety platform
+      { x: 1260, y: 264 },
+      { x: 1695, y: 264 },
+      { x: 1510, y: 198 }, // high route tier 1
+      { x: 1630, y: 135 }, // high route tier 2 — bonus coin 1
+      { x: 1660, y: 135 }, // high route tier 2 — bonus coin 2
       { x: 1900, y: 264 },
-      { x: 2080, y: 264 },
-      { x: 2280, y: 264 }, // Phase 24 extension — over the new gap-3 platform
-      { x: 2472, y: 184 }, // Phase 24 extension
-      { x: 2600, y: 136 }, // Phase 24 extension — before the new spike (x=2640)
-      { x: 2800, y: 264 }, // Phase 24 extension
-      { x: 3080, y: 264 }, // Phase 24 extension — start of the new final run
-      { x: 3400, y: 176 }, // Phase 24 extension — near the new goal
+      { x: 2180, y: 264 },
+      { x: 2300, y: 194 }, // hump ascent tier 1
+      { x: 2430, y: 129 }, // hump peak
+      { x: 2550, y: 194 }, // hump descent tier 1
+      { x: 2700, y: 264 },
+      { x: 2960, y: 264 },
+      { x: 3120, y: 264 },
+      { x: 3320, y: 264 },
+      { x: 3650, y: 264 },
+      { x: 3900, y: 264 },
+      { x: 4200, y: 264 },
+      { x: 4410, y: 204 }, // mid-gap stepping stone
+      { x: 4550, y: 264 },
+      { x: 4880, y: 264 },
+      { x: 5120, y: 264 },
+      { x: 5480, y: 264 },
+      { x: 5720, y: 264 },
+      { x: 6100, y: 264 },
+      { x: 5890, y: 198 }, // late height-variety platform
+      { x: 6350, y: 264 },
+      { x: 6700, y: 264 },
+      { x: 7050, y: 264 },
     ],
 
-    // Floor spikes (sit ON the floor at FLOOR_Y). Each has a checkpoint just before it.
+    // 8 floor spikes (double the old 4), one checkpoint 80px before each.
     spikes: [
-      { x: 880, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // first hazard on the middle run
-      { x: 1520, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // hazard on the final run
-      { x: 2000, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // last hazard before the goal
-      { x: 2640, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // new hazard on the extension's first new floor run (Phase 24 extension)
+      { x: 1440, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // clear of the high-route platforms (1480..1690) — a spike under a platform bonks the hop arc (LEVEL-DESIGN §3.5)
+      { x: 1920, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // clear of the hump's P0 mount takeoff (spike-before-mount/gap conflict — a spike hop landing near a jump takeoff can strand the driven player mid-air, so every spike below keeps a >=250px margin from the floor's own edge)
+      { x: 2820, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // 330px clear of floor-4's end (the bare gap takeoff at 3150)
+      { x: 3450, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // 280px clear of floor-5's end (the bare gap takeoff at 3730)
+      { x: 3930, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // clear of the mid-gap stepping stone's mount takeoff (same conflict class as spike[1])
+      { x: 4670, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // 280px clear of floor-7's end (the bare gap takeoff at 4950)
+      { x: 5250, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // 300px clear of floor-8's end (the bare gap takeoff at 5550)
+      { x: 5760, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // 410px clear of floor-9's end (the bare gap takeoff at 6170)
     ],
 
-    // Goal caps the final run (Phase 24 extension: was x:2160, capping the v4.1 final
-    // run at 2240; now caps the new final run — floor-4 ends at 3640, 80px buffer,
-    // matching the original's own 80px goal-to-floor-end convention: 2240-2160=80).
-    goal: { x: 3560, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    // Goal caps the final run (goal.x roughly double the old 3560; 90px buffer
+    // before floor-10's end at 7190, matching the shipped 80-90px convention).
+    goal: { x: 7100, y: FLOOR_Y - CONFIG.GOAL_SIZE },
 
-    // Respawn checkpoints — one near the start and one just BEFORE each spike.
-    //
-    // The `FLOOR_Y - 48` y is INTENTIONAL and couples to player height: the player is
-    // 16x32 (topleft anchor), so respawning at y=272 puts its feet at 304 while the
-    // floor top is FLOOR_Y=320 — a deliberate ~16px gap that reads as a gentle "drop
-    // in" onto the floor after every respawn (harmless; the fall-threshold is far
-    // below at LEVEL_BOTTOM+FALL_MARGIN). The literal is FLOOR_Y minus (player height
-    // 32 + a 16px drop). If the player sprite height or FLOOR_Y ever changes, retune
-    // this offset to preserve the "feet land on the floor" relationship.
+    // Respawn checkpoints — near spawn, one extra early safety net, and one
+    // just before EVERY spike, plus a final navigational one at the last run.
     checkpoints: [
-      { x: 96, y: FLOOR_Y - 48 }, // start-area checkpoint (32px player height + 16px drop)
-      { x: 800, y: FLOOR_Y - 48 }, // before the first spike (x=880)
-      { x: 1440, y: FLOOR_Y - 48 }, // before the second spike (x=1520)
-      { x: 1920, y: FLOOR_Y - 48 }, // before the third spike (x=2000)
-      { x: 2560, y: FLOOR_Y - 48 }, // before the new spike (x=2640) — 80px lead (Phase 24 extension)
-      { x: 3040, y: FLOOR_Y - 48 }, // start of the final run (historical: led the since-removed x:3120 mathGate)
+      { x: 96, y: FLOOR_Y - 48 }, // start-area checkpoint
+      { x: 700, y: FLOOR_Y - 48 }, // extra early safety net (start of floor-1)
+      { x: 1360, y: FLOOR_Y - 48 }, // before the first spike (x=1440)
+      { x: 1840, y: FLOOR_Y - 48 }, // before the second spike (x=1920, start of floor-3)
+      { x: 2740, y: FLOOR_Y - 48 }, // before the third spike (x=2820)
+      { x: 3370, y: FLOOR_Y - 48 }, // before the fourth spike (x=3450)
+      { x: 3850, y: FLOOR_Y - 48 }, // before the fifth spike (x=3930, start of floor-6)
+      { x: 4590, y: FLOOR_Y - 48 }, // before the sixth spike (x=4670)
+      { x: 5170, y: FLOOR_Y - 48 }, // before the seventh spike (x=5250)
+      { x: 5680, y: FLOOR_Y - 48 }, // before the eighth spike (x=5760, start of floor-9)
+      { x: 6320, y: FLOOR_Y - 48 }, // start of the final calm run to the goal
     ],
 
-    // Locked door — mid-level challenge seam (Plan 15-03). Sits on the final run
-    // away from the raised platform at x:1640 so it cannot be bypassed from the air,
-    // with a lintel above that blocks jumping over from the floor.
+    // Exactly ONE door — math density locked at 1 door + 1 enemy + end gate.
+    // Sits on solid floor-2, well clear of the gap on either side.
     doors: [
-      { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
+      { x: 1300, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
 
-    // Mid-level checkpoint gates: NONE — per-level math density is locked at
-    // exactly 1 door + 1 enemy + the end-of-level goal gate = 3 challenges
-    // (user decision 2026-07-12, supersedes the Phase-16 MECH-04 checkpoint
-    // gates; the removed x:150/1360/3120 gates are in git history).
+    // Mid-level checkpoint gates: NONE — density locked at exactly
+    // 1 door + 1 enemy + the end-of-level goal gate.
     mathGates: [],
 
-    // MECH-05: one defeat-enemy encounter on the middle run.
+    // Exactly ONE enemy — on solid floor-4, well clear of the hump above it.
     enemies: [
-      { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }, // enemy-1 (saw)
+      { x: 2900, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],
 
-    // Phase 25 retrofit (LVL-06) — purely additive, does not touch any existing
-    // floor/platform/checkpoint geometry. A short extra hop UP from the gap-1
-    // stepping-stone platform (x:360, y:240, w:160) instead of continuing across
-    // the gap — not signposted, not gating.
+    // Exactly ONE secret alcove, ~70px above the early optional platform
+    // (x:280, y:254, w:120) — off the required path, never signposted.
     secretAlcove: [
-      { x: 400, y: 170 },
+      { x: 320, y: 184 },
     ],
   },
 
   // --- Forward-looking optional slots (buildLevel ignores them when unset) ---
-  mechanics: [], // Phase 15/16 placeholder — mid-game math mechanics
-  biome: "swamp", // Phase 32 (ART-02/ART-03) — level 1 of 8, Castlevania arc calm->harsh (levels 1-2 swamp, 3-4 town, 5-6 cemetery, 7-8 castle)
-  parallax: null, // Phase 18 placeholder — parallax background layers
+  mechanics: [],
+  biome: "swamp", // level 1 of 8 — Castlevania arc calm->harsh (levels 1-2 swamp)
+  parallax: null,
 };
