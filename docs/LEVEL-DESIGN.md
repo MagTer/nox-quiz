@@ -175,8 +175,28 @@ No shipped level authors `geometry.movers` yet (**Phase 36 places the first one*
 | **L3–6** | 140–160px | mixed 60–75px | ceilings start appearing |
 | **L7–8** | 160px | tight **72–75px** climbs | real ceilings, at the 24px headroom floor |
 
-- **L1–2's "no ceilings at all" is the lever that makes level-01 a soft landing for a 12-year-old.** It is not an accident of the early levels being simple — it is the rule.
+- **L1–2 carry no ceilings (no overlapping tiers) — open air above every platform.** This keeps the early levels *legible and forgiving*, but forgiving is NOT the same as flat/simple — see §8.5. Level-01's soft landing comes from generous platforms, wide margins and dense checkpoints, not from being a flat walk.
 - **L7 and L8 must stay mechanically different (LVL-02):** level-07 is a **monotonic staircase**; level-08 keeps a **switchback** (a leftward-rising reversal, widths growing toward a wide summit balcony). They may not converge into the same climb again.
+
+## 8.5 Level ambition — the raised bar (agreed Phase 34.6; drives ALL 8 levels)
+
+**Every level is a VERTICAL, MULTI-ROUTE platforming challenge with real action — never a flat corridor or a single-file walk.** The numeric envelope in §1–§3 and the ramp bands in §8 are SAFETY LIMITS that still hold; this section raises the DESIGN bar *within* them.
+
+Found at the Phase-34.6 human checkpoint: rebuilt prototype levels passed every automated gate yet were rejected as *"too simple, repetitive, no climbing, no going backwards."* Green gates prove a level is legal and completable; they do not prove it is good. **No gate enforces this section — the human sign-off does.** A level that is green but flat/repetitive/single-route is a FAIL of §8.5.
+
+1. **Verticality in EVERY level (not just evens).** Every level has real climbs AND descents.
+   - **Odd (1,3,5,7 — calmer biome intro):** a meaningful vertical range (~150–250px), ≥1 genuine climb and ≥1 deliberate descent. Calm = FORGIVING (generous platforms, wide margins), never flat or short.
+   - **Even (2,4,6,8 — intense + vertical):** tall climbs — **level-02 ≥ ~450–500px of gain**, escalating through 4/6/8 — with MULTIPLE switchbacks (visible doubling-back, level-08 style).
+
+2. **Route choice / branching in EVERY level.** ≥1 genuine, VISIBLE fork where two routes diverge and rejoin — typically a harder HIGH road (more coins) vs a safer LOW road. Even levels: MULTIPLE branches / more than one way to the top; the hardest branch carries the math-skip key. Nothing hidden — she must always see every route.
+
+3. **Action & variety (anti-repetition).** Vary the challenge beat-to-beat: wide platforms, stepping stones, drop-downs, short climbs, hazards to time, the door/enemy woven into the flow as obstacles. No long stretches of identical hops. Each level earns a distinct SIGNATURE beyond its biome (tower, descent-canyon, switchback spire, gauntlet…) — all eight different.
+
+4. **Stakes: falls CAN kill — and that is GOOD, because the respawn is close (agreed Phase 34.6).** A missed jump MAY drop the player into a pit and respawn her; real platforming tension requires that not every miss lands safely. This is NOT the forbidden punishment — there is still no game-over, no lost progress, no timer (§5). The guardrail is **generous checkpoint cadence**: a fall must always cost only a few seconds and a short re-run. Hold §5's ≤700px spacing on hazard/height stretches, and add a checkpoint before every hard climb and every descent. (This does NOT relax §6b rule 2 — a missed MOVER still means WAIT-not-death; movers ping-pong, static pits do not.)
+
+5. **Difficulty ramp preserved (§8 still holds).** Level 1 stays the MOST FORGIVING of the eight — forgiving = generous platforms + wide margins + dense checkpoints, NOT flat/short. Precision and intensity climb to level 8. A vertical, multi-route level can still be the easy one.
+
+6. **Open-air, always legible (A3 decision, Phase 34.6).** Verticality is OPEN stacked tiers — the player can always see up and see every route. No enclosed tunnels or claustrophobic ceilinged corridors. Overlapping tiers (a ledge above another, §3.2 headroom) are fine for platforming but must never hide the route or box the player in.
 
 ## 9. Workflow (non-negotiable)
 
