@@ -570,110 +570,126 @@ const deepEqual = (a, b) => {
 }
 
 // --- LVL-02 regression: level-03 geometry matches authored descriptor ---
-// Phase 24 re-baseline: level-03 extended + 2 unreachable platforms lowered
-// (VALID-04/LVL-01).
-// OLD (pre-Phase-24, v4.1) values, retained for historical traceability:
-//   floors: [{ x: 0, w: 480 }, { x: 640, w: 560 }, { x: 1320, w: 600 }, { x: 2040, w: 640 },
-//     { x: 2840, w: 560 }]
-//   platforms: [{ x: 280, y: 240, w: 128, h: 24 }, { x: 480, y: 184, w: 96, h: 24 },
-//     { x: 1160, y: 224, w: 112, h: 24 }, { x: 1520, y: 232, w: 96, h: 24 },
-//     { x: 1880, y: 184, w: 128, h: 24 }, { x: 2220, y: 232, w: 96, h: 24 },
-//     { x: 2640, y: 192, w: 128, h: 24 }] — x:1880/x:2640 were unreachable per VALID-04
-//     (rise 136px/128px vs the 88.331px calibrated ceiling), y lowered to 260/260
-//   coins: [{ x: 140, y: 264 }, { x: 300, y: 184 }, { x: 520, y: 128 }, { x: 800, y: 264 },
-//     { x: 1080, y: 264 }, { x: 1420, y: 176 }, { x: 1740, y: 264 }, { x: 1980, y: 128 },
-//     { x: 2380, y: 264 }, { x: 2860, y: 264 }, { x: 3180, y: 264 }]
-//   spikes: [{ x: 820 }, { x: 1040 }, { x: 1580 }, { x: 1820 }, { x: 3020 }, { x: 3260 }]
-//     (y: FLOOR_Y - CONFIG.SPIKE_SIZE)
-//   goal: { x: 3320, y: FLOOR_Y - CONFIG.GOAL_SIZE }
-//   checkpoints: [{ x: 96 }, { x: 340 }, { x: 740 }, { x: 960 }, { x: 1500 }, { x: 1740 },
-//     { x: 2300 }, { x: 2920 }, { x: 3160 }] (y: FLOOR_Y - 48)
-//   mathGates: [{ x: 420, y: FLOOR_Y - CONFIG.MATH_GATE.H }]
-//   enemies: [{ x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H }]
+// Phase 34.6 REBUILD (plan 34.6-05): level-03 rebuilt from scratch as the calm TOWN
+// intro (odd archetype, NO key) at ~2x length (goal x:5120 -> 10280), authored to
+// docs/LEVEL-DESIGN.md §8.5 — a mandatory 200px rooftop climb over a 480px plaza pit,
+// a visible fork, a covered arcade awning, an optional 222px belltower, and stepping
+// stones. See src/levels/level-03.js's own header for the full design rationale.
 {
   const FLOOR_Y = CONFIG.FLOOR_Y;
   const expectedGeometry = {
     floors: [
       { x: 0, w: 480 },
       { x: 640, w: 560 },
-      { x: 1320, w: 600 },
-      { x: 2040, w: 640 },
-      { x: 2840, w: 560 },
-      { x: 3560, w: 600 },
-      { x: 4280, w: 920 },
+      { x: 1360, w: 620 },
+      { x: 2460, w: 620 },
+      { x: 3240, w: 620 },
+      { x: 4020, w: 640 },
+      { x: 4820, w: 620 },
+      { x: 5600, w: 640 },
+      { x: 6400, w: 620 },
+      { x: 7180, w: 640 },
+      { x: 7980, w: 620 },
+      { x: 8760, w: 640 },
+      { x: 9560, w: 840 },
     ],
-    // Plan 25-07: the former x:1160 stepping stone (rise 96px, exceeded the
-    // calibrated 88.331 maxRise, AND a ceiling-bonk hazard for the direct gap-jump
-    // underneath it) REMOVED; x:1520 raised 232->172 (a ceiling-bonk hazard for the
-    // spike@1580 hop launched underneath it) — see level-03.js's own inline comments.
     platforms: [
-      { x: 280, y: 240, w: 128, h: 24 },
-      { x: 480, y: 184, w: 96, h: 24 },
-      { x: 1520, y: 172, w: 96, h: 24 },
-      { x: 1880, y: 260, w: 128, h: 24 },
-      { x: 2220, y: 232, w: 96, h: 24 },
-      { x: 2640, y: 260, w: 128, h: 24 },
-      { x: 3400, y: 255, w: 128, h: 24 },
-      { x: 4160, y: 255, w: 112, h: 24 },
+      { x: 280, y: 254, w: 120, h: 16 },
+      { x: 1470, y: 250, w: 100, h: 16 },
+      { x: 1610, y: 186, w: 110, h: 16 },
+      { x: 1760, y: 250, w: 100, h: 16 },
+      { x: 2005, y: 250, w: 100, h: 16 },
+      { x: 2130, y: 184, w: 100, h: 16 },
+      { x: 2260, y: 120, w: 130, h: 16 },
+      { x: 2405, y: 190, w: 96, h: 16 },
+      { x: 3340, y: 246, w: 130, h: 16 },
+      { x: 4980, y: 258, w: 80, h: 16 },
+      { x: 5140, y: 258, w: 80, h: 16 },
+      { x: 5700, y: 246, w: 110, h: 16 },
+      { x: 5740, y: 172, w: 120, h: 16 },
+      { x: 5790, y: 98, w: 130, h: 16 },
     ],
     coins: [
-      { x: 140, y: 264 },
-      { x: 300, y: 184 },
-      { x: 520, y: 128 },
-      { x: 800, y: 264 },
+      { x: 150, y: 264 },
+      { x: 400, y: 264 },
+      { x: 330, y: 198 },
+      { x: 760, y: 264 },
       { x: 1080, y: 264 },
-      { x: 1420, y: 176 },
-      { x: 1740, y: 264 },
-      { x: 1980, y: 128 },
-      { x: 2380, y: 264 },
-      { x: 2860, y: 264 },
-      { x: 3180, y: 264 },
-      { x: 3440, y: 264 },
-      { x: 3640, y: 184 },
-      { x: 3900, y: 128 },
-      { x: 4200, y: 264 },
-      { x: 4460, y: 176 },
-      { x: 4900, y: 264 },
+      { x: 1400, y: 264 },
+      { x: 1900, y: 264 },
+      { x: 1510, y: 194 },
+      { x: 1650, y: 130 },
+      { x: 1680, y: 130 },
+      { x: 1800, y: 194 },
+      { x: 2050, y: 194 },
+      { x: 2170, y: 128 },
+      { x: 2320, y: 64 },
+      { x: 2445, y: 134 },
+      { x: 2600, y: 264 },
+      { x: 2900, y: 264 },
+      { x: 3300, y: 264 },
+      { x: 3400, y: 190 },
+      { x: 4100, y: 264 },
+      { x: 4500, y: 264 },
+      { x: 4880, y: 264 },
+      { x: 5020, y: 202 },
+      { x: 5180, y: 202 },
+      { x: 5340, y: 264 },
+      { x: 5650, y: 264 },
+      { x: 5750, y: 190 },
+      { x: 5800, y: 116 },
+      { x: 5850, y: 42 },
+      { x: 6500, y: 264 },
+      { x: 6900, y: 264 },
+      { x: 7280, y: 264 },
+      { x: 7600, y: 264 },
+      { x: 8100, y: 264 },
+      { x: 8480, y: 264 },
+      { x: 8900, y: 264 },
+      { x: 9280, y: 264 },
+      { x: 9700, y: 264 },
+      { x: 10050, y: 264 },
+      { x: 10200, y: 264 },
     ],
     spikes: [
-      { x: 820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1040, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1580, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 3020, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 3260, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 3680, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 4800, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2790, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 6710, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 8290, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 9080, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
-    goal: { x: 5120, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 10280, y: FLOOR_Y - CONFIG.GOAL_SIZE },
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
-      { x: 340, y: FLOOR_Y - 48 },
-      { x: 740, y: FLOOR_Y - 48 },
-      { x: 960, y: FLOOR_Y - 48 },
-      { x: 1500, y: FLOOR_Y - 48 },
-      { x: 1740, y: FLOOR_Y - 48 },
-      { x: 2300, y: FLOOR_Y - 48 },
-      { x: 2920, y: FLOOR_Y - 48 },
-      { x: 3160, y: FLOOR_Y - 48 },
-      { x: 3600, y: FLOOR_Y - 48 },
-      { x: 3720, y: FLOOR_Y - 48 },
-      { x: 4280, y: FLOOR_Y - 48 },
-      { x: 4720, y: FLOOR_Y - 48 },
+      { x: 680, y: FLOOR_Y - 48 },
+      { x: 1340, y: FLOOR_Y - 48 },
+      { x: 2030, y: 250 - 48 },
+      { x: 2155, y: 184 - 48 },
+      { x: 2285, y: 120 - 48 },
+      { x: 2500, y: FLOOR_Y - 48 },
+      { x: 2700, y: FLOOR_Y - 48 },
+      { x: 3260, y: FLOOR_Y - 48 },
+      { x: 4040, y: FLOOR_Y - 48 },
+      { x: 4300, y: FLOOR_Y - 48 },
+      { x: 4840, y: FLOOR_Y - 48 },
+      { x: 5620, y: FLOOR_Y - 48 },
+      { x: 6410, y: FLOOR_Y - 48 },
+      { x: 6630, y: FLOOR_Y - 48 },
+      { x: 7200, y: FLOOR_Y - 48 },
+      { x: 8000, y: FLOOR_Y - 48 },
+      { x: 8210, y: FLOOR_Y - 48 },
+      { x: 8780, y: FLOOR_Y - 48 },
+      { x: 9000, y: FLOOR_Y - 48 },
+      { x: 9580, y: FLOOR_Y - 48 },
     ],
-    // 2026-07-12 re-baseline (user decision): density locked at 1 door + 1
-    // enemy + end gate. OLD: doors [], mathGates x:420/4360, enemies
-    // x:2400(v1)/x:3800(v2) — the new door reuses the removed fly enemy's
-    // proven x:3800 footprint.
     doors: [
-      { x: 3800, y: FLOOR_Y - CONFIG.DOOR.H },
+      { x: 960, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
     mathGates: [],
     enemies: [
-      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 },
+      { x: 4360, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 1 },
     ],
     secretAlcove: [
-      { x: 310, y: 170 },
+      { x: 320, y: 184 },
     ],
   };
 
