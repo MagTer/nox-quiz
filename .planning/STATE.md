@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 35
-current_phase_name: Biome Re-dress & Props
-status: executing
-stopped_at: "Phase 32 (Terrain & Parallax Rendering) complete — autotile terrain + biome parallax + assets manifest, geometry byte-frozen; code review caught and root-caused a real pathfinding bug (levels 03/04) rather than accepting a surface-level fix, verified live. Continuing the autonomous run into Phase 33 — the next checkpoint:human-verify phase (player art sign-off)."
+current_phase: 34.6
+current_phase_name: Level Redesign — Rebuild and Double Every Level
+status: ready-to-discuss
+stopped_at: "Phase 34.5 (Key & Lock Mechanic) COMPLETE — 3 plans, 3 waves. Landed src/mechanics/key.js (pickup + lock-open, a727c13-clean, no-timer self-cleaning hint), geometry.keys/locks in build.js, closure-local keyHeld run-state in game.js, HUD key indicator, and the HARD softlock validator scripts/lib/key-lock-check.mjs (floor-node-split lock-cut BFS) with a RED-first fixture + a driven-player audit-key-lock.mjs. Code review caught a real validator soundness hole (CR-01: a key placed a short jump PAST its lock falsely PASSed because bestMarginToPoint ignored the solid band) — FIXED with a lock-aware band-exclusion wrapper and independently re-verified (key 38px past lock now HARD-FAILs; spawn-side key still PASSes). keyId threaded end-to-end (WR-01). Verification passed 11/11; all gates green except the SAME 13 Phase-34-deferred validate-levels HARD-FAILs (8 coin levels 01-03, 5 headroom level-07) that Phase 34.6 deletes. NEXT: Phase 34.6 (Level Redesign) — NOT 35. The phase.complete helper naively pointed to 35, skipping the decimal-inserted 34.6; corrected here."
 last_updated: "2026-07-15T08:13:39.388Z"
 last_activity: 2026-07-15
-last_activity_desc: Phase 34.5 complete, transitioned to Phase 35
+last_activity_desc: "Phase 34.5 complete (key/lock mechanic + sound softlock validator); next is 34.6 (Level Redesign), not 35"
 progress:
   total_phases: 12
   completed_phases: 7
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 34.5 — Key & Lock Mechanic — the first non-math gate
+**Current Focus:** Phase 34.6 — Level Redesign (rebuild + double every level); the key/lock mechanic (34.5) is now landed and its softlock validator is sound, so 34.6 can author key-locks safely
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -36,12 +36,12 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 35 — Biome Re-dress & Props
+Phase: 34.6 — Level Redesign — Rebuild and Double Every Level (NOT STARTED — needs discuss)
 Plan: Not started
-Status: Executing Phase 34.5
-Last activity: 2026-07-15 — Phase 34.5 complete, transitioned to Phase 35
+Status: Phase 34.5 complete; next is 34.6 (the last geometry change of the milestone)
+Last activity: 2026-07-15 — Phase 34.5 complete (key/lock mechanic + sound softlock validator)
 
-Progress: [█████░░░░░] 50%  (6 of 12 phases — 34.5 and 34.6 inserted mid-milestone)
+Progress: [██████░░░░] 58%  (7 of 12 phases — 34.5 and 34.6 inserted mid-milestone; 34.5 done, 34.6 next)
 
 ## v6.0 Roadmap Summary
 
