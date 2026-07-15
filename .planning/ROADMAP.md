@@ -313,7 +313,7 @@ Plans:
   5. **OPEN DESIGN QUESTION for the phase's discuss step:** does the key-lock ADD a 4th barrier to the level (1 math door + 1 enemy + end gate + 1 key lock), or REPLACE the math door? Math density is currently LOCKED at 3 challenges per level. This must be decided explicitly — it changes the game's pacing either way.
      - **RESOLVED (discuss, 2026-07-15):** ADD a 4th NON-math barrier — do NOT replace the math door. Math density stays LOCKED at 3. The key opens the EXIT (locked corridor → end math gate → LEVEL CLEAR).
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -326,7 +326,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 34.5-03-PLAN.md — In-engine proof: level-02 throwaway key-lock placement + audit-key-lock.mjs driven-player audit (KEY-01, KEY-02)
+- [x] 34.5-03-PLAN.md — In-engine proof: level-02 throwaway key-lock placement + audit-key-lock.mjs driven-player audit (KEY-01, KEY-02)
 
 ### Phase 34.6: Level Redesign — Rebuild and Double Every Level
 
