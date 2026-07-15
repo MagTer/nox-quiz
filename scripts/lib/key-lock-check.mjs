@@ -128,6 +128,46 @@ function buildLockCutGraph(cutNodes, bandLo, bandHi, envelope) {
 }
 
 /**
+ * CR-01 fix: lock-aware wrapper around reachability.mjs's `bestMarginToPoint`.
+ *
+ * `bestMarginToPoint` was built for the secret-alcove/coin/mover point model —
+ * triggers with no solid collider — and its "cross-height gap hop" candidate
+ * (case 3) is evaluated per spawn-reachable NODE purely on horizontal
+ * jump-envelope reach, with no awareness that a lock's band is a real, solid,
+ * apex-tall wall. Reused unmodified against a key point, it can credit a hop
+ * whose straight line passes straight through the lock's own collider (see
+ * 34.5-REVIEW.md CR-01 for the reproduced false-PASS window).
+ *
+ * `cutNodes` (this file's `clipNodesAtBand` output) is ALREADY split/dropped at
+ * the band, so every surviving node is unambiguously on one side of the band or
+ * the other — never straddling it (mirrors `buildLockCutGraph`'s own `sideOf`
+ * reasoning). That makes the fix simple and local: before delegating to
+ * `bestMarginToPoint`, drop every node that sits on the OPPOSITE side of the
+ * band from the key point. A hop from a same-side node can never cross the
+ * band (there is nothing on the far side for it to originate from); a hop from
+ * an opposite-side node necessarily WOULD cross it, so it must never be
+ * credited. `bestMarginToPoint` itself is untouched — it is shared with the
+ * alcove/coin/mover checks, which have no lock/band concept at all.
+ */
+function sideOfBand(x, bandLo, bandHi) {
+  if (x <= bandLo) return "left";
+  if (x >= bandHi) return "right";
+  return "inside"; // point literally inside the lock's own footprint — should not occur for real content
+}
+
+function bestMarginToPointExcludingBand(point, nodes, spawnPaths, envelope, bandLo, bandHi) {
+  const pointSide = sideOfBand(point.x, bandLo, bandHi);
+  const sameSideNodes = nodes.filter((n) => {
+    const nodeSide = n.xEnd <= bandLo ? "left" : n.xStart >= bandHi ? "right" : "inside";
+    // Permissive on "inside" (should not occur post-clip) — only exclude a node
+    // when both sides are unambiguously known AND opposite.
+    if (pointSide === "inside" || nodeSide === "inside") return true;
+    return nodeSide === pointSide;
+  });
+  return bestMarginToPoint(point, sameSideNodes, spawnPaths, envelope);
+}
+
+/**
  * Per-level softlock proof: for every lock, its matching key must be reachable
  * from spawn WITHOUT crossing the lock's own x-band. Returns
  * `{ rows: [{check, status, descriptor}], hardFailCount }`, mirroring
@@ -174,7 +214,17 @@ export function checkKeyLockReachability(geometry, envelope = JUMP_ENVELOPE) {
 
     const spawnNode = nodeContaining(cutNodes, SPAWN_X);
     const spawnPaths = spawnNode ? bfsWithPathMargin(cutGraph, spawnNode.id) : new Map();
-    const reach = bestMarginToPoint({ x: key.x, y: key.y }, cutNodes, spawnPaths, envelope);
+    // CR-01: bestMarginToPointExcludingBand rejects any candidate hop whose
+    // source node sits on the opposite side of THIS lock's band from the key —
+    // see the wrapper's own doc comment above for the full rationale.
+    const reach = bestMarginToPointExcludingBand(
+      { x: key.x, y: key.y },
+      cutNodes,
+      spawnPaths,
+      envelope,
+      bandLo,
+      bandHi
+    );
 
     if (reach === null) {
       // Key not reachable from spawn WITHOUT crossing the lock — the worst-case
@@ -301,6 +351,30 @@ if (isMain) {
     check(
       result.rows.length === 2 && result.rows.every((r) => r.status === "PASS" || r.status === "WARN"),
       `case (d): expected two PASS/WARN rows, got ${JSON.stringify(result.rows)}`
+    );
+  }
+
+  // Case (f) [CR-01]: key placed a SHORT jump (~30-90px) past its own lock's
+  // band, on the SAME original floor run — this is the exact false-PASS window
+  // 34.5-REVIEW.md's CR-01 reproduced (bestMarginToPoint, reused unmodified,
+  // credited a "cross-height gap hop" candidate whose straight line passes
+  // straight through the lock's own solid apex-tall wall). Must now HARD-FAIL:
+  // reaching this key in the real engine requires walking through the lock's
+  // collider, which requires the key already being held.
+  {
+    const geometry = {
+      floors: [{ x: 0, w: 900 }],
+      locks: [{ x: 400, y: lockY }], // band [400, 432)
+      keys: [{ x: 480, y: 288 }], // bandHi(432) + 48px — inside the reviewer's ~10-110px false-PASS window
+    };
+    const result = checkKeyLockReachability(geometry);
+    check(
+      result.hardFailCount === 1,
+      `case (f): expected hardFailCount 1 (short-jump-past-lock softlock), got ${result.hardFailCount}`
+    );
+    check(
+      result.rows.length === 1 && result.rows[0].status === "HARD-FAIL",
+      `case (f): expected exactly one HARD-FAIL row, got ${JSON.stringify(result.rows)}`
     );
   }
 
