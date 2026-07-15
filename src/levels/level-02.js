@@ -85,6 +85,31 @@ export const LEVEL_02 = {
       { x: 1540, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
 
+    // Phase 34.5 (KEY-01/KEY-02) — throwaway in-engine proof vehicle: ONE key-lock
+    // pair. Key sits spawn-side on floor run {x:700,w:560} (700..1260), well before
+    // the door at x:1540, so the sequence reads get-key -> door -> enemy -> locked
+    // exit-corridor -> end math gate. The lock sits on the goal's floor run
+    // {x:3680,w:600} (3680..4280), AFTER the enemy (x:1860) and door (x:1540), so it
+    // never obstructs those earlier math encounters, and BEFORE the goal (x:4200) so
+    // the end math-gate's go("select") teardown never skips evaluating it (CONTEXT
+    // ordering: locked exit-corridor -> end math gate -> LEVEL CLEAR). Phase 34.6
+    // rebuilds this level's geometry from scratch; this pair is acknowledged
+    // throwaway, kept solely to prove the mechanic end-to-end in-engine.
+    //
+    // Rule-1 fix (found running node scripts/browser-boot.mjs for real, not
+    // guessed from the static model): the RESEARCH-suggested x:760 sits inside the
+    // jump arc that clears the 520..700 gap onto this run — a driven player jumping
+    // that gap lands past x:790, sailing OVER a ground-level x:760 trigger without
+    // ever touching down on it, so the key was never collected during a genuine
+    // drive-through even though the static reachability model (which is arc/
+    // landing-blind by design) still called it reachable. x:900 sits comfortably
+    // past every observed landing spot and well before the next takeoff (~x:1200,
+    // for the 1260..1420 gap), squarely in the walked stretch between them —
+    // confirmed via a direct driveToXPlanned(door.x) drive that the key is now
+    // collected incidentally before the door ever triggers.
+    keys: [{ x: 900, y: FLOOR_Y - 32 }],
+    locks: [{ x: 3960, y: FLOOR_Y - CONFIG.LOCK.H }],
+
     // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy +
     // the end-of-level goal gate (user decision 2026-07-12; removed gates
     // x:420/1100/3760 are in git history).
