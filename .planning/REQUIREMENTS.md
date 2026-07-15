@@ -48,7 +48,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Level Length & Shape (added 2026-07-15)
 
 - [ ] **LEN-01**: All 8 levels REBUILT from scratch (not appended to) at ~2x length, authored against the agreed `docs/LEVEL-DESIGN.md` rules — including the HARD headroom rule. Suspends the kid-validated byte-freeze; Phase 38's kid-UAT becomes a real re-approval.
-- [ ] **LEN-02**: Altitude is a CORE feature, not an ending. The biome-pair rhythm: odd levels introduce a biome (calmer), EVEN levels (2/4/6/8) are the second visit and go intense + vertical. Plus descents, optional high routes (risk/reward), and backtracking as VISIBLE doubling-back only — she must always see where she is going.
+- [x] **LEN-02**: Altitude is a CORE feature, not an ending. The biome-pair rhythm: odd levels introduce a biome (calmer), EVEN levels (2/4/6/8) are the second visit and go intense + vertical. Plus descents, optional high routes (risk/reward), and backtracking as VISIBLE doubling-back only — she must always see where she is going.
 
 ### Brand
 
@@ -120,7 +120,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KEY-01 | Phase 34.5 | Complete |
 | KEY-02 | Phase 34.5 | Complete |
 | LEN-01 | Phase 34.6 | Pending |
-| LEN-02 | Phase 34.6 | Pending |
+| LEN-02 | Phase 34.6 | Complete |
 | BRAND-01 | Phase 38 | Pending |
 | MOB-01 | Phase 37 | Pending |
 | MOB-02 | Phase 37 | Pending |

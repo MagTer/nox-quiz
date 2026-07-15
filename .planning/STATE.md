@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
 current_phase: 34.6
-current_phase_name: NOT STARTED — needs discuss
-status: ready-to-plan
-stopped_at: "Phase 34.5 (Key & Lock Mechanic) COMPLETE — 3 plans, 3 waves. Landed src/mechanics/key.js (pickup + lock-open, a727c13-clean, no-timer self-cleaning hint), geometry.keys/locks in build.js, closure-local keyHeld run-state in game.js, HUD key indicator, and the HARD softlock validator scripts/lib/key-lock-check.mjs (floor-node-split lock-cut BFS) with a RED-first fixture + a driven-player audit-key-lock.mjs. Code review caught a real validator soundness hole (CR-01: a key placed a short jump PAST its lock falsely PASSed because bestMarginToPoint ignored the solid band) — FIXED with a lock-aware band-exclusion wrapper and independently re-verified (key 38px past lock now HARD-FAILs; spawn-side key still PASSes). keyId threaded end-to-end (WR-01). Verification passed 11/11; all gates green except the SAME 13 Phase-34-deferred validate-levels HARD-FAILs (8 coin levels 01-03, 5 headroom level-07) that Phase 34.6 deletes. NEXT: Phase 34.6 (Level Redesign) — NOT 35. The phase.complete helper naively pointed to 35, skipping the decimal-inserted 34.6; corrected here."
-last_updated: "2026-07-15T09:16:50.127Z"
+current_phase_name: level-redesign-rebuild-and-double-every-level
+status: executing
+stopped_at: Completed 34.6-01-PLAN.md
+last_updated: "2026-07-15T09:43:49.818Z"
 last_activity: 2026-07-15
-last_activity_desc: Phase 34.5 complete (key/lock mechanic + sound softlock validator)
+last_activity_desc: Phase 34.6 execution started
 progress:
   total_phases: 12
   completed_phases: 7
-  total_plans: 31
-  completed_plans: 31
+  total_plans: 42
+  completed_plans: 32
   percent: 58
 ---
 
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 34.6 — Level Redesign (rebuild + double every level); the key/lock mechanic (34.5) is now landed and its softlock validator is sound, so 34.6 can author key-locks safely
+**Current Focus:** Phase 34.6 — level-redesign-rebuild-and-double-every-level
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 34.6 — Level Redesign — Rebuild and Double Every Level (NOT STARTED — needs discuss)
-Plan: Not started
-Status: Phase 34.5 complete; next is 34.6 (the last geometry change of the milestone)
-Last activity: 2026-07-15 — Phase 34.5 complete (key/lock mechanic + sound softlock validator)
+Phase: 34.6 (level-redesign-rebuild-and-double-every-level) — EXECUTING
+Plan: 2 of 11
+Status: Ready to execute
+Last activity: 2026-07-15 — Phase 34.6 execution started
 
 Progress: [██████░░░░] 58%  (7 of 12 phases — 34.5 and 34.6 inserted mid-milestone; 34.5 done, 34.6 next)
 
@@ -95,6 +95,7 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - **Level-shape brief agreed (2026-07-15) — altitude is a CORE FEATURE, not an ending.** The organising idea is the **biome-pair rhythm**: biomes are pairs (1–2 swamp, 3–4 town, 5–6 cemetery, 7–8 castle); the **odd** level introduces the biome (calmer), the **even** level (2/4/6/8) is the second visit and goes **intense and vertical**. This makes the difficulty ramp structural. `LEVEL-REVIEW.md` proved the current ramp is fiction — six of eight levels have ZERO overlapping tiers and 07/08 carry the *easiest* gaps. Also agreed: **descents** (levels only ever go up today), **optional high routes** (risk/reward, no punishment), and **backtracking as VISIBLE doubling-back ONLY** — she must always be able to SEE where she's going; no hidden routes, because a 12-year-old with ADHD who loses the thread stops playing. LVL-02 never mandated altitude — it only required 07/08 not be near-duplicates of *each other*.
 - **Headroom is a real, unruled defect class (found 2026-07-14 at Phase 34's level-08 checkpoint):** `headroom = rise − thickness − 32`. Every tier of level-07's end climb ships with **9px** of headroom, and level-08's new switchback had 9–14px — the player is 32px tall in a 41–46px slot. `docs/LEVEL-DESIGN.md` quantifies rise, gap and overlap but had **NO headroom rule**, and no gate checked it, which is exactly why it shipped unnoticed. Fix: climb tiers to `h:16` + rises to 72–75 (~27px headroom); a headroom rule goes into LEVEL-DESIGN.md and a headroom check into the validator (Phase 34-06). All 60 platforms in the game use `h:24`.
 - **The verification harness is RIGHTWARD-ONLY (found 2026-07-14):** `driveToXPlanned` presses ArrowRight once and holds it, measuring progress as monotonically-increasing x; `planTakeoffs` emits no leftward takeoffs. So a switchback climb reads as a stall and the bot dies. User chose **Option A — fix the harness** (its own plan), because Phase 36's moving platforms and patrols need bidirectional driving anyway: the cost is paid once and reused. Note `audit-coins.mjs` *teleports* the player onto each tier rather than driving from spawn — so until the harness is bidirectional, **nothing automated proves a switchback level is navigable from spawn**.
+- [Phase 34.6]: clearLevel({ table } = {}) is the single shared level-clear closure; math path passes { table }, key-skip path passes {} and awards CONFIG.PROGRESS.XP_KEY_SKIP (20) via addBonusXp — Prevents XP/unlock/persistence drift between the math-gate and key-skip end-gate paths (Pitfall 5)
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -125,11 +126,12 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
 | *(none — all absorbed into v6.0 scope)* | | | |
+| Phase 34.6 P01 | 23min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-07-11
-Stopped at: Phase 32 (Terrain & Parallax Rendering) complete — autotile terrain + biome parallax + assets manifest, geometry byte-frozen; code review caught and root-caused a real pathfinding bug (levels 03/04) rather than accepting a surface-level fix, verified live. Continuing the autonomous run into Phase 33 — the next checkpoint:human-verify phase (player art sign-off).
+Last session: 2026-07-15T09:43:49.805Z
+Stopped at: Completed 34.6-01-PLAN.md
 Resume file: None
 
 ---
