@@ -6,14 +6,14 @@ current_phase: 34.6
 current_phase_name: level-redesign-rebuild-and-double-every-level
 status: executing
 stopped_at: Completed 34.6-01-PLAN.md
-last_updated: "2026-07-15T09:43:49.818Z"
+last_updated: "2026-07-15T10:37:28.755Z"
 last_activity: 2026-07-15
 last_activity_desc: Phase 34.6 execution started
 progress:
   total_phases: 12
   completed_phases: 7
   total_plans: 42
-  completed_plans: 32
+  completed_plans: 33
   percent: 58
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 34.6 (level-redesign-rebuild-and-double-every-level) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-07-15 — Phase 34.6 execution started
 
@@ -96,6 +96,8 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - **Headroom is a real, unruled defect class (found 2026-07-14 at Phase 34's level-08 checkpoint):** `headroom = rise − thickness − 32`. Every tier of level-07's end climb ships with **9px** of headroom, and level-08's new switchback had 9–14px — the player is 32px tall in a 41–46px slot. `docs/LEVEL-DESIGN.md` quantifies rise, gap and overlap but had **NO headroom rule**, and no gate checked it, which is exactly why it shipped unnoticed. Fix: climb tiers to `h:16` + rises to 72–75 (~27px headroom); a headroom rule goes into LEVEL-DESIGN.md and a headroom check into the validator (Phase 34-06). All 60 platforms in the game use `h:24`.
 - **The verification harness is RIGHTWARD-ONLY (found 2026-07-14):** `driveToXPlanned` presses ArrowRight once and holds it, measuring progress as monotonically-increasing x; `planTakeoffs` emits no leftward takeoffs. So a switchback climb reads as a stall and the bot dies. User chose **Option A — fix the harness** (its own plan), because Phase 36's moving platforms and patrols need bidirectional driving anyway: the cost is paid once and reused. Note `audit-coins.mjs` *teleports* the player onto each tier rather than driving from spawn — so until the harness is bidirectional, **nothing automated proves a switchback level is navigable from spawn**.
 - [Phase 34.6]: clearLevel({ table } = {}) is the single shared level-clear closure; math path passes { table }, key-skip path passes {} and awards CONFIG.PROGRESS.XP_KEY_SKIP (20) via addBonusXp — Prevents XP/unlock/persistence drift between the math-gate and key-skip end-gate paths (Pitfall 5)
+- [Phase 34.6]: level-01 rebuilt calm/soft-landing archetype: zero overlapping platform tiers, deliberate ascent/descent hump bridging a 410px gap, optional visible high route with bonus coins
+- [Phase 34.6]: Spikes need >=250px margin from any floor edge (gap or platform-mount takeoff) to avoid the spike-before-gap conflict class the in-engine harness caught -- applies to all remaining level rebuilds in this phase
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -127,10 +129,11 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 |----------|------|--------|-------------|
 | *(none — all absorbed into v6.0 scope)* | | | |
 | Phase 34.6 P01 | 23min | 2 tasks | 2 files |
+| Phase 34.6 P02 | 51min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-07-15T09:43:49.805Z
+Last session: 2026-07-15T10:36:53.621Z
 Stopped at: Completed 34.6-01-PLAN.md
 Resume file: None
 
