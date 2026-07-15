@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 34.5
-current_phase_name: Key & Lock Mechanic — the first non-math gate
+current_phase: 35
+current_phase_name: Biome Re-dress & Props
 status: executing
-stopped_at: "Phase 34 (Level Quality Pass) COMPLETE — 6 of 7 plans executed; 34-05 (coin moves, levels 01-03) DELIBERATELY SKIPPED because Phase 34.6 rebuilds those levels from scratch. SC4 (validator green) is knowingly deferred: 13 HARD-FAILs remain, ALL on geometry 34.6 deletes (8 coin rows on levels 01-03, 5 headroom rows on level-07 — the latter is the RED-first proof the new headroom gate works). DO NOT fix them; that is the throwaway work the skip exists to avoid. Every other gate is green, including browser-boot across all 8 levels. NEXT: Phase 34.5 (Key & Lock Mechanic) — a NEW phase that reverses SEED-001s no-new-mechanics lock at the user request; it must land BEFORE 34.6 because a key is code, not geometry."
-last_updated: "2026-07-14T23:38:37.192Z"
-last_activity: 2026-07-14
-last_activity_desc: Phase 34.5 execution started
+stopped_at: "Phase 32 (Terrain & Parallax Rendering) complete — autotile terrain + biome parallax + assets manifest, geometry byte-frozen; code review caught and root-caused a real pathfinding bug (levels 03/04) rather than accepting a surface-level fix, verified live. Continuing the autonomous run into Phase 33 — the next checkpoint:human-verify phase (player art sign-off)."
+last_updated: "2026-07-15T08:13:39.388Z"
+last_activity: 2026-07-15
+last_activity_desc: Phase 34.5 complete, transitioned to Phase 35
 progress:
   total_phases: 12
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 31
-  completed_plans: 28
-  percent: 50
+  completed_plans: 31
+  percent: 58
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 34.5 (Key & Lock Mechanic — the first non-math gate) — EXECUTING
-Plan: 1 of 3
+Phase: 35 — Biome Re-dress & Props
+Plan: Not started
 Status: Executing Phase 34.5
-Last activity: 2026-07-14 — Phase 34.5 execution started
+Last activity: 2026-07-15 — Phase 34.5 complete, transitioned to Phase 35
 
 Progress: [█████░░░░░] 50%  (6 of 12 phases — 34.5 and 34.6 inserted mid-milestone)
 

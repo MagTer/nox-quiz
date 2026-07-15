@@ -42,8 +42,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Key Mechanic (added 2026-07-15 — REVERSES SEED-001's "no new play mechanics" lock)
 
-- [ ] **KEY-01**: A key/lock mechanic exists (`geometry.keys` / `geometry.locks` + a `src/mechanics/key.js` seam) — the game's FIRST non-math gate. Accepted knowingly by the user; it changes the thesis that multiplication is the only gate to progress.
-- [ ] **KEY-02**: NO SOFTLOCK IS POSSIBLE. The validator HARD-proves, per level, that every lock's key is reachable from spawn AND reachable before the lock is required; an in-engine audit proves a real driven player picks it up and opens the lock. A key she can miss on a route she cannot re-traverse is a dead end — the worst failure a no-punishment game for a 12-year-old can ship.
+- [x] **KEY-01**: A key/lock mechanic exists (`geometry.keys` / `geometry.locks` + a `src/mechanics/key.js` seam) — the game's FIRST non-math gate. Accepted knowingly by the user; it changes the thesis that multiplication is the only gate to progress.
+- [x] **KEY-02**: NO SOFTLOCK IS POSSIBLE. The validator HARD-proves, per level, that every lock's key is reachable from spawn AND reachable before the lock is required; an in-engine audit proves a real driven player picks it up and opens the lock. A key she can miss on a route she cannot re-traverse is a dead end — the worst failure a no-punishment game for a 12-year-old can ship.
 
 ### Level Length & Shape (added 2026-07-15)
 
@@ -117,8 +117,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LVL-01 | Phase 34 | Done |
 | LVL-02 | Phase 34 | Done |
 | LVL-03 | Phase 34 | Done |
-| KEY-01 | Phase 34.5 | Pending |
-| KEY-02 | Phase 34.5 | Pending |
+| KEY-01 | Phase 34.5 | Complete |
+| KEY-02 | Phase 34.5 | Complete |
 | LEN-01 | Phase 34.6 | Pending |
 | LEN-02 | Phase 34.6 | Pending |
 | BRAND-01 | Phase 38 | Pending |
