@@ -487,6 +487,9 @@ const deepEqual = (a, b) => {
     secretAlcove: [
       { x: 320, y: 170 },
     ],
+    // Phase 34.5 (KEY-01/KEY-02) — throwaway in-engine proof vehicle.
+    keys: [{ x: 900, y: FLOOR_Y - 32 }],
+    locks: [{ x: 3960, y: FLOOR_Y - CONFIG.LOCK.H }],
   };
 
   const actual = getLevel("level-02").geometry;
