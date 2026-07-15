@@ -1,74 +1,75 @@
-// src/levels/level-02.js — "The Rusted Climb" descriptor.
+// src/levels/level-02.js — "The Rusted Spire" descriptor.
 //
 // ===========================================================================
-// CHECKPOINT REWORK (Phase 34.6, plan 34.6-03 geometry, human-rejected first cut).
+// CHECKPOINT REWORK v3 — THE RAISED BAR (Phase 34.6, docs/LEVEL-DESIGN.md §8.5).
 // ===========================================================================
-// The first 34.6-03 build of this level was validator-legal but FLAT: three gentle
-// open-air "humps" and a math-skip key, read by the human at the 34.6-04 checkpoint
-// as "hardly any difference between level 1 and 2, except there is a key ... no
-// climbing at all, no going backwards at all." This is the genuine-verticality
-// redesign. ONLY the platform/floor/coin/checkpoint/bounds geometry changed — the
-// math-skip key mechanic (keys, NO locks), the biome, allowedTables, the 1-door +
-// 1-enemy + end-gate math density, and the descriptor schema are all preserved.
+// The 34.6 human checkpoint REJECTED level-02 TWICE:
+//   v1 ("three gentle open-air humps"): "hardly any difference between level 1 and
+//       2 ... no climbing, no going backwards."
+//   v2 ("one mandatory switchback spire bridging a pit + a key spur"): STILL "too
+//       simple, repetitive. Needs more action. More vertical in both levels but
+//       level 2, even higher with options on what path to take."
 //
-// WHAT LEVEL-02 NOW IS (the EVEN archetype = intense + vertical, distinct from
-// level-01's gentle ground run):
+// v3 is authored directly to §8.5 ("Level ambition — the raised bar"). ONLY the
+// floor/platform/coin/checkpoint/spike/bounds geometry changed — the math-skip KEY
+// mechanic (geometry.keys, NO geometry.locks), the swamp biome, allowedTables
+// [2,3,4,5,6,7], the descriptor schema, and the LOCKED 1-door + 1-enemy + end-gate
+// math density are all preserved. XP_KEY_SKIP stays 20 (human-confirmed).
+// audit-endgate-key.mjs is NOT modified — it re-covers this level unchanged.
 //
-//   A real, TALL, MANDATORY switchback climb bridging a wide un-jumpable gap, a
-//   DELIBERATE descent down the far side toward the goal, and — at the very APEX,
-//   one tier ABOVE the main crossing — an OPTIONAL math-skip KEY.
+// WHAT LEVEL-02 v3 IS — a BRANCHING SWITCHBACK SPIRE (its distinct signature):
 //
-//   * REAL VERTICAL CLIMB: F4 (the climb base, y:320) → T1 → T2 → T3 → T4 → T5,
-//     five overlapping tiers at 74px rises. Main peak T5 sits at y:-50 — a 370px
-//     climb from the spawn ground line. The camera climbs with it: bounds.top is
-//     -400 (like level-07/08's negative-top summit climbs, deeper because this peak
-//     is higher). Every overlapping tier obeys LEVEL-DESIGN §3.2's headroom rule:
-//     rise 74, h:16 → headroom = 74 - 16 - 32 = 26px (>= 24), and the ~70px
-//     consecutive x-overlap the rising-jump graph needs (§3.5).
+//   SPIRE 1 (the tall branching spire): a mandatory climb off F4 with, at tier T2,
+//   a genuine VISIBLE FORK — a DIAMOND where two routes to the rejoin tier T4 split:
+//     * L (the LOW road, right): a wide, gentle tier — the safe way up, taken by the
+//       goal-drive (its leftward-free chain is far cheaper than the HIGH road).
+//     * H (the HIGH road, left): a NARROW tier carrying THREE bonus coins — the
+//       harder, more rewarding way up. Both rejoin at T4, so choosing the hard road
+//       costs nothing structural, only earns the extra coins. Nothing hidden.
+//   Above the fork the climb becomes a real SWITCHBACK (T4 -> T5 -> T6[up-LEFT
+//   reversal] -> SU[up-RIGHT]) to the summit SU at y:-198 — a 518px climb from the
+//   spawn ground line.
 //
-//   * VISIBLE SWITCHBACK (the maneuver the human explicitly liked on level-08):
-//     leg A climbs up-RIGHT (F4→T1→T2→T3), then REVERSAL 1 doubles back up-LEFT
-//     (T3→T4 — run right past T4's far edge on T3's 190px runway, turn, jump back
-//     up-left), then REVERSAL 2 turns up-RIGHT again (T4→T5). The player VISIBLY
-//     doubles back over the section below, in full view, nothing hidden. This is
-//     the exact shape level-08's capstone uses (Plan 34-04), which the Phase-34
-//     bidirectional harness drives; adapted here (not copied numerically) and moved
-//     to mid-level over a gap, with a descent added.
+//   THE MATH-SKIP KEY sits on KA, a spur ONE MORE tier ABOVE the summit (y:-272, a
+//   592px apex — the HIGHEST, HARDEST single reach in the level). KA is reachable
+//   ONLY from SU (the tier below it, T6, is 148px down — out of a single hop's ~88px
+//   reach), so grabbing the key is a real risk/reward detour that no route to the
+//   goal ever passes through (the goal-drive descends SU -> DA directly). Key-held =
+//   free clear; key-skipped = the end math gate.
 //
-//   * DELIBERATE DESCENT: from the peak T5 the route drops DOWN and to the right —
-//     T5 → M1 (a mid-air ledge) → F5 (the far floor). Both are open-air walk-off
-//     falls (185px drops onto wide landing surfaces), the "falling route heading
-//     down toward the goal" — going DOWN, not only up.
+//   DESCENT 1 (real going-DOWN, #1): from SU's far-right end a rightward stair of
+//   drop-ledges (DA -> DB -> DC) descends ~500px back to the mid floor F5. SU is
+//   positioned so ONLY it — not any lower tier — reaches DA, making the full 518px
+//   crest MANDATORY (proven by re-dumping the planned goal route).
 //
-//   * THE MANDATORY CLIMB IS THE ONLY ROUTE FORWARD: F4 (ends 3360) and F5 (starts
-//     4520) are 1160px apart — a pit no bare jump can cross. The ONLY path from the
-//     spawn side to the goal side is up the switchback and down the far side. So the
-//     driven bidirectional harness (browser-boot.mjs) MUST traverse the whole climb
-//     + reversal + descent to reach the enemy@5620 and the goal@7980 — it can never
-//     fall back on a flat ground bypass the way the rejected flat cut allowed. A
-//     fall into the pit is a free checkpoint respawn (one per tier, §5), never a
-//     game-over.
+//   SPIRE 2 (a SECOND switchback, #2 going-backwards): off F5 a second mandatory
+//   switchback climb (U1 -> U2 -> U3[up-LEFT reversal] -> SV) rises ~296px, then
+//   DESCENT 2 (VA) drops back to F6 where the one ENEMY sits — placed PAST spire 2
+//   so the driven harness must traverse the whole second climb + descent to reach
+//   it. Up-down-up-down: two full ascents and two full descents, backwards twice.
+//   SV is wide-right for the same reason SU is: VA hangs off its far end so the U3
+//   reversal + SV summit are MANDATORY, not shortcut past.
 //
-//   * OPTIONAL HIGH ROUTE + THE MATH-SKIP KEY (KEY-02/LEN-02): KS is ONE MORE tier
-//     up-and-over from T5 (y:-124, a 444px apex), a genuine over-the-top branch that
-//     rejoins the descent on M1. Climbing it is pure risk/reward: it carries the
-//     math-skip KEY (geometry.keys, NO geometry.locks). The main crossing does NOT
-//     pass through KS (bottleneckPath descends T5→M1 directly — far cheaper than the
-//     T5→KS rise), so a player who never detours up to the apex reaches the goal and
-//     answers the end math gate as normal; a player who DOES grab the key clears the
-//     level free (full XP, CONFIG.PROGRESS.XP_KEY_SKIP=20, confirmed by the human —
-//     leave it at 20). Visible, never hidden.
+//   Both un-jumpable pits (F4->F5, F5->F6) mean BOTH spires are the ONLY way forward
+//   — a fall into either pit is a free checkpoint respawn (one before every hard
+//   climb, every descent, and one per climb tier; §8.5 rule 4 — missed jumps MAY drop
+//   into a pit, and that is WANTED, because the respawn is always a few px away and
+//   there is NO game-over/timer/lost progress).
 //
-//   * OPEN-AIR / LEGIBLE: no tier ever forms a cramped ceiling (every overlapping
-//     pair clears the 24px headroom floor; the tightest is 26px), so "she can always
-//     see where she's going" (LEVEL-DESIGN §8's ADHD-safe intent), while the level
-//     still reads as genuinely vertical and intense — the tension the §8 L1-2 band
-//     and the human's "make it vertical" both have to be honored at once, resolved
-//     the way level-08's climb resolves it: verticality via a real stacked climb
-//     with generous headroom, not via a flat run of humps.
+// COMPACT (v3.1): tiers/floors are kept as narrow as the ~70px climb-overlap and the
+// mandatory-summit trick allow, so the level stays under browser-boot's terrain
+// OBJECT_BUDGET (one cap tile per 16px of every floor AND platform). Every rising
+// MOUNT takeoff (to.xStart - offset for a rightward hop) is kept CLEAR of any tier
+// that overhangs it: the L-road mount was moved right so it no longer launches from
+// under H's underside (that bonk stalled the driven climb in an earlier draft).
 //
-// This is a PURE data module: no engine globals (a727c13). The ONLY import is
-// ../config.js.
+// EVERY overlapping tier pair clears the §3.2 headroom floor (rise 74, h:16 ->
+// 74-16-32 = 26px >= 24) with ~70px+ x-overlap (§3.5); every rightward hop's target
+// tier advances rightward and every leftward hop's advances leftward (the mount-edge
+// rule the in-engine driver enforces). Open-air: no enclosed ceilings/tunnels (§8.5
+// rule 6). Climb tiers are PLATFORMS (never floors, which build.js pins to FLOOR_Y).
+//
+// PURE data module: no engine globals (a727c13). The ONLY import is ../config.js.
 
 import { CONFIG } from "../config.js";
 
@@ -76,188 +77,203 @@ const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run
 
 export const LEVEL_02 = {
   id: "level-02",
-  displayName: "The Rusted Climb",
+  displayName: "The Rusted Spire",
   allowedTables: [2, 3, 4, 5, 6, 7],
 
   // Explicit, COMPLETE 4-field bounds literal (level-02+ convention, used AS-IS —
-  // LEVEL-DESIGN §7's bounds-convention trap). Hand-bumped to the new extent:
-  //   right = 8100  — the final floor F9 ends at 8100 (goal@7980, 120px buffer),
-  //                   matching the shipped "bounds.right == final floor's end".
-  //   top   = -400  — the climb genuinely goes NEGATIVE now (unlike the rejected
-  //                   flat cut, whose deepest peak was y:185). The main peak T5 is
-  //                   at y:-50 and the optional key apex KS is at y:-124, with a
-  //                   bonus coin above it at y:-180; -400 gives the camera roughly a
-  //                   full screen of upward room past the highest entity (deeper
-  //                   than level-08's -360 because KS climbs higher than that
-  //                   summit). Widen ANY tier upward and this must be hand-bumped.
-  bounds: { left: 0, right: 8100, top: -400, bottom: 360 },
+  // LEVEL-DESIGN §7's bounds-convention trap). Hand-bumped to the new, taller extent:
+  //   right = 7480  — the final floor F8 ends at 7480 (goal@7360, 120px buffer).
+  //   top   = -560  — the climb goes deeper NEGATIVE than v2 (-400). The summit SU is
+  //                   y:-198 (a 518px climb) and the KEY apex KA is y:-272 (a 592px
+  //                   apex; its coin at y:-328); -560 gives the camera roughly a full
+  //                   screen of upward room past the highest entity. Raise ANY tier and
+  //                   this must be hand-bumped.
+  bounds: { left: 0, right: 7480, top: -560, bottom: 360 },
 
   geometry: {
-    // Floor runs, pinned to FLOOR_Y. All gaps are the standard bare-jumpable 120px,
-    // EXCEPT the one deliberate 1160px pit under the climb (F4→F5) that the
-    // switchback bridges and that forces the ascent.
+    // Floor runs, pinned to FLOOR_Y. Standard 120px gaps, EXCEPT the two deliberate
+    // un-jumpable pits the two spires bridge: F4->F5 (1680px) and F5->F6 (880px).
     floors: [
-      { x: 0, w: 600 }, // F0 — spawn: calm intro, the secret-alcove hop
-      { x: 720, w: 560 }, // F1 — gap 600..720 (120); the one DOOR
-      { x: 1400, w: 520 }, // F2 — gap 1280..1400 (120); spike1
-      { x: 2040, w: 560 }, // F3 — gap 1920..2040 (120); spike2
-      { x: 2720, w: 640 }, // F4 — gap 2600..2720 (120); the CLIMB BASE (ends 3360)
-      // ---- the 1160px climb pit: 3360..4520, bridged only by the switchback ----
-      { x: 4520, w: 780 }, // F5 — the DESCENT landing (starts 4520); spike3
-      { x: 5420, w: 560 }, // F6 — gap 5300..5420 (120); the one ENEMY
-      { x: 6100, w: 560 }, // F7 — gap 5980..6100 (120); spike4
-      { x: 6780, w: 560 }, // F8 — gap 6660..6780 (120); spike5
-      { x: 7460, w: 640 }, // F9 — gap 7340..7460 (120); final run to the goal (ends 8100)
+      { x: 0, w: 480 }, // F0 — spawn: calm intro, the secret-alcove hop
+      { x: 600, w: 440 }, // F1 — gap 480..600 (120); the one DOOR
+      { x: 1160, w: 420 }, // F2 — gap 1040..1160 (120); spike1
+      { x: 1700, w: 440 }, // F3 — gap 1580..1700 (120); spike2
+      { x: 2260, w: 480 }, // F4 — gap 2140..2260 (120); SPIRE 1 base (ends 2740)
+      // ---- the 1680px spire-1 pit: 2740..4420, bridged only by spire 1 ----
+      { x: 4420, w: 480 }, // F5 — descent-1 landing + SPIRE 2 base; ends 4900
+      // ---- the 880px spire-2 pit: 4900..5780, bridged only by spire 2 ----
+      { x: 5780, w: 540 }, // F6 — descent-2 landing; the one ENEMY, spike3; ends 6320
+      { x: 6440, w: 440 }, // F7 — gap 6320..6440 (120); spike4
+      { x: 7000, w: 480 }, // F8 — gap 6880..7000 (120); final calm run to the goal (ends 7480)
     ],
 
-    // Raised platforms — ALL h:16 (WYSIWYG, LEVEL-DESIGN §3.1), every climb-tier y
-    // deliberately OFF the 16px grid (§3.4). The climb tiers (T1..T5, KS) overlap in
-    // x by ~70px consecutively (§3.5's rising-jump reachability window) at 74px
-    // rises, giving the mandated 26px of headroom (74-16-32) on every overlapping
-    // pair — the exact level-07/08-band climb the L1-2 flat rule alone could never
-    // produce, made legible by keeping every headroom >= 24px.
+    // Raised platforms — ALL h:16 (WYSIWYG, §3.1); every climb-tier y deliberately
+    // OFF the 16px grid (§3.4). Overlapping climb tiers rise 74 (headroom 26).
     platforms: [
       // Spawn-area optional hop that hosts the secret alcove (rise 66 from F0).
-      { x: 280, y: 254, w: 120, h: 16 }, // PA
+      { x: 280, y: 254, w: 120, h: 16 }, // PA  [0]
 
-      // ---- THE SWITCHBACK CLIMB (mandatory; bridges the F4→F5 pit) ----
-      // leg A, up-RIGHT:
-      { x: 3220, y: 246, w: 300, h: 16 }, // T1  rise 74 from F4 (overlaps F4 by 140)
-      { x: 3450, y: 172, w: 280, h: 16 }, // T2  rise 74, overlaps T1 by 70 — headroom over T1: 26
-      { x: 3660, y: 98, w: 300, h: 16 }, //  T3  rise 74, overlaps T2 by 70 — headroom over T2: 26; the turn-around RUNWAY (190px sticks out right of T4's far edge)
-      // REVERSAL 1, up-LEFT (T4 sits left of T3): run right past T4's edge on T3's
-      // runway, turn, jump back up-left onto T4.
-      { x: 3420, y: 24, w: 350, h: 16 }, //  T4  rise 74, overlaps T3 by 110 — headroom over T3: 26
-      // REVERSAL 2, up-RIGHT: walk LEFT along T4 for run-up, then sprint right and
-      // jump. T5 is the main peak (y:-50 — a 370px climb from FLOOR_Y).
-      { x: 3700, y: -50, w: 340, h: 16 }, // T5  rise 74, overlaps T4 by 70 — headroom over T4: 26
+      // ================= SPIRE 1 — lower climb up to the FORK =================
+      { x: 2680, y: 246, w: 240, h: 16 }, // T1  [1] rise 74 from F4 (2680..2920)
+      { x: 2760, y: 172, w: 280, h: 16 }, // T2  [2] rise 74, the FORK base (2760..3040)
 
-      // ---- THE OPTIONAL KEY APEX (a THIRD reversal — up-and-LEFT off T5) ----
-      // KS is the true summit (y:-124, a 444px apex), reached by a SECOND up-LEFT
-      // hop off T5 (run right along T5's runway past KS's far edge, turn, jump back
-      // up-left). It carries the math-skip KEY. Deliberately placed UP-LEFT (over
-      // T4/T2, not over the descent) so the main crossing's rightward descent from
-      // T5 never passes under it: the goal-drive and the no-key Path B descend
-      // T5→M1 to the RIGHT (far cheaper than the T5→KS rise, and KS leads nowhere
-      // toward the goal), so they route straight past it. A player who DOES climb
-      // for the key simply walks back off KS's right edge, drops onto T5, and
-      // descends — no re-climb needed. Only a deliberate detour touches the key.
-      { x: 3470, y: -124, w: 300, h: 16 }, // KS  rise 74 from T5, overlaps T5 by 70 (up-LEFT) — headroom over T5: 26
+      // ---- THE DIAMOND: two visible routes from T2 up to the rejoin tier T4 ----
+      // L is placed so its mount takeoff (~2892) clears H's right edge (2880): the
+      // rising jump must not launch from under H's underside, or it bonks and stalls.
+      { x: 2960, y: 98, w: 220, h: 16 }, // L   [3] LOW road — up-RIGHT, the safe way (2960..3180)
+      { x: 2680, y: 98, w: 200, h: 16 }, // H   [4] HIGH road — NARROW, up-LEFT (2680..2880); 3 bonus coins
+      { x: 3000, y: 24, w: 280, h: 16 }, // T4  [5] rise 74 — the REJOIN tier, reached from BOTH L and H (3000..3280)
 
-      // ---- THE DESCENT (down the far side, RIGHT and clear of the whole climb) ----
-      // M1 sits far enough right (starts 4160) that ONLY T5 can reach it — the lower
-      // ascent tiers (T3 ends 3960) fall short of it, so bottleneckPath cannot route
-      // the descent back-and-left through them (an earlier cut did exactly that and
-      // the leftward walk-off landed on T4 instead of T3, an infinite oscillation).
-      // The single clean rightward hop T5→M1→F5 is the only way down.
-      { x: 4160, y: 135, w: 340, h: 16 }, // M1  drop 185 from T5 onto this mid ledge, then drop to F5
+      // ---- UPPER SWITCHBACK to the summit ----
+      { x: 3140, y: -50, w: 240, h: 16 }, // T5 [6] rise 74 from T4, up-RIGHT (3140..3380)
+      { x: 2940, y: -124, w: 280, h: 16 }, // T6 [7] rise 74 from T5, up-LEFT reversal (2940..3220)
+      { x: 3120, y: -198, w: 380, h: 16 }, // SU [8] rise 74 from T6, up-RIGHT — the SUMMIT (3120..3500), y:-198 = 518px; wide-right so ONLY it reaches descent-1's DA
+
+      // ---- THE KEY SPUR (one tier ABOVE the summit; the hardest single reach) ----
+      { x: 2960, y: -272, w: 240, h: 16 }, // KA [9] rise 74 from SU, up-LEFT — the KEY APEX (2960..3200), y:-272 = 592px; reachable ONLY from SU
+
+      // ================= DESCENT 1 — SU stairs down to F5 =================
+      { x: 3580, y: -90, w: 220, h: 16 }, // DA [10] drop from SU's far-right end (3580..3800)
+      { x: 3860, y: 20, w: 220, h: 16 }, //  DB [11] drop from DA (3860..4080)
+      { x: 4140, y: 130, w: 200, h: 16 }, // DC [12] drop from DB (4140..4340); walk off onto F5
+
+      // ================= SPIRE 2 — a second switchback off F5 =================
+      { x: 4780, y: 246, w: 320, h: 16 }, // U1 [13] rise 74 from F5 (4780..5100)
+      { x: 5020, y: 172, w: 260, h: 16 }, // U2 [14] rise 74, overlaps U1 by 80
+      { x: 4800, y: 98, w: 300, h: 16 }, //  U3 [15] rise 74 from U2, up-LEFT reversal (4800..5100)
+      { x: 5020, y: 24, w: 360, h: 16 }, //  SV [16] rise 74 from U3, up-RIGHT — spire-2 summit (5020..5380); wide-right so VA hangs off it
+
+      // ================= DESCENT 2 — SV down to F6 =================
+      { x: 5480, y: 130, w: 220, h: 16 }, // VA [17] drop from SV's far-right end (5480..5700); walk off onto F6
     ],
 
-    // ~30 coins — every one a fly-through box a driven player actually reaches.
-    // Floor coins use walk-family placement (coin.y = surfaceY - 56); each climb
-    // tier carries ONE bonus coin on its own walkable surface, clear of every
-    // overhang (obstruction-aware coin-reachability + the in-engine witness replay
-    // both arbitrate this). The key apex KS carries the highest coin (y:-180),
-    // beside the key — the reward for climbing all the way to the top.
+    // ~38 coins — every one a fly-through box a driven player reaches. Floor coins at
+    // walk height (surfaceY-56); each climb tier carries a coin on its OWN clear
+    // surface. The HIGH road tier H carries THREE bonus coins (its reward); the KEY
+    // apex KA and summit SU carry the two highest coins.
     coins: [
       { x: 150, y: 264 }, // F0
-      { x: 450, y: 264 }, // F0
-      { x: 340, y: 198 }, // on PA (near the secret alcove)
-      { x: 900, y: 264 }, // F1
-      { x: 1100, y: 264 }, // F1
-      { x: 1500, y: 264 }, // F2
-      { x: 1780, y: 264 }, // F2
-      { x: 2150, y: 264 }, // F3
-      { x: 2450, y: 264 }, // F3
-      { x: 2820, y: 264 }, // F4
-      { x: 3120, y: 264 }, // F4 (approach to the climb base)
-      { x: 3300, y: 190 }, // T1 bonus
-      { x: 3520, y: 116 }, // T2 bonus
-      { x: 3700, y: 42 }, //  T3 bonus
-      { x: 3480, y: -32 }, // T4 bonus (on the leftward reversal leg)
-      { x: 3820, y: -106 }, // T5 bonus (main peak)
-      { x: 3650, y: -180 }, // KS bonus — the summit, beside the key
-      { x: 4340, y: 79 }, //  M1 bonus (on the descent)
-      { x: 4620, y: 264 }, // F5
-      { x: 5120, y: 264 }, // F5
-      { x: 5500, y: 264 }, // F6
+      { x: 420, y: 264 }, // F0
+      { x: 340, y: 198 }, // PA (near the secret alcove)
+      { x: 720, y: 264 }, // F1
+      { x: 920, y: 264 }, // F1
+      { x: 1280, y: 264 }, // F2
+      { x: 1480, y: 264 }, // F2
+      { x: 1820, y: 264 }, // F3
+      { x: 2020, y: 264 }, // F3
+      { x: 2380, y: 264 }, // F4
+      { x: 2620, y: 264 }, // F4 (approach to spire 1)
+      { x: 2760, y: 190 }, // T1
+      { x: 2920, y: 116 }, // T2 (clear zone between H and L)
+      // The diamond:
+      { x: 3060, y: 42 }, // L (LOW road)
+      { x: 2720, y: 42 }, // H (HIGH road — bonus 1)
+      { x: 2780, y: 42 }, // H (HIGH road — bonus 2)
+      { x: 2830, y: 42 }, // H (HIGH road — bonus 3)
+      // Upper switchback:
+      { x: 3080, y: -32 }, // T4
+      { x: 3280, y: -106 }, // T5
+      { x: 3000, y: -180 }, // T6
+      { x: 3380, y: -254 }, // SU (the main summit balcony)
+      { x: 3060, y: -328 }, // KA — beside the key, the 592px apex
+      // Descent 1:
+      { x: 3680, y: -146 }, // DA
+      { x: 3960, y: -36 }, //  DB
+      { x: 4240, y: 74 }, //   DC
+      { x: 4540, y: 264 }, // F5
+      { x: 4780, y: 264 }, // F5
+      // Spire 2:
+      { x: 4880, y: 190 }, // U1
+      { x: 5140, y: 116 }, // U2
+      { x: 4880, y: 42 }, //  U3
+      { x: 5220, y: -32 }, // SV
+      { x: 5580, y: 74 }, //  VA (descent 2)
       { x: 5860, y: 264 }, // F6
-      { x: 6250, y: 264 }, // F7
+      { x: 6180, y: 264 }, // F6
       { x: 6520, y: 264 }, // F7
-      { x: 6900, y: 264 }, // F8
-      { x: 7200, y: 264 }, // F8
-      { x: 7560, y: 264 }, // F9
-      { x: 7860, y: 264 }, // F9
+      { x: 6760, y: 264 }, // F7
+      { x: 7100, y: 264 }, // F8
+      { x: 7340, y: 264 }, // F8
     ],
 
-    // 5 floor spikes, each centered on its floor run with a >= 260px margin from
-    // BOTH edges (the spike-before-gap-takeoff discipline 34.6-02 proved necessary
-    // via the in-engine harness) and clear of every platform's x-span (no
-    // ceiling-bonk risk — no platform sits above any spike). NONE sit on the final
-    // approach run (F9 stays a calm run-in to the goal).
+    // 4 floor spikes, each centered on its floor run and clear of every platform's
+    // x-span (no ceiling-bonk risk). NONE on F4/F5 (both are climb bases — a spike
+    // beside a climb-entry mount strands the driven player, whose spike hop sails past
+    // the mount's fire window: proven in-engine on an earlier draft) and NONE on the
+    // final approach (F8 stays a calm run-in to the goal).
     spikes: [
-      { x: 1660, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F2 (1400..1920) — 260/260
-      { x: 2320, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F3 (2040..2600) — 280/280
-      { x: 4910, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F5 (4520..5300) — 390/390
-      { x: 6380, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F7 (6100..6660) — 280/280
-      { x: 7060, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F8 (6780..7340) — 280/280
+      { x: 1370, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F2 (1160..1580)
+      { x: 1920, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F3 (1700..2140)
+      { x: 6100, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F6 (5780..6320) — past enemy@6030
+      { x: 6660, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F7 (6440..6880)
     ],
 
-    // Goal caps the final run (F9 ends 8100; 120px buffer past the goal).
-    goal: { x: 7980, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    // Goal caps the final run (F8 ends 7480; 120px buffer past the goal).
+    goal: { x: 7360, y: FLOOR_Y - CONFIG.GOAL_SIZE },
 
-    // Respawn checkpoints — near spawn, before EVERY spike, before the climb, before
-    // the enemy, plus ONE PER CLIMB TIER placed where the player actually lands (a
-    // fall into the climb pit costs at most one tier — LEVEL-DESIGN §5 respawn
-    // policy, exactly level-07/08's per-tier convention). Checkpoint y always matches
-    // the surface it sits on (FLOOR_Y-48 on floors, tier.y-48 on each climb tier).
+    // Respawn checkpoints — §5 + §8.5 rule 4: near spawn, before EVERY spike, before
+    // EVERY hard climb, before EVERY descent, before the enemy, PLUS one per climb tier
+    // placed where the player lands. Checkpoint y always matches the surface it sits on
+    // (FLOOR_Y-48 on floors, tier.y-48 on each platform).
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 }, // start
-      { x: 860, y: FLOOR_Y - 48 }, // before the door@940 (F1)
-      { x: 1580, y: FLOOR_Y - 48 }, // before spike1@1660 (F2)
-      { x: 2240, y: FLOOR_Y - 48 }, // before spike2@2320 (F3)
-      { x: 2780, y: FLOOR_Y - 48 }, // before the climb (start of F4)
-      { x: 3260, y: 246 - 48 }, // T1 landing (left end)
-      { x: 3500, y: 172 - 48 }, // T2 landing (left end)
-      { x: 3720, y: 98 - 48 }, //  T3 landing (left end, before the runway)
-      { x: 3560, y: 24 - 48 }, //  T4 landing — the up-LEFT reversal arrives here
-      { x: 3760, y: -50 - 48 }, // T5 landing (the peak, left end)
-      { x: 3620, y: -124 - 48 }, // KS landing (the key apex, up-left of T5)
-      { x: 4220, y: 135 - 48 }, // M1 landing (on the descent)
-      { x: 4830, y: FLOOR_Y - 48 }, // before spike3@4910 (F5)
-      { x: 5480, y: FLOOR_Y - 48 }, // before the enemy@5620 (start of F6)
-      { x: 6300, y: FLOOR_Y - 48 }, // before spike4@6380 (F7)
-      { x: 6980, y: FLOOR_Y - 48 }, // before spike5@7060 (F8)
-      { x: 7480, y: FLOOR_Y - 48 }, // start of the final calm run to the goal (F9)
+      { x: 720, y: FLOOR_Y - 48 }, // before the door@800 (F1)
+      { x: 1290, y: FLOOR_Y - 48 }, // before spike1@1370 (F2)
+      { x: 1840, y: FLOOR_Y - 48 }, // before spike2@1920 (F3)
+      { x: 2320, y: FLOOR_Y - 48 }, // before SPIRE 1 (F4)
+      // Spire 1 lower climb + the diamond fork:
+      { x: 2700, y: 246 - 48 }, // T1
+      { x: 2820, y: 172 - 48 }, // T2 (the fork)
+      { x: 3020, y: 98 - 48 }, //  L (LOW road)
+      { x: 2720, y: 98 - 48 }, //  H (HIGH road)
+      { x: 3060, y: 24 - 48 }, //  T4 (rejoin)
+      // Upper switchback + key spur:
+      { x: 3200, y: -50 - 48 }, // T5
+      { x: 3000, y: -124 - 48 }, // T6
+      { x: 3180, y: -198 - 48 }, // SU (the summit)
+      { x: 3020, y: -272 - 48 }, // KA (the key apex)
+      // Descent 1 (before every drop):
+      { x: 3620, y: -90 - 48 }, // DA
+      { x: 3900, y: 20 - 48 }, //  DB
+      { x: 4180, y: 130 - 48 }, // DC
+      { x: 4460, y: FLOOR_Y - 48 }, // F5 landing / SPIRE 2 base
+      // Spire 2:
+      { x: 4820, y: 246 - 48 }, // U1
+      { x: 5060, y: 172 - 48 }, // U2
+      { x: 4840, y: 98 - 48 }, //  U3
+      { x: 5060, y: 24 - 48 }, //  SV
+      { x: 5520, y: 130 - 48 }, // VA (descent 2)
+      { x: 5820, y: FLOOR_Y - 48 }, // F6 landing, before enemy@6030
+      { x: 6020, y: FLOOR_Y - 48 }, // before spike3@6100 (F6)
+      { x: 6580, y: FLOOR_Y - 48 }, // before spike4@6660 (F7)
+      { x: 7040, y: FLOOR_Y - 48 }, // start of the final calm run to the goal (F8)
     ],
 
-    // Exactly ONE door — math density locked at 1 door + 1 enemy + end gate.
-    // Sits mid-F1, well clear of the gaps on either side (220/308px margins).
-    doors: [{ x: 940, y: FLOOR_Y - CONFIG.DOOR.H }],
+    // Exactly ONE door — math density locked at 1 door + 1 enemy + end gate. Mid-F1,
+    // clear of the gaps on either side.
+    doors: [{ x: 800, y: FLOOR_Y - CONFIG.DOOR.H }],
 
-    // Mid-level checkpoint gates: NONE — density locked at exactly 1 door + 1 enemy
-    // + the end-of-level goal gate.
+    // Mid-level checkpoint gates: NONE — density locked at exactly 1 door + 1 enemy +
+    // the end-of-level goal gate.
     mathGates: [],
 
-    // Exactly ONE enemy — mid-F6, PAST the climb. Placing it beyond the pit forces
-    // the driven harness to traverse the whole switchback + descent to reach it,
-    // so browser-boot proves the climb is navigable, not just statically plausible.
-    enemies: [{ x: 5620, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }],
+    // Exactly ONE enemy — mid-F6, PAST both spires. Placing it beyond the second pit
+    // forces the driven harness to traverse the whole level (both switchbacks + both
+    // descents) to reach it, so browser-boot proves the climbs are navigable.
+    enemies: [{ x: 6030, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }],
 
-    // The math-skip KEY (KEY-02/LEN-02) — NO geometry.locks (math-skip = keys
-    // WITHOUT locks). Sits on the KEY APEX tier KS (x:3970..4220), at x:4110 — in a
-    // genuine walked middle stretch (left of where the up-left mount from T5 lands
-    // the player near KS's right edge, so the player walks left across it to reach
-    // it; and left of the right edge where a departing player walks off back onto
-    // T5), so a driven player naturally walks through it rather than sailing over it
-    // mid-arc (Pitfall 3, the 34.5 x:760 defect class). y = KS's surface (-124)
-    // minus 32, the player's own collider height (WR-02; NOT CONFIG.KEY.H), so the
-    // trigger box sits flush with a standing player's top edge on that specific tier.
-    keys: [{ x: 3600, y: -124 - 32 }],
+    // The math-skip KEY (KEY-02/LEN-02) — NO geometry.locks (math-skip = keys WITHOUT
+    // locks). Sits on KA, the KEY-SPUR apex above the summit (x:2960..3200, y:-272), at
+    // x:3080 — a genuine walked middle stretch clear of both the up-left mount from SU
+    // (which lands near KA's right end) and KA's own edges, so a driven player naturally
+    // walks through it rather than sailing over it mid-arc (Pitfall 3, the 34.5 x:760
+    // defect class). y = KA's surface (-272) minus 32, the player's own collider height
+    // (WR-02; NOT CONFIG.KEY.H), so the trigger box sits flush with a standing player's
+    // top edge on that tier.
+    keys: [{ x: 3080, y: -272 - 32 }],
     // NO physical lock geometry anywhere in this descriptor — this is the math-skip
     // usage (key-held clears the level directly with full XP; missing it just means
-    // answering the end math gate as normal — see game.js's heldKeyIds branch,
-    // Phase 34.6 Plan 01).
+    // answering the end math gate as normal — see game.js's heldKeyIds branch).
 
     // Exactly ONE secret alcove, ~70px above the spawn-area optional platform PA
     // (x:280, y:254, w:120) — off the required path, never signposted.
