@@ -6,14 +6,14 @@ current_phase: 34.6
 current_phase_name: level-redesign-rebuild-and-double-every-level
 status: executing
 stopped_at: Completed 34.6-01-PLAN.md
-last_updated: "2026-07-15T10:37:28.755Z"
+last_updated: "2026-07-15T11:24:37.507Z"
 last_activity: 2026-07-15
 last_activity_desc: Phase 34.6 execution started
 progress:
   total_phases: 12
   completed_phases: 7
   total_plans: 42
-  completed_plans: 33
+  completed_plans: 34
   percent: 58
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 34.6 (level-redesign-rebuild-and-double-every-level) — EXECUTING
-Plan: 3 of 11
+Plan: 4 of 11
 Status: Ready to execute
 Last activity: 2026-07-15 — Phase 34.6 execution started
 
@@ -98,6 +98,9 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - [Phase 34.6]: clearLevel({ table } = {}) is the single shared level-clear closure; math path passes { table }, key-skip path passes {} and awards CONFIG.PROGRESS.XP_KEY_SKIP (20) via addBonusXp — Prevents XP/unlock/persistence drift between the math-gate and key-skip end-gate paths (Pitfall 5)
 - [Phase 34.6]: level-01 rebuilt calm/soft-landing archetype: zero overlapping platform tiers, deliberate ascent/descent hump bridging a 410px gap, optional visible high route with bonus coins
 - [Phase 34.6]: Spikes need >=250px margin from any floor edge (gap or platform-mount takeoff) to avoid the spike-before-gap conflict class the in-engine harness caught -- applies to all remaining level rebuilds in this phase
+- [Phase 34.6]: level-02 rebuilt intense/vertical archetype: THREE open-air ascent/descent humps (vs level-01's one), zero overlapping tiers, math-skip key placed on the third hump's peak in a walked stretch
+- [Phase 34.6]: audit-endgate-key.mjs discovers math-skip levels dynamically (geometry.keys with no geometry.locks) and navigates via go("game", {levelId}) directly -- auto-covers future rebuilt levels 04/06/08 with zero script changes
+- [Phase 34.6]: driveToXPlanned goal-approach calls need a shortened stallMs override on the key-skip path -- onReachGoal freezes the player on arrival, so the default 15s stall guard wastes time waiting out what is actually success
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -130,10 +133,11 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 | *(none — all absorbed into v6.0 scope)* | | | |
 | Phase 34.6 P01 | 23min | 2 tasks | 2 files |
 | Phase 34.6 P02 | 51min | 2 tasks | 2 files |
+| Phase 34.6 P03 | 48min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-07-15T10:36:53.621Z
+Last session: 2026-07-15T11:24:37.496Z
 Stopped at: Completed 34.6-01-PLAN.md
 Resume file: None
 
