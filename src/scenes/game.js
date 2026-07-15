@@ -208,6 +208,69 @@ export function gameScene(data) {
   // construct of any kind is introduced (CONTEXT-locked, ADHD-safe).
   player.onCollide("spike", () => respawn());
 
+  // clearLevel(): the SINGLE shared level-clear body (Phase 34.6, extracted from the
+  // former onClear inline block — Pitfall 5: XP path divergence). BOTH end-gate paths
+  // call this, and only this, for markCleared/hud/burst/save/transition so they can
+  // never drift apart:
+  //   - math path (openMathGate's onClear): called with { table } — the answered
+  //     question's operand (q.a) — and awards the existing table-banded XP.
+  //   - key path (onReachGoal's heldKeyIds branch, below): called with {} (no table)
+  //     — there is no answered question, so it awards a flat "full credit, no penalty"
+  //     amount via the explicit-amount API (CONFIG.PROGRESS.XP_KEY_SKIP), never a
+  //     fabricated table number routed through addXp.
+  // The cleared-fact mark + save write live ONLY here — unlock derivation and
+  // persistence cannot silently fire on one path and not the other.
+  function clearLevel({ table } = {}) {
+    // GATE-03: correct (math path) or key-skip (key path) -> the level is cleared. The
+    // caller already shows its own "LEVEL CLEAR" banner (mathGate.js for the math path;
+    // the heldKeyIds branch below for the key path); the scene's side of "cleared" is
+    // simply that the player stays frozen. Single level: no go() to a next level.
+
+    // Award XP: the math path passes the answered table (SAVE-01, addXp bands
+    // XP_EASY/XP_HARD); the key path passes no table, so it awards the flat
+    // full-credit amount via addBonusXp — the explicit-amount API that exists
+    // specifically so this never needs a fabricated table. Either branch returns
+    // true on a level-up.
+    const leveledUp =
+      table !== undefined ? progress.addXp(table) : progress.addBonusXp(CONFIG.PROGRESS.XP_KEY_SKIP);
+
+    // Mark THIS level cleared (SAVE-06) so the per-level cleared fact persists in the
+    // SAME write as the XP above (one atomic save; unlock is derived in the registry,
+    // never stored). progress.serialize now includes the levels map (Plan 02).
+    progress.markCleared(level.id);
+
+    // One-way HUD update, then flash on a level-up (SAVE-04).
+    hud.refresh();
+    if (leveledUp) hud.flashLevelUp();
+
+    // JUICE-03: a brief, NON-STROBING celebratory burst LAYERED on the existing clear
+    // moment (the caller's "LEVEL CLEAR" banner + the level-up flash above). It enhances,
+    // never replaces — the banner and flashLevelUp() are untouched.
+    fx.clearBurst();
+
+    // Persist on each clear (SAVE-02): xp/level + the brain's accuracy/history
+    // snapshot. Run/session state (coins, goalReached, position) is NEVER serialized.
+    // writeSave is guarded (no-op under blocked storage; never throws into the loop).
+    writeSave(progress.serialize(brain.snapshot()));
+
+    // NAV-03: after the persist, RETURN to level-select — no auto-advance into the
+    // next level. go() was previously called SYNCHRONOUSLY right here, in the same
+    // tick as the caller's "LEVEL CLEAR" banner add() and fx.clearBurst() — the scene
+    // tore itself down before the browser ever painted a frame, so the celebration was
+    // never actually visible (found during real-browser NAV-04 verification). This does
+    // NOT use wait()/setTimeout/loop() (still banned by SAFE-01 / check-safety.sh) — it
+    // reuses the SAME tween().onEnd self-clean idiom as fx.js, deferring only the scene
+    // transition for CONFIG.FX.BURST_MS (the same non-strobing ≤400-500ms flash-cap
+    // duration the burst itself already respects) so the banner + burst get their one
+    // on-screen beat. This is a celebratory pause the player already cleared the level
+    // to earn, not a punishing wait during play.
+    clearTransitionTween = tween(0, 1, CONFIG.FX.BURST_MS / 1000, () => {}, easings.linear);
+    clearTransitionTween.onEnd(() => {
+      clearTransitionTween = null;
+      go("select");
+    });
+  }
+
   // Goal (LEVEL-07): the SINGLE-POINT handoff seam. This is the one clean call site
   // Phase 10's math gate attaches to — it replaces the STUB BODY below, nowhere else.
   // There is exactly ONE onReachGoal function and ONE goal-collision wiring (Pitfall 5).
@@ -223,57 +286,44 @@ export function gameScene(data) {
     player.vel = vec2(0); // clean stop — no residual momentum to inherit
     player.paused = true; // halts the player's onUpdate (movement) — gentle freeze
 
+    // KEY-02/LEN-02 (Phase 34.6): a held math-skip key clears the level directly,
+    // WITHOUT opening the end math challenge — "full credit, no penalty" per
+    // 34.6-CONTEXT.md. Odd/keyless levels place no keys, so heldKeyIds stays empty
+    // and this branch always falls through to the unchanged math path below.
+    if (heldKeyIds.size > 0) {
+      // The math path never runs here, so replicate the "gate-cleared"-tagged
+      // banner + clear sfx that mathGate.js's onSuccess normally renders (mirrors
+      // src/ui/mathGate.js lines 37-56 byte-for-byte) so the celebration + clear
+      // marker still appear on the key-skip path.
+      add([
+        rect(width(), height()),
+        pos(0, 0),
+        color(0, 0, 0),
+        opacity(CONFIG.GATE.DIM_OPACITY),
+        fixed(),
+        z(9990),
+        "gate-cleared",
+      ]);
+      add([
+        text("LEVEL CLEAR", { size: 30 }),
+        anchor("center"),
+        pos(center().x, center().y),
+        color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
+        fixed(),
+        z(9994),
+        "gate-cleared",
+      ]);
+      audio.playSfx("clear");
+
+      clearLevel({}); // no table -> full-XP key-skip path (CONFIG.PROGRESS.XP_KEY_SKIP)
+      return;
+    }
+
     // SINGLE scene-to-gate bridge (GATE-03): hand the closure-local brain to the gate.
     // The gate renders the in-world question over the dimmed/paused level and calls
-    // onClear() exactly once on a correct answer (its own fire-once latch, Plan 02).
-    openMathGate({
-      brain,
-      onClear({ table }) {
-        // GATE-03: correct -> the level is cleared. The gate already shows its own
-        // "LEVEL CLEAR" banner (Plan 02); the scene's side of "cleared" is simply that
-        // the player stays frozen. Single level: no go() to a next level.
-
-        // Award XP for the cleared table (SAVE-01); addXp returns true on a level-up.
-        // The gate carried `table` (q.a) — the gate itself awards NO XP (forgiving).
-        const leveledUp = progress.addXp(table);
-
-        // Mark THIS level cleared (SAVE-06) so the per-level cleared fact persists in the
-        // SAME write as the XP below (one atomic save; unlock is derived in the registry,
-        // never stored). progress.serialize now includes the levels map (Plan 02).
-        progress.markCleared(level.id);
-
-        // One-way HUD update, then flash on a level-up (SAVE-04).
-        hud.refresh();
-        if (leveledUp) hud.flashLevelUp();
-
-        // JUICE-03: a brief, NON-STROBING celebratory burst LAYERED on the existing clear
-        // moment (the gate's "LEVEL CLEAR" banner + the level-up flash above). It enhances,
-        // never replaces — the gate banner (mathGate.js) and flashLevelUp() are untouched.
-        fx.clearBurst();
-
-        // Persist on each clear (SAVE-02): xp/level + the brain's accuracy/history
-        // snapshot. Run/session state (coins, goalReached, position) is NEVER serialized.
-        // writeSave is guarded (no-op under blocked storage; never throws into the loop).
-        writeSave(progress.serialize(brain.snapshot()));
-
-        // NAV-03: after the persist, RETURN to level-select — no auto-advance into the
-        // next level. go() was previously called SYNCHRONOUSLY right here, in the same
-        // tick as the gate's "LEVEL CLEAR" banner add() above (mathGate.js) and
-        // fx.clearBurst() — the scene tore itself down before the browser ever painted
-        // a frame, so the celebration was never actually visible (found during real-browser
-        // NAV-04 verification). This does NOT use wait()/setTimeout/loop() (still banned by
-        // SAFE-01 / check-safety.sh) — it reuses the SAME tween().onEnd self-clean idiom as
-        // fx.js, deferring only the scene transition for CONFIG.FX.BURST_MS (the same
-        // non-strobing ≤400-500ms flash-cap duration the burst itself already respects) so
-        // the banner + burst get their one on-screen beat. This is a celebratory pause the
-        // player already cleared the level to earn, not a punishing wait during play.
-        clearTransitionTween = tween(0, 1, CONFIG.FX.BURST_MS / 1000, () => {}, easings.linear);
-        clearTransitionTween.onEnd(() => {
-          clearTransitionTween = null;
-          go("select");
-        });
-      },
-    });
+    // onClear() exactly once on a correct answer (its own fire-once latch, Plan 02),
+    // carrying { table } (q.a) into the shared clearLevel() above.
+    openMathGate({ brain, onClear: clearLevel });
   }
   player.onCollide("goal", onReachGoal);
 
