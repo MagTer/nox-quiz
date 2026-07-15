@@ -236,6 +236,14 @@ export const CONFIG = {
     XP_EASY: 10, // XP for a correct answer on tables 1–5
     XP_HARD: 20, // XP for a correct answer on tables 6–9
     XP_ALCOVE: 5, // flat XP for touching a level's hidden secret alcove (LVL-06) — deliberately below XP_EASY so it reads as a bonus, not a shortcut
+    // Full-level-clear XP awarded on the key-skip end-gate path (Phase 34.6 KEY-02/
+    // LEN-02) — no table is answered on that path, so there is no addXp(table) to
+    // reuse. "Full credit, no penalty" per 34.6-CONTEXT.md: set to XP_HARD's 20 as
+    // the A1 default (flat full value, vs. the alternative of drawing a representative
+    // allowedTables band) — confirmable/adjustable at the levels-01/02 human-verify
+    // checkpoint (plan 34.6-04). Consumed via progress.addBonusXp, never a fabricated
+    // table routed through addXp.
+    XP_KEY_SKIP: 20,
     BASE_XP: 200, // XP required for Level 1 → Level 2
     LEVEL_MULT: 1.3, // per-level threshold multiplier (threshold = round(BASE_XP * MULT^(L-1)))
     HARD_TABLES: [6, 7, 8, 9], // hard tables (award XP_HARD)
