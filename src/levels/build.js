@@ -354,6 +354,54 @@ export function buildLevel(levelData) {
     enemyObj.panelObj = panel;
   }
 
+  // --- Key/lock (mid-level NON-MATH gate seam; Phase 34.5, KEY-01/KEY-02) ---
+  // The lock is a genuinely-solid apex-height wall (same door/math-gate/enemy
+  // blocker split: invisible tall solid collider + a separate visible panel).
+  // CONFIG.LOCK.W is load-bearing beyond visuals: scripts/lib/key-lock-check.mjs
+  // partitions the reachability graph on an x-band of exactly this width, so the
+  // blocker's footprint here MUST stay in sync with that config value.
+  for (const l of g.locks ?? []) {
+    const blockerH = Math.ceil((CONFIG.JUMP_FORCE ** 2) / (2 * CONFIG.GRAVITY)) + 64; // apex + margin
+    const blocker = add([
+      rect(CONFIG.LOCK.W, blockerH),
+      pos(l.x, l.y + CONFIG.LOCK.H - blockerH),
+      opacity(HIDDEN), // invisible — the visible panel below provides the art
+      area(),
+      body({ isStatic: true }),
+      "lock",
+    ]);
+
+    // Visible lock panel — a COLORED-RECT placeholder (NOT sprite("door") — wrong
+    // art — and NOT a new sprite, which would churn the asset manifest; real art
+    // is Phase 35). Telegraphed, not secret: always visible, not opacity(HIDDEN).
+    const panel = add([
+      rect(CONFIG.LOCK.W, CONFIG.LOCK.H),
+      pos(l.x, l.y),
+      color(CONFIG.LOCK.PANEL_COLOR[0], CONFIG.LOCK.PANEL_COLOR[1], CONFIG.LOCK.PANEL_COLOR[2]),
+      "lock-panel",
+    ]);
+
+    // Stash the panel on the blocker so key.js's lock-open branch destroys both
+    // together (same idiom as the door blocker's blocker.panelObj above).
+    blocker.panelObj = panel;
+  }
+
+  // --- Key (walk-through pickup; Phase 34.5, KEY-01) ---
+  // Visible and telegraphed — CONTEXT locks "no hidden/secret keys" (unlike the
+  // secretAlcove below, which IS a secret). The player walks THROUGH it (no
+  // body() — pickup is wired via onCollide, not a blocker).
+  for (const k of g.keys ?? []) {
+    add([
+      rect(CONFIG.KEY.W, CONFIG.KEY.H),
+      pos(k.x, k.y),
+      area(),
+      ...(DEBUG
+        ? [color(255, 0, 255), opacity(0.8)] // bright magenta debug marker (alcove idiom)
+        : [color(CONFIG.KEY.COLOR[0], CONFIG.KEY.COLOR[1], CONFIG.KEY.COLOR[2]), opacity(1)]),
+      "key",
+    ]);
+  }
+
   // --- Secret XP alcoves (LVL-06 — optional, silent, walk-through-only bonus) ---
   // No blocker collider, no visible panel, no glyph: this is a walk-through bonus, not
   // a barrier, unlike every other mechanic block above. Guarded with ?? [] so every
