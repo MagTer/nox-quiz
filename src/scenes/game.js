@@ -29,6 +29,7 @@ import { wireDoor } from "../mechanics/door.js";
 import { wireGates } from "../mechanics/gates.js";
 import { wireEnemy } from "../mechanics/enemy.js";
 import { wireSecretAlcove } from "../mechanics/secretAlcove.js";
+import { wireKey } from "../mechanics/key.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
 import { mountHud } from "../ui/hud.js";
 import * as fx from "../fx.js"; // engine-side juice (coin pop + clear burst) — JUICE-02/03
@@ -61,6 +62,14 @@ export function gameScene(data) {
   // Goal fire-once guard — closure-local (same anti-leak contract). onCollide fires
   // every overlap frame; this latches so onReachGoal() runs EXACTLY once.
   let goalReached = false;
+
+  // Key-held run-state (KEY-01; Phase 34.5) — closure-local (same anti-leak
+  // contract: never module-level). Flipped true by wireKey's onPickup callback
+  // and read by its hasKey() callback to decide whether a lock opens or shows a
+  // hint. Survives respawn() automatically (reposition-in-place, no go()) and is
+  // NEVER serialized — resets only on a full scene re-entry, which is correct
+  // (a new run starts without the key).
+  let keyHeld = false;
 
   // Handle for the clear->select transition tween (see onReachGoal's onClear below).
   // Closure-local, same anti-leak contract as player._fxScaleTween in fx.js: if the
@@ -284,6 +293,15 @@ export function gameScene(data) {
     levelId: level.id,
     save: () => writeSave(progress.serialize(brain.snapshot())),
   });
+
+  // KEY-01 (Phase 34.5): the key/lock mechanic — the game's FIRST non-math gate.
+  // onPickup flips the closure-local keyHeld run-state (above); hasKey reads it so
+  // the lock's collision handler decides open-vs-hint. keyHeld is threaded as
+  // callbacks (not passed by value) so the lock always reads the LIVE flag. This is
+  // a NON-math spatial gate — it never opens the shared challenge seam, so the math
+  // density (3 challenges/level) is unchanged. Inert on every level with no
+  // keys/locks (build.js emits nothing there).
+  wireKey({ player, hud, onPickup: () => { keyHeld = true; }, hasKey: () => keyHeld });
 
   // --- Escape → level-select (NAV-03 agency) ---
   // Lets her bail back to select mid-level with no forced replay of earlier levels.
