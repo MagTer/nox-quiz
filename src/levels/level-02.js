@@ -107,6 +107,11 @@ export const LEVEL_02 = {
     // for the 1260..1420 gap), squarely in the walked stretch between them —
     // confirmed via a direct driveToXPlanned(door.x) drive that the key is now
     // collected incidentally before the door ever triggers.
+    // WR-02: y is FLOOR_Y - 32, NOT CONFIG.KEY.H (20) — 32 is the player's own
+    // collider height (src/player.js's locked 16x32 AABB, duplicated as
+    // PLAYER_H in scripts/lib/reachability.mjs), chosen so the key's trigger
+    // box sits flush with a standing player's own top edge rather than the
+    // key sprite's smaller footprint.
     keys: [{ x: 900, y: FLOOR_Y - 32 }],
     locks: [{ x: 3960, y: FLOOR_Y - CONFIG.LOCK.H }],
 
