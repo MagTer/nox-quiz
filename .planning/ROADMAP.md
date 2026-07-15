@@ -366,7 +366,7 @@ The standing convention — "extending kid-validated levels: append new sections
 
   13. **Keys/locks placed per Phase 34.5's mechanic** — and the softlock proof (34.5 SC2) must be green for every rebuilt level. **REFINED (34.6-CONTEXT.md, overrides 34.5's shipped design):** on EVEN levels the key is an OPTIONAL "math-skip token" on a high risk/reward route — NO physical lock; key-held clears the level FREE with FULL XP (skip the end math), no key answers the end math. Use `geometry.keys` WITHOUT `geometry.locks`; the 34.5 physical-lock code + its softlock validator stay dormant (not deleted).
 
-**Plans**: 4/11 plans executed
+**Plans**: 5/11 plans executed
 
 Plans:
 **Wave 1** *(parallel — file-disjoint)*
@@ -384,7 +384,7 @@ Plans:
 
 **Wave 4** *(parallel — blocked on the checkpoint)*
 
-- [ ] 34.6-05-PLAN.md — Rebuild level-03 (town intro, calm) + smoke re-baseline — LEN-01, LEN-02
+- [x] 34.6-05-PLAN.md — Rebuild level-03 (town intro, calm) + smoke re-baseline — LEN-01, LEN-02
 - [ ] 34.6-06-PLAN.md — Rebuild level-05 (cemetery intro, calm) — LEN-01, LEN-02
 - [ ] 34.6-07-PLAN.md — Rebuild level-06 (cemetery, intense/vertical + math-skip key) — LEN-01, LEN-02
 - [ ] 34.6-08-PLAN.md — Rebuild level-07 (castle intro, monotonic staircase — deletes the 5 headroom fails) — LEN-01, LEN-02
