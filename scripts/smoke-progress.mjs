@@ -309,95 +309,122 @@ const deepEqual = (a, b) => {
   return ak.every((k) => deepEqual(a[k], b[k]));
 };
 
-// --- LVL-02 regression: level-01 geometry === v3.0 src/level.js values, VERBATIM ---
-// Phase 24 re-baseline: level-01 extended + structural fixes applied (VALID-04/LVL-01).
-// OLD (pre-Phase-24, v4.1) values, retained for historical traceability:
-//   floors: [{ x: 0, w: 560 }, { x: 720, w: 480 }, { x: 1360, w: 880 }]
-//   platforms: [{ x: 360, y: 240, w: 160, h: 24 }, { x: 560, y: 192, w: 128, h: 24 },
-//     { x: 1208, y: 232, w: 152, h: 24 }, { x: 1640, y: 232, w: 160, h: 24 }]
-//   coins: [{ x: 200, y: 264 }, { x: 392, y: 184 }, { x: 592, y: 136 }, { x: 800, y: 264 },
-//     { x: 960, y: 264 }, { x: 1240, y: 176 }, { x: 1440, y: 264 }, { x: 1680, y: 176 },
-//     { x: 1900, y: 264 }, { x: 2080, y: 264 }]
-//   spikes: [{ x: 880 }, { x: 1520 }, { x: 2000 }] (y: FLOOR_Y - CONFIG.SPIKE_SIZE)
-//   goal: { x: 2160, y: FLOOR_Y - CONFIG.GOAL_SIZE }
-//   checkpoints: [{ x: 96 }, { x: 800 }, { x: 1440 }, { x: 1920 }] (y: FLOOR_Y - 48)
-//   mathGates: [{ x: 600 }, { x: 1300 }] (y: FLOOR_Y - CONFIG.MATH_GATE.H) — x:600/x:1300 were
-//     over-hole per VALID-04, repositioned to x:528/x:1360; x:528 then re-repositioned to
-//     x:150 (it sat at floor-0's edge right before the gap-1 climbing platform — a
-//     forward-only traversal trap; see level-01.js's inline comment)
+// --- LVL-02 regression: level-01 geometry === the Phase-34.6 rebuilt descriptor ---
+// Phase 34.6 (plan 34.6-02) REBUILT level-01 from scratch — the append-only
+// convention (LEVEL-DESIGN.md §9.1) is explicitly suspended for this phase, so the
+// old v3.0-lineage geometry this fixture used to pin (floors to 3640, goal at
+// 3560, byte-identical since Phase 8/9) no longer exists; see git history for it.
+// This is a mechanical re-baseline of the snapshot to the new source of truth —
+// the fixture below is copied verbatim from the rebuilt src/levels/level-01.js.
 {
-  // The v4.2 (post-Phase-24) geometry lifted verbatim from src/levels/level-01.js: floors
-  // 40-46, platforms 50-57, coins 67-84, spikes 87-92, goal 97, checkpoints 108-115,
-  // doors 120-122, mathGates 126-130, enemies 133-135 (Phase 29: collectZones/
-  // answerPickupSlots removed per MECH-01).
+  // The Phase-34.6 rebuilt geometry lifted verbatim from src/levels/level-01.js:
+  // floors 36-48, platforms 54-64, coins 71-106, spikes 109-118, goal 122,
+  // checkpoints 126-138, doors 142-144, mathGates 148, enemies 151-153,
+  // secretAlcove 157-159.
   const FLOOR_Y = CONFIG.FLOOR_Y; // 320
   const expectedGeometry = {
     floors: [
       { x: 0, w: 560 },
-      { x: 720, w: 480 },
-      { x: 1360, w: 880 },
-      { x: 2400, w: 480 },
-      { x: 3040, w: 600 },
+      { x: 680, w: 440 },
+      { x: 1240, w: 480 },
+      { x: 1840, w: 400 },
+      { x: 2650, w: 500 },
+      { x: 3270, w: 460 },
+      { x: 3850, w: 480 },
+      { x: 4490, w: 460 },
+      { x: 5070, w: 480 },
+      { x: 5670, w: 500 },
+      { x: 6290, w: 900 },
     ],
     platforms: [
-      { x: 360, y: 240, w: 160, h: 24 },
-      { x: 560, y: 192, w: 128, h: 24 },
-      { x: 1208, y: 232, w: 152, h: 24 },
-      { x: 1640, y: 232, w: 160, h: 24 },
-      { x: 2240, y: 250, w: 128, h: 24 },
-      { x: 2880, y: 250, w: 112, h: 24 },
+      { x: 280, y: 254, w: 120, h: 16 },
+      { x: 850, y: 254, w: 90, h: 16 },
+      { x: 1480, y: 254, w: 90, h: 16 },
+      { x: 1600, y: 191, w: 90, h: 16 },
+      { x: 2260, y: 250, w: 100, h: 16 },
+      { x: 2380, y: 185, w: 110, h: 16 },
+      { x: 2500, y: 250, w: 110, h: 16 },
+      { x: 4370, y: 260, w: 100, h: 16 },
+      { x: 5850, y: 254, w: 90, h: 16 },
     ],
     coins: [
-      { x: 200, y: 264 },
-      { x: 392, y: 184 },
-      { x: 592, y: 136 },
-      { x: 800, y: 264 },
-      { x: 960, y: 264 },
-      { x: 1240, y: 176 },
-      { x: 1440, y: 264 },
-      { x: 1680, y: 176 },
+      { x: 150, y: 264 },
+      { x: 450, y: 264 },
+      { x: 340, y: 198 },
+      { x: 750, y: 264 },
+      { x: 1030, y: 264 },
+      { x: 890, y: 198 },
+      { x: 1260, y: 264 },
+      { x: 1695, y: 264 },
+      { x: 1510, y: 198 },
+      { x: 1630, y: 135 },
+      { x: 1660, y: 135 },
       { x: 1900, y: 264 },
-      { x: 2080, y: 264 },
-      { x: 2280, y: 264 },
-      { x: 2472, y: 184 },
-      { x: 2600, y: 136 },
-      { x: 2800, y: 264 },
-      { x: 3080, y: 264 },
-      { x: 3400, y: 176 },
+      { x: 2180, y: 264 },
+      { x: 2300, y: 194 },
+      { x: 2430, y: 129 },
+      { x: 2550, y: 194 },
+      { x: 2700, y: 264 },
+      { x: 2960, y: 264 },
+      { x: 3120, y: 264 },
+      { x: 3320, y: 264 },
+      { x: 3650, y: 264 },
+      { x: 3900, y: 264 },
+      { x: 4200, y: 264 },
+      { x: 4410, y: 204 },
+      { x: 4550, y: 264 },
+      { x: 4880, y: 264 },
+      { x: 5120, y: 264 },
+      { x: 5480, y: 264 },
+      { x: 5720, y: 264 },
+      { x: 6100, y: 264 },
+      { x: 5890, y: 198 },
+      { x: 6350, y: 264 },
+      { x: 6700, y: 264 },
+      { x: 7050, y: 264 },
     ],
     spikes: [
-      { x: 880, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1520, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 2000, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 2640, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1440, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1920, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 3450, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 3930, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 4670, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 5250, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 5760, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
-    goal: { x: 3560, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 7100, y: FLOOR_Y - CONFIG.GOAL_SIZE },
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
-      { x: 800, y: FLOOR_Y - 48 },
-      { x: 1440, y: FLOOR_Y - 48 },
-      { x: 1920, y: FLOOR_Y - 48 },
-      { x: 2560, y: FLOOR_Y - 48 },
-      { x: 3040, y: FLOOR_Y - 48 },
+      { x: 700, y: FLOOR_Y - 48 },
+      { x: 1360, y: FLOOR_Y - 48 },
+      { x: 1840, y: FLOOR_Y - 48 },
+      { x: 2740, y: FLOOR_Y - 48 },
+      { x: 3370, y: FLOOR_Y - 48 },
+      { x: 3850, y: FLOOR_Y - 48 },
+      { x: 4590, y: FLOOR_Y - 48 },
+      { x: 5170, y: FLOOR_Y - 48 },
+      { x: 5680, y: FLOOR_Y - 48 },
+      { x: 6320, y: FLOOR_Y - 48 },
     ],
     doors: [
-      { x: 1400, y: FLOOR_Y - CONFIG.DOOR.H },
+      { x: 1300, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
-    // 2026-07-12 re-baseline (user decision): math density locked at 1 door +
-    // 1 enemy + the end-of-level goal gate per level — mid-level checkpoint
-    // gates removed everywhere. OLD: mathGates x:150/1360/3120.
+    // Math density locked at 1 door + 1 enemy + the end-of-level goal gate per
+    // level — mid-level checkpoint gates removed everywhere (user decision,
+    // 2026-07-12; unchanged by the Phase-34.6 rebuild).
     mathGates: [],
     enemies: [
-      { x: 1000, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
+      { x: 2900, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],
     secretAlcove: [
-      { x: 400, y: 170 },
+      { x: 320, y: 184 },
     ],
   };
 
   const actual = getLevel("level-01").geometry;
   check(deepEqual(actual, expectedGeometry),
-    `LVL-02 regression: getLevel("level-01").geometry must deep-equal the v3.0 src/level.js geometry verbatim`);
+    `LVL-02 regression: getLevel("level-01").geometry must deep-equal the Phase-34.6 rebuilt descriptor`);
 }
 
 // --- LVL-02 regression: level-02 geometry matches authored descriptor ---
