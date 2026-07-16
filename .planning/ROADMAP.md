@@ -398,6 +398,25 @@ Plans:
 
 - [x] 34.6-11-PLAN.md — Final consolidation: full 8-level gate suite green (zero HARD-FAIL) + documented LEVEL-DESIGN review — LEN-01, LEN-02
 
+### Phase 34.6.1: Re-play Polish — Coins, Key Framing & Wrong-Answer Feedback (INSERTED)
+
+**Goal:** Address the three polish notes from the user's 2026-07-16 re-play of the all-8 redo:
+
+1. **Coins** — replace the low-res coin sprite with crisp art.
+2. **Key framing** — the math-skip key reads oddly ("collecting a key to open a key at the end"); rework its framing / telegraphing on the even levels (02/04/06/08) so the pick-up-key → skip-end-math flow is legible, not confusing.
+3. **Wrong-answer feedback** — the shared math dialog (`src/ui/challenge.js`) lets you mash all four answer keys and slip past; add brief NON-PUNISHING feedback (shake/flash/dim + re-ask) so a wrong answer registers. Hard constraint: NO punishment (no timer, no lost progress, no game-over) — SAFE-01.
+
+**Requirements**: polish (no new milestone requirement IDs)
+**Depends on:** Phase 34.6
+**Plans:** 4 plans
+
+Plans:
+
+- [ ] 34.6.1-01-PLAN.md — D-01 wrong-answer settle + red flash in the shared challenge dialog (anti-mash, non-punishing) — polish
+- [ ] 34.6.1-02-PLAN.md — Vendor + license the 3 CC0 sprites (coin/goal-flag/key) with a blocking CC0 provenance checkpoint — polish
+- [ ] 34.6.1-03-PLAN.md — Wire the sprite swaps (footprints preserved) + rework the key skip-framing text — polish
+- [ ] 34.6.1-04-PLAN.md — Consolidation: full gate suite + human UAT sign-off (mash/crispness/flag/key legibility) — polish
+
 ### Phase 35: Biome Re-dress & Props
 
 **Goal**: All 8 levels are fully dressed in their assigned biomes with a props layer — purely visual, on geometry that has already settled
