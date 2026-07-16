@@ -221,9 +221,10 @@ export const CONFIG = {
   // secretAlcove, which IS a secret). COLOR is a bright gold, deliberately
   // distinct from the dark LOCK.PANEL_COLOR so the pair reads as key-vs-barrier.
   KEY: {
-    W: 20, // px — key trigger footprint width
-    H: 20, // px — key trigger footprint height
-    COLOR: [0xd4, 0xaf, 0x37], // muted gold — bright/telegraphed against the dark grunge palette
+    W: 20, // px — key trigger footprint width (load-bearing — pinned via sprite({width,height}) + bare area(); NEVER scale())
+    H: 20, // px — key trigger footprint height (load-bearing, see W)
+    COLOR: [0xd4, 0xaf, 0x37], // muted gold — VESTIGIAL since the real "key" sprite (Phase 34.6.1 Plan 03) provides the art; kept only as the ?debug=1 magenta-marker fallback tint reference, not used in the shipped non-debug render
+    PICKUP_LABEL: "+ SKIP KEY", // plain ASCII (TOFU-safe) — the pickup popup string (src/mechanics/key.js), frames the key->skip payoff (D-04)
   },
 
   // --- Checkpoint math gates (mid-level challenge seam; MECH-04) ---
@@ -302,7 +303,7 @@ export const CONFIG = {
     KEY_X: 540, // px — top band, left of the mute icon
     KEY_Y: 8, // px — top band, level with the mute icon
     KEY_SIZE: 16, // px — key-held indicator text size
-    KEY_GLYPH: "KEY", // plain string — TOFU-fallback caution (hud.js:91): no glyph risk
+    KEY_GLYPH: "SKIP KEY", // plain ASCII string (D-04 reword; Phase 34.6.1 Plan 03) — reads as the key->skip payoff, not just "an item held"; TOFU-fallback caution (hud.js:91): no glyph risk. Short enough to sit left of the mute icon (AUDIO.ICON_X:600) — verify no overlap at UAT (RESEARCH A4).
   },
 
   // --- Juice / game-feel tuning (Phase 12; Plan 01 consumes — squash/dust/pop/burst) ---

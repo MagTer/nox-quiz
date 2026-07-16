@@ -62,6 +62,10 @@ const k = kaplay({
 // `sliceX`/`anims` — `loadSpriteSheet` does NOT exist in Kaplay 3001.
 loadSprite("spike", "../assets/spike.png");
 loadSprite("goal", "../assets/goal.png");
+// Key pickup (D-04; Phase 34.6.1 Plan 03) — static sprite, no sliceX/anims (single frame).
+// Rendered footprint-pinned to CONFIG.KEY.W/H by src/levels/build.js; the manifest entry
+// (src/assets-manifest.js) only covers existence-gate coverage, not this load.
+loadSprite("key", "../assets/key.png");
 loadSprite("player", "../assets/player-swamphunter.png", {
   sliceX: CONFIG.PLAYER_FRAMES,
   anims: {
