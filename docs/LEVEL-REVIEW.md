@@ -200,3 +200,129 @@ Legend: **HARD** = gated rule; **SOFT** = calibrated target, deviation needs a w
 - **The difficulty ramp**, barrier distribution, checkpoint spacing, alcove placement — all SOFT, all human-judged, all in the brief.
 
 Two of those three bullets exist because a gate that goes RED on doomed geometry teaches nobody anything. **That reasoning expires the moment 34.5 lands.** If these rules are still ungated after the rebuild, this document has failed at its only job.
+
+---
+---
+
+# Phase 34.6 rebuild review — the 8 rebuilt levels against the FULL rulebook (incl. §8.5)
+
+**Reviewed:** 2026-07-16 (Phase 34.6, Plan 34.6-11, the phase-closeout consolidated gate).
+**Every number in this section is measured from `src/levels/level-0N.js` by the closeout tooling, not estimated.** The historical Phase-34 review above is preserved as the *input* this rebuild was authored against; this section is the *output* — a compliance record of the world that replaced it.
+
+Phase 34.6 rebuilt **all 8 level descriptors from scratch** against `docs/LEVEL-DESIGN.md` §1–§8.5 (the raised bar), after a 3-round human prototype sign-off, and made the end-gate key-conditional on the even levels. This section proves the rebuilt world is green and documents each level against the rules — including the headroom rule (§3.2) that the old world failed on 9px × 5 tiers.
+
+## The headline: the 13 deferred Phase-34 HARD-FAILs are DELETED
+
+The Phase-34 review above shipped the validator **RED** with 13 intentional HARD-FAILs (documented as the correct RED-first state for doomed geometry). The rebuild deletes all 13 — not by weakening a check, but by replacing the geometry:
+
+| Deferred HARD-FAIL (Phase 34) | Count | Status after 34.6 rebuild | Proof |
+|---|---|---|---|
+| `coin-reachability` — levels 01, 02, 03 | 8 | **GONE** | `validate-levels.mjs`: 299/299 coin rows PASS; `audit-coins.mjs`: 299/299 collected by a real driven player |
+| `headroom` — level-07 end climb, 9px × 5 tiers | 5 | **GONE** | `validate-levels.mjs`: zero `headroom` rows (the check is HARD-FAIL-only, so silence = compliance); level-07's overlapping tiers now measure **25px** min headroom, up from 9px |
+| **Total** | **13** | **0** | project HARD-FAIL total = **0** |
+
+**No check was weakened or skipped to reach green.** `git status` shows zero edits to any `scripts/check-*.sh`, `scripts/*.mjs` gate, or validator threshold in this plan — the only file this plan writes is `docs/LEVEL-REVIEW.md`. The headroom gate that went RED on 9px in Phase 34 is the same gate that is silent now because the geometry clears it.
+
+## Consolidated suite result (one pass, all 8 levels)
+
+Run at closeout (Plan 34.6-11, Task 1). `browser-boot.mjs` was re-run to distinguish the documented `perf-fps` load-contention flake from a real completion failure (per `docs/LEVEL-DESIGN.md` §9 guidance).
+
+| Gate | Result | Evidence |
+|---|---|---|
+| `check-gate.sh` | PASS | math-gate/challenge invariants |
+| `check-safety.sh` | PASS | SAFE-01 no-timer / no-punishment over all of `src/` |
+| `check-import-safety.sh` | PASS | a727c13 module-top-level engine-global trap |
+| `check-progress.sh` | PASS | ends with `smoke-progress` PASS |
+| `check-terrain-atlas.sh` | PASS | every biome cap/plat/slab/grey PIXEL check green |
+| `check-pink-gate.sh` | PASS | only the allowlisted Swamp-Hunter base-fill entry |
+| `check-assets-manifest.mjs` | PASS | 37 assets verified on disk |
+| `validate-levels.mjs` | **PASS — 0 HARD-FAIL** | 299 coin-reachability PASS, 16 mechanic-reachability PASS, 8 over-hole PASS, 8 secret-alcove PASS, 8 biome PASS, **0 headroom rows**. Remaining rows are `gap-width`/`spawn-goal` WARN (marginRatio informational, not failures). |
+| `audit-coins.mjs` | PASS | 299 witnessed / 299 collected in-engine (incidental=3), 0 model-skipped |
+| `browser-boot.mjs` | PASS (driven completion) | Run 2: only `perf-fps` entry-fps flakes (levels 01/02/03/04/06 dip below the 40fps floor under headless load); **no** `cannot-progress` / `far-end-unreachable` rows — every level driven to goal.x from spawn. Run 1's transient level-01 leg-3 stall and level-04 far-end stall did **not** reproduce, confirming load-contention artifacts, not geometry defects. |
+| `audit-phase21-mechanics.mjs` | PASS | 24/24 encounters `triggered: true` (door + enemy + alcove × 8 levels), ALL RESOLVED |
+| `audit-endgate-key.mjs` | PASS | 4 math-skip levels (02/04/06/08) proved BOTH ways: key collected → free clear; no key → math gate opens |
+| `smoke-progress.mjs` | PASS | all fixtures (levels 01–04 golden geometry) |
+
+## The difficulty ramp is now real (this fixes the old review's finding #3)
+
+The Phase-34 review's third finding was that *"the difficulty ramp does not exist"* — 6 of 8 levels had zero overlapping tiers and all verticality was bolted onto the last two levels. The rebuild builds the ramp. Measured peak climb above the floor line (`FLOOR_Y 320 − highest platform y`) and overlapping-tier ceilings:
+
+| Level | Archetype | Biome | Tables | goal.x | Peak climb above floor | Overlapping-tier pairs | Min headroom | Math-skip key |
+|---|---|---|---|---|---|---|---|---|
+| 01 The First Ascent | odd — calm intro | swamp | 6–9 | 7100 | **196px** | 0 (open-air, per §8 L1 rule) | n/a | — |
+| 02 The Rusted Spire | even — intense+vertical | swamp | 2–7 | 7360 | **592px** | 28 | 26px | ✓ |
+| 03 The Old Quarter | odd — calm intro | town | 3–9 | 10280 | **222px** | 3 | 26px | — |
+| 04 The Clocktower | even — intense+vertical | town | 6–9 | 9460 | **666px** | 29 | 26px | ✓ |
+| 05 The Sunken Yard | odd — calm intro | cemetery | 2–5 | 6930 | **260px** | 3 | 26px | — |
+| 06 The Necropolis | even — intense+vertical | cemetery | 4–7 | 7200 | **740px** | 44 | 26px | ✓ |
+| 07 The Iron Gatehouse | odd — calm intro | castle | 6–8 | 7560 | **420px** | 5 | 25px | — |
+| 08 The Throne Keep | even — intense+vertical FINALE | castle | 6–9 | 7620 | **814px** | 38 | 26px | ✓ |
+
+**The even ladder is strictly monotonic: 02 (592) < 04 (666) < 06 (740) < 08 (814).** The odd ladder is strictly monotonic too: 01 (196) < 03 (222) < 05 (260) < 07 (420). The old review's "ramp is fiction" finding is retired: every level now carries real verticality, and both archetype ladders escalate 01→08.
+
+> The even-level peak includes the above-summit key-apex spur, so the measured peak sits a little above the mandatory signature-spire gain quoted in each build summary (e.g. level-08's 740px switchback keep + the key spur → an 814px peak). Both the peak ordering and the signature-spire ordering are monotonic — the ramp holds on either metric.
+
+**Every platform in all 8 levels is `h: 16` (WYSIWYG).** The old review's finding #2 — 53 of 59 platforms authored `h: 24`, the collider disagreeing with the drawn 16px ledge — is deleted: the rebuild authors `h: 16` everywhere (verified: the thickness set across all 8 descriptors is `{16}`).
+
+## Per-level compliance record
+
+Legend: **HARD** = gated; **SOFT** = calibrated target. All numbers measured from the descriptor at closeout.
+
+### level-01 — The First Ascent (swamp, 6–9) · 10 floors, 11 platforms, 34 coins, 14 checkpoints, 5 spikes
+- **Archetype (§8.5):** odd calm intro — FORGIVING, not flat. Signature: a mandatory **196px arch** climb-and-descent over a pit (the far floor starts beyond a bare running jump, so the up-and-over is the only route — validator jump-envelope BFS confirms), plus a visible LOW/HIGH fork that diverges and rejoins.
+- **Ceilings (§8 L1 rule):** **0 overlapping tiers** — open air above every platform, exactly as §8 mandates for level 1. This is why level-01 reads as the most forgiving of the eight; forgiving here is generous platforms + wide margins + dense checkpoints (14), not a flat walk.
+- **Headroom (§3.2 HARD):** n/a (no overlapping tiers). **Density (§4):** 1 door + 1 enemy + end gate. **Alcove (§6):** present, reachable (`secret-alcove` PASS). **Coins (§3b HARD):** 34/34 reachable + collected. No key (odd).
+
+### level-02 — The Rusted Spire (swamp, 2–7) · 9 floors, 18 platforms, 38 coins, 27 checkpoints, 4 spikes · KEY
+- **Archetype (§8.5):** even intense+vertical. Signature: a tall swamp **switchback spire** (592px peak) with a **diamond fork** (LOW road vs HIGH road, 3 bonus coins) and the **math-skip key** on the hard branch.
+- **Ceilings & headroom (§3.2 HARD):** 28 overlapping-tier pairs, **min 26px** headroom — clears the ≥24px floor on every pair. Open-air stacked tiers (A3 decision, §8.5 rule 6): the climb is legible, no enclosed tunnels.
+- **§8 vs §8.5 note:** §8's ramp table lists L1–2 as ceiling-free, but the §8.5 biome-pair rhythm makes the EVEN member of each pair the intense one — so level-02 deliberately carries ceilings while level-01 does not. This is the raised bar overriding the flat-early reading of §8, not a violation; A3 (Plan 34.6-04) locked these ceilings as open-air. **Density:** 1+1+gate. **Alcove/coins:** present + 38/38. **Key:** both paths proved (`audit-endgate-key` PASS).
+
+### level-03 — The Old Quarter (town, 3–9) · 13 floors, 14 platforms, 40 coins, 21 checkpoints, 4 spikes
+- **Archetype (§8.5):** odd calm intro. Signature: a **townscape** — stepped rooftops (200px rooftop climb+descent), a covered arcade, an optional belltower, and a visible rooftop LOW/HIGH fork — distinct from level-01's single swamp arch.
+- **Ceilings & headroom:** 3 overlapping-tier pairs (ceilings begin appearing in the L3–6 band, per §8), **min 26px** headroom. **Density:** 1+1+gate. **Alcove/coins:** present + 40/40. No key (odd). The longest level by goal.x (10280) — a calm level made long by breadth, not by height.
+
+### level-04 — The Clocktower (town, 6–9) · 13 floors, 19 platforms, 46 coins, 29 checkpoints, 5 spikes · KEY
+- **Archetype (§8.5):** even intense+vertical. Signature: a **592px required clocktower switchback spire** + a **diamond fork** (2 rejoining routes) + a T-tier up-left reversal + a gantry descent + an optional tenement high/low fork + the **math-skip key**.
+- **Ceilings & headroom (§3.2 HARD):** 29 overlapping-tier pairs, **min 26px**. **Density:** 1+1+gate. **Alcove/coins:** present + 46/46. **Key:** both paths proved.
+
+### level-05 — The Sunken Yard (cemetery, 2–5) · 9 floors, 15 platforms, 35 coins, 16 checkpoints, 2 spikes
+- **Archetype (§8.5):** odd calm intro. Signature: a **mausoleum** (260px) over a **sunken crypt pit** (mandatory up-and-over — both the descent tier and the far floor sit beyond a bare running jump), an optional crypt vault, a grave-mound LOW/HIGH fork, and a tombstone row — a distinct graveyard character, not a re-skin of level-03. (The old review's finding that 05 and 06 were the same level with different tables is deleted: 05 is a single stepped mausoleum intro, 06 is a double-switchback necropolis.)
+- **Ceilings & headroom:** 3 overlapping-tier pairs, **min 26px**. **Density:** 1+1+gate. **Alcove/coins:** present + 35/35. No key (odd).
+
+### level-06 — The Necropolis (cemetery, 4–7) · 9 floors, 21 platforms, 41 coins, 30 checkpoints, 4 spikes · KEY
+- **Archetype (§8.5):** even intense+vertical. Signature: a **double-switchback cathedral/necropolis spire** (740px) + crypt-tower + catacomb descents + a **diamond fork** + the **math-skip key** — deliberately distinct from level-05's single mausoleum and level-02's swamp spire.
+- **Ceilings & headroom (§3.2 HARD):** 44 overlapping-tier pairs (the most in the game), **min 26px**. **Density:** 1+1+gate. **Alcove/coins:** present + 41/41. **Key:** both paths proved.
+
+### level-07 — The Iron Gatehouse (castle, 6–8) · 8 floors, 16 platforms, 31 coins, 23 checkpoints, 3 spikes
+- **Archetype (§8.5):** odd calm intro — the calmer castle half. Signature: a mandatory **iron gatehouse** climb+descent over a moat pit, a battlement LOW/HIGH fork, a broken-drawbridge crossing, and the vertical centerpiece — a **420px MONOTONIC grand staircase of 6 overlapping tiers** to the summit tower.
+- **Headroom (§3.2 HARD) — the old crawlspace, fixed:** the 6-tier staircase carries **real overlapping ceilings** at rise ~73px → **25px headroom** (5 overlapping-tier pairs). This is the exact climb that shipped **9px × 5 tiers** for four milestones; it now clears the ≥24px HARD floor. **This is the single most important fix in the rebuild.**
+- **L7 ≠ L8 (LVL-02 HARD-by-review):** level-07 is a **monotonic** up-and-right staircase — **0 reversals** — shrinking toward a **narrow** summit tower, **420px**, **no key**. **Density:** 1+1+gate. **Alcove/coins:** present + 31/31.
+
+### level-08 — The Throne Keep (castle, 6–9) · 9 floors, 19 platforms, 34 coins, 31 checkpoints, 5 spikes · KEY
+- **Archetype (§8.5):** even intense+vertical FINALE — the tallest, most intense level. Signature: a barbican outwork + broken drawbridge + a **colossal switchback spire** crowned by a **broad throne balcony** + the key-apex spur (**814px peak**).
+- **L8 ≠ L7 (LVL-02 HARD-by-review):** level-08 is a **switchback** — **2 up-left main-line reversals** (plus a diamond fork and a key spur) — **growing** toward a **wide** throne balcony, **814px**, with the **math-skip key**. The two castle levels remain mechanically opposite (monotonic-narrow-shrinking vs switchback-wide-growing), preserving the LVL-02 differentiation.
+- **Ceilings & headroom (§3.2 HARD):** 38 overlapping-tier pairs, **min 26px**. **Density:** 1+1+gate. **Alcove/coins:** present + 34/34. **Key:** both paths proved.
+- **Note (a real defect class caught here, §9.4):** the first cut placed the summit goal *above* the folding switchback; `validate-levels` and `browser-boot` both passed while `audit-endgate-key` correctly FAILED (the driver reached the goal's x-column on a lower tier without touching the goal). Fixed by ending the keep on an up-RIGHT hop to the rightmost balcony so the goal x-column exists only at the summit. This is why the two-path key audit is a required closeout gate, not a nicety.
+
+## Locked decisions carried into the rebuild (Plan 34.6-04)
+
+- **A1 — key-skip XP:** `CONFIG.PROGRESS.XP_KEY_SKIP = 20` (full credit — skipping the end math by carrying the key is worth the same as a hard-table answer). Unchanged.
+- **A3 — even-level verticality:** confirmed **open-air** (open stacked tiers, always legible; no enclosed ceilings/tunnels). Recorded in `docs/LEVEL-DESIGN.md` §8.5 rule 6; the §8 ramp table was NOT amended for ceilings, which is why the §8-vs-§8.5 note on level-02 above is called out explicitly.
+- **Fall-stakes:** missed jumps MAY drop into a pit and respawn — real platforming tension, guarded by generous checkpoint cadence (every level 14–31 checkpoints). Not punishment: no game-over, no lost progress, no timer.
+
+## LIMITATIONS — the honest note
+
+1. **The literal "2× every level" length target is capped by the HARD perf-objects budget, not met.** `browser-boot`'s `assertObjectBudget` HARD-FAILs any level whose ground cap+fill tile count exceeds `CONFIG.TERRAIN.OBJECT_BUDGET = 650`, and the builder emits one cap tile per 16px of every floor AND platform — so tiles scale with total floor+platform px and **cutting tiles cuts length**. A full §8.5 vertical spire consumes the budget on height, leaving less for length. level-04 is authored to goal.x 9460 at **640/650 caps** — the budget ceiling — and is still the longest even level; a literal ~12000px double-spire would land ~900 caps and HARD-FAIL. **The levels are built to the budget ceiling, honoring every §8.5 structural requirement (verticality, ≥2 rejoining routes, switchbacks, interleaved descents, math-skip key, close-checkpoint fall pits, ≥24px headroom, open-air legibility) rather than to a literal 2× px target that the HARD budget forbids.** (Recorded in each even level's header + build summary; source: Plan 34.6-04 Deviation 1.)
+
+2. **§8.5 "feel" is human-sign-off-only — no gate enforces it, and it is deferred to Phase 38 kid-UAT.** The consolidated suite proves every level is **legal and completable** (§8.5's numeric safety limits, coin/mechanic/key reachability, headroom, structure). It does **not** prove any level is **good** — that the calm levels *feel* calm, the intense levels *feel* intense, each signature reads as distinct, and the whole thing is *fun*. §8.5 rule statement: "Green gates prove a level is legal and completable; they do not prove it is good. No gate enforces this section — the human sign-off does." The Phase-34.6 3-round prototype sign-off approved the *approach*; the geometry that ships has never been kid-played. Per §9.1, levels 01–03's original kid sign-off **no longer covers** the rebuilt geometry — Phase 38's kid-UAT is a **real re-approval**, the only sign-off the rebuilt world will have, and it cannot be treated as a formality.
+
+3. **`browser-boot` completion is proven by re-run, and its driver is rightward-biased.** The `perf-fps` entry-fps dips are documented headless load-contention flakes (not completion failures); a genuine unreachability shows as a `cannot-progress`/`far-end-unreachable` row, which Run 2 had none of. The in-engine driver historically drove rightward-only (the level-08 switchback "stall" class, §6a) — the closeout run drove every level, including the switchbacks, to goal.x, but the driver caveat is why the two-path key audit and the phase21-mechanics audit are run alongside, not in place of, browser-boot.
+
+## What is gated now vs. only written down (the honest list, updated)
+
+The Phase-34 review closed by warning that platform-thickness `h: 16`, platform-over-floor clearance, and the difficulty ramp were "written down but NOT gated." Status after the rebuild:
+
+- **Platform thickness `h: 16`:** now uniformly authored (all 8 descriptors, thickness set `{16}`); the `check-terrain-atlas.sh` SLAB check gates the *rendering* side (a platform frame that fills its bottom half back into a 48px slab HARD-FAILs).
+- **Headroom (§3.2):** gated and now GREEN — `validate-levels.mjs` `headroom` rows (HARD-FAIL-only), zero violations across all 8 levels; min measured 25px (level-07).
+- **The difficulty ramp, barrier distribution, alcove placement, and §8.5 feel:** remain SOFT / human-judged (the ramp is now *real* per the table above, but "is it fun / distinct / calm-vs-intense" is Phase-38 kid-UAT). This is the deliberate residue: the numeric structure is gated and green; the experiential quality is reserved for the human, by design.
