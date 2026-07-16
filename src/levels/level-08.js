@@ -1,218 +1,308 @@
-// src/levels/level-08.js — "The Last Ascent" descriptor.
+// src/levels/level-08.js — "The Throne Keep" descriptor.
 //
-// Capstone of the Phase 25 four-level ramp: table pool [6,7,8,9] (the hardest),
-// verticality (LVL-05), and the locked mechanic mix (1 door + 1 enemy + the end
-// goal gate). Climb tiers are PLATFORMS, never `floors` (those are pinned to
-// FLOOR_Y in build.js), and the level carries a COMPLETE 4-field `bounds` object
-// (never partial — Pitfall 2). Exactly one hidden secretAlcove (LVL-06).
+// ===========================================================================
+// PHASE 34.6 REBUILD — THE RAISED BAR (docs/LEVEL-DESIGN.md §8.5), CASTLE FINALE.
+// ===========================================================================
+// level-08 is REBUILT FROM SCRATCH (append-only convention SUSPENDED, §9.1) as the
+// CLIMAX of the whole game — the intense EVEN half of the castle pair (07 = the
+// readable iron-gatehouse intro, 08 = the throne-keep capstone) and the summit of the
+// 02→04→06→08 even-ladder. Authored directly to §8.5 and the §8 L7–8 band (160px gaps,
+// tight 72–75px OVERLAPPING climbs, REAL ceilings at the 24px headroom floor). The
+// PLAN's pre-checkpoint geometry hints are SUPERSEDED by §8.5 (per the objective).
 //
-// PHASE 34 (LVL-02) — THE END CLIMB IS A SWITCHBACK, NOT A STAIRCASE.
-// Until Phase 34 this level ended with a monotonic up-and-right staircase that
-// was a near-duplicate of level-07's (same ~65-70px rises, same shrinking
-// 280->220 widths, same h:24). The capstone should feel like a different
-// building, so the climb now REVERSES DIRECTION TWICE:
+// WHAT LEVEL-08 IS — "THE THRONE KEEP": the TALLEST + most intense level in the game.
+// A varied castle approach (portcullis DOOR, a mandatory BARBICAN outwork climb+DESCENT
+// over a moat, a BROKEN-DRAWBRIDGE stepping-stone crossing of a chasm, five timed
+// SPIKE hazards, one castle wraith) culminating in the GREAT THRONE KEEP — a colossal
+// SWITCHBACK tower that climbs 740px (the tallest single climb ever, > level-06's 666px)
+// to a broad summit throne balcony where the GOAL sits, with a DIAMOND FORK (two visible
+// routes up) and the math-skip KEY on the single hardest reach ONE tier ABOVE the summit.
 //
-//   leg A (up-RIGHT):  T1 -> T2 -> T3      widening 300 / 280 / 300
-//   REVERSAL 1:        T3 -> T4 is a hop up-LEFT (run right past T4's edge on
-//                      T3's runway, turn around, jump back up-left onto T4)
-//   leg B (up-LEFT):   T4                  350 wide — the turn-around shelf
-//   REVERSAL 2:        T4 -> T5 is a hop up-RIGHT (walk LEFT along T4 to get
-//                      running room, then sprint right and jump)
-//   leg C (up-RIGHT):  T5 -> T6            340 -> 380 — widening into the summit
+// SIGNATURE (all eight levels distinct, §8.5 rule 3): the THRONE KEEP — a broad,
+// growing-width switchback spire crowned by a throne balcony, reached across a long
+// castle gauntlet. Distinct from level-01's swamp ARCH, level-02's swamp SWITCHBACK
+// SPIRE, level-03's TOWNSCAPE, level-05's GRAVEYARD MAUSOLEUM, level-06's DOUBLE-
+// SWITCHBACK CATHEDRAL SPIRE, and — the one that matters most (LVL-02 / §8: L7 = staircase,
+// L8 = switchback, they may NOT converge) — level-07's MONOTONIC GRAND STAIRCASE:
 //
-// Level-07 shrinks toward a narrow perch; level-08 GROWS toward a broad 380px
-// summit balcony, so the arrival reads as an arrival. Rises are varied (70/65/
-// 70/70/65) instead of level-07's flat 65 band.
+//   * level-07 climbs a CLEAN rightward staircase (NO reversal) shrinking toward a narrow
+//     summit tower; level-08 REVERSES DIRECTION repeatedly (a real switchback), GROWS toward
+//     a broad 420px summit throne balcony, carries the hardest table pool [6,7,8,9] AND the
+//     math-skip key, and is 320px TALLER (740px vs 420px). One is a readable staircase; the
+//     other is the intense folding spire. They do not converge.
+//
+// THE KEEP'S DIAMOND FORK (§8.5 rule 2 — a VISIBLE route choice): above the fork base K2 the
+// climb SPLITS — a safe LOW road (KL, up-RIGHT, the through route) vs a harder HIGH road (KH,
+// up-LEFT spur carrying THREE bonus coins). Both diverge at K2; the low road carries the
+// climb on. Nothing hidden — she always sees both (§8.5 rule 6, open stacked tiers).
+//
+// INTERLEAVED DESCENTS + drop-downs (§8.5 rule 1 / rule 3): the BARBICAN is a real
+// up-and-over-and-DOWN (BA→BB→BC peak y:120 = a 200px climb → BD → drop to F3), the BROKEN
+// DRAWBRIDGE is a hop-across ending in a DROP onto F6, and the KEY detour is a climb ABOVE
+// the summit then a DROP back to the throne goal. Up, over, down, across, up, over, down —
+// the most action/variety of any level.
+//
+// FALL-STAKES at their sharpest (§8.5 rule 4): the 640px moat, the 520px drawbridge chasm,
+// and the whole 740px keep all sit over a real fall — a missed hop drops the player and
+// respawns her. The guardrail is a DENSE checkpoint cadence (§5 ≤700px on every hazard/height
+// stretch): one near spawn, one before EVERY spike, before EVERY pit, on EVERY barbican tier,
+// and on EVERY keep tier. A fall costs seconds and a short re-run — NEVER a game-over, NEVER a
+// timer, NEVER lost progress (§5). Real tension, ADHD-safe.
+//
+// L7–8 CEILINGS (§8): every OVERLAPPING keep tier pair rises 74 at h:16 → headroom
+// 74 − 16 − 32 = 26px ≥ 24 (§3.2), with ~70–160px consecutive x-overlap (§3.5's rising-jump
+// short-root-in-window rule, direction-agnostic — every up-LEFT reversal overlap is ≥ 80px).
+// The barbican and drawbridge are OPEN AIR (non-overlapping, gentle 58–70px rises, no ceiling)
+// so the required descents stay legible. Climb tiers are PLATFORMS (never floors — build.js
+// pins floors to FLOOR_Y), every one h:16 (§3.1) with y deliberately OFF the 16px grid (§3.4).
+//
+// Explicit COMPLETE 4-field bounds literal (level-02+ convention, used AS-IS — §7's bounds
+// trap). bounds.right hand-bumped to 7800 (the rightmost geometry edge is SUM's 7760 + a 40px
+// buffer; goal 7620 + GOAL_SIZE 16 = 7636 sits well inside). bounds.top hand-set to -720: the
+// climb goes DEEPLY negative — the throne summit SUM is y:-420 and the KEY apex KA is y:-494
+// (its coin y:-550) — -720 gives the camera ~170px of upward room past the highest entity.
+// Raise ANY tier and BOTH must be hand-bumped or the camera clamps short. The fall-respawn line
+// is the GLOBAL LEVEL_BOTTOM(360)+FALL_MARGIN(120), independent of bounds (§7).
+//
+// PURE data module: no engine globals (a727c13). The ONLY import is ../config.js.
 
 import { CONFIG } from "../config.js";
 
-const FLOOR_Y = CONFIG.FLOOR_Y; // 320
+const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every castle floor run
 
 export const LEVEL_08 = {
   id: "level-08",
-  displayName: "The Last Ascent",
-  allowedTables: [6, 7, 8, 9],
+  displayName: "The Throne Keep",
+  allowedTables: [6, 7, 8, 9], // the hardest pool (preserved) — level 8 of 8
 
-  // COMPLETE 4-field bounds — all 4 present together in ONE literal (never
-  // partial, per Pitfall 2). top:-360 still clears the tallest tier: the summit
-  // balcony rose from y:-90 to y:-125 when the climb's rises were widened for
-  // headroom, and the camera wants a top edge of about -125-32-180 = -337 with
-  // the player standing on it — inside -360, so `top` did NOT need a bump.
-  // The highest entity of any kind is the summit coin at y:-181.
-  //
-  // THE BOUNDS-CONVENTION TRAP (docs/LEVEL-DESIGN.md §7): level-01 derives its
-  // camera right edge from geometry; level-02+ (this file) carry `bounds` and
-  // game.js uses it AS-IS. The Phase-34 switchback's rightmost geometry edge is
-  // the summit balcony's right edge, T6.x + T6.w = 3160 + 380 = 3540 — exactly
-  // `right`, unchanged, because the switchback folds back on itself instead of
-  // marching further right. Widen ANY tier and this must be hand-bumped or the
-  // camera clamps short of the goal. Asserted by 34-04-PLAN's automated verify.
-  bounds: { left: 0, right: 3540, top: -360, bottom: 360 },
+  bounds: { left: 0, right: 7800, top: -720, bottom: 360 },
 
   geometry: {
-    // --- Main single-screen run (floors 0-3), densest mechanic mix ---
+    // Castle floor runs (one merged collider each), pinned to FLOOR_Y. Standard gaps are the
+    // castle-band 160px (§8 L7–8). The two WIDE spans are hazards bridged by geometry: the
+    // 640px MOAT PIT (1880..2520, bridged by the mandatory BARBICAN) and the 520px DRAWBRIDGE
+    // CHASM (4480..5000, bridged by the broken-drawbridge stepping stones). Spike floors are
+    // sized ≥560px so every spike keeps ≥250px of clear margin from BOTH edges (the 34.6-02
+    // spike-before-gap/mount conflict class).
     floors: [
-      { x: 0, w: 420 },
-      { x: 560, w: 480 }, // gap 420..560 (140px)
-      { x: 1160, w: 520 }, // gap 1040..1160 (120px)
-      { x: 1800, w: 560 }, // gap 1680..1800 (120px), ends 2360
+      { x: 0, w: 480 }, // F0 — spawn bailey; the secret-alcove hop (PA)
+      { x: 640, w: 520 }, // F1 — gap 480..640 (160); the one DOOR (portcullis @880)
+      { x: 1320, w: 560 }, // F2 — gap 1160..1320 (160); spike1; ends 1880 → the MOAT
+      // ---- the 640px MOAT PIT: 1880..2520, bridged only by the BARBICAN outwork ----
+      { x: 2520, w: 560 }, // F3 — barbican descent landing; spike2; ends 3080
+      { x: 3240, w: 520 }, // F4 — gap 3080..3240 (160); the one ENEMY (castle wraith @3500)
+      { x: 3920, w: 560 }, // F5 — gap 3760..3920 (160); spike3; ends 4480 → the CHASM
+      // ---- the 520px DRAWBRIDGE CHASM: 4480..5000, bridged only by the stepping stones ----
+      { x: 5000, w: 560 }, // F6 — drawbridge landing; spike4; ends 5560
+      { x: 5720, w: 560 }, // F7 — gap 5560..5720 (160); spike5; ends 6280
+      { x: 6440, w: 680 }, // F8 — gap 6280..6440 (160); THRONE KEEP run-up + base; ends 7120
     ],
 
-    // --- Raised platforms: gap-bridging stepping stones on the main run,
-    // PLUS the 6-tier SWITCHBACK climb. ---
+    // Raised platforms — ALL h:16 (WYSIWYG, §3.1); every climb-tier y deliberately OFF the
+    // 16px grid (§3.4). The BARBICAN (bridges the moat) and DRAWBRIDGE (bridges the chasm) are
+    // OPEN AIR — non-overlapping, gentle 58–70px rises, no ceilings — so the required descents
+    // read cleanly. The THRONE KEEP carries the L7–8 REAL CEILINGS: every overlapping pair
+    // rises 74 (headroom 26) with ~70–160px x-overlap. The keep GROWS toward a broad summit
+    // balcony (widths 240→420) — the opposite of level-07's shrinking staircase.
     platforms: [
-      { x: 480, y: 250, w: 112, h: 24 }, // bridges gap 420..560 (rise 70px)
-      { x: 1080, y: 250, w: 96, h: 24 }, // bridges gap 1040..1160 (rise 70px)
-      { x: 1720, y: 250, w: 96, h: 24 }, // bridges gap 1680..1800 (rise 70px)
+      // --- Spawn-area optional hop that hosts the secret alcove (rise 66 from F0) ---
+      { x: 280, y: 254, w: 120, h: 16 }, // PA — hosts alcove@320,184
 
-      // --- Capstone SWITCHBACK climb (Phase 34, LVL-02). Six ascending,
-      // full-width tiers that reverse direction TWICE — see the file header.
-      //
-      // THE ~70px-OVERLAP RULE STILL BINDS, IN BOTH DIRECTIONS. Consecutive
-      // tiers must overlap in x by ~70px: with spanMin=0 (an overlapping pair)
-      // the rising-jump reachability model needs the SHORT-time-of-flight
-      // root's reach (38.5px at a 70px rise, 34.7px at 65px) to land inside the
-      // overlap window itself, so a 20-30px overlap makes NEITHER quadratic root
-      // land inside it and the hop reads as unreachable to the BFS graph even
-      // though it is visually a tiny step (25-03 produced exactly that false
-      // HARD-FAIL on both level-07 and level-08). This applies identically to
-      // the two LEFTWARD hops — `canReach`'s overlapping-span branch is
-      // direction-agnostic; every overlap below is >= 70px.
-      //
-      // HOW EACH HOP IS ACTUALLY FLOWN (the long root, ~123.5px at a 70px rise,
-      // is the LANDING root — the player takes off well clear of the next tier's
-      // near edge and lands on it while DESCENDING; the short root is what the
-      // graph matches against the overlap window). For the two reversals that
-      // means running PAST the target tier's far edge, turning, and jumping back
-      // — which is the whole point: the turn is a real, deliberate move.
-      // VERTICAL HEADROOM (Phase 34 follow-up). The first cut of this climb shipped
-      // h:24 tiers at 65-70px rises, which leaves
-      //     headroom = rise - h - PLAYER_H(32)
-      // of only 9-14px between a tier's walking surface and the underside of the
-      // tier overhanging it — the climb was playable but felt claustrophobic
-      // ("a bit tight between the platforms vertically" — kid playtest). The fix
-      // is BOTH levers at once: thin the tiers to h:16 AND widen the rises to
-      // 72-75, giving headroom = 75 - 16 - 32 = 27px (~3x the old figure).
-      //
-      // 75 is the CEILING here: docs/LEVEL-DESIGN.md's soft rise band is 60-75px
-      // (65-75 explicitly allowed when the landing span is wide >= 80px — these
-      // spans are 280-380px), and the HARD maxRise is 88.33px. Staying at 75
-      // preserves the ~13px of margin a kid's imperfect jump needs. DO NOT go
-      // higher to buy more headroom — thin the tier instead.
-      //
-      // x and w are UNCHANGED from the first cut, which is deliberate: it keeps
-      // every ~70px overlap, the two reversals, the growing widths, and the
-      // rightmost edge (T6: 3160+380 = 3540 == bounds.right) exactly as approved.
-      { x: 2410, y: 248, w: 300, h: 16 }, // T1  rise 72 from floor-3 (ends 2710)
-      { x: 2640, y: 173, w: 280, h: 16 }, // T2  rise 75, overlaps T1 by 70 (ends 2920) — headroom over T1: 27
-      { x: 2850, y: 99, w: 300, h: 16 }, // T3  rise 74, overlaps T2 by 70 (ends 3150) — headroom over T2: 26 — the turn-around runway: 190px of T3 sticks out right of T4
-      { x: 2610, y: 24, w: 350, h: 16 }, // T4  rise 75, overlaps T3 by 110 (2850..2960) — headroom over T3: 27 — REVERSAL 1: hop up-LEFT off T3's runway
-      { x: 2890, y: -50, w: 340, h: 16 }, // T5  rise 74, overlaps T4 by 70 (2890..2960) — headroom over T4: 26 — REVERSAL 2: walk LEFT along T4 for run-up, then hop up-RIGHT
-      { x: 3160, y: -125, w: 380, h: 16 }, // T6  rise 75, overlaps T5 by 70 (3160..3230) — headroom over T5: 27 — the SUMMIT BALCONY (380px wide; ends 3540 == bounds.right)
+      // --- THE BARBICAN (bridges the 640px moat F2→F3): a MANDATORY 200px climb + DESCENT.
+      // Open air (non-overlapping) so the required descent stays legible. Rises 64–70 (the
+      // gentler non-overlapping band), gaps 40 (the proven level-07 gatehouse spacing). ---
+      { x: 1920, y: 250, w: 120, h: 16 }, // BA — rise 70 from F2 (gap 40 off F2's edge 1880)
+      { x: 2080, y: 184, w: 120, h: 16 }, // BB — rise 66 from BA (gap 40)
+      { x: 2240, y: 120, w: 150, h: 16 }, // BC — rise 64 from BB (gap 40) — the PEAK, y:120 = 200px climb (wide gate top)
+      { x: 2430, y: 200, w: 110, h: 16 }, // BD — the DESCENT: drop 80 from the peak (gap 40), then drop 120 down to F3
+
+      // --- THE BROKEN DRAWBRIDGE (bridges the 520px chasm F5→F6): two raised STONE stepping
+      // stones over a real fall — a miss drops into the chasm — but the REQUIRED crossing
+      // (§3.5: the 520px gap is far past a bare jump, so the stones ARE the route). Sized to
+      // the reach model (34.6-08 lesson): F5→SS1 is a rise (long root ~132 lands inside SS1),
+      // SS1→SS2 is a FLAT hop (fixed ~162 reach lands inside the 120px-wide SS2), SS2→F6 is a
+      // drop. NOT a chain of narrow same-height stones (which overshoot). ---
+      { x: 4560, y: 262, w: 120, h: 16 }, // SS1 — rise 58 from F5 (gap 80 off F5's edge 4480)
+      { x: 4800, y: 262, w: 120, h: 16 }, // SS2 — flat hop from SS1 (gap 120); drop 58 down onto F6 (gap 80)
+
+      // ================= THE THRONE KEEP — the 740px switchback finale =================
+      // A colossal folding spire off F8. Every overlapping pair rises 74 (h:16 → 26px headroom).
+      // ~70px+ x-overlap in BOTH directions (§3.5). Grows 240→420 toward the throne balcony.
+      { x: 6680, y: 246, w: 240, h: 16 }, // K1 — rise 74 from F8, up-RIGHT (6680..6920)
+      { x: 6760, y: 172, w: 280, h: 16 }, // K2 — rise 74 from K1 (overlap 160) — the FORK BASE (6760..7040)
+
+      // ---- THE DIAMOND FORK: two visible routes from K2 (§8.5 rule 2) ----
+      // KL's up-RIGHT mount and KH's up-LEFT mount both launch off K2; KH is the harder spur
+      // (3 bonus coins), KL is the through route the climb continues on.
+      { x: 6970, y: 98, w: 220, h: 16 }, // KL — LOW road, up-RIGHT, the through route (overlap K2 70) (6970..7190)
+      { x: 6660, y: 98, w: 200, h: 16 }, // KH — HIGH road, up-LEFT spur, 3 bonus coins (overlap K2 100) (6660..6860)
+
+      // ---- UPPER SWITCHBACK to the throne summit (two up-LEFT reversals, then up-RIGHT to the throne) ----
+      { x: 7020, y: 24, w: 280, h: 16 }, //  K4 — rise 74 from KL, up-RIGHT — the through line resumes (overlap KL 170) (7020..7300)
+      { x: 7180, y: -50, w: 240, h: 16 }, // K5 — rise 74 from K4, up-RIGHT (overlap 120) (7180..7420)
+      { x: 6980, y: -124, w: 280, h: 16 }, // K6 — rise 74 from K5, up-LEFT reversal #1 (overlap 80) (6980..7260)
+      { x: 7160, y: -198, w: 260, h: 16 }, // K7 — rise 74 from K6, up-RIGHT (overlap 100) (7160..7420)
+      { x: 6960, y: -272, w: 280, h: 16 }, // K8 — rise 74 from K7, up-LEFT reversal #2 (overlap 80) (6960..7240)
+      { x: 7140, y: -346, w: 300, h: 16 }, // K9 — rise 74 from K8, up-RIGHT (overlap 100) (7140..7440)
+      // SUM is the RIGHTMOST geometry, reached up-RIGHT off K9 (§7 wide-right-summit
+      // technique, borrowed from level-07's S6): the throne goal's x-column (7620) exists
+      // ONLY at the summit — no lower switchback tier reaches it — so a driven player must
+      // physically stand on the throne to touch the goal (a switchback that folds OVER the
+      // goal lets the driver "arrive" by X on a lower tier and never fire the end gate — the
+      // bug audit-endgate-key caught on the first cut). The two up-LEFT reversals below
+      // (K6, K8) + the diamond fork + the key spur keep it a switchback, NOT level-07's
+      // monotonic staircase.
+      { x: 7360, y: -420, w: 400, h: 16 }, // SUM — rise 74 from K9, up-RIGHT — the broad THRONE BALCONY (overlap 80) (7360..7760); y:-420 = 740px climb (TALLEST IN GAME); the rightmost geometry
+
+      // ---- THE KEY APEX (one tier ABOVE the throne; the single hardest reach) ----
+      { x: 7200, y: -494, w: 240, h: 16 }, // KA — rise 74 from SUM, up-LEFT — the KEY APEX (overlap 80) (7200..7440); y:-494 = 814px (highest reach); reachable ONLY from SUM (K9 is 148px down, out of a single hop)
     ],
 
+    // ~35 coins — every one a fly-through box a driven player reaches (walk-family placement:
+    // coin.y = surfaceY − 56, collected while walking the surface; each climb coin sits on the
+    // CLEAR part of its tier, never under the next tier's overhang — the level-06/07 ceiling-
+    // bonk lesson, §3.5). The HIGH-road spur KH carries THREE bonus coins; the throne SUM and
+    // the KEY apex KA carry the two highest coins in the game.
     coins: [
-      { x: 100, y: 264 },
-      { x: 240, y: 184 },
-      { x: 380, y: 128 },
-      { x: 620, y: 264 },
-      { x: 780, y: 176 },
-      { x: 980, y: 264 },
-      { x: 1220, y: 264 },
-      { x: 1380, y: 176 },
-      { x: 1550, y: 264 },
-      { x: 1850, y: 264 },
-      { x: 2020, y: 176 },
-      { x: 2250, y: 264 },
-
-      // --- The 6 switchback-climb coins (Phase 34). Each sits on the CLEAR part
-      // of its tier — never under the next tier's overhang, which is a ceiling
-      // bonk (Plan 34-02 falsified 9 shipped coins on exactly that: the rising
-      // arc's head hits the platform underside and the coin is never touched).
-      // A coin at ~tier.y-56 is inside the walking player's pass-through box; at
-      // ~tier.y-90 it needs a real hop. Both kinds are used, so the climb still
-      // rewards jumping.
-      { x: 2480, y: 192 }, // T1 (y248-56)  — walk-through, on the run-up to T2
-      { x: 2760, y: 83 }, // T2 (y173-90)  — HOP; clear of T4's underside (y40) with 43px to spare
-      { x: 3040, y: 43 }, // T3 (y99-56)   — walk-through, out on the turn-around runway right of T4's edge (2960): rewards running to the turn
-      { x: 2700, y: -66 }, // T4 (y24-90)   — HOP, on the leftward leg, clear of T5's overhang (starts 2890)
-      { x: 3000, y: -106 }, // T5 (y-50-56)  — walk-through, clear of T6's overhang (starts 3160)
-      { x: 3400, y: -181 }, // T6 (y-125-56) — walk-through on the summit balcony, near the goal
+      { x: 150, y: 264 }, // F0
+      { x: 400, y: 264 }, // F0
+      { x: 320, y: 198 }, // PA (near the secret alcove)
+      { x: 760, y: 264 }, // F1 (before the door)
+      { x: 1040, y: 264 }, // F1 (after the door)
+      // The barbican outwork:
+      { x: 1970, y: 194 }, // BA (ascent)
+      { x: 2310, y: 64 }, // BC (the gate PEAK — the climb's reward)
+      { x: 2480, y: 144 }, // BD (descent)
+      { x: 2620, y: 264 }, // F3 (before spike2)
+      { x: 2960, y: 264 }, // F3 (past spike2)
+      { x: 3300, y: 264 }, // F4 (before the enemy)
+      { x: 3660, y: 264 }, // F4 (past the enemy)
+      { x: 4000, y: 264 }, // F5 (before spike3)
+      { x: 4380, y: 264 }, // F5 (past spike3, before the chasm)
+      // The broken drawbridge:
+      { x: 4620, y: 206 }, // SS1
+      { x: 4860, y: 206 }, // SS2
+      { x: 5100, y: 264 }, // F6 (past the chasm, before spike4)
+      { x: 5440, y: 264 }, // F6 (past spike4)
+      { x: 5820, y: 264 }, // F7 (before spike5)
+      { x: 6160, y: 264 }, // F7 (past spike5)
+      { x: 6520, y: 264 }, // F8 (keep run-up)
+      // The throne keep — lower climb + the diamond fork:
+      { x: 6710, y: 190 }, // K1 (clear left of K2's overhang @6760)
+      { x: 6910, y: 116 }, // K2 (clear zone between KH@6860 and KL@6970)
+      { x: 6700, y: 42 }, // KH high road — bonus 1
+      { x: 6760, y: 42 }, // KH high road — bonus 2
+      { x: 6820, y: 42 }, // KH high road — bonus 3
+      { x: 6990, y: 42 }, // KL low road (clear left of K4's overhang @7020)
+      // The upper switchback:
+      { x: 7100, y: -32 }, // K4 (clear left of K5's overhang @7180)
+      { x: 7360, y: -106 }, // K5 (clear right of K6's overhang end @7260)
+      { x: 7040, y: -180 }, // K6 (clear left of K7's overhang @7160)
+      { x: 7320, y: -254 }, // K7 (clear right of K8's overhang end @7240)
+      { x: 7040, y: -328 }, // K8 (clear left of K9's overhang @7140)
+      { x: 7600, y: -476 }, // SUM — the throne balcony (clear right of KA's overhang end @7440)
+      { x: 7320, y: -550 }, // KA — beside the key, the 814px apex (HIGHEST coin in the game)
     ],
 
+    // 5 floor spikes (the sharpest of the eight — level-08 is the finale), each centered on a
+    // CLEAR castle run with ≥250px margin from BOTH edges and clear of EVERY platform's x-span
+    // (no ceiling-bonk, §3.5). NONE on F0/F1 (welcome), F4 (the enemy floor), or F8 (the keep
+    // run-up).
     spikes: [
-      { x: 850, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // floor-1 (560..1040)
-      { x: 1450, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // floor-2 (1160..1680)
-      { x: 2200, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // floor-3 (1800..2360)
+      { x: 1600, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F2 (1320..1880) — L280 / R280
+      { x: 2800, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F3 (2520..3080) — L280 / R280
+      { x: 4200, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F5 (3920..4480) — L280 / R280
+      { x: 5280, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F6 (5000..5560) — L280 / R280
+      { x: 6000, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F7 (5720..6280) — L280 / R280
     ],
 
-    // Goal sits atop T6, the summit balcony, 80px before its right edge (3540).
-    goal: { x: 3460, y: -125 - CONFIG.GOAL_SIZE },
+    // Goal caps the throne balcony SUM — x:7620 (~2.2x the old 3460), on the RIGHTMOST stretch
+    // of SUM (7360..7760), right of the KEY apex's overhang (KA ends 7440) and past EVERY lower
+    // switchback tier (all end ≤7440) — so the goal's x-column exists ONLY at the summit and a
+    // driven player must stand on the throne to touch it. y at the top of the 740px climb (SUM
+    // y:-420). The safe LOW-road climb reaches this throne goal WITHOUT the key (→ end math
+    // gate); grabbing the key (up-LEFT to KA, then drop back to the throne) is the optional
+    // risk/reward that clears the level FREE (XP=20).
+    goal: { x: 7620, y: -420 - CONFIG.GOAL_SIZE },
 
-    // One near-start checkpoint + one 64-80px before EVERY hazard/mechanic, PLUS
-    // one at the start of EVERY climb tier (a fall during the long climb must
-    // never cost more than one tier). Checkpoint y always matches the surface
-    // it sits on: FLOOR_Y-48 on the floors, tier.y-48 on each climb tier.
+    // Respawn checkpoints (§5 + §8.5 rule 4) — near spawn, before EVERY spike, before EVERY
+    // pit (the moat, the chasm), on EVERY barbican tier, and on EVERY keep tier, each placed on
+    // the side the player ACTUALLY LANDS (for up-LEFT reversal hops that is near the tier's RIGHT
+    // end). Checkpoint y always matches the surface it sits on (FLOOR_Y−48 on floors, tier.y−48
+    // on each platform). A fall into the moat/chasm/keep CAN happen — real stakes — but every
+    // respawn costs seconds, never progress.
     checkpoints: [
-      { x: 96, y: FLOOR_Y - 48 }, // start
-      { x: 130, y: FLOOR_Y - 48 }, // before the mid-run approach (lead 20; no mechanic sits at this exact x any more)
-      { x: 630, y: FLOOR_Y - 48 }, // before door@700 (lead 70)
-      { x: 780, y: FLOOR_Y - 48 }, // before spike@850 (lead 70)
-      { x: 1230, y: FLOOR_Y - 48 }, // before mathGate@1300 (lead 70)
-      { x: 1380, y: FLOOR_Y - 48 }, // before spike@1450 (lead 70)
-      { x: 1530, y: FLOOR_Y - 48 }, // before enemy@1600 (lead 70)
-      { x: 1980, y: FLOOR_Y - 48 }, // before mathGate@2050 (lead 70)
-      { x: 2130, y: FLOOR_Y - 48 }, // before spike@2200 (lead 70)
-      { x: 2340, y: FLOOR_Y - 48 }, // before the climb entry (T1 @2410, lead 70)
-
-      // --- One checkpoint per switchback tier, placed on the side the player
-      // ACTUALLY ARRIVES ON — a fall during the climb must never cost more than
-      // one tier (the ADHD-safe no-game-over policy). For the three rightward
-      // hops that is near the tier's LEFT end; for REVERSAL 1 (the up-LEFT hop
-      // onto T4) the player lands near T4's RIGHT end, so T4's checkpoint goes
-      // there. Checkpoint y always matches the surface it sits on (tier.y - 48).
-      { x: 2430, y: 248 - 48 }, // T1 landing (left end)
-      { x: 2660, y: 173 - 48 }, // T2 landing (left end)
-      { x: 2870, y: 99 - 48 }, // T3 landing (left end)
-      { x: 2920, y: 24 - 48 }, // T4 landing — RIGHT end: this hop arrives travelling LEFT
-      { x: 2910, y: -50 - 48 }, // T5 landing (left end; the up-right hop off T4)
-      { x: 3190, y: -125 - 48 }, // T6 landing — the summit balcony
+      { x: 96, y: FLOOR_Y - 48 }, // start (F0)
+      { x: 660, y: FLOOR_Y - 48 }, // F1 — before the door@880
+      { x: 1360, y: FLOOR_Y - 48 }, // F2 — before spike1@1600
+      { x: 1820, y: FLOOR_Y - 48 }, // before the MOAT + barbican (F2 end)
+      { x: 1960, y: 250 - 48 }, // BA — barbican ascent tier 1
+      { x: 2120, y: 184 - 48 }, // BB — barbican ascent tier 2
+      { x: 2300, y: 120 - 48 }, // BC — the PEAK
+      { x: 2470, y: 200 - 48 }, // BD — barbican descent tier
+      { x: 2560, y: FLOOR_Y - 48 }, // F3 landing (post-moat)
+      { x: 2740, y: FLOOR_Y - 48 }, // before spike2@2800 (F3)
+      { x: 3430, y: FLOOR_Y - 48 }, // F4 — before the enemy@3500
+      { x: 4130, y: FLOOR_Y - 48 }, // F5 — before spike3@4200
+      { x: 4440, y: FLOOR_Y - 48 }, // before the CHASM + drawbridge (F5 end)
+      { x: 4600, y: 262 - 48 }, // SS1 — drawbridge stone 1
+      { x: 4840, y: 262 - 48 }, // SS2 — drawbridge stone 2
+      { x: 5040, y: FLOOR_Y - 48 }, // F6 landing (post-chasm)
+      { x: 5210, y: FLOOR_Y - 48 }, // before spike4@5280 (F6)
+      { x: 5930, y: FLOOR_Y - 48 }, // F7 — before spike5@6000
+      { x: 6480, y: FLOOR_Y - 48 }, // F8 — the throne-keep run-up
+      // One checkpoint per keep tier — placed where the player lands (up-LEFT reversals land
+      // near the tier's RIGHT end). A fall during the 740px climb never costs more than one tier.
+      { x: 6720, y: 246 - 48 }, // K1 (left end — up-right hop)
+      { x: 6800, y: 172 - 48 }, // K2 (the fork base)
+      { x: 6700, y: 98 - 48 }, // KH (high-road spur)
+      { x: 7010, y: 98 - 48 }, // KL (low road, left end)
+      { x: 7060, y: 24 - 48 }, // K4 (left end — up-right)
+      { x: 7220, y: -50 - 48 }, // K5 (left end — up-right)
+      { x: 7220, y: -124 - 48 }, // K6 (right end — up-LEFT reversal #1)
+      { x: 7200, y: -198 - 48 }, // K7 (left end — up-right)
+      { x: 7200, y: -272 - 48 }, // K8 (right end — up-LEFT reversal #2)
+      { x: 7180, y: -346 - 48 }, // K9 (left end — up-right)
+      { x: 7440, y: -420 - 48 }, // SUM (the throne balcony — up-RIGHT off K9 lands near SUM's left)
+      { x: 7400, y: -494 - 48 }, // KA (the key apex — up-LEFT off SUM lands near KA's right)
     ],
 
+    // Exactly ONE door — math density LOCKED at 1 door + 1 enemy + end gate. On solid F1 (the
+    // castle portcullis), clear of the gaps on either side (L240 / R280).
     doors: [
-      { x: 700, y: FLOOR_Y - CONFIG.DOOR.H }, // floor-1 (560..1040)
+      { x: 880, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
 
-    // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy +
-    // the end-of-level goal gate (user decision 2026-07-12; removed gates
-    // x:1300/2050 are in git history).
+    // Mid-level checkpoint gates: NONE — density LOCKED at exactly 1 door + 1 enemy + the
+    // end-of-level goal gate (user decision 2026-07-12).
     mathGates: [],
 
+    // Exactly ONE enemy — mid-F4 (@3500), woven into the gauntlet between the barbican and the
+    // drawbridge. variant 2 (the castle FLY) — distinct from level-07's variant-0 castle sentinel
+    // in the same castle pair. Left margin 260, right margin 260, clear of every platform footprint.
     enemies: [
-      { x: 1600, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 }, // enemy-3 (fly); floor-2 (1160..1680)
+      { x: 3500, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 2 },
     ],
 
-    // Secret XP alcove (LVL-06) — one per level, ~70px above a tier, never
-    // gating, free to skip. The old alcove ({x:2950, y:40}) sat off the OLD
-    // tier-4 and is now INSIDE T4's collider, so it moved with the climb.
-    //
-    // New home: the DEAD END of the leftward leg. The required path across T4 is
-    // "land at its right end (~2930), walk left to ~2800, sprint right and jump
-    // to T5" — so walking on past the take-off spot to T4's far left corner is a
-    // genuine, optional detour that costs nothing to skip. Hop up 70px from
-    // there and the alcove is yours.
-    //
-    // CRITICAL — the alcove is judged by the RIGHTWARD-TRAVEL-ONLY point model
-    // (`bestMarginToPoint`, unlike coins which Plan 34-01 made bidirectional):
-    // it is only credited from a launch node whose span starts at or before it.
-    // x:2650 sits inside T4's own span (2610..2960) with T4.xStart < 2650, so it
-    // is credited as an in-footprint hop off T4 and does not HARD-FAIL.
-    secretAlcove: [
-      { x: 2650, y: -46 }, // ~70px above T4's new surface (y:24)
-    ],
+    // The math-skip KEY (KEY-02/LEN-02) — NO geometry.locks (math-skip = keys WITHOUT locks).
+    // Sits on KA, the KEY APEX one tier ABOVE the throne (7200..7440, y:-494), at x:7280 — a
+    // genuine walked MIDDLE stretch, clear of both the up-LEFT mount from SUM (which lands near
+    // KA's right end ~7420) and KA's own edges, so a driven player naturally walks THROUGH it
+    // rather than sailing over it mid-arc (Pitfall 3, the 34.5 x:760 defect class). y = KA's
+    // surface (-494) minus 32, the player's own collider height (WR-02; NOT CONFIG.KEY.H), so
+    // the trigger box sits flush with a standing player's top edge on that tier.
+    keys: [{ x: 7280, y: -494 - 32 }],
+    // NO physical lock geometry anywhere in this descriptor — this is the math-skip usage
+    // (key-held clears the level directly with full XP; missing it just means answering the end
+    // math gate as normal — see game.js's heldKeyIds branch).
+
+    // Exactly ONE secret alcove — ~70px above the spawn-area optional platform PA (x:280, y:254,
+    // w:120) — off the required path, never signposted, free to skip. x:320 sits inside PA's own
+    // span (280..400) so the rightward-travel point model credits it as an in-footprint hop.
+    secretAlcove: [{ x: 320, y: 184 }],
   },
 
   mechanics: [],
-  biome: "castle", // Phase 32 (ART-02/ART-03) — level 8 of 8, Castlevania arc calm->harsh (levels 1-2 swamp, 3-4 town, 5-6 cemetery, 7-8 castle)
+  biome: "castle", // level 8 of 8 — Castlevania arc calm->harsh (levels 7-8 castle)
   parallax: null,
 };
