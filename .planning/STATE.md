@@ -5,10 +5,10 @@ milestone_name: SNES-Fidelity World
 current_phase: 35
 current_phase_name: Biome Re-dress & Props
 status: ready-to-discuss
-stopped_at: "Phase 34.6 (Level Redesign) COMPLETE & verified (11/11 must-haves passed). All 8 levels rebuilt from scratch to a NEW raised design bar (docs/LEVEL-DESIGN.md §8.5: verticality + branching route-choice + action + fall-stakes in EVERY level). Reached only after a 3-round human prototype sign-off (2 rejections) that (a) escalated level authoring from Sonnet to Opus executors — Sonnet built validator-legal-but-flat levels — and (b) raised the design bar itself. The end-gate key-conditional 'math-skip token' mechanic landed (keys-no-locks on even levels 02/04/06/08; key held → free clear +20 XP, else end math), code-reviewed (WR-01 endSkipArmed fix) and both-paths audited. All 13 previously-deferred Phase-34 HARD-FAILs deleted; validate-levels zero HARD-FAIL, 299 coins collectable, every level driven to completion. Per-level kid-UAT deferred to Phase 38 (VER-02) by design. NEXT: Phase 35 (Biome Re-dress & Props) — needs discuss."
-last_updated: "2026-07-16T03:35:38.809Z"
+stopped_at: "Phase 35 context gathered (props layer: restrained/legibility-first, bg+on-surface, extra CC0 where thin, 2-level trial → sign-off → rest)"
+last_updated: "2026-07-16T04:13:17.347Z"
 last_activity: 2026-07-16
-last_activity_desc: "Phase 34.6 complete & verified — 8 levels rebuilt to the §8.5 raised bar (Opus executors) after a 3-round human prototype sign-off; next is Phase 35 (Biome Re-dress), needs discuss"
+last_activity_desc: Phase 34.6 complete, transitioned to Phase 35
 progress:
   total_phases: 12
   completed_phases: 8
@@ -148,9 +148,9 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 
 ## Session Continuity
 
-Last session: 2026-07-16T02:54:06.904Z
-Stopped at: Completed 34.6-08-PLAN.md
-Resume file: None
+Last session: 2026-07-16T04:13:17.335Z
+Stopped at: Phase 35 context gathered (props layer: restrained/legibility-first, bg+on-surface, extra CC0 where thin, 2-level trial → sign-off → rest)
+Resume file: .planning/phases/35-biome-re-dress-props/35-CONTEXT.md
 
 ---
 
