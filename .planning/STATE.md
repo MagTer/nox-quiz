@@ -4,11 +4,11 @@ milestone: v6.0
 milestone_name: SNES-Fidelity World
 current_phase: 34.6.1
 current_phase_name: Re-play Polish — Coins, Key Framing & Wrong-Answer Feedback
-status: executing
-stopped_at: "Phase 35 context gathered (props layer: restrained/legibility-first, bg+on-surface, extra CC0 where thin, 2-level trial → sign-off → rest)"
-last_updated: "2026-07-16T10:21:31.221Z"
+status: in-progress
+stopped_at: "DEV-HOST SWITCH 2026-07-16 — everything pushed to origin/main @ 977c030. TWO threads open: (1) Phase 34.6.1 polish — plans 01/02/03 DONE + pushed (wrong-answer flash+tween-settle anti-mash; 3 CC0 sprites vendored+wired: crisp coin, real key, checkered goal flag, footprints preserved; all gates green, browser-boot functionally green). Plan 04 = human PLAY-TEST still PENDING (mash test + coin/flag/key look; eyeball 'SKIP KEY' HUD wording). (2) Phase 34.6 ALL-8 level redo — still WIP, level-01/03/04/05/06/07 captured in the wip(34.6) snapshot commit, NOT finalized — the bigger open blocker. Phase 35 (props) paused behind 34.6."
+last_updated: "2026-07-16T13:40:00.000Z"
 last_activity: 2026-07-16
-last_activity_desc: Phase 34.6 complete, transitioned to Phase 34.6.1
+last_activity_desc: "34.6.1 polish plans 01-03 executed + pushed; 34.6 level-redo WIP snapshotted before dev-host switch"
 progress:
   total_phases: 13
   completed_phases: 7
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 34.6 ALL-8 REDO — rebuild all 8 level layouts to distinct shapes + kill transport monotony (blocker reopened 2026-07-16). Authoritative plan: `.planning/phases/34.6-level-redesign-rebuild-and-double-every-level/34.6-REDO-ALL8-PLAN.md`. Phase 35 (props) PAUSED behind it.
+**Current Focus:** Two open threads. (1) **Phase 34.6.1 polish** (INSERTED) — plans 01/02/03 shipped (wrong-answer anti-mash settle; crisp coin + real key + checkered goal flag wired, footprints preserved); only plan 04, the human PLAY-TEST, remains. (2) **Phase 34.6 ALL-8 REDO** — rebuild all 8 level layouts to distinct shapes + kill transport monotony (blocker reopened 2026-07-16); still WIP (level-01/03/04/05/06/07 snapshotted, not finalized). Authoritative plan: `.planning/phases/34.6-level-redesign-rebuild-and-double-every-level/34.6-REDO-ALL8-PLAN.md`. Phase 35 (props) PAUSED behind 34.6.
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -37,11 +37,12 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 34.6.1 — Re-play Polish — Coins, Key Framing & Wrong-Answer Feedback
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-16 — Phase 34.6 complete, transitioned to Phase 34.6.1
+Plan: 3 of 4 done — 01 (wrong-answer settle), 02 (CC0 sprites), 03 (wiring) shipped + pushed; 04 (human play-test / UAT) PENDING
+Status: In progress — awaiting the play-test, then phase close-out
+Also open: Phase 34.6 ALL-8 level redo (reopened, WIP snapshot pushed — not finalized)
+Last activity: 2026-07-16 — 34.6.1 plans 01-03 executed + pushed; 34.6 WIP snapshotted before dev-host switch
 
-Progress: [███████░░░] 67%  (8 of 12 phases complete: 29–34, 34.5, 34.6; remaining: 35, 36, 37, 38)
+Progress: [█████░░░░░] 54%  (7 of 13 phases complete: 29–34, 34.5; 34.6 reopened, 34.6.1 in progress; remaining: 35, 36, 37, 38)
 
 ## v6.0 Roadmap Summary
 
