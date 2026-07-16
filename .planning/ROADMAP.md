@@ -414,7 +414,7 @@ Plans:
 **Wave 1**
 
 - [x] 34.6.1-01-PLAN.md — D-01 wrong-answer settle + red flash in the shared challenge dialog (anti-mash, non-punishing) — polish
-- [ ] 34.6.1-02-PLAN.md — Vendor + license the 3 CC0 sprites (coin/goal-flag/key) with a blocking CC0 provenance checkpoint — polish
+- [x] 34.6.1-02-PLAN.md — Vendor + license the 3 CC0 sprites (coin/goal-flag/key) with a blocking CC0 provenance checkpoint — polish
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
