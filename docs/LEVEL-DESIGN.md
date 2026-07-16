@@ -212,9 +212,10 @@ Found at the Phase-34.6 human checkpoint: rebuilt prototype levels passed every 
    bash scripts/check-gate.sh && bash scripts/check-safety.sh && bash scripts/check-import-safety.sh \
      && bash scripts/check-progress.sh && bash scripts/check-terrain-atlas.sh && bash scripts/check-pink-gate.sh \
      && node scripts/check-assets-manifest.mjs && node scripts/validate-levels.mjs \
+     && node scripts/check-level-distinctness.mjs && node scripts/check-monotony.mjs \
      && node scripts/audit-coins.mjs && node scripts/browser-boot.mjs && node scripts/audit-phase21-mechanics.mjs
    ```
-   `validate-levels.mjs` (zero HARD-FAIL) and `audit-coins.mjs` (every coin collected by a real driven player) are the two that speak directly to this doc's HARD rules. `audit-phase21-mechanics.mjs` always exits 0 by design — **read its output**, not its exit code: every door/enemy encounter must show `triggered: true` (`resolved: false` rows are known headless-timing flakiness).
+   `validate-levels.mjs` (zero HARD-FAIL) and `audit-coins.mjs` (every coin collected by a real driven player) are the two that speak directly to this doc's HARD rules. `check-level-distinctness.mjs` (§8.5 rule 7 — no two levels share a layout signature) and `check-monotony.mjs` (§8.5 rule 8 — no >3-crossing flat transport run) are the two that enforce the 2026-07-16 all-8 distinctness+variety redo; both were built RED-first against the cloned/transport-heavy levels. `audit-phase21-mechanics.mjs` always exits 0 by design — **read its output**, not its exit code: every door/enemy encounter must show `triggered: true` (`resolved: false` rows are known headless-timing flakiness).
 3. Eyeball placements with `?debug=1` (colliders, blockers, zones, checkpoints, alcoves all render).
 4. **Verification standard: no level change closes on a static check alone. Checks that don't play the game lie.** The full suite was green while this game shipped a sawtoothed floor, achromatic-grey ground, 32 unreachable coins, and 9px of headroom on every tier of level-07. A green suite is necessary and never sufficient — a human plays it, or it is not verified.
 

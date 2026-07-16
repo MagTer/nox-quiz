@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 34.6
-current_phase_name: Level Redesign — ALL-8 DISTINCTNESS REDO (blocker reopened)
-status: ready-to-execute
-stopped_at: "BLOCKER (user full test-play, 2026-07-16): the 34.6 rebuild produced STRUCTURALLY CLONED levels — even levels 02/04/06 have byte-identical platform layouts (re-skins of level-02's spire), odd 01/03/05 near-identical; only 07/08 distinct. ALSO long boring 'transport' stretches (flat-run → jump hole → repeat). Root cause: dispatch prompts told each executor to 'match level-02' → re-skins, and no distinctness/variety gate existed. USER APPROVED (2026-07-16) redoing ALL 8 to distinct shapes (Bog Crossing/Rusted Spire/Rooftop Descent/Twin Towers/Sunken Vault/Deep Shaft/Ramparts/Throne Keep) + two NEW gates (check-level-distinctness, check-monotony) + no-transport rule. NOT YET BUILT. Full authoritative plan: .planning/phases/34.6-level-redesign-rebuild-and-double-every-level/34.6-REDO-ALL8-PLAN.md (+ docs/LEVEL-DESIGN.md §8.5 rules 7-8). Phase 35 (props) PAUSED — its context/research/patterns/validation exist; resume props only after the redone geometry is user-approved. Server for test-play: python3 -m http.server 8080 (user has all-unlocked save)."
-last_updated: "2026-07-16T04:13:17.347Z"
+current_phase: 34.6.1
+current_phase_name: Re-play Polish — Coins, Key Framing & Wrong-Answer Feedback
+status: executing
+stopped_at: "Phase 35 context gathered (props layer: restrained/legibility-first, bg+on-surface, extra CC0 where thin, 2-level trial → sign-off → rest)"
+last_updated: "2026-07-16T10:21:31.221Z"
 last_activity: 2026-07-16
-last_activity_desc: "BLOCKER: 34.6 levels were structural clones + had transport monotony (user test-play); approved all-8 distinctness redo — see 34.6-REDO-ALL8-PLAN.md; Phase 35 paused"
+last_activity_desc: Phase 34.6 complete, transitioned to Phase 34.6.1
 progress:
-  total_phases: 12
-  completed_phases: 8
-  total_plans: 42
+  total_phases: 13
+  completed_phases: 7
+  total_plans: 43
   completed_plans: 42
-  percent: 67
+  percent: 54
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 35 — Biome Re-dress & Props
-Plan: Not started (35-CONTEXT.md gathered 2026-07-16)
-Status: Ready to plan
-Last activity: 2026-07-16 — Phase 34.6 complete & verified; Phase 35 context gathered
+Phase: 34.6.1 — Re-play Polish — Coins, Key Framing & Wrong-Answer Feedback
+Plan: Not started
+Status: Ready to execute
+Last activity: 2026-07-16 — Phase 34.6 complete, transitioned to Phase 34.6.1
 
 Progress: [███████░░░] 67%  (8 of 12 phases complete: 29–34, 34.5, 34.6; remaining: 35, 36, 37, 38)
 

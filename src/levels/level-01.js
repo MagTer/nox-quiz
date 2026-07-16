@@ -1,67 +1,40 @@
-// src/levels/level-01.js — "The First Ascent" descriptor.
+// src/levels/level-01.js — "Bog Crossing" descriptor.
 //
 // ===========================================================================
-// CHECKPOINT REWORK v3 — THE RAISED BAR (Phase 34.6, docs/LEVEL-DESIGN.md §8.5).
+// ALL-8 DISTINCTNESS + VARIETY REDO (Phase 34.6, docs/LEVEL-DESIGN.md §8.5 rules
+// 7-8). Superseded the prior "First Ascent" arch — which cloned the arch shape of
+// levels 03/05 (the user's full test-play flagged 01≈03≈05 as near-identical). This
+// is a genuinely distinct MACRO-SHAPE per the approved 2026-07-16 concept table.
 // ===========================================================================
-// The 34.6 human checkpoint REJECTED level-01 twice:
-//   v1 (Sonnet "one hump then a flat coin-walk"): "a bit too much of a soft landing."
-//   v2 ("two gentle rolling humps"): STILL "too simple, repetitive. Needs more
-//       action. More vertical in both levels." — plus the standing note that "missed
-//       jumps can lead to death, to some extent; the restart is so close so it is fine."
 //
-// v3 is authored directly to §8.5 ("Level ambition — the raised bar"). ONLY the
-// floor/platform/coin/checkpoint/spike geometry changed — the DOOR (@1300), the ENEMY
-// (@2900), the GOAL (@7100, the ~2x-length landmark), the secret alcove (@320,184),
-// the swamp biome, allowedTables [6-9], the LOCKED 1-door + 1-enemy + end-gate math
-// density, and the NO-KEY odd-archetype schema are all preserved AS-IS.
+// WHAT LEVEL-01 IS — BOG CROSSING (its distinct signature): a LATERAL, meandering
+// ARCHIPELAGO. The path is a chain of small swamp islands (floor runs) linked by
+// stepping-stone PLATFORMS (lily pads / a fallen log) over water gaps. There is no
+// single tall arch (that is 02) and no descending staircase (that is 03) — the
+// y-profile RIPPLES gently up and down across the whole level, never two hops alike.
 //
-// WHAT LEVEL-01 v3 IS — a SWAMP RIDGE with a MANDATORY tall arch (its signature):
+// DIRECTION: lateral. MACRO-SHAPE: archipelago. Distinct from all seven others.
 //
-//   THE FORK (§8.5 rule 2, on F2): the approach to the ridge splits into a visible
-//   LOW road (walk the F2 ground straight to the arch base) and a HIGH road (hop the
-//   three fork ledges HF1->HF2->HF3 for THREE bonus coins, then drop back to F2). Both
-//   diverge on F2 and rejoin at the arch base — nothing hidden, the very first level
-//   teaches "you can choose your path." No key (odd archetype).
+// The three §8.5 beats:
+//   * VERTICALITY (rule 1): the FALLEN-LOG CLIMB (L1->L2->L3, rising to y:150 — a 170px
+//     range from the floor line) then a LILY-PAD DROP (L4 -> F2). One genuine climb, one
+//     deliberate descent, gentle 40-66px rises (the §8 L1 open-air 60-70 band).
+//   * ROUTE CHOICE (rule 2): the visible LOW/HIGH FORK over the water before F3 — a safe
+//     LOW pad chain (LR1->LR2) vs a HIGH arc (HR1->HR2, THREE bonus coins) that rejoins
+//     at F3. No key (odd archetype). Nothing hidden.
+//   * ACTION & VARIETY (rule 3): every water crossing differs — a lone lily pad, a rising
+//     log, a forked arc, a low pad-chain, a final optional mound. The door/enemy are woven
+//     into island stops. No two crossings identical (anti-transport, rule 8).
 //
-//   THE ARCH (§8.5 rule 1, the vertical SIGNATURE): a MANDATORY stepped climb over a
-//   480px pit — RA(rise 68) -> RB(rise 66) -> RC(the PEAK, rise 62, y:124 = a 196px
-//   climb from the ground line) -> a deliberate DESCENT (RC -> RD -> down to F3). The
-//   peak is MANDATORY, not an optional detour: the pit's far floor F3 starts at x:2760,
-//   which is BEYOND RB's maximum rightward reach (RB->F3 spanMin 230 > RB max reach
-//   206) AND beyond RB->RD's reach (spanMin 170 > 168) — so from RB the ONLY forward
-//   edge is UP to RC. The player genuinely goes UP ~196px and back DOWN, every run.
-//   RC carries the level's highest coin (y:68) as the climb's reward.
+// MOST FORGIVING OF THE 8 (§8.5 rule 5): gentle 40-66px rises well inside the 88.331px
+// envelope; wide pads (90-130px); ZERO overlapping platform pairs (the §8 L1-2 "no
+// ceilings at all" rule — every pad sits over water or a floor, never over another pad);
+// open-air and fully legible (rule 6); dense checkpoints (one per climb pad, one before
+// every spike). Falls drop into the bog and respawn a hop away (rule 4) — real stakes,
+// trivial cost, no game-over/timer.
 //
-//   A SECOND OPTIONAL HIGH ROUTE (HG1->HG2 over F5, 1 bonus coin at a 130px peak) and
-//   a final optional MOUND (PD before the goal) keep the back half rolling instead of
-//   flat — more route choice, more up-and-down, never mandatory.
-//
-// STILL THE MOST FORGIVING OF THE 8 LEVELS (§8.5 rule 5 — forgiving = generous
-// platforms + wide margins + dense checkpoints, NOT flat/simple):
-//   * All climb rises are a gentle 62-70px (the §8 L1-2 60-70 non-overlapping band),
-//     comfortably inside the 88.331px envelope — never pushed to the limit. Wide
-//     platforms (RC is 120px, the fork/HG ledges 100-110px).
-//   * ZERO overlapping platform pairs anywhere (the L1-2 §8 "no ceilings at all" rule):
-//     every raised ledge sits over a FLOOR or the pit, never over another platform.
-//     Open-air, fully legible (§8.5 rule 6) — the player can always see up and see
-//     every route.
-//   * 14 checkpoints — one near spawn, ONE ON EACH ARCH TIER (RA/RB/RC) so a missed
-//     climb hop respawns you a hop away, one before EVERY spike, one at each landing,
-//     one before the enemy, one on the final run. §8.5 rule 4's guardrail: falls into
-//     the arch pit CAN happen (real platforming stakes — the human WANTS this), but the
-//     respawn is always a hop away, so a miss costs seconds, never progress.
-//   * 5 spikes, each centered on a CLEAR dedicated floor with >=250px margin from BOTH
-//     edges (the rightward gap/mount-takeoff conflict class 34.6-02 proved in-engine)
-//     and clear of every platform's x-footprint (no ceiling-bonk, §3.5). NONE on the
-//     opening runs (F0/F1) or the final approach (F9) — welcome and run-in stay calm.
-//
-//   CONTRAST WITH LEVEL-02 (deliberate): level-01's arch peaks at y:124 (a 196px
-//   climb) with ONE simple up-over-and-down arch and no reversals; level-02 climbs to
-//   y:-198 (518px) through MULTIPLE switchbacks with a key apex. Level-01 is clearly,
-//   structurally the gentler of the two — vertical and route-rich, but the easy one.
-//
-// No `bounds` field: level-01 alone DERIVES its right edge from geometry (game.js),
-// per the bounds-convention trap in LEVEL-DESIGN.md §7. Do NOT add one.
+// No `bounds` field: level-01 alone DERIVES its right edge from geometry (game.js), per
+// the bounds-convention trap in LEVEL-DESIGN.md §7. Do NOT add one.
 //
 // PURE data module: no engine globals (a727c13). The ONLY import is ../config.js.
 
@@ -71,162 +44,172 @@ const FLOOR_Y = CONFIG.FLOOR_Y; // 320 — top of every floor run
 
 export const LEVEL_01 = {
   id: "level-01",
-  displayName: "The First Ascent",
+  displayName: "Bog Crossing",
 
   // Level-01 stays on the v3.0 hard pool (tables 6-9) — do not soften. PRESERVED.
   allowedTables: [6, 7, 8, 9],
 
   geometry: {
-    // Contiguous floor runs (one merged collider each), pinned to FLOOR_Y. Standard
-    // forgiving gaps are a varied 120/140px (bare running-jump crossable, §2). The ONE
-    // wide span — the 480px arch pit 2280..2760 — is un-jumpable by design and bridged
-    // ENTIRELY by the mandatory arch, which is what makes the up-and-over a real,
-    // unavoidable part of the route (a fall into it is a free per-tier checkpoint
-    // respawn, never a game-over).
+    // Swamp islands (merged-collider floor runs), pinned to FLOOR_Y. Between them lie
+    // WATER GAPS — some bare and jumpable (120-155px), most wider crossings bridged by
+    // stepping-stone platforms below. The island rhythm is deliberately IRREGULAR
+    // (widths 300-560, gaps 120-540) so no stretch reads as a repeating corridor.
     floors: [
-      { x: 0, w: 560 }, // F0 — opening calm run; the secret-alcove hop (PA)
-      { x: 700, w: 820 }, // F1 — gap 560..700 (140); the one DOOR (@1300)
-      { x: 1660, w: 620 }, // F2 — gap 1520..1660 (140); the FORK (low road = this ground)
-      { x: 2760, w: 760 }, // F3 — the 480px ARCH PIT is 2280..2760; arch landing + the one ENEMY (@2900) + spike1
-      { x: 3660, w: 520 }, // F4 — gap 3520..3660 (140); spike2
-      { x: 4300, w: 480 }, // F5 — gap 4180..4300 (120); the 2nd optional HIGH ROUTE overhead
-      { x: 4900, w: 520 }, // F6 — gap 4780..4900 (120); spike3
-      { x: 5560, w: 520 }, // F7 — gap 5420..5560 (140); spike4
-      { x: 6220, w: 520 }, // F8 — gap 6080..6220 (140); spike5
-      { x: 6880, w: 400 }, // F9 — gap 6740..6880 (140); final run — the optional MOUND (PD) then the GOAL (@7100)
+      { x: 0, w: 480 }, // F0 — spawn island; the secret-alcove hop (PA)
+      { x: 640, w: 440 }, // F1 — water gap 480..640 (160, bridged by S1); the one DOOR (@820)
+      { x: 1620, w: 360 }, // F2 — post-log island (the fallen-log climb bridges 1080..1620)
+      { x: 2520, w: 460 }, // F3 — fork rejoin island; the one ENEMY (@2700) + spike1
+      { x: 3360, w: 340 }, // F4 — after the ripple crossing (2980..3360)
+      { x: 4060, w: 360 }, // F5 — after the mini-mound (3700..4060); spike2
+      { x: 4900, w: 360 }, // F6 — after the low pad-chain water crossing (4420..4900); spike3
+      { x: 5680, w: 340 }, // F7 — meander island (5260..5680); spike4
+      { x: 6360, w: 620 }, // F8 — final island: optional MOUND (PD) then the GOAL (@6820)
     ],
 
-    // Raised platforms — ALL h:16 (WYSIWYG, §3.1), every y deliberately OFF the 16px
-    // grid (the "don't snap climb-tier y" trap, §3.4). ZERO platform pairs overlap in x
-    // anywhere in this level (L1-2's "no ceilings at all" rule, §8): every ledge sits
-    // over a FLOOR or over the arch pit, never over another platform. Every rise is a
-    // gentle 62-70px, all in the non-overlapping 60-70 band (§3.3).
+    // Stepping stones — ALL h:16 (WYSIWYG, §3.1), every y OFF the 16px grid (§3.4). ZERO
+    // pairs overlap in x (the §8 L1 "no ceilings" rule). Climb pads use the proven
+    // open-air micro-geometry (rise 40-66, ~25px near-edge gap, ~100px wide — the same
+    // that shipped and drove green on the prior level-01 arch); flat water pads sit at
+    // y:254 (66px over the floor); descents are free (large reach).
     platforms: [
       // --- Spawn-area optional hop that hosts the secret alcove (rise 66 from F0) ---
-      { x: 280, y: 254, w: 120, h: 16 }, // PA — PRESERVED (hosts alcove@320,184)
+      { x: 280, y: 254, w: 120, h: 16 }, // PA  [0] — hosts alcove@320,184
 
-      // --- THE FORK: the optional HIGH road over F2 (3 bonus coins), rejoining F2 ---
-      { x: 1760, y: 250, w: 100, h: 16 }, // HF1 — rise 70 from F2
-      { x: 1900, y: 186, w: 110, h: 16 }, // HF2 — rise 64 from HF1 (40px x-gap); the bonus peak
-      { x: 2050, y: 250, w: 100, h: 16 }, // HF3 — the DESCENT: drop 64, then walk off onto F2 (rejoin)
+      // --- S1: a lone lily pad bridging the F0->F1 water (480..640) ---
+      { x: 505, y: 254, w: 110, h: 16 }, // S1  [1] — rise 66 off F0 (gap 25), drop onto F1
 
-      // --- THE ARCH (bridges the 480px F2->F3 pit): a MANDATORY 196px climb + descent ---
-      { x: 2305, y: 252, w: 100, h: 16 }, // RA — rise 68 from F2 (25px gap off F2's edge)
-      { x: 2430, y: 186, w: 100, h: 16 }, // RB — rise 66 from RA (25px gap)
-      { x: 2555, y: 124, w: 120, h: 16 }, // RC — rise 62 from RB — the PEAK, y:124 = a 196px climb (wide 120px summit)
-      { x: 2700, y: 200, w: 90, h: 16 }, // RD — the DESCENT: drop 76 from the peak, then down to F3
+      // --- THE FALLEN-LOG CLIMB over the 1080..1620 water: rise to a y:126 peak (194px range) ---
+      { x: 1105, y: 254, w: 110, h: 16 }, // L1  [2] rise 66 from F1 (gap 25); log foot
+      { x: 1245, y: 190, w: 110, h: 16 }, // L2  [3] rise 64 from L1 (gap 30); log middle
+      { x: 1385, y: 126, w: 120, h: 16 }, // L3  [4] rise 64 from L2 (gap 30); the LOG PEAK, y:126
+      // --- LILY-PAD DROP back down to F2 ---
+      { x: 1535, y: 230, w: 90, h: 16 }, // L4  [5] drop 104 from L3 (gap 30); pad, then walk down onto F2
 
-      // --- 2nd OPTIONAL HIGH ROUTE over F5 (1 bonus coin at a 130px peak) ---
-      { x: 4360, y: 252, w: 100, h: 16 }, // HG1 — rise 68 from F5
-      { x: 4500, y: 190, w: 100, h: 16 }, // HG2 — rise 62 from HG1 (40px x-gap); the bonus peak, then drop back to F5
+      // --- THE LOW/HIGH FORK over the 1980..2520 water (rejoins at F3) ---
+      // LOW road: LR1 -> LR2 flat. HIGH road: LR1 -> up onto HR1 (bonus coins) -> down onto
+      // LR2. HR1 sits BETWEEN LR1 and LR2 in x (never above either) — the §8 L1 "no ceilings"
+      // rule; the two roads are laterally offset, not vertically stacked.
+      { x: 2010, y: 254, w: 110, h: 16 }, // LR1 [6] LOW road — rise 66 from F2 (gap 30)
+      { x: 2250, y: 254, w: 110, h: 16 }, // LR2 [7] LOW road — flat hop from LR1 (gap 130), then drop to F3
+      { x: 2145, y: 188, w: 100, h: 16 }, // HR1 [8] HIGH bump between LR1/LR2 — rise 66 from LR1 (gap 25); 3 bonus coins
 
-      // --- OPTIONAL final MOUND (rise 66; a last gentle up-and-over before the goal) ---
-      { x: 6980, y: 254, w: 110, h: 16 }, // PD — well left of the goal@7100; walk-off descent back to F9
+      // --- THE RIPPLE crossing 2980..3360: up, up, down (a real meander) ---
+      { x: 3010, y: 250, w: 110, h: 16 }, // M1  [9]  rise 70 from F3 (gap 30)
+      { x: 3150, y: 186, w: 110, h: 16 }, // M2  [10] rise 64 from M1 (gap 30); ripple crest
+      { x: 3290, y: 250, w: 110, h: 16 }, // M3  [11] drop 64 from M2 (gap 30), then onto F4
+
+      // --- THE MINI-MOUND 3700..4060: a two-pad up, then a drop (a second little climb) ---
+      { x: 3730, y: 250, w: 110, h: 16 }, // N1  [12] rise 70 from F4 (gap 30)
+      { x: 3870, y: 184, w: 110, h: 16 }, // N2  [13] rise 66 from N1 (gap 30); mound top, then drop to F5
+
+      // --- THE LOW PAD-CHAIN water crossing 4420..4900: flat low pads (a calm wade) ---
+      // Every drop onto a floor is walk-off-safe (gap <= ~55px, the driver's fall reach)
+      // and every flat hop's spanMax clears the 162 flat reach — no jump-descent or
+      // long-root hop the in-engine driver can miss.
+      { x: 4445, y: 254, w: 110, h: 16 }, // P1 [14] rise 66 from F5 (gap 25)
+      { x: 4590, y: 254, w: 140, h: 16 }, // P2 [15] flat hop (gap 35, spanMax 175)
+      { x: 4780, y: 254, w: 120, h: 16 }, // P3 [16] flat hop (gap 50, spanMax 170); ends at F6 — walk off onto F6
+
+      // --- THE MEANDER crossing 5260..5680 ---
+      { x: 5285, y: 254, w: 160, h: 16 }, // Q1 [17] rise 66 from F6 (gap 25)
+      { x: 5490, y: 254, w: 160, h: 16 }, // Q2 [18] flat hop (gap 45, spanMax 205); then walk off onto F7 (gap 30)
+
+      // --- FINAL crossing 6020..6360 ---
+      { x: 6045, y: 254, w: 150, h: 16 }, // R1 [19] rise 66 from F7 (gap 25)
+      { x: 6240, y: 254, w: 120, h: 16 }, // R2 [20] flat hop (gap 45, spanMax 165); ends at F8 — walk off onto F8
+
+      // --- OPTIONAL final MOUND on F8 (a last gentle up-and-over before the goal) ---
+      { x: 6640, y: 254, w: 110, h: 16 }, // PD  [21] well left of goal@6820; walk-off descent back to F8
     ],
 
-    // ~34 coins — every one a fly-through box a driven player actually reaches
-    // (walk-family placement: coin.y = surfaceY - 56, the "walking height" that makes it
-    // collectable by simply passing through, no precision jump required). The bonus
-    // coins live on the two optional high routes (HF/HG) and at the arch PEAK (RC).
+    // ~34 coins — every one a fly-through box at walk height (surfaceY-56) or on a pad's
+    // own clear surface. The bonus cluster (3 coins) rides the HIGH fork road (HR1/HR2);
+    // the log peak L3 carries the highest coin (the climb's reward).
     coins: [
       { x: 150, y: 264 }, // F0
       { x: 420, y: 264 }, // F0
-      { x: 330, y: 198 }, // on PA (near the secret alcove)
-      { x: 850, y: 264 }, // F1 (before the door)
-      { x: 1150, y: 264 }, // F1 (before the door)
-      { x: 1440, y: 264 }, // F1 (after the door)
-      { x: 1700, y: 264 }, // F2 (the LOW road)
-      { x: 1810, y: 194 }, // FORK high road — HF1 (bonus)
-      { x: 1930, y: 130 }, // FORK high road — HF2 peak (bonus)
-      { x: 1960, y: 130 }, // FORK high road — HF2 peak (bonus)
-      { x: 2100, y: 194 }, // FORK high road — HF3 descent (bonus)
-      { x: 2200, y: 264 }, // F2 (the LOW road, past the fork)
-      { x: 2355, y: 196 }, // ARCH ascent (RA)
-      { x: 2480, y: 130 }, // ARCH ascent (RB)
-      { x: 2615, y: 68 }, // ARCH PEAK (RC) — the climb's reward, the highest coin
-      { x: 2745, y: 144 }, // ARCH descent (RD)
-      { x: 2860, y: 264 }, // F3 (before the enemy)
-      { x: 3100, y: 264 }, // F3 (past the enemy, before spike1)
-      { x: 3400, y: 264 }, // F3
-      { x: 3760, y: 264 }, // F4
-      { x: 4040, y: 264 }, // F4
-      { x: 4340, y: 264 }, // F5
-      { x: 4410, y: 196 }, // 2nd HIGH ROUTE — HG1 (bonus)
-      { x: 4550, y: 134 }, // 2nd HIGH ROUTE — HG2 peak (bonus)
-      { x: 4720, y: 264 }, // F5
-      { x: 5000, y: 264 }, // F6
-      { x: 5300, y: 264 }, // F6
-      { x: 5640, y: 264 }, // F7
-      { x: 5940, y: 264 }, // F7
-      { x: 6300, y: 264 }, // F8
-      { x: 6600, y: 264 }, // F8
-      { x: 6940, y: 264 }, // F9
-      { x: 7030, y: 198 }, // on the optional MOUND (PD)
-      { x: 7080, y: 264 }, // F9 (final step to the goal)
+      { x: 330, y: 198 }, // PA (near the secret alcove)
+      { x: 560, y: 198 }, // S1
+      { x: 760, y: 264 }, // F1 (before the door)
+      { x: 1000, y: 264 }, // F1 (after the door)
+      { x: 1160, y: 198 }, // L1 (log foot)
+      { x: 1300, y: 134 }, // L2 (log middle)
+      { x: 1445, y: 70 }, //  L3 (LOG PEAK — highest coin)
+      { x: 1580, y: 174 }, // L4 (lily-pad drop)
+      { x: 1800, y: 264 }, // F2
+      { x: 2065, y: 198 }, // LR1 (low road)
+      { x: 2305, y: 198 }, // LR2 (low road)
+      { x: 2165, y: 132 }, // HR1 (HIGH bump — bonus 1)
+      { x: 2195, y: 132 }, // HR1 (HIGH bump — bonus 2)
+      { x: 2225, y: 132 }, // HR1 (HIGH bump — bonus 3)
+      { x: 2600, y: 264 }, // F3 (before the enemy)
+      { x: 2900, y: 264 }, // F3 (past the enemy, before spike1)
+      { x: 3060, y: 194 }, // M1 (ripple)
+      { x: 3205, y: 130 }, // M2 (ripple crest)
+      { x: 3430, y: 264 }, // F4
+      { x: 3785, y: 194 }, // N1 (mini-mound)
+      { x: 3925, y: 128 }, // N2 (mound top)
+      { x: 4130, y: 264 }, // F5
+      { x: 4500, y: 198 }, // P1 (pad-chain)
+      { x: 4680, y: 198 }, // P2 (pad-chain)
+      { x: 4970, y: 264 }, // F6
+      { x: 5335, y: 198 }, // Q1 (meander pad)
+      { x: 5525, y: 198 }, // Q2 (meander pad)
+      { x: 5750, y: 264 }, // F7
+      { x: 6100, y: 198 }, // R1 (final pad)
+      { x: 6285, y: 198 }, // R2 (final pad)
+      { x: 6430, y: 264 }, // F8
+      { x: 6695, y: 198 }, // PD (optional mound)
+      { x: 6780, y: 264 }, // F8 (final step to the goal)
     ],
 
-    // 5 floor spikes, each centered on a CLEAR dedicated floor run with a >=250px margin
-    // from BOTH edges (the rightward gap/mount takeoff is the spike-before-gap conflict
-    // class 34.6-02 proved via the in-engine harness) and clear of EVERY platform's
-    // x-span (no ceiling-bonk risk — no platform sits above any spike, §3.5). Deliberately
-    // sparing for the gentlest level, and NONE on the opening runs (F0/F1) or the final
-    // approach (F9) — the welcome and the run-in stay calm.
+    // 4 floor spikes, each centered on a CLEAR island with margin from both edges and
+    // clear of every pad's x-span (no ceiling-bonk, §3.5). NONE on the opening islands
+    // (F0/F1) or the final approach — welcome and run-in stay calm. Sparing, for the
+    // gentlest level.
     spikes: [
-      { x: 3220, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F3 (2760..3520) — L288 from enemy edge, R300 (past the enemy)
-      { x: 3920, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F4 (3660..4180) — L260 / R260
-      { x: 5160, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F6 (4900..5420) — L260 / R260
-      { x: 5820, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F7 (5560..6080) — L260 / R260
-      { x: 6480, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F8 (6220..6740) — L260 / R260
+      { x: 2820, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F3 (2520..2980) — past enemy@2700
+      { x: 4180, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F5 (4060..4420)
+      { x: 5020, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F6 (4900..5260)
+      { x: 5800, y: FLOOR_Y - CONFIG.SPIKE_SIZE }, // F7 (5680..6020)
     ],
 
-    // Goal caps the final run — PRESERVED at x:7100 (the ~2x length landmark; F9 ends
-    // 7280, a 180px buffer past the goal).
-    goal: { x: 7100, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    // Goal caps the final island (F8 ends 6980; a 160px buffer past the goal@6820).
+    goal: { x: 6820, y: FLOOR_Y - CONFIG.GOAL_SIZE },
 
-    // Respawn checkpoints — near spawn, ONE ON EACH ARCH TIER (RA/RB/RC) so a missed
-    // climb hop or a fall into the arch pit respawns you a single hop away, one just
-    // before EVERY spike (60-90px lead), one at each landing, one before the enemy, and
-    // one on the final run. Checkpoint y matches the surface it sits on (FLOOR_Y-48 on
-    // floors, tier.y-48 on each arch platform).
+    // Respawn checkpoints — near spawn, one on EACH log-climb pad (L1/L2/L3), before
+    // EVERY spike (60-90px lead), at each island landing, before the enemy, and on the
+    // final run. y matches the surface (FLOOR_Y-48 on floors, pad.y-48 on pads).
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 }, // start (F0)
-      { x: 760, y: FLOOR_Y - 48 }, // F1 start — before the door@1300
-      { x: 1700, y: FLOOR_Y - 48 }, // F2 start — before the fork + arch (pre-pit)
-      { x: 2340, y: 252 - 48 }, // RA — arch ascent tier 1
-      { x: 2470, y: 186 - 48 }, // RB — arch ascent tier 2
-      { x: 2600, y: 124 - 48 }, // RC — the PEAK (a missed descent leap costs ~1s)
-      { x: 2800, y: FLOOR_Y - 48 }, // F3 — arch landing (post-pit), before the enemy@2900
-      { x: 3140, y: FLOOR_Y - 48 }, // before spike1@3220 (F3)
-      { x: 3840, y: FLOOR_Y - 48 }, // before spike2@3920 (F4)
-      { x: 4300, y: FLOOR_Y - 48 }, // F5 start — before the 2nd high route
-      { x: 5080, y: FLOOR_Y - 48 }, // before spike3@5160 (F6)
-      { x: 5740, y: FLOOR_Y - 48 }, // before spike4@5820 (F7)
-      { x: 6400, y: FLOOR_Y - 48 }, // before spike5@6480 (F8)
-      { x: 6880, y: FLOOR_Y - 48 }, // F9 start — the final calm run to the goal
+      { x: 680, y: FLOOR_Y - 48 }, // F1 — before the door@820
+      { x: 1130, y: 254 - 48 }, // L1 — log foot
+      { x: 1270, y: 190 - 48 }, // L2 — log middle
+      { x: 1410, y: 126 - 48 }, // L3 — log peak (a missed drop costs ~1s)
+      { x: 1640, y: FLOOR_Y - 48 }, // F2 — post-log island (before the fork)
+      { x: 2540, y: FLOOR_Y - 48 }, // F3 — fork rejoin, before the enemy@2700
+      { x: 2760, y: FLOOR_Y - 48 }, // before spike1@2820 (F3, just past the enemy)
+      { x: 3380, y: FLOOR_Y - 48 }, // F4 landing
+      { x: 4100, y: FLOOR_Y - 48 }, // F5 — before spike2@4180
+      { x: 4920, y: FLOOR_Y - 48 }, // F6 — before spike3@5020
+      { x: 5720, y: FLOOR_Y - 48 }, // F7 — before spike4@5800
+      { x: 6380, y: FLOOR_Y - 48 }, // F8 — the final calm run to the goal
     ],
 
-    // Exactly ONE door — math density locked at 1 door + 1 enemy + end gate. PRESERVED
-    // at x:1300, on solid F1 (left margin 600, right margin 220).
-    doors: [
-      { x: 1300, y: FLOOR_Y - CONFIG.DOOR.H },
-    ],
+    // Exactly ONE door — math density locked at 1 door + 1 enemy + end gate. On solid
+    // F1 (left margin 180, right margin 260), clear of both water gaps.
+    doors: [{ x: 820, y: FLOOR_Y - CONFIG.DOOR.H }],
 
-    // Mid-level checkpoint gates: NONE — density locked at exactly
-    // 1 door + 1 enemy + the end-of-level goal gate.
+    // Mid-level checkpoint gates: NONE — density locked at 1 door + 1 enemy + end gate.
     mathGates: [],
 
-    // Exactly ONE enemy — PRESERVED at x:2900, on solid F3 (left margin 140 from the
-    // arch landing, right margin 620), well clear of the arch's descent to its left.
-    enemies: [
-      { x: 2900, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
-    ],
+    // Exactly ONE enemy — on solid F3 (left margin 180 from the fork landing, right
+    // margin 220), past the fork so the driven harness traverses the whole fork to reach it.
+    enemies: [{ x: 2700, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 }],
 
-    // Exactly ONE secret alcove — PRESERVED at x:320, y:184 (~70px above PA's surface at
-    // y:254). Off the required path, never signposted. Level-01 places NO key (odd
-    // archetype) — there is no geometry.keys / geometry.locks here.
-    secretAlcove: [
-      { x: 320, y: 184 },
-    ],
+    // Exactly ONE secret alcove — ~70px above PA's surface (y:254). Off the required
+    // path, never signposted. NO key/lock (odd archetype).
+    secretAlcove: [{ x: 320, y: 184 }],
   },
 
   // --- Forward-looking optional slots (buildLevel ignores them when unset) ---
