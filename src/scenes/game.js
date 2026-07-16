@@ -24,7 +24,7 @@ import { makeParallaxLayers, updateParallaxLayers } from "../parallax.js";
 import { getLevel, LEVEL_ORDER } from "../levels/index.js";
 import { buildLevel } from "../levels/build.js";
 import { createBrain } from "../math/brain.js";
-import { openMathGate } from "../ui/mathGate.js";
+import { openMathGate, renderLevelClearBanner } from "../ui/mathGate.js";
 import { wireDoor } from "../mechanics/door.js";
 import { wireGates } from "../mechanics/gates.js";
 import { wireEnemy } from "../mechanics/enemy.js";
@@ -222,9 +222,15 @@ export function gameScene(data) {
   // persistence cannot silently fire on one path and not the other.
   function clearLevel({ table } = {}) {
     // GATE-03: correct (math path) or key-skip (key path) -> the level is cleared. The
-    // caller already shows its own "LEVEL CLEAR" banner (mathGate.js for the math path;
-    // the heldKeyIds branch below for the key path); the scene's side of "cleared" is
-    // simply that the player stays frozen. Single level: no go() to a next level.
+    // scene's side of "cleared" is simply that the player stays frozen. Single level: no
+    // go() to a next level.
+
+    // WR-02: render the "LEVEL CLEAR" banner + clear sfx from the ONE shared helper here,
+    // so it fires EXACTLY ONCE per clear on BOTH paths (math via openMathGate's onSuccess
+    // -> onClear, key via onReachGoal's endSkip branch -> clearLevel). Folding it into the
+    // shared body was the last un-shared piece of the clear moment: neither caller renders
+    // its own banner anymore, so the two presentations can never drift.
+    renderLevelClearBanner();
 
     // Award XP: the math path passes the answered table (SAVE-01, addXp bands
     // XP_EASY/XP_HARD); the key path passes no table, so it awards the flat
@@ -291,30 +297,10 @@ export function gameScene(data) {
     // 34.6-CONTEXT.md. Odd/keyless levels place no keys, so heldKeyIds stays empty
     // and this branch always falls through to the unchanged math path below.
     if (heldKeyIds.size > 0) {
-      // The math path never runs here, so replicate the "gate-cleared"-tagged
-      // banner + clear sfx that mathGate.js's onSuccess normally renders (mirrors
-      // src/ui/mathGate.js lines 37-56 byte-for-byte) so the celebration + clear
-      // marker still appear on the key-skip path.
-      add([
-        rect(width(), height()),
-        pos(0, 0),
-        color(0, 0, 0),
-        opacity(CONFIG.GATE.DIM_OPACITY),
-        fixed(),
-        z(9990),
-        "gate-cleared",
-      ]);
-      add([
-        text("LEVEL CLEAR", { size: 30 }),
-        anchor("center"),
-        pos(center().x, center().y),
-        color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
-        fixed(),
-        z(9994),
-        "gate-cleared",
-      ]);
-      audio.playSfx("clear");
-
+      // The math path never runs here — the shared clearLevel() (below) renders the
+      // "LEVEL CLEAR" banner + clear sfx via renderLevelClearBanner() EXACTLY as the math
+      // path does (WR-02), so the celebration + "gate-cleared" marker appear identically
+      // on the key-skip path with no duplicated banner code here.
       clearLevel({}); // no table -> full-XP key-skip path (CONFIG.PROGRESS.XP_KEY_SKIP)
       return;
     }

@@ -167,6 +167,17 @@ export const CONFIG = {
     BOX_W: 84, // px — answer box width
     BOX_H: 44, // px — answer box height
     BOX_GAP: 16, // px — horizontal gap between adjacent answer boxes
+
+    // --- Level-clear banner (shared single-source render; Phase 34.6 WR-02) ---
+    // The "LEVEL CLEAR" celebration banner + dim backdrop, rendered EXACTLY ONCE per
+    // clear from the shared clearLevel() path via mathGate.js's renderLevelClearBanner().
+    // Lifted out of the byte-duplicated game.js/mathGate.js literals (34.6-REVIEW WR-02)
+    // so the math path and the key-skip path can never drift. Z-order sandwich: the dim
+    // backdrop (CLEAR_DIM_Z 9990) sits below the celebratory burst (FX.BURST_Z 9993),
+    // which sits below the banner text (CLEAR_TEXT_Z 9994) — see FX.BURST_Z's comment.
+    CLEAR_DIM_Z: 9990, // z — full-screen dim backdrop behind the banner (below FX.BURST_Z)
+    CLEAR_TEXT_SIZE: 30, // px — "LEVEL CLEAR" banner text size
+    CLEAR_TEXT_Z: 9994, // z — banner text (above the FX.BURST_Z burst)
   },
 
   // --- Locked door (mid-level challenge seam; Plan 15-03) ---
