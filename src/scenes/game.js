@@ -101,6 +101,17 @@ export function gameScene(data) {
   // (T-13-10). This phase adds NO scenes; it only proves the data spine loads/plays/persists.
   const level = getLevel(data?.levelId ?? LEVEL_ORDER[0]);
 
+  // WR-01 (Phase 34.6): arm the end math-gate SKIP only on a genuine math-skip level —
+  // one that places a key AND has no lock. Phase 34.5's physical LOCK half of wireKey is
+  // still live and shares the SAME heldKeyIds set, so a future level authored with BOTH a
+  // key and a lock would otherwise silently skip its end math gate just from collecting the
+  // lock's key (defeating the lock as a mid-level barrier on an otherwise math-required
+  // level). Gating the skip on this closure-local flag (never a module-level `let`) keeps
+  // today's keys-no-locks math-skip levels (02/04/06/08) skipping, while a hypothetical
+  // key+lock level correctly still requires its end math. Computed once at wire time.
+  const endSkipArmed =
+    (level.geometry.keys?.length ?? 0) > 0 && (level.geometry.locks?.length ?? 0) === 0;
+
   // Level bounds for camera follow + parallax tiling. TWO conventions coexist (both
   // shipped): if the descriptor carries an explicit `bounds` field it is used AS-IS
   // (level-02+ — remember to bump bounds.right when extending such a level!); otherwise
@@ -295,8 +306,10 @@ export function gameScene(data) {
     // KEY-02/LEN-02 (Phase 34.6): a held math-skip key clears the level directly,
     // WITHOUT opening the end math challenge — "full credit, no penalty" per
     // 34.6-CONTEXT.md. Odd/keyless levels place no keys, so heldKeyIds stays empty
-    // and this branch always falls through to the unchanged math path below.
-    if (heldKeyIds.size > 0) {
+    // and this branch always falls through to the unchanged math path below. WR-01:
+    // the skip is armed ONLY on a math-skip level (endSkipArmed = key AND no lock),
+    // so collecting a mid-level lock's key never skips a lock-bearing level's end math.
+    if (endSkipArmed && heldKeyIds.size > 0) {
       // The math path never runs here — the shared clearLevel() (below) renders the
       // "LEVEL CLEAR" banner + clear sfx via renderLevelClearBanner() EXACTLY as the math
       // path does (WR-02), so the celebration + "gate-cleared" marker appear identically
