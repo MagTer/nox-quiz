@@ -260,7 +260,17 @@ export function buildLevel(levelData) {
   }
 
   // --- Goal (REQUIRED — tag + area() so the scene wires onReachGoal) ---
-  add([sprite("goal"), pos(g.goal.x, g.goal.y), area(), "goal"]);
+  // Footprint-pinned to CONFIG.GOAL_SIZE (16px, load-bearing) via sprite({width,
+  // height}) + a bare area() — the collider derives from the RENDERED size, so
+  // this stays 16px regardless of the checkered-flag PNG's native dimensions
+  // (Phase 34.6.1 Plan 03, D-03). NEVER scale() here — it would resize the
+  // collider along with the visual.
+  add([
+    sprite("goal", { width: CONFIG.GOAL_SIZE, height: CONFIG.GOAL_SIZE }),
+    pos(g.goal.x, g.goal.y),
+    area(),
+    "goal",
+  ]);
 
   // --- Locked doors (optional — guarded so older/forward-looking levels without doors still build) ---
   for (const d of g.doors ?? []) {
@@ -397,13 +407,19 @@ export function buildLevel(levelData) {
   // secretAlcove below, which IS a secret). The player walks THROUGH it (no
   // body() — pickup is wired via onCollide, not a blocker).
   for (const k of g.keys ?? []) {
+    // Footprint-pinned to CONFIG.KEY.W/H (20px, load-bearing) via sprite({width,
+    // height}) + a bare area() — same pinning idiom as the goal above (Phase
+    // 34.6.1 Plan 03, D-04). NEVER scale() here. The DEBUG branch keeps its
+    // magenta tint OVER the real sprite so ?debug=1 still marks keys; the
+    // non-debug branch drops the old gold CONFIG.KEY.COLOR fill (now vestigial —
+    // the sprite provides the art) but keeps full opacity.
     const keyObj = add([
-      rect(CONFIG.KEY.W, CONFIG.KEY.H),
+      sprite("key", { width: CONFIG.KEY.W, height: CONFIG.KEY.H }),
       pos(k.x, k.y),
       area(),
       ...(DEBUG
         ? [color(255, 0, 255), opacity(0.8)] // bright magenta debug marker (alcove idiom)
-        : [color(CONFIG.KEY.COLOR[0], CONFIG.KEY.COLOR[1], CONFIG.KEY.COLOR[2]), opacity(1)]),
+        : [opacity(1)]),
       "key",
     ]);
     // WR-01: mirrors the lock blocker's keyId stash above — null for the common
