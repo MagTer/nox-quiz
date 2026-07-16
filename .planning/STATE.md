@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 34.6 — level-redesign-rebuild-and-double-every-level
+**Current Focus:** Phase 35 — Biome Re-dress & Props (context gathered; needs plan → execute)
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -37,11 +37,11 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 35 — Biome Re-dress & Props
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-16 — Phase 34.6 complete, transitioned to Phase 35
+Plan: Not started (35-CONTEXT.md gathered 2026-07-16)
+Status: Ready to plan
+Last activity: 2026-07-16 — Phase 34.6 complete & verified; Phase 35 context gathered
 
-Progress: [██████░░░░] 58%  (7 of 12 phases — 34.5 and 34.6 inserted mid-milestone; 34.5 done, 34.6 next)
+Progress: [███████░░░] 67%  (8 of 12 phases complete: 29–34, 34.5, 34.6; remaining: 35, 36, 37, 38)
 
 ## v6.0 Roadmap Summary
 
