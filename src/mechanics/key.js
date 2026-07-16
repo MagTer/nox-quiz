@@ -69,7 +69,7 @@ export function wireKey({ player, hud, onPickup, hasKey }) {
     // Discovery feedback (burst + chime + rising popup) — mirrors secretAlcove.js's
     // triad. Clone .pos BEFORE destroy (keyObj is about to be destroyed).
     fx.pop(keyObj.pos.clone());
-    fx.popupText(keyObj.pos.clone(), "+ KEY");
+    fx.popupText(keyObj.pos.clone(), CONFIG.KEY.PICKUP_LABEL);
     audio.playSfx("pickup"); // reuse the existing pickup sfx — no new asset
 
     destroy(keyObj); // destroy LAST
