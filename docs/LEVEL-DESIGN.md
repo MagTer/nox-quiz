@@ -198,6 +198,12 @@ Found at the Phase-34.6 human checkpoint: rebuilt prototype levels passed every 
 
 6. **Open-air, always legible (A3 decision, Phase 34.6).** Verticality is OPEN stacked tiers — the player can always see up and see every route. No enclosed tunnels or claustrophobic ceilinged corridors. Overlapping tiers (a ledge above another, §3.2 headroom) are fine for platforming but must never hide the route or box the player in.
 
+7. **EVERY LEVEL STRUCTURALLY DISTINCT — HARD, gated (added 2026-07-16 after a real blocker).** No two levels may share a platform-layout signature. The first all-8 rebuild produced clones — even levels 02/04/06 had byte-identical platform y-sequences (`254,246,172,98,98,24,-50,-124,-198,-272`), odd 01/03/05 near-identical — because each was built to "match level-02" as a template. **NEVER author a level by copying/referencing another level's structure.** Each level gets its own DIRECTION (lateral / ascend / descend / valley) and MACRO-SHAPE (spire, staircase, twin-towers, basin, shaft, rampart-walk, archipelago, folding-keep…), distinct from all seven others. *Gate: `scripts/check-level-distinctness.mjs` HARD-FAILs on any two levels whose layout signatures are too similar.*
+
+8. **NO "TRANSPORT" MONOTONY — HARD, gated (added 2026-07-16).** No long run of flat same-height `floor → gap → floor → gap` with nothing else. The user flagged whole stretches that were just "run on the ground, jump a hole, run, jump a hole, on repeat." Every stretch must carry VARIED action — a climb, a descent, a hazard-timing sequence, a route fork, or a set-piece — and the beat must keep changing. *Gate: `scripts/check-monotony.mjs` (or a `monotony` row in validate-levels) flags/HARD-FAILs a run of more than ~3 consecutive flat floor→gap segments with no intervening vertical move / hazard / fork.*
+
+**Both gates must be built RED-first against the current cloned/transport-heavy levels, then pass on the redone set (see `.planning/phases/34.6-*/34.6-REDO-ALL8-PLAN.md`).**
+
 ## 9. Workflow (non-negotiable)
 
 1. Author **pure data only** in `level-0N.js`; content never touches `build.js`.
