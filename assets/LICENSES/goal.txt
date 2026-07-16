@@ -1,22 +1,16 @@
-Asset:        assets/goal.png  (goal flag — skull banner on a pole)
-Source pack:  "6 Color Dungeon 16x16"
-Author:       HorusKDI
-Source URL:   https://opengameart.org/content/6-color-dungeon-16x16
-Source file:  https://opengameart.org/sites/default/files/16x16%20dungeon%20tiles.png
-Tile:         column 15, row 0 of the 16x16 tile grid (skull-flag on pole)
-License:      CC0 (Creative Commons Zero / Public Domain)
+Asset:        assets/goal.png  (goal flag — checkered finish flag on a pole, 16x16)
+Source:       Original work — procedurally baked for this project (Pillow).
+Author:       Nox Run project
+License:      CC0 / Public Domain (original work, dedicated to the public domain)
 
-Quoted license declaration from the asset's own OpenGameArt page:
-    "License(s): CC0"
-    (OpenGameArt's License(s) metadata field is the creator's authoritative
-     license declaration for the submission.)
+A 16x16 black/white checkered finish flag on a dark pole, baked to read
+unmistakably as "the finish" at the goal's 16px footprint (CONFIG.GOAL_SIZE).
+No third-party pixels.
 
-CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
-    "...dedicated the work to the public domain... You can copy, modify,
-     distribute and perform the work, even for commercial purposes, all without
-     asking permission."
+Replaces the prior HorusKDI "6 Color Dungeon 16x16" skull-flag tile (also CC0),
+which read as a key-ish blob and caused the "collect a key to reach a key"
+confusion this phase (34.6.1) fixes.
 
-Verification: License page opened and the License(s): CC0 line confirmed this
-session (2026-06-25). NOT merely "free" and NOT CC-BY.
+Vendored: 2026-07-16 (Phase 34.6.1).
 
 Vendor logo / brand art: none.

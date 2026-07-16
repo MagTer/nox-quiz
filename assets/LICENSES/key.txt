@@ -1,0 +1,20 @@
+Asset:        assets/key.png  (math-skip key pickup, 20x20)
+Source pack:  "Pixel Platformer"
+Author:       Kenney (Kenney Vleugels)
+Source URL:   https://kenney.nl/assets/pixel-platformer
+Source file:  Tiles/tile_0027.png (the gold key tile, 18x18) from the pack ZIP
+License:      CC0 (Creative Commons Zero / Public Domain)
+
+Quoted license declaration from the pack's own Kenney.nl page:
+    "License: Creative Commons CC0"
+
+CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
+
+Processing note: the 18x18 gold key tile was centered into a 20x20 transparent
+canvas to match the key pickup footprint (CONFIG.KEY.W / CONFIG.KEY.H = 20). No
+recolor. Same Kenney CC0 pack family already used for the ground tileset.
+
+Vendored: 2026-07-16 (Phase 34.6.1 — the math-skip key on even levels
+02/04/06/08 now renders as a real key instead of a colored box).
+
+Vendor logo / brand art: none.

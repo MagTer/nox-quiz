@@ -1,8 +1,8 @@
 Asset:        assets/coin.png  (collectible spinning-coin spritesheet, 8 frames)
-Source pack:  "Rotating Coin"
-Author:       PuddinThur
-Source URL:   https://opengameart.org/content/rotating-coin
-Source file:  https://opengameart.org/sites/default/files/Full%20Coinss.png
+Source pack:  "Spinning coin anim"
+Author:       rzuf
+Source URL:   https://opengameart.org/content/spinning-coin-anim
+Source file:  https://opengameart.org/sites/default/files/coin_sheet_0.png
 License:      CC0 (Creative Commons Zero / Public Domain)
 
 Quoted license declaration from the asset's own OpenGameArt page:
@@ -11,21 +11,14 @@ Quoted license declaration from the asset's own OpenGameArt page:
      license declaration for the submission.)
 
 CC0 full text:  https://creativecommons.org/publicdomain/zero/1.0/
-    "...dedicated the work to the public domain by waiving all of his or her
-     rights to the work worldwide under copyright law... You can copy, modify,
-     distribute and perform the work, even for commercial purposes, all without
-     asking permission."
 
-Processing note: the original source sheet (508x64) packs the 8 rotation frames
-at IRREGULAR horizontal offsets. To satisfy the loadSprite(..., {sliceX: 8})
-requirement, each frame was cropped to its content and re-centered into uniform
-32x32 cells, producing an EVENLY-GRIDDED 256x32 horizontal strip (8 frames).
-This is a mechanical re-layout of the same CC0 pixels (no new artwork); the
-result remains CC0/public-domain.
+Processing note: the source sheet (1024x128, 8 frames @ 128x128) was downscaled
+to a 256x32 evenly-gridded strip of 8 uniform 32x32 frames (Pillow LANCZOS), so
+the existing loadSprite(..., { sliceX: CONFIG.COIN_FRAMES }) contract stays at 8
+frames and the loader is unchanged. This is a mechanical downscale of the same
+CC0 pixels (no new artwork); the result remains CC0/public-domain.
 
-Verification: License page opened and the License(s): CC0 line confirmed this
-session (2026-06-25). NOT CC-BY. (Note: the unrelated OpenGameArt page
-"spinning-coin-0" by author "magdum" was checked and REJECTED — it is CC-BY-SA
-3.0, not CC0, and was NOT used.)
+Vendored: 2026-07-16 (Phase 34.6.1 — crispness upgrade; replaces the prior
+PuddinThur "Rotating Coin" CC0 sheet, which was also CC0 but lower-res).
 
 Vendor logo / brand art: none.

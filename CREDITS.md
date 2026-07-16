@@ -14,9 +14,10 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 |-------|------|--------|--------|---------|----------|
 | Pixel Platformer (grass/dirt tiles) | `assets/tiles/ground.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/pixel-platformer | CC0 | Ground/platform tileset — left/center/right/underside frames |
 | 6 Color Dungeon 16x16 (spikes) | `assets/spike.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Static spike hazard (routes to respawn) |
-| 6 Color Dungeon 16x16 (skull flag) | `assets/goal.png` | HorusKDI | https://opengameart.org/content/6-color-dungeon-16x16 | CC0 | Goal flag (fires `onReachGoal`) |
+| Checkered finish flag (baked) | `assets/goal.png` | Nox Run project (original) | — | CC0 / Public Domain | Goal flag — checkered finish flag (fires `onReachGoal`); replaces the skull-flag that read as a key (Phase 34.6.1) |
 | Platformer Characters (Adventurer) | `assets/player.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/platformer-characters | CC0 | Player character sprite sheet — idle/stand/walk/jump (5x16x32) |
-| Rotating Coin | `assets/coin.png` | PuddinThur | https://opengameart.org/content/rotating-coin | CC0 | Collectible spinning-coin spritesheet (8 frames) |
+| Spinning coin anim | `assets/coin.png` | rzuf | https://opengameart.org/content/spinning-coin-anim | CC0 | Collectible spinning-coin spritesheet (8 frames; downscaled to 256x32 — crispness upgrade, Phase 34.6.1) |
+| Pixel Platformer (key) | `assets/key.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/pixel-platformer | CC0 | Math-skip key pickup on even levels 02/04/06/08 (reads as a real key instead of a colored box) |
 | Background Elements (composited) | `assets/parallax/far.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Parallax far layer — distant mountain silhouette |
 | Background Elements (composited) | `assets/parallax/mid.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Parallax mid layer — temple/castle/tower + hills horizon rhythm |
 | Background Elements (composited) | `assets/parallax/near.png` | Kenney (Kenney Vleugels) | https://kenney.nl/assets/background-elements | CC0 | Parallax near layer — subtle hills texture |
@@ -40,12 +41,16 @@ art in [`assets/LICENSES/`](assets/LICENSES/). Each row below cross-matches one 
 
 - **No vendor logos or brand art ship** in the asset subset. Each PNG is a single
   cropped pixel-art game tile/sprite — no company marks, watermarks, or splash logos.
-- `assets/spike.png` and `assets/goal.png` are cropped from one tile sheet
-  (`16x16 dungeon tiles.png`) of the **6 Color Dungeon 16x16** pack — the exact
-  tile coordinates are recorded in each proof file under `assets/LICENSES/`.
-- `assets/coin.png` re-lays out the original "Rotating Coin" frames into an evenly-gridded
-  256x32 horizontal strip (8 uniform 32px cells) for `loadSprite(..., { sliceX: 8 })`.
-  This is a mechanical re-grid of the same CC0 pixels — still CC0/public-domain.
+- `assets/spike.png` is cropped from the `16x16 dungeon tiles.png` sheet of the
+  **6 Color Dungeon 16x16** pack — the exact tile coordinates are in its proof file
+  under `assets/LICENSES/`. (`assets/goal.png` was formerly a skull-flag tile from the
+  same pack; as of Phase 34.6.1 it is a baked checkered finish flag — see `goal.txt`.)
+- `assets/coin.png` (Phase 34.6.1) is the **"Spinning coin anim"** CC0 sheet by *rzuf*
+  downscaled from 1024x128 (8 frames @128) to a 256x32 / 8-frame strip for
+  `loadSprite(..., { sliceX: CONFIG.COIN_FRAMES })`. Mechanical downscale of the same CC0
+  pixels — still CC0/public-domain. (Supersedes the prior PuddinThur "Rotating Coin" CC0 sheet.)
+- `assets/key.png` (Phase 34.6.1) is the gold key tile from Kenney **Pixel Platformer** (CC0),
+  centered into a 20x20 canvas to match the key pickup footprint.
 - A separate OpenGameArt page, `spinning-coin-0` (author *magdum*), was evaluated and
   **rejected**: it is CC-BY-SA 3.0, not CC0, and was **not** used.
 - `assets/_font-src/monogram.ttf` was vendored from `monogram-extended.ttf` — an

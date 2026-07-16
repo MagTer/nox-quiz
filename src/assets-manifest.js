@@ -10,7 +10,7 @@
 // 37 entries total, grouped by `kind`:
 //   biome-atlas (4)  — Phase-31-baked 2-frame cap+fill ground atlases
 //   biome-bg    (12) — Phase-31-baked per-biome parallax layers (far/mid/near x 4 biomes)
-//   sprite      (10) — plain single-argument loadSprite calls, gate coverage only
+//   sprite      (11) — plain single-argument loadSprite calls, gate coverage only
 //   sprite-anim (3)  — sliceX+anims sprites, gate coverage only
 //   sound       (7)  — loadSound calls, gate coverage only
 //   music       (1)  — loadMusic call, gate coverage only
@@ -36,12 +36,13 @@ export const ASSETS_MANIFEST = [
   { key: "bg-mid-castle", path: "assets/parallax/mid-castle.png", kind: "biome-bg" },
   { key: "bg-near-castle", path: "assets/parallax/near-castle.png", kind: "biome-bg" },
 
-  // --- sprite: 10 entries, gate coverage only ---
+  // --- sprite: 11 entries, gate coverage only ---
   { key: "bg-far", path: "assets/parallax/far.png", kind: "sprite" },
   { key: "bg-mid", path: "assets/parallax/mid.png", kind: "sprite" },
   { key: "bg-near", path: "assets/parallax/near.png", kind: "sprite" },
   { key: "spike", path: "assets/spike.png", kind: "sprite" },
   { key: "goal", path: "assets/goal.png", kind: "sprite" },
+  { key: "key", path: "assets/key.png", kind: "sprite" },
   { key: "title-bg", path: "assets/tiles/title-bg.png", kind: "sprite" },
   { key: "logo-hero", path: "assets/logo-hero.png", kind: "sprite" },
   { key: "logo-badge", path: "assets/logo-badge.png", kind: "sprite" },
