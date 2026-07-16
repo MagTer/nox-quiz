@@ -100,12 +100,14 @@ Both seeds (SEED-001 SNES-fidelity overhaul, SEED-002 mobile touch controls) and
 
 - [x] SNES-fidelity sourced biome art: cohesive CC0/CC-BY collection (3–4 biomes), style-board human sign-off before integration — Phase 31
 - [x] Filled terrain (autotiled ground mass), real multi-layer parallax backgrounds per biome — Phase 32
-- [ ] Fully animated player (idle/run/jump/fall/land) and real animated art for mechanic entities
+- [x] Fully animated player (idle/run/jump/fall/land) and real animated art for mechanic entities — Phase 33
 - [ ] Props layer (visual-only, validator-neutral)
 - [ ] World motion: patrolling cosmetic enemies, moving platforms (validator-aware), ambient animation
 - [ ] Collect-the-answer mechanic removed; math pacing rebalanced in affected levels
 - [ ] Secret alcove on-touch discovery feedback cue + automated reachability/trigger coverage; discovered alcoves leave a persistent ambient change and a positive-only secret-found marker on level select
-- [ ] Level quality pass: unreachable pickups/ledges fixed, level-07/08 end climbs differentiated, LEVEL-DESIGN.md soft-rules review
+- [x] Level quality pass: unreachable pickups/ledges fixed, level-07/08 end climbs differentiated, LEVEL-DESIGN.md soft-rules review — Phase 34
+- [x] Key/lock mechanic (first non-math gate), softlock-validator- + audit-covered — Phase 34.5 (repurposed as an even-level "math-skip token" in Phase 34.6)
+- [x] Rebuild + ~double every level to the §8.5 raised bar (vertical, multi-route, action); LEN-01/LEN-02 — Phase 34.6
 - [ ] New "n0x" logo treatment under human sign-off
 - [ ] Mobile: touch input layer + responsive canvas scaling (keyboard stays primary); touch layout validated with the kid on a real device
 - [ ] Live Dokploy URL playthrough confirmed; kid-UAT live sign-off; MOVE-05 feel check
@@ -176,6 +178,10 @@ Both seeds (SEED-001 SNES-fidelity overhaul, SEED-002 mobile touch controls) and
 | **v5.0 Phase 28: Treat ROADMAP's "a pre-rebrand save still resumes" criterion as superseded, not literal** | Phase 26 intentionally renamed the save key with explicit user sign-off that no migration/resume was required — the ROADMAP text predates that later decision; documenting the supersession (not silently dropping or literally attempting an impossible check) matches this project's standing honesty pattern | ✓ Good — verified instead that a *fresh* save under the current key resumes correctly, which is the claim that actually matters now |
 | **v5.0 Phase 28: Did not accept a bare "Approved" as sufficient to close the milestone's final human-verify checkpoint** | This plan's own resume-signal spec and the project's `never-rubber-stamp-checkpoints` precedent (Phase 25, reconfirmed Phase 27) both require more than a vague acknowledgment for a `checkpoint:human-verify` gate — a one-word "Approved" alone was indistinguishable from a rubber stamp | ✓ Good — one follow-up question confirmed a genuine, fresh, just-completed 8-level playthrough before the sign-off was recorded as closing |
 | **v6.0: Math density locked at exactly 1 door + 1 enemy + the end gate per level (3 challenges)** | User's explicit direction 2026-07-12 (supersedes the 2026-07-11 "one of each incl. checkpoint gate" reading): every level carries exactly 1 door + 1 enemy blocker, ZERO mid-level checkpoint mathGates, plus the end-of-level goal gate — a uniform 3 math challenges per level. Implemented across all 8 descriptors 2026-07-12 (levels 02/05/07 gained their missing enemy, 03 its missing door, 04 lost its second door; new placements reuse validator/audit-proven footprints of removed barriers). Binding for all remaining v6.0 phases — none may raise or lower that count | Locked 2026-07-12 |
+| **v6.0 Phase 34.6: Raised the level-design bar (docs/LEVEL-DESIGN.md §8.5) — every level vertical + multi-route + action, forgiving ≠ flat** | The prototype human sign-off rejected validator-green-but-flat levels twice; the root cause was the requirements under-specifying ambition. §8.5 now demands real verticality (odd ~150–250px climbs, even 500–740px), a visible route-choice fork in EVERY level, action/variety, and distinct per-level signatures. Governs all 8 rebuilt levels and any future level work. **No gate enforces §8.5 — the human play-test does.** | Locked 2026-07-15/16 (approved on the 3rd prototype round) |
+| **v6.0 Phase 34.6: Creative level-geometry DESIGN runs on Opus executors, not Sonnet** | Sonnet built validator-legal but flat/non-distinct levels against an explicit vertical brief; Sonnet stays fine for mechanical/well-specified execution (code seams, gate runs). User diagnosed the capability gap and chose Opus executors for level authoring. | ✓ Good — Opus prototype (518px branching spire) approved; all 8 levels authored on Opus |
+| **v6.0 Phase 34.6: Falls-to-death are allowed (real fall-pits) BECAUSE the checkpoint respawn is close** | User clarified the "no punishment" mandate forbids game-over / lost progress / timers — NOT falling. A missed jump may drop into a pit and respawn at a nearby checkpoint; that's wanted platforming tension. Guardrail = generous checkpoint cadence (≤700px on hazard/height stretches). Recorded in §8.5 rule 4. | Locked 2026-07-16 |
+| **v6.0 Phase 34.6: End-gate key = a "math-skip token" on even levels (overrides Phase 34.5's physical lock)** | On even levels the key is an OPTIONAL collectible on a high route (keys, NO locks); holding it clears the level FREE with full XP (skips the end math), else the end math runs. Softlock-safe (missing it → normal math path). The 34.5 physical-lock code + its HARD softlock validator stay dormant in the tree. | ✓ Good — both paths in-engine-audited on levels 02/04/06/08; code review WR-01 armed the skip only on keys-no-locks levels |
 
 ## Evolution
 
@@ -195,4 +201,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-11 — Phase 32 (Terrain & Parallax Rendering) complete: ART-02, ART-03 satisfied*
+*Last updated: 2026-07-16 — Phase 34.6 (Level Redesign) complete: all 8 levels rebuilt to the §8.5 raised bar (Opus executors) after a 3-round human prototype sign-off; LEN-01, LEN-02 satisfied. Also complete since last footer: Phase 33 (player/entity animation), Phase 34 (level quality pass), Phase 34.5 (key/lock mechanic). Next: Phase 35 (Biome Re-dress & Props).*

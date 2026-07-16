@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 34.6
-current_phase_name: level-redesign-rebuild-and-double-every-level
-status: verifying
-stopped_at: Completed 34.6-08-PLAN.md
-last_updated: "2026-07-16T02:54:44.760Z"
-last_activity: 2026-07-15
-last_activity_desc: Phase 34.6 execution started
+current_phase: 35
+current_phase_name: Biome Re-dress & Props
+status: ready-to-discuss
+stopped_at: "Phase 34.6 (Level Redesign) COMPLETE & verified (11/11 must-haves passed). All 8 levels rebuilt from scratch to a NEW raised design bar (docs/LEVEL-DESIGN.md §8.5: verticality + branching route-choice + action + fall-stakes in EVERY level). Reached only after a 3-round human prototype sign-off (2 rejections) that (a) escalated level authoring from Sonnet to Opus executors — Sonnet built validator-legal-but-flat levels — and (b) raised the design bar itself. The end-gate key-conditional 'math-skip token' mechanic landed (keys-no-locks on even levels 02/04/06/08; key held → free clear +20 XP, else end math), code-reviewed (WR-01 endSkipArmed fix) and both-paths audited. All 13 previously-deferred Phase-34 HARD-FAILs deleted; validate-levels zero HARD-FAIL, 299 coins collectable, every level driven to completion. Per-level kid-UAT deferred to Phase 38 (VER-02) by design. NEXT: Phase 35 (Biome Re-dress & Props) — needs discuss."
+last_updated: "2026-07-16T03:35:38.809Z"
+last_activity: 2026-07-16
+last_activity_desc: "Phase 34.6 complete & verified — 8 levels rebuilt to the §8.5 raised bar (Opus executors) after a 3-round human prototype sign-off; next is Phase 35 (Biome Re-dress), needs discuss"
 progress:
   total_phases: 12
   completed_phases: 8
@@ -36,10 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 34.6 (level-redesign-rebuild-and-double-every-level) — EXECUTING
-Plan: 11 of 11
+Phase: 35 — Biome Re-dress & Props
+Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-07-15 — Phase 34.6 execution started
+Last activity: 2026-07-16 — Phase 34.6 complete, transitioned to Phase 35
 
 Progress: [██████░░░░] 58%  (7 of 12 phases — 34.5 and 34.6 inserted mid-milestone; 34.5 done, 34.6 next)
 
