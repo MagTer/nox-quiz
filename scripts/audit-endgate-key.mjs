@@ -67,6 +67,13 @@ import { existsSync, readdirSync } from "fs";
 import { extname, join, resolve, sep } from "path";
 import { getLevel, LEVEL_ORDER } from "../src/levels/index.js";
 import { deriveEncounters, driveToXPlanned } from "./lib/mechanic-drive.mjs";
+// IN-01: assert the key path's persisted XP + cleared fact, not just the free-clear.
+// CONFIG.PROGRESS.XP_KEY_SKIP is the flat award; predictAward is progress.js's OWN
+// threshold/carry-over math (the single source of truth), so the expected post-clear
+// {xp,level} is computed with the real logic instead of a hand-rolled duplicate. Both
+// are node-safe: config.js is leaf data, progress.js touches no localStorage at import.
+import { CONFIG } from "../src/config.js";
+import { predictAward } from "../src/progress.js";
 
 // --- Playwright resolution (copied verbatim from scripts/audit-key-lock.mjs) ---
 const FALLBACK_PLAYWRIGHT_PATH = (() => {
@@ -300,6 +307,17 @@ try {
         continue;
       }
 
+      // IN-01: snapshot the persisted save the scene just loaded from. game.js's
+      // loadSave() runs on scene entry and the key path does not write again until the
+      // clear, so this on-disk state is exactly what the scene's progress was seeded
+      // from — predictAward(saveBefore, XP_KEY_SKIP) therefore predicts what the clear
+      // MUST persist. Read before the goal drive so a later regression can't hide behind
+      // an accumulated total from prior levels' Path A clears.
+      const saveBefore = await page.evaluate(
+        (k) => JSON.parse(localStorage.getItem(k) || "{}"),
+        SAVE_KEY,
+      );
+
       // Resolve everything strictly BEFORE the key (e.g. level-02's door@940 and
       // enemy@3600, both physical blockers a drive toward key.x would otherwise
       // stall against — mirrors audit-key-lock.mjs's identical "resolve in-between
@@ -356,7 +374,31 @@ try {
       const onSelectScene = (await page.evaluate(() => get("select").length)) > 0;
       const clearMarkerPresent = bannerCaught || onSelectScene;
 
-      const pathAHolds = keyGone && preGoalChallengeCount === 0 && !goalTriggeredA && clearMarkerPresent;
+      // IN-01: the free-clear must PERSIST its award, not merely transition. clearLevel()
+      // awards addBonusXp(XP_KEY_SKIP) and markCleared(levelId) inside ONE writeSave, so
+      // read the save back and assert both landed. predictAward(saveBefore, XP_KEY_SKIP)
+      // is progress.js's own carry-over math, so this stays correct even if the flat award
+      // ever crosses a level-up threshold. Without this, an XP/writeSave regression on the
+      // key path (addBonusXp not called, wrong XP_KEY_SKIP amount, a no-op markCleared or
+      // writeSave) would still pass the old free-clear-only gate green.
+      const saveAfter = await page.evaluate(
+        (k) => JSON.parse(localStorage.getItem(k) || "{}"),
+        SAVE_KEY,
+      );
+      const expected = predictAward(
+        { xp: saveBefore.xp ?? 0, level: saveBefore.level ?? 1 },
+        CONFIG.PROGRESS.XP_KEY_SKIP,
+      );
+      const xpPersisted = saveAfter.xp === expected.xp && saveAfter.level === expected.level;
+      const clearedPersisted = saveAfter.levels?.[levelId]?.cleared === true;
+
+      const pathAHolds =
+        keyGone &&
+        preGoalChallengeCount === 0 &&
+        !goalTriggeredA &&
+        clearMarkerPresent &&
+        xpPersisted &&
+        clearedPersisted;
 
       results.push({
         level: levelId,
@@ -368,13 +410,21 @@ try {
         clearMarkerPresent,
         bannerCaught,
         onSelectScene,
+        xpBefore: saveBefore.xp ?? 0,
+        xpAfter: saveAfter.xp,
+        xpExpected: expected.xp,
+        levelExpected: expected.level,
+        xpPersisted,
+        clearedPersisted,
         holds: pathAHolds,
       });
       if (!pathAHolds) {
         console.error(
           `audit-endgate-key: OFFENDER ${levelId} Path A — keyCollected=${keyGone} arrived=${arrivedA} ` +
             `reachedX=${reachedXA} challengeOpened=${goalTriggeredA} clearMarker=${clearMarkerPresent} ` +
-            "(expected key collected, NO challenge opened, and the clear marker present — either the banner or a completed transition to select)."
+            `xpPersisted=${xpPersisted} (saved xp=${saveAfter.xp}/lvl=${saveAfter.level}, expected xp=${expected.xp}/lvl=${expected.level}) ` +
+            `clearedPersisted=${clearedPersisted} ` +
+            "(expected key collected, NO challenge opened, clear marker present, XP increased by XP_KEY_SKIP, and the level marked cleared)."
         );
         failed = true;
       }
