@@ -411,10 +411,17 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 34.6.1-01-PLAN.md — D-01 wrong-answer settle + red flash in the shared challenge dialog (anti-mash, non-punishing) — polish
 - [ ] 34.6.1-02-PLAN.md — Vendor + license the 3 CC0 sprites (coin/goal-flag/key) with a blocking CC0 provenance checkpoint — polish
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 34.6.1-03-PLAN.md — Wire the sprite swaps (footprints preserved) + rework the key skip-framing text — polish
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 34.6.1-04-PLAN.md — Consolidation: full gate suite + human UAT sign-off (mash/crispness/flag/key legibility) — polish
 
 ### Phase 35: Biome Re-dress & Props
