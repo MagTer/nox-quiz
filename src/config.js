@@ -178,6 +178,14 @@ export const CONFIG = {
     CLEAR_DIM_Z: 9990, // z — full-screen dim backdrop behind the banner (below FX.BURST_Z)
     CLEAR_TEXT_SIZE: 30, // px — "LEVEL CLEAR" banner text size
     CLEAR_TEXT_Z: 9994, // z — banner text (above the FX.BURST_Z burst)
+
+    // --- Wrong-answer amplified feedback + anti-mash settle (Phase 34.6.1 D-01) ---
+    // Driven ONLY by the flash tween's onEnd() clearing a closure-local `settling` flag
+    // in src/ui/challenge.js — NEVER a timer/scheduler (SAFE-01 non-punishing).
+    WRONG_SETTLE_MS: 250, // ms — tween-gated input settle after a wrong pick (anti-mash); also the flash-tween duration
+    WRONG_FLASH_OPACITY: 0.45, // 0..1 — peak opacity of the single easeOutQuad red pulse (non-strobing, ADHD-safe)
+    WRONG_SHAKE: 8, // shake magnitude on a wrong pick (stronger than the old inline shake(6))
+    WRONG_FLASH_Z: 9995, // z — pulse rect, above the answer boxes (z 9993) and their labels
   },
 
   // --- Locked door (mid-level challenge seam; Plan 15-03) ---
