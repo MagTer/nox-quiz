@@ -6,14 +6,14 @@ current_phase: 34.6
 current_phase_name: level-redesign-rebuild-and-double-every-level
 status: executing
 stopped_at: Completed 34.6-08-PLAN.md
-last_updated: "2026-07-16T01:14:21.006Z"
+last_updated: "2026-07-16T02:17:47.231Z"
 last_activity: 2026-07-15
 last_activity_desc: Phase 34.6 execution started
 progress:
   total_phases: 12
   completed_phases: 7
   total_plans: 42
-  completed_plans: 40
+  completed_plans: 41
   percent: 58
 ---
 
@@ -37,7 +37,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 34.6 (level-redesign-rebuild-and-double-every-level) — EXECUTING
-Plan: 10 of 11
+Plan: 11 of 11
 Status: Ready to execute
 Last activity: 2026-07-15 — Phase 34.6 execution started
 
@@ -103,6 +103,7 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - [Phase 34.6]: driveToXPlanned goal-approach calls need a shortened stallMs override on the key-skip path -- onReachGoal freezes the player on arrival, so the default 15s stall guard wastes time waiting out what is actually success
 - [Phase ?]: 34.6-05: level-03 rebuilt as calm TOWN intro 'The Old Quarter' (~2x, goal 10280) — rooftop climb (200px) + visible fork + optional 222px belltower (first overlapping-tier ceilings, optional routes only); zero HARD-FAIL, 40 coins in-engine, NO key (odd).
 - [Phase ?]: level-06 rebuilt as 'The Necropolis': 666px main-route double-switchback cathedral spire (taller than level-02's 518px), diamond fork, crypt-tower + 2 catacomb descents, optional math-skip key on the 740px KA apex (keys, no locks)
+- [Phase ?]: level-04 rebuilt as the intense TOWN even 'The Clocktower' (592px switchback spire + math-skip key); length capped at goal 9460 by the HARD perf-objects budget (650 caps) — the longest even level
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -141,10 +142,11 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 | Phase 34.6 P07 | 55min | 1 tasks | 1 files |
 | Phase 34.6 P08 | 41min | 1 tasks | 1 files |
 | Phase 34.6 P09 | 54min | 1 tasks | 1 files |
+| Phase 34.6 P10 | 50min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-07-16T01:14:12.337Z
+Last session: 2026-07-16T02:17:23.660Z
 Stopped at: Completed 34.6-08-PLAN.md
 Resume file: None
 
