@@ -418,7 +418,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 34.6.1-03-PLAN.md — Wire the sprite swaps (footprints preserved) + rework the key skip-framing text — polish
+- [x] 34.6.1-03-PLAN.md — Wire the sprite swaps (footprints preserved) + rework the key skip-framing text — polish
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
