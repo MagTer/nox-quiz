@@ -699,137 +699,152 @@ const deepEqual = (a, b) => {
 }
 
 // --- LVL-02 regression: level-04 geometry matches authored descriptor ---
-// Phase 24 re-baseline: level-04 extended + 1 over-hole mathGate repositioned +
-// 6 unreachable platforms lowered (VALID-04/LVL-01).
-// OLD (pre-Phase-24, v4.1) values, retained for historical traceability:
-//   floors: [{ x: 0, w: 440 }, { x: 600, w: 480 }, { x: 1240, w: 520 }, { x: 1960, w: 560 },
-//     { x: 2680, w: 560 }, { x: 3400, w: 600 }]
-//   platforms: [{ x: 240, y: 232, w: 112, h: 24 }, { x: 440, y: 168, w: 80, h: 24 },
-//     { x: 1080, y: 200, w: 112, h: 24 }, { x: 1400, y: 216, w: 80, h: 24 },
-//     { x: 1760, y: 176, w: 128, h: 24 }, { x: 2140, y: 216, w: 80, h: 24 },
-//     { x: 2520, y: 192, w: 112, h: 24 }, { x: 2880, y: 224, w: 80, h: 24 },
-//     { x: 3240, y: 184, w: 112, h: 24 }] — all 6 non-x:2880/x:440/x:240 platforms were
-//     unreachable per VALID-04 (rise 104-144px vs the 88.331px calibrated ceiling), y
-//     lowered uniformly to 250 (rise 70px)
-//   coins: [{ x: 120, y: 264 }, { x: 260, y: 176 }, { x: 460, y: 112 }, { x: 760, y: 264 },
-//     { x: 980, y: 264 }, { x: 1300, y: 176 }, { x: 1660, y: 264 }, { x: 1900, y: 128 },
-//     { x: 2300, y: 264 }, { x: 2600, y: 264 }, { x: 3000, y: 264 }, { x: 3560, y: 264 }]
-//   spikes: [{ x: 820 }, { x: 1000 }, { x: 1480 }, { x: 1700 }, { x: 2320 }, { x: 2480 },
-//     { x: 3880 }] (y: FLOOR_Y - CONFIG.SPIKE_SIZE)
-//   goal: { x: 3920, y: FLOOR_Y - CONFIG.GOAL_SIZE }
-//   checkpoints: [{ x: 96 }, { x: 200 }, { x: 740 }, { x: 860 }, { x: 920 }, { x: 1400 },
-//     { x: 1620 }, { x: 1740 }, { x: 2240 }, { x: 2360 }, { x: 2440 }, { x: 3800 }]
-//     (y: FLOOR_Y - 48)
-//   doors: [{ x: 900, y: FLOOR_Y - CONFIG.DOOR.H }]
-//   mathGates: [{ x: 320 }, { x: 1800 }] (y: FLOOR_Y - CONFIG.MATH_GATE.H) — x:1800 was
-//     over-hole per VALID-04, repositioned to x:1728; then re-repositioned to x:1300
-//     (x:1728 sat at floor-2's edge right before the gap-crossing platform — a
-//     forward-only traversal trap; see level-04.js's inline comment)
-//
-// Phase 34 re-baseline (LVL-01, Plan 34-03): THREE COINS MOVED, zero geometry change
-// — the floors/platforms/spikes/goal/checkpoints/doors/enemies golden values below are
-// untouched (asserted independently by a sha256 fingerprint of floors+platforms).
-// The three coins were unreachable in the real engine, per the in-engine witness gate
-// `scripts/audit-coins.mjs` (Plan 34-02). OLD (pre-Phase-34) coin values:
-//   { x: 4040, y: 264 } — ceiling-bonk: floated in gap 4000..4160 UNDER the bridging
-//     platform (4000..4128 @ y250, collider 250..274). Now { x: 4040, y: 194 } (on the
-//     bridge's walk band).
-//   { x: 4460, y: 136 } — 120px rise over bare floor-7, past even the theoretical apex
-//     (96.57px). Now { x: 4460, y: 176 } (80px rise, inside the 88.331px envelope).
-//   { x: 4760, y: 264 } — ceiling-bonk under the bridging platform (4720..4848 @ y250).
-//     Now { x: 4760, y: 194 } (on that bridge's walk band).
+// Phase 34.6 REBUILD (plan 34.6-10): level-04 rebuilt FROM SCRATCH as the intense TOWN
+// EVEN level "The Clocktower" (docs/LEVEL-DESIGN.md §8.5) — a 592px switchback clocktower
+// spire with a diamond fork + an above-summit math-skip KEY apex (geometry.keys, NO
+// geometry.locks), a gantry-stair descent, an optional tenement-stacks climb+drop, and a
+// market run past the town watchman. goal.x 6120 -> 9460 (the longest even level; the
+// literal ~2x/12000 target is capped by the HARD perf-objects budget, see level-04.js's
+// header). This fixture block is the ONLY one this plan re-baselines; the level-01/02/03
+// blocks above are untouched.
 {
   const FLOOR_Y = CONFIG.FLOOR_Y;
   const expectedGeometry = {
     floors: [
-      { x: 0, w: 440 },
-      { x: 600, w: 480 },
-      { x: 1240, w: 520 },
-      { x: 1960, w: 560 },
-      { x: 2680, w: 560 },
-      { x: 3400, w: 600 },
-      { x: 4160, w: 560 },
-      { x: 4920, w: 600 },
-      { x: 5680, w: 520 },
+      { x: 0, w: 480 },
+      { x: 640, w: 440 },
+      { x: 1240, w: 420 },
+      { x: 1820, w: 420 },
+      { x: 2400, w: 480 },
+      { x: 4600, w: 440 },
+      { x: 5200, w: 500 },
+      { x: 5860, w: 420 },
+      { x: 6440, w: 460 },
+      { x: 7060, w: 420 },
+      { x: 7640, w: 520 },
+      { x: 8320, w: 460 },
+      { x: 8940, w: 580 },
     ],
-    // Plan 25-07: x:1400 raised 250->190 (was a ceiling-bonk hazard for the
-    // spike@1480 hop launched underneath it) — see level-04.js's own inline comment.
     platforms: [
-      { x: 240, y: 232, w: 112, h: 24 },
-      { x: 440, y: 168, w: 80, h: 24 },
-      { x: 1080, y: 250, w: 112, h: 24 },
-      { x: 1400, y: 190, w: 80, h: 24 },
-      { x: 1760, y: 250, w: 128, h: 24 },
-      { x: 2140, y: 250, w: 80, h: 24 },
-      { x: 2520, y: 250, w: 112, h: 24 },
-      { x: 2880, y: 224, w: 80, h: 24 },
-      { x: 3240, y: 250, w: 112, h: 24 },
-      { x: 4000, y: 250, w: 128, h: 24 },
-      { x: 4720, y: 250, w: 128, h: 24 },
-      { x: 5520, y: 250, w: 112, h: 24 },
+      { x: 280, y: 254, w: 120, h: 16 }, // PA
+      { x: 2600, y: 246, w: 200, h: 16 }, // T1
+      { x: 2680, y: 172, w: 240, h: 16 }, // T2 (fork base)
+      { x: 2860, y: 98, w: 180, h: 16 }, // L (low road)
+      { x: 2600, y: 98, w: 180, h: 16 }, // H (high road)
+      { x: 2900, y: 24, w: 240, h: 16 }, // T4 (rejoin)
+      { x: 3000, y: -50, w: 220, h: 16 }, // T5
+      { x: 2840, y: -124, w: 260, h: 16 }, // T6 (up-left reversal)
+      { x: 3020, y: -198, w: 220, h: 16 }, // T7
+      { x: 3080, y: -272, w: 320, h: 16 }, // SU (summit, 592px)
+      { x: 2960, y: -346, w: 220, h: 16 }, // KA (key apex, 666px)
+      { x: 3560, y: -142, w: 200, h: 16 }, // DA
+      { x: 3860, y: 2, w: 240, h: 16 }, // DB
+      { x: 4260, y: 146, w: 220, h: 16 }, // DC
+      { x: 4760, y: 246, w: 180, h: 16 }, // TN1
+      { x: 4820, y: 172, w: 200, h: 16 }, // TN2
+      { x: 4880, y: 98, w: 180, h: 16 }, // TN3 (tenement roof)
+      { x: 5360, y: 258, w: 80, h: 16 }, // SS1
+      { x: 5520, y: 258, w: 80, h: 16 }, // SS2
     ],
     coins: [
-      { x: 120, y: 264 },
-      { x: 260, y: 176 },
-      { x: 460, y: 112 },
+      { x: 150, y: 264 },
+      { x: 400, y: 264 },
+      { x: 330, y: 198 },
       { x: 760, y: 264 },
-      { x: 980, y: 264 },
-      { x: 1300, y: 176 },
-      { x: 1660, y: 264 },
-      { x: 1900, y: 128 },
-      { x: 2300, y: 264 },
-      { x: 2600, y: 264 },
-      { x: 3000, y: 264 },
-      { x: 3560, y: 264 },
-      { x: 4040, y: 194 }, // Phase 34 (LVL-01): was y:264 (ceiling-bonk)
-      { x: 4260, y: 184 },
-      { x: 4460, y: 176 }, // Phase 34 (LVL-01): was y:136 (120px rise, impossible)
-      { x: 4760, y: 194 }, // Phase 34 (LVL-01): was y:264 (ceiling-bonk)
-      { x: 5060, y: 176 },
-      { x: 5300, y: 264 },
-      { x: 5900, y: 264 },
+      { x: 1000, y: 264 },
+      { x: 1340, y: 264 },
+      { x: 1560, y: 264 },
+      { x: 1920, y: 264 },
+      { x: 2140, y: 264 },
+      { x: 2460, y: 264 },
+      { x: 2700, y: 264 },
+      { x: 2700, y: 190 }, // T1
+      { x: 2760, y: 116 }, // T2
+      { x: 2960, y: 42 }, // L
+      { x: 2650, y: 42 }, // H bonus 1
+      { x: 2700, y: 42 }, // H bonus 2
+      { x: 2740, y: 42 }, // H bonus 3
+      { x: 3020, y: -32 }, // T4
+      { x: 3120, y: -106 }, // T5
+      { x: 2920, y: -180 }, // T6
+      { x: 3140, y: -254 }, // T7
+      { x: 3320, y: -328 }, // SU
+      { x: 3020, y: -402 }, // KA (highest coin)
+      { x: 3660, y: -198 }, // DA
+      { x: 3980, y: -54 }, // DB
+      { x: 4360, y: 90 }, // DC
+      { x: 4660, y: 264 },
+      { x: 4880, y: 264 },
+      { x: 4840, y: 190 }, // TN1
+      { x: 4900, y: 116 }, // TN2
+      { x: 4960, y: 42 }, // TN3
+      { x: 5260, y: 264 },
+      { x: 5620, y: 264 },
+      { x: 5400, y: 202 }, // SS1
+      { x: 5560, y: 202 }, // SS2
+      { x: 5960, y: 264 },
+      { x: 6180, y: 264 },
+      { x: 6520, y: 264 },
+      { x: 6820, y: 264 },
+      { x: 7160, y: 264 },
+      { x: 7380, y: 264 },
+      { x: 7740, y: 264 },
+      { x: 8060, y: 264 },
+      { x: 8500, y: 264 },
+      { x: 9100, y: 264 },
+      { x: 9400, y: 264 },
     ],
     spikes: [
-      { x: 820, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1000, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1480, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 1700, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 2320, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 2480, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 3880, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 4300, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
-      { x: 5200, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 1450, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 2030, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 6070, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 7270, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      { x: 7900, y: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
-    goal: { x: 6120, y: FLOOR_Y - CONFIG.GOAL_SIZE },
+    goal: { x: 9460, y: FLOOR_Y - CONFIG.GOAL_SIZE },
     checkpoints: [
       { x: 96, y: FLOOR_Y - 48 },
-      { x: 200, y: FLOOR_Y - 48 },
-      { x: 740, y: FLOOR_Y - 48 },
-      { x: 860, y: FLOOR_Y - 48 },
-      { x: 920, y: FLOOR_Y - 48 },
-      { x: 1400, y: FLOOR_Y - 48 },
-      { x: 1620, y: FLOOR_Y - 48 },
-      { x: 1740, y: FLOOR_Y - 48 },
-      { x: 2240, y: FLOOR_Y - 48 },
-      { x: 2360, y: FLOOR_Y - 48 },
+      { x: 680, y: FLOOR_Y - 48 },
+      { x: 1300, y: FLOOR_Y - 48 },
+      { x: 1880, y: FLOOR_Y - 48 },
       { x: 2440, y: FLOOR_Y - 48 },
-      { x: 3800, y: FLOOR_Y - 48 },
-      { x: 4220, y: FLOOR_Y - 48 },
-      { x: 4920, y: FLOOR_Y - 48 },
-      { x: 5120, y: FLOOR_Y - 48 },
-      { x: 5680, y: FLOOR_Y - 48 },
+      { x: 2640, y: 246 - 48 },
+      { x: 2740, y: 172 - 48 },
+      { x: 2920, y: 98 - 48 },
+      { x: 2660, y: 98 - 48 },
+      { x: 2960, y: 24 - 48 },
+      { x: 3060, y: -50 - 48 },
+      { x: 3000, y: -124 - 48 },
+      { x: 3100, y: -198 - 48 },
+      { x: 3160, y: -272 - 48 },
+      { x: 3080, y: -346 - 48 },
+      { x: 3600, y: -142 - 48 },
+      { x: 3920, y: 2 - 48 },
+      { x: 4320, y: 146 - 48 },
+      { x: 4640, y: FLOOR_Y - 48 },
+      { x: 4800, y: 246 - 48 },
+      { x: 4880, y: 172 - 48 },
+      { x: 4940, y: 98 - 48 },
+      { x: 5240, y: FLOOR_Y - 48 },
+      { x: 5900, y: FLOOR_Y - 48 },
+      { x: 6480, y: FLOOR_Y - 48 },
+      { x: 7100, y: FLOOR_Y - 48 },
+      { x: 7700, y: FLOOR_Y - 48 },
+      { x: 8360, y: FLOOR_Y - 48 },
+      { x: 8980, y: FLOOR_Y - 48 },
     ],
-    // 2026-07-12 re-baseline (user decision): density locked at 1 door + 1
-    // enemy + end gate. OLD: doors x:900/5000, mathGates x:320/1300/5760.
     doors: [
-      { x: 900, y: FLOOR_Y - CONFIG.DOOR.H },
+      { x: 820, y: FLOOR_Y - CONFIG.DOOR.H },
     ],
     mathGates: [],
     enemies: [
-      { x: 2400, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
+      { x: 6670, y: FLOOR_Y - CONFIG.ENEMY.H, variant: 0 },
     ],
+    // Phase 34.6 (KEY-02/LEN-02) — the math-skip KEY, no locks. Sits on KA, the KEY-SPUR
+    // apex above the summit (2960..3180, y:-346), at x:3060; y = surface -32 (WR-02).
+    keys: [{ x: 3060, y: -346 - 32 }],
     secretAlcove: [
-      { x: 270, y: 162 },
+      { x: 320, y: 184 },
     ],
   };
 
