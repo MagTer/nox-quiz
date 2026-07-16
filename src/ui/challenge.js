@@ -12,10 +12,12 @@
 //
 // ENGINE-GLOBAL DISCIPLINE (mirror src/scenes/game.js 14-17): Kaplay primitives
 // (add, text, rect, color, opacity, outline, anchor, pos, fixed, z, area, onKeyPress,
-// center, width, height, rgb, destroyAll, shake) come from Kaplay `global: true`. They are
-// used as bare globals exactly like game.js does — they are NOT imported. Teardown uses
-// destroyAll(tag) (the tag-aware bulk remover); plain destroy() only accepts a GameObj
-// and would throw a TypeError if handed the "challenge" string tag.
+// center, width, height, rgb, destroyAll, shake, tween, easings, destroy) come from Kaplay
+// `global: true`. They are used as bare globals exactly like game.js does — they are NOT
+// imported, and (a727c13) they stay INSIDE the openChallenge/choose function bodies, never
+// at module top level. Teardown uses destroyAll(tag) (the tag-aware bulk remover) for the
+// whole session; plain destroy() only accepts a single GameObj (used for the D-01 wrong-
+// answer flash rect) and would throw a TypeError if handed the "challenge" string tag.
 //
 // src/ui/ is one directory below src/, so sibling-module imports use `../`.
 //
@@ -95,6 +97,14 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
 
   // Fire-once latch for onSuccess (a correct pick must fire EXACTLY once — Pitfall 5).
   let cleared = false;
+
+  // D-01 (34.6.1): closure-local anti-mash settle. True for the brief window after a
+  // wrong pick while the red flash fades; both input paths (box.onClick and 1-4 keys)
+  // funnel through choose(i), which goes inert while this is true. Cleared ONLY by the
+  // flash tween's onEnd() below — never a timer — mirroring key.js's hintShowing idiom
+  // (key.js:87,108-129). Closure-local, never module-level (same anti-leak discipline
+  // as `cleared` above).
+  let settling = false;
 
   // 21-06 fix — New Finding 4's VISUAL-overlap half (the state-corruption half was already
   // closed above via instanceTag scoping). Snapshot every already-open earlier challenge's
@@ -276,6 +286,7 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
    */
   function choose(i) {
     if (cleared) return; // ignore further input once the challenge has been cleared
+    if (settling) return; // D-01: inert during the post-wrong-pick settle (anti-mash)
     if (i < 0 || i >= q.choices.length) return; // bounds guard (constrained input surface)
 
     const picked = q.choices[i];
@@ -287,12 +298,40 @@ export function openChallenge({ brain, onSuccess, prompt, label, question, rende
     const box = boxes[i];
 
     if (!correct) {
-      // WRONG (GATE-04 forgiving): nudge + redden the chosen box, KEEP the same question,
-      // leave the challenge open and input live. No run-ending state, no success, no close.
+      // WRONG (GATE-04 forgiving, amplified per D-01/34.6.1): nudge + redden the chosen
+      // box, shake harder, and pulse a full-panel red flash. KEEP the same question, leave
+      // the challenge open — the ~WRONG_SETTLE_MS settle only DELAYS re-input, it never
+      // ends the run, never locks the box permanently, and never loses state.
+      settling = true; // block both input paths (box.onClick + 1-4 keys) until the flash settles
       audio.playSfx("wrong"); // soft/neutral tick, never a buzzer (CONTEXT.md hard requirement)
       if (box) box.color = rgb(CONFIG.PALETTE.DANGER[0], CONFIG.PALETTE.DANGER[1], CONFIG.PALETTE.DANGER[2]);
-      shake(6);
-      return;
+      shake(CONFIG.GATE.WRONG_SHAKE);
+
+      // Full-screen red pulse over the panel — a fixed() DANGER rect tagged with BOTH the
+      // generic "challenge" tag and this instance's instanceTag, so close() sweeps it if
+      // the session ever tears down mid-flash. One smooth easeOutQuad fade (non-strobing,
+      // ADHD-safe) — the same self-clean tween().onEnd() idiom as key.js's hint (key.js:124).
+      const flash = add([
+        rect(width(), height()),
+        pos(0, 0),
+        color(CONFIG.PALETTE.DANGER[0], CONFIG.PALETTE.DANGER[1], CONFIG.PALETTE.DANGER[2]),
+        opacity(CONFIG.GATE.WRONG_FLASH_OPACITY),
+        fixed(),
+        z(CONFIG.GATE.WRONG_FLASH_Z),
+        "challenge",
+        instanceTag,
+      ]);
+      tween(
+        CONFIG.GATE.WRONG_FLASH_OPACITY,
+        0,
+        CONFIG.GATE.WRONG_SETTLE_MS / 1000,
+        (v) => (flash.opacity = v),
+        easings.easeOutQuad,
+      ).onEnd(() => {
+        settling = false; // re-enable input — the SAME question stays open and answerable
+        destroy(flash);
+      });
+      return; // still forgiving: no close(), no onSuccess, no lost state
     }
 
     // CORRECT: tear down the interactive overlay and hand off to the caller. The challenge
