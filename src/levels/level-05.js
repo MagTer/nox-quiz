@@ -183,4 +183,38 @@ export const LEVEL_05 = {
   mechanics: [],
   biome: "cemetery", // level 5 of 8 — Castlevania arc calm->harsh (levels 5-6 cemetery)
   parallax: null,
+
+  // --- Decorative props (ART-06/ART-07, Phase 35) — VISUAL-ONLY, top-level (NOT inside
+  // geometry, so check-geometry-frozen never sees them). No colliders; sprite+pos+z only.
+  // Both layers are NEGATIVE z (back -8, surface -3) so a prop can never occlude the
+  // player/coins/terrain/mechanics (legibility-first, §8.5). Reuses the plan-02
+  // trial-baked, plan-03-approved cemetery vocabulary (no new bake).
+  //
+  // This is the CALM cemetery intro — the DOWN–ACROSS–UP V-valley. Props dress the WIDE
+  // catacomb BASIN floors (F1..F6 at FLOOR_Y 320) + background dead-corners, kept OFF the
+  // entry descent (EL0/ED1/ED2), the crypt fork (PLA/PLB/PHB) + coffin-lid pillars, and
+  // the OUT-CLIMB stair (OC1..OC3/XL). On-surface props use y = surfaceY - spriteHeight.
+  // Every prop is clear of the DOOR@1080, ENEMY@1850, the four spikes (1980/2760/3520/
+  // 4270), the coins, and the GOAL@6180. Uses the full RICH vocabulary (statue + all four
+  // stone types + bush) sparsely. Sprite pixel sizes (from build_props): statue 63x75,
+  // stone-1 21x37, stone-2 27x40, stone-3 27x33, stone-4 19x38, tree 166x117, bush 76x65.
+  props: [
+    // Background gnarled cemetery trees (layer "back") in the dead-corner backdrop — one
+    // framing the high entrance ledge EL0 (base at the ledge line y:150 -> 150-117=33) and
+    // one in the catacomb depth behind F2 (base y320 -> 320-117=203). z(-8) keeps them
+    // behind every traversal surface.
+    { sprite: "prop-cemetery-tree", x: 100, y: 33, layer: "back" }, //   frames the spawn entrance ledge
+    { sprite: "prop-cemetery-tree", x: 1620, y: 203, layer: "back" }, // catacomb depth behind F2
+
+    // On-surface cemetery dressing on the WIDE basin floors (y = 320 - height), clear of
+    // every mechanic and OFF the descent/fork/pillars/out-climb. The full RICH vocabulary
+    // (statue + all four stone types + bush) sparsely across F1..F6.
+    { sprite: "prop-cemetery-statue", x: 845, y: 245, layer: "surface" }, // F1 left corner, before the door@1080
+    { sprite: "prop-cemetery-stone-2", x: 1260, y: 280, layer: "surface" }, // F1, right of the door@1080
+    { sprite: "prop-cemetery-stone-1", x: 1740, y: 283, layer: "surface" }, // F2, left of the enemy@1850
+    { sprite: "prop-cemetery-stone-3", x: 2950, y: 287, layer: "surface" }, // F3, past spike@2760
+    { sprite: "prop-cemetery-bush", x: 3300, y: 255, layer: "surface" }, //   F4 left corner, before spike@3520
+    { sprite: "prop-cemetery-stone-4", x: 4060, y: 282, layer: "surface" }, // F5 left corner, before spike@4270
+    { sprite: "prop-cemetery-bush", x: 4820, y: 255, layer: "surface" }, //   F6, before the out-climb
+  ],
 };
