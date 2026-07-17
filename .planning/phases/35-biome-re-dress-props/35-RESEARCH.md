@@ -346,7 +346,9 @@ mkdirSync(OUT_DIR, { recursive: true });
 for (let i = 0; i < LEVEL_ORDER.length; i++) {
   // go("game", { levelId }); wait for boot; then:
   await page.screenshot({ path: join(OUT_DIR, `level-${String(i+1).padStart(2,"0")}-${biome}-spawn.png`) });
-  // For vertical even levels (02/04/06/08): also drive/teleport to bounds.top and capture a climb shot.
+  // For any level whose bounds.top < 0 (the vertical levels 02/04/06/08 — keyed on GEOMETRY,
+  // NOT level parity; level-07 is odd AND horizontal, bounds.top 0): also drive/teleport to
+  // bounds.top and capture a climb shot. Everything else gets a spawn shot only.
 }
 ```
 
@@ -372,17 +374,19 @@ for (let i = 0; i < LEVEL_ORDER.length; i++) {
 | A4 | `ACCENT_*` palette entries are safe to LEAVE (not delete) | Cleanup | LOW — verified unused in src/ but referenced by check-contrast.mjs; leaving them is the conservative default. `[VERIFIED: grep]` |
 | A5 | Trial pair = level-01 (swamp) + level-06 (cemetery) | Summary / trial | LOW — within CONTEXT's recommendation; confirm at planning. `[ASSUMED]` (discretion) |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Which exact 2 levels are the trial?**
-   - What we know: CONTEXT recommends two DIFFERENT biomes at different intensities; swamp is the thin-vocabulary biome, cemetery/town are rich, even levels (2/4/6/8) are the vertical/intense ones.
+   - What we know: CONTEXT recommends two DIFFERENT biomes at different intensities; swamp is the thin-vocabulary biome, cemetery/town are rich, the vertical/intense levels are the even ones (2/4/6/8; keyed on `bounds.top < 0`, never on parity alone).
    - What's unclear: swamp-calm + cemetery-vertical vs. swamp-calm + town-vertical.
    - Recommendation: **level-01 (swamp, calm, thin vocabulary — exercises sourcing) + level-06 (cemetery, vertical switchback, rich vocabulary — exercises density-vs-legibility + climb-altitude screenshots).** Confirm at the discuss/plan boundary.
+   - RESOLVED: plan 02 uses the trial pair level-01 (swamp, calm) + level-06 (cemetery, vertical switchback) as recommended.
 
 2. **Do castle torches/banners/chains come from tileset crops or new CC0?**
    - What we know: no pre-sliced castle props exist; the Old-dark-Castle + Gothic-Castle tilesets contain wall torches/banners; `church/column.png` is a usable pillar.
    - What's unclear: whether tileset crops give enough variety or extra CC0 is cleaner.
    - Recommendation: try tileset crops first (no new license step), fall back to CC0 sourcing per the locked decision. Decide during the castle-level dressing (after the trial proves the pipeline).
+   - RESOLVED: plan 05 Task 2 adopts castle tileset-crops-first, with CC0 sourcing only where the crops are too thin.
 
 ## Environment Availability
 
