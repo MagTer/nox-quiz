@@ -80,9 +80,17 @@ export async function resolveIfBoxed(page) {
   // prior challenge is still open when this one is checked. `initial` here already
   // reflects that leftover count, so this SPECIFIC challenge resolves once the shared
   // tag count drops BELOW `initial`, not only when it hits zero.
+  // D-01 settle-awareness (34.6.1 gap fix): a WRONG pick now tween-gates the panel
+  // inert for CONFIG.GATE.WRONG_SETTLE_MS (750ms as of 2026-07-17) — the anti-mash
+  // feature. An inter-press wait shorter than that window races it, so every other key
+  // press (2 and 4) gets silently swallowed and a correct answer on those boxes never
+  // registers — the drive then stalls forever at the door blocker ("no route progress"
+  // at door x, ~16px short). 950ms > 750ms settle + tween-end callback + frame jitter,
+  // so every press is guaranteed to land on a live panel. COUPLED to WRONG_SETTLE_MS:
+  // if that constant rises again, raise this too (keep it > the settle).
   for (const k of ["1", "2", "3", "4"]) {
     await page.keyboard.press(k);
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(950);
     const left = await page.evaluate(() => get("challenge").length);
     if (left < initial) {
       return { resolved: true };

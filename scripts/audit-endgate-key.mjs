@@ -211,9 +211,13 @@ async function resolveEncountersBetween(page, geometry, fromX, toX) {
       // (mirrors resolveIfBoxed's own CR-01-derived "decrease from baseline" logic,
       // inlined here since this helper only needs the resolve, not its return shape).
       const baseline = await page.evaluate(() => get("challenge").length);
+      // 950ms inter-press wait: clears the D-01 anti-mash settle window
+      // (CONFIG.GATE.WRONG_SETTLE_MS = 750ms as of 2026-07-17) after a wrong pick, same
+      // fix as resolveIfBoxed — hand-copied per the deliberate script-duplication
+      // convention. COUPLED: keep this > WRONG_SETTLE_MS if that constant changes.
       for (const k of ["1", "2", "3", "4"]) {
         await page.keyboard.press(k);
-        await page.waitForTimeout(200);
+        await page.waitForTimeout(950);
         const left = await page.evaluate(() => get("challenge").length);
         if (left < baseline) break;
       }
