@@ -140,7 +140,12 @@ export const CONFIG = {
   SPIKE_SIZE: 16, // px — spike sprite footprint (full tile); the hitbox is tightened below
   SPIKE_HITBOX_W: 12, // px — tightened spike collider width (narrower than the 16px tile — fair points-only hit)
   SPIKE_HITBOX_H: 8, // px — tightened spike collider height (only the upper visible spikes, not the empty base)
-  GOAL_SIZE: 16, // px — goal sprite footprint
+  GOAL_SIZE: 16, // px — LOAD-BEARING goal-trigger collider footprint. Harness-critical
+  // (browser-boot / audit-endgate-key onCollide depend on this exact 16px area —
+  // level-06 path-B halts ~13-16px short with ~0-3px overlap). DO NOT change.
+  GOAL_VISUAL_SIZE: 32, // px — decoupled VISUAL-ONLY goal flag size (Phase 34.6.1 / quick
+  // 260717-j24 play-test polish: 16px flag read as half a coin). Cosmetic "goalflag"
+  // sprite only; the "goal"-tagged collider stays GOAL_SIZE so onCollide is unaffected.
   ALCOVE_SIZE: 24, // px — secret-alcove trigger footprint (LVL-06; invisible walk-through square)
 
   // --- Math brain (ported verbatim from archive/math-lab.html 604-619 — DO NOT re-tune) ---

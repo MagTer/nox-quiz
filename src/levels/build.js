@@ -259,15 +259,31 @@ export function buildLevel(levelData) {
     ]);
   }
 
-  // --- Goal (REQUIRED — tag + area() so the scene wires onReachGoal) ---
-  // Footprint-pinned to CONFIG.GOAL_SIZE (16px, load-bearing) via sprite({width,
-  // height}) + a bare area() — the collider derives from the RENDERED size, so
-  // this stays 16px regardless of the checkered-flag PNG's native dimensions
-  // (Phase 34.6.1 Plan 03, D-03). NEVER scale() here — it would resize the
-  // collider along with the visual.
+  // --- Goal (REQUIRED) — decoupled into a VISUAL flag + a load-bearing collider ---
+  // Mirrors the door split below (invisible collider + separate visible art). WHY the
+  // split: the flag needed to render bigger (quick 260717-j24 play-test — 16px read as
+  // half a coin) WITHOUT touching the goal-trigger collider, which is genuinely load-
+  // bearing — browser-boot / audit-endgate-key onCollide depend on the exact 16px area
+  // at (g.goal.x, g.goal.y) (level-06 path-B halts ~13-16px short with ~0-3px overlap).
+  //
+  // (a) Cosmetic-only flag at GOAL_VISUAL_SIZE (32px). NO area(), tagged "goalflag" (NOT
+  // "goal"). anchor("botleft") + pos(x, y+GOAL_SIZE) plants its base on the OLD 16px
+  // footprint's bottom-left ground line and grows UP + to the RIGHT — never sinking into
+  // the floor. NEVER scale() — it would resize a collider (there is none here) and drift.
   add([
-    sprite("goal", { width: CONFIG.GOAL_SIZE, height: CONFIG.GOAL_SIZE }),
+    sprite("goal", { width: CONFIG.GOAL_VISUAL_SIZE, height: CONFIG.GOAL_VISUAL_SIZE }),
+    anchor("botleft"),
+    pos(g.goal.x, g.goal.y + CONFIG.GOAL_SIZE),
+    "goalflag",
+  ]);
+
+  // (b) Load-bearing trigger collider — byte-identical to the old sprite-derived area:
+  // same top-left origin (g.goal.x, g.goal.y) and same 16x16 GOAL_SIZE. Hidden via the
+  // shared HIDDEN opacity (visible only under ?debug=1, like the door/gate blockers).
+  add([
+    rect(CONFIG.GOAL_SIZE, CONFIG.GOAL_SIZE),
     pos(g.goal.x, g.goal.y),
+    opacity(HIDDEN),
     area(),
     "goal",
   ]);
