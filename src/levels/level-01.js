@@ -216,4 +216,33 @@ export const LEVEL_01 = {
   mechanics: [],
   biome: "swamp", // level 1 of 8 — Castlevania arc calm->harsh (levels 1-2 swamp)
   parallax: null,
+
+  // --- Decorative props (ART-06/ART-07, Phase 35) — VISUAL-ONLY, top-level (NOT
+  // inside geometry, so the frozen-geometry snapshot never sees them). No colliders;
+  // buildLevel emits sprite+pos+z ONLY. Both layers render at NEGATIVE z (back -8,
+  // surface -3), structurally BEHIND the z(0) player/coins/terrain/mechanics — a prop
+  // can never occlude a route, coin, hazard, or the door/enemy/goal (legibility-first,
+  // §8.5). RESTRAINED: this is the calm THIN-vocabulary swamp — a handful of accents.
+  //
+  // Placement rules honored: on-surface props use y = surfaceY - spriteHeight (floor
+  // surface = FLOOR_Y 320) so the base rests on the ledge; every prop is kept clear of
+  // the DOOR@820, ENEMY@2700, the four spikes (2820/4180/5020/5800), the coins, and the
+  // GOAL@6820. Sprite pixel sizes (from build_props): tree 120x159, reed 38x35,
+  // fern 45x32, vine 55x21.
+  props: [
+    // Background gnarled trees (layer "back") rising behind the calm mid-islands —
+    // base at the floor line (y = 320 - 159), crown up in the background band. Placed
+    // on F2 / F4 / the F8 run-in, all clear of every mechanic.
+    { sprite: "prop-swamp-tree", x: 1700, y: 161, layer: "back" }, // behind F2 post-log island
+    { sprite: "prop-swamp-tree", x: 3450, y: 161, layer: "back" }, // behind F4 (no spike here)
+    { sprite: "prop-swamp-tree", x: 6400, y: 161, layer: "back" }, // behind F8, left of the goal
+
+    // On-surface reeds / fern / vine resting on clear floor tops (y = 320 - height).
+    { sprite: "prop-swamp-reed", x: 70, y: 285, layer: "surface" }, //  F0 spawn-left accent
+    { sprite: "prop-swamp-fern", x: 960, y: 288, layer: "surface" }, // F1, past the door
+    { sprite: "prop-swamp-reed", x: 2560, y: 285, layer: "surface" }, // F3, well left of the enemy
+    { sprite: "prop-swamp-vine", x: 4280, y: 299, layer: "surface" }, // F5, right of spike@4180
+    { sprite: "prop-swamp-fern", x: 5100, y: 288, layer: "surface" }, // F6, right of spike@5020
+    { sprite: "prop-swamp-reed", x: 6500, y: 285, layer: "surface" }, // F8 run-in, left of the goal
+  ],
 };
