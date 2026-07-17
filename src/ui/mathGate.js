@@ -78,5 +78,5 @@ export function renderLevelClearBanner() {
     "gate-cleared",
   ]);
 
-  audio.playSfx("clear");
+  audio.playSfx("clear", CONFIG.AUDIO.CLEAR_VOLUME);
 }
