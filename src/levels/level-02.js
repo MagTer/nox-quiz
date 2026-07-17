@@ -283,4 +283,37 @@ export const LEVEL_02 = {
   mechanics: [],
   biome: "swamp", // Phase 32 (ART-02/ART-03) — level 2 of 8, Castlevania arc calm->harsh (levels 1-2 swamp)
   parallax: null,
+
+  // --- Decorative props (ART-06/ART-07, Phase 35) — VISUAL-ONLY, top-level (NOT
+  // inside geometry, so check-geometry-frozen never sees them). No colliders;
+  // buildLevel emits sprite+pos+z ONLY. Both layers render at NEGATIVE z (back -8,
+  // surface -3), structurally BEHIND the z(0) player/coins/terrain/mechanics — a prop
+  // can never occlude a route, coin, hazard, or the door/enemy/goal (legibility-first,
+  // §8.5). Reuses the plan-02 trial-baked, plan-03-approved swamp vocabulary.
+  //
+  // This is the INTENSE/VERTICAL swamp (the branching switchback spire + key spur), so
+  // props stay OFF the two spire climb/descent lanes (spire 1 ~x2680..3800, spire 2
+  // ~x4780..5480), the KEY spur/summit (KA/SU), and every hazard. Only the CALM
+  // horizontal floor runs (F0/F1/F4-approach/F5/F7/F8) + background dead-corners are
+  // dressed, restrained. On-surface props use y = surfaceY - spriteHeight (floor
+  // surface = FLOOR_Y 320) so the base rests on the ledge; every prop is clear of the
+  // DOOR@800, ENEMY@6030, the four spikes (1370/1920/6100/6660), the coins, the KEY,
+  // and the GOAL@7360. Sprite pixel sizes (from build_props): tree 120x159, reed 38x35,
+  // fern 45x32, vine 55x21.
+  props: [
+    // Background gnarled trees (layer "back") behind the CALM horizontal floor runs —
+    // base at the floor line (y = 320 - 159), crown up in the background band. Kept off
+    // the two vertical spire columns; z(-8) keeps them behind every traversal surface.
+    { sprite: "prop-swamp-tree", x: 620, y: 161, layer: "back" }, //  behind F1 (left of the door@800)
+    { sprite: "prop-swamp-tree", x: 4440, y: 161, layer: "back" }, // behind F5 descent-1 landing
+    { sprite: "prop-swamp-tree", x: 7020, y: 161, layer: "back" }, // behind F8 run-in, left of the goal
+
+    // On-surface reeds / fern / vine resting on clear floor tops (y = 320 - height).
+    { sprite: "prop-swamp-reed", x: 70, y: 285, layer: "surface" }, //  F0 spawn-left accent
+    { sprite: "prop-swamp-fern", x: 960, y: 288, layer: "surface" }, // F1, past the door@800
+    { sprite: "prop-swamp-vine", x: 2300, y: 299, layer: "surface" }, // F4, left of the spire-1 base
+    { sprite: "prop-swamp-reed", x: 4600, y: 285, layer: "surface" }, // F5, left of the spire-2 mount
+    { sprite: "prop-swamp-fern", x: 6470, y: 288, layer: "surface" }, // F7, left of spike@6660
+    { sprite: "prop-swamp-reed", x: 7040, y: 285, layer: "surface" }, // F8 run-in, left of the goal
+  ],
 };
