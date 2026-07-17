@@ -1467,6 +1467,169 @@ def build_palette_swatch():
     save(canvas, os.path.join(ROOT, ".planning", "phases", "26-grunge-palette-nox-run-rebrand", "26-PALETTE-SWATCH.png"))
 
 
+# ===========================================================================
+# Decorative props (Phase 35, ART-06/ART-07) — bake single-object sprites from
+# the vendored, style-board-approved Gothicvania packs into assets/props/.
+#
+# NORMATIVE rules (ART-PARITY-STEERING facts #4/#6/#8/#9, and 35-RESEARCH §Bake):
+#   * Crop a PRE-SLICED source (cemetery sliced-objects/*.png are already single
+#     objects; swamp props.png is a 3-prop STRIP cropped per prop, never tiled
+#     whole — Pitfall 3).
+#   * Keep NATIVE color and NATIVE resolution — NO _remap_luminance (the
+#     achromatic-grey trap, fact #8/#9) and NO scale-to-cell. Props are
+#     free-size sprites, not the 16x32 terrain cells.
+#   * Retint ONLY via hue_shift_band, and ONLY where a MEASURED pink reading
+#     demands it. Every swamp + cemetery trial prop measured 0.0% pink against
+#     scripts/lib/pink_scan.py's real band (211-239 PIL hue, min_sat 30), so the
+#     whole trial set bakes NATIVE (retint=None). This matches styleboard.py,
+#     which composites these exact sliced-objects natively — its cemetery
+#     (195,245,-50) hue_shift_band is applied only to the far background /
+#     mountains (already baked into the parallax assets), NOT to these
+#     foreground objects.
+# ===========================================================================
+PROPS_DIR = os.path.join(ROOT, "assets", "props")
+
+
+def _prop_strip_top_plate(im, plate=(30, 32, 30), tol=4):
+    """Flood-fill the solid backdrop plate connected to the TOP edge to
+    transparency.
+
+    Gothicvania's swamp trees.png ships two gnarled trees hanging BELOW an
+    opaque (30,32,30) crown-backdrop plate (the styleboard swamp canvas base
+    color — swamp() pastes the whole sheet over a matching (30,32,30) canvas so
+    the plate is invisible there). Baked as a standalone prop over arbitrary
+    parallax the plate would read as a hard-edged dark rectangle (Pitfall 3), so
+    the top-connected plate band is flood-removed. The tree's green crown and
+    brown trunk survive (they are not plate-colored); the result reads as a bare
+    gnarled dead tree.
+    """
+    from collections import deque
+
+    im = im.copy()
+    px = im.load()
+    w, h = im.size
+
+    def is_plate(p):
+        return (
+            p[3] > 0
+            and abs(p[0] - plate[0]) <= tol
+            and abs(p[1] - plate[1]) <= tol
+            and abs(p[2] - plate[2]) <= tol
+        )
+
+    q = deque()
+    seen = set()
+    for x in range(w):
+        if is_plate(px[x, 0]):
+            q.append((x, 0))
+            seen.add((x, 0))
+    while q:
+        x, y = q.popleft()
+        px[x, y] = (0, 0, 0, 0)
+        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if 0 <= nx < w and 0 <= ny < h and (nx, ny) not in seen and is_plate(px[nx, ny]):
+                seen.add((nx, ny))
+                q.append((nx, ny))
+    return im
+
+
+def _prop_drop_small_islands(im, min_px):
+    """Return im with every 8-connected opaque component smaller than min_px
+    cleared — drops the stray neighbour-prop fragments a rectangular crop pulls
+    in (e.g. a leaf tip of the adjacent tree), while KEEPING every real part of
+    the target prop (do NOT keep-only-largest: plate removal splits the tree
+    into many adjacent components that still read as one tree)."""
+    w, h = im.size
+    px = im.load()
+    vis = [[False] * w for _ in range(h)]
+    keep = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    kp = keep.load()
+    for y0 in range(h):
+        for x0 in range(w):
+            if vis[y0][x0] or px[x0, y0][3] == 0:
+                vis[y0][x0] = True
+                continue
+            stack = [(x0, y0)]
+            vis[y0][x0] = True
+            pts = []
+            while stack:
+                x, y = stack.pop()
+                pts.append((x, y))
+                for nx, ny in (
+                    (x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1),
+                    (x + 1, y + 1), (x - 1, y - 1), (x + 1, y - 1), (x - 1, y + 1),
+                ):
+                    if 0 <= nx < w and 0 <= ny < h and not vis[ny][nx]:
+                        vis[ny][nx] = True
+                        if px[nx, ny][3] > 0:
+                            stack.append((nx, ny))
+            if len(pts) >= min_px:
+                for (x, y) in pts:
+                    kp[x, y] = px[x, y]
+    return keep
+
+
+def bake_prop(out_name, src_rel, crop=None, strip_plate=False, drop_small=0, retint=None):
+    """Bake ONE decorative prop sprite from a vendored Gothicvania source file.
+
+    src_rel is relative to GV_SRC (assets/_gothicvania-src/). Pipeline, in order:
+    open RGBA -> [strip top backdrop plate] -> [crop rect] -> [drop stray small
+    islands] -> tighten to alpha bbox -> [hue_shift_band retint] -> save to
+    assets/props/<out_name>.png. NO scaling, NO _remap_luminance (mirrors
+    _bake_biome_atlas's native-color/native-res discipline, minus the 16x32
+    terrain assertion since props are free-size).
+    """
+    im = Image.open(os.path.join(GV_SRC, src_rel)).convert("RGBA")
+    if strip_plate:
+        im = _prop_strip_top_plate(im)
+    if crop:
+        im = im.crop(crop)
+    if drop_small:
+        im = _prop_drop_small_islands(im, drop_small)
+    bb = im.getbbox()
+    if bb:
+        im = im.crop(bb)  # tighten to the sprite's own opaque bounds
+    if retint:
+        im = hue_shift_band(im, *retint)
+    save(im, os.path.join(PROPS_DIR, f"{out_name}.png"))
+
+
+def build_props():
+    """Bake the Phase-35 trial prop vocabulary: a THIN swamp set (levels 1-2)
+    and a RICHER cemetery set (levels 5-6). All native color (0.0% pink measured
+    against the real gate). Every output is named assets/props/<biome>-<name>.png
+    and declared in src/assets-manifest.js under kind:"prop"."""
+    os.makedirs(PROPS_DIR, exist_ok=True)
+
+    # ---- Swamp (THIN — a few atmospheric accents) --------------------------
+    swamp = os.path.join(
+        "gothicvania_swamp_files", "Gothicvania Swamp files", "Evironment"
+    )
+    # A gnarled dead tree: trees.png's right tree, crown-backdrop plate removed,
+    # cropped clear of the left tree (x>=168), stray leaf tips dropped.
+    bake_prop(
+        "swamp-tree", os.path.join(swamp, "trees.png"),
+        crop=(168, 0, 288, 208), strip_plate=True, drop_small=40,
+    )
+    # props.png is a 3-prop STRIP — crop each prop by its own column run.
+    bake_prop("swamp-reed", os.path.join(swamp, "props.png"), crop=(8, 0, 46, 43))
+    bake_prop("swamp-vine", os.path.join(swamp, "props.png"), crop=(60, 0, 115, 43))
+    bake_prop("swamp-fern", os.path.join(swamp, "props.png"), crop=(128, 0, 173, 43))
+
+    # ---- Cemetery (RICH — statue + tombstones + a tree + a bush) -----------
+    cem = os.path.join(
+        "gothicvania-cemetery-files_1", "gothicvania-cemetery-files",
+        "PNG", "Environment", "sliced-objects",
+    )
+    bake_prop("cemetery-statue", os.path.join(cem, "statue.png"))
+    bake_prop("cemetery-stone-1", os.path.join(cem, "stone-1.png"))
+    bake_prop("cemetery-stone-2", os.path.join(cem, "stone-2.png"))
+    bake_prop("cemetery-stone-3", os.path.join(cem, "stone-3.png"))
+    bake_prop("cemetery-stone-4", os.path.join(cem, "stone-4.png"))
+    bake_prop("cemetery-tree", os.path.join(cem, "tree-1.png"))
+    bake_prop("cemetery-bush", os.path.join(cem, "bush-large.png"))
+
+
 if __name__ == "__main__":
     build_player()
     build_ground()
@@ -1490,3 +1653,4 @@ if __name__ == "__main__":
     build_biome_parallax_castle()
     build_player_swamphunter()
     build_enemy_hellhound()
+    build_props()
