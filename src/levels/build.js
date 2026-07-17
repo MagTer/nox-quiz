@@ -459,4 +459,24 @@ export function buildLevel(levelData) {
       "secret-alcove",
     ]);
   }
+
+  // --- Decorative props (ART-06/ART-07; Phase 35 — optional, VISUAL-ONLY layer) ---
+  // Reads levelData.props (a TOP-LEVEL descriptor field, NOT g.props) so the
+  // validator's `geometry` object stays byte-frozen by construction — props are
+  // structurally invisible to validate-levels.mjs / check-geometry-frozen.mjs.
+  // Each prop is the ONLY pure sprite+pos+z entity class in this builder: NO
+  // area(), NO body(), NO rect(), NO tall apex-blocker — that collider-freedom is
+  // exactly what makes props validator-neutral (they can never gate a route).
+  // Depth: on-surface props (layer "surface") sit at CONFIG.PROPS.Z_SURFACE,
+  // everything else (background, the default) at CONFIG.PROPS.Z_BACK — BOTH
+  // negative, so a prop can never occlude the z(0) player/coins/terrain/mechanics.
+  // Guarded with ?? [] so the not-yet-dressed levels (no props field) still build.
+  for (const pr of levelData.props ?? []) {
+    add([
+      sprite(pr.sprite),
+      pos(pr.x, pr.y),
+      z(pr.layer === "surface" ? CONFIG.PROPS.Z_SURFACE : CONFIG.PROPS.Z_BACK),
+      "prop",
+    ]);
+  }
 }

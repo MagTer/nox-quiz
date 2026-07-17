@@ -117,6 +117,11 @@ for (const a of ASSETS_MANIFEST) {
     loadSprite(a.key, webPath, { sliceX: 3, sliceY: 1 });
   } else if (a.kind === "biome-bg") {
     loadSprite(a.key, webPath);
+  } else if (a.kind === "prop") {
+    // Decorative props (ART-06/ART-07; Phase 35) — single static frame each (Phase
+    // 36 animates torches later). Plain loadSprite, same web-root convention as the
+    // biome branches above; build.js emits them at CONFIG.PROPS.Z_* (collider-free).
+    loadSprite(a.key, webPath);
   }
 }
 

@@ -102,6 +102,22 @@ export const CONFIG = {
     // view top, mid/near bottoms at view bottom) — no world-space Y tunable.
   },
 
+  // --- Decorative props layer z-order (ART-06/ART-07; Phase 35) ---
+  // Depth tunables for the hand-placed, COLLIDER-FREE props layer emitted by
+  // src/levels/build.js's `levelData.props ?? []` loop (torches, crates, reeds,
+  // tombstones…). BOTH values are NEGATIVE by MANDATE: every gameplay entity
+  // (player, coins, terrain caps/ledges, doors/gates/enemies/keys) renders at the
+  // default z(0), so a negative-z prop can NEVER draw over the player, a coin, a
+  // route, or a mechanic. This is the locked legibility-first / §8.5 ADHD constraint
+  // ("she must always be able to SEE where she's going and every route") expressed
+  // STRUCTURALLY, not by hand-placement discipline. Both sit inside the open band
+  // (PARALLAX.NEAR_Z −10, 0) so props draw in FRONT of the nearest parallax layer
+  // yet BEHIND everything playable — a clean, empty depth slot.
+  PROPS: {
+    Z_BACK: -8, // z — parallax-adjacent background props (just in front of NEAR_Z −10)
+    Z_SURFACE: -3, // z — on-surface props resting on ledges/floors (nearer, still behind z(0) play)
+  },
+
   // --- Terrain rendering tunables (ART-02/ART-03; Phase 32) ---
   // Autotiled ground-mass fill + perf/proof budgets for the browser-boot terrain
   // checks. The chunk-size and fill-depth keys are consumed by the autotile builder
