@@ -422,7 +422,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 34.6.1-04-PLAN.md — Consolidation: full gate suite + human UAT sign-off (mash/crispness/flag/key legibility) — polish
+- [x] 34.6.1-04-PLAN.md — Consolidation: full gate suite + human UAT sign-off (mash/crispness/flag/key legibility) — polish. **UAT PASSED 2026-07-17** (user re-play of all 8 redo levels): approved. Follow-on polish landed during the same session as quick task 260717-j24 + fix 17ca3b3 — goal flag 16→32px, level-clear sound gain 1.0→0.4, anti-mash settle 250→750ms (user: "at 0.25s I can still almost hammer the keys"). Coin-pop restyle deferred to Phase 35.
 
 ### Phase 35: Biome Re-dress & Props
 

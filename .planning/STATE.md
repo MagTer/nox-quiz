@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 34.6.1
-current_phase_name: Re-play Polish — Coins, Key Framing & Wrong-Answer Feedback
+current_phase: 35
+current_phase_name: Biome Re-dress & Props
 status: in-progress
-stopped_at: "DEV-HOST SWITCH 2026-07-16 — everything pushed to origin/main @ 977c030. TWO threads open: (1) Phase 34.6.1 polish — plans 01/02/03 DONE + pushed (wrong-answer flash+tween-settle anti-mash; 3 CC0 sprites vendored+wired: crisp coin, real key, checkered goal flag, footprints preserved; all gates green, browser-boot functionally green). Plan 04 = human PLAY-TEST still PENDING (mash test + coin/flag/key look; eyeball 'SKIP KEY' HUD wording). (2) Phase 34.6 ALL-8 level redo — still WIP, level-01/03/04/05/06/07 captured in the wip(34.6) snapshot commit, NOT finalized — the bigger open blocker. Phase 35 (props) paused behind 34.6."
-last_updated: "2026-07-16T13:40:00.000Z"
-last_activity: 2026-07-16
-last_activity_desc: "34.6.1 polish plans 01-03 executed + pushed; 34.6 level-redo WIP snapshotted before dev-host switch"
+stopped_at: "2026-07-17 — Phases 34.6 + 34.6.1 CLOSED (user re-played all 8 redo levels on :8080 and APPROVED). Follow-on re-play polish shipped + committed this session: quick task 260717-j24 (goal flag 16→32px decoupled from collider; level-clear sound gain 1.0→0.4) + fix 17ca3b3 (anti-mash settle 250→750ms, harness waits 420→950ms) + a78e545 (smoke-progress fixtures re-baselined to redo geometry — tree now clean). Coin-pop restyle deferred to Phase 35. NEXT: Phase 35 (Biome Re-dress & Props) — context already gathered (35-CONTEXT.md); plan → execute; pauses at the props style sign-off (human gate)."
+last_updated: "2026-07-17T13:50:00.000Z"
+last_activity: 2026-07-17
+last_activity_desc: "34.6 + 34.6.1 approved & closed after user all-8 re-play; re-play polish (flag/sound/anti-mash) shipped; advancing to Phase 35"
 progress:
   total_phases: 13
-  completed_phases: 7
-  total_plans: 43
-  completed_plans: 42
-  percent: 54
+  completed_phases: 9
+  total_plans: 44
+  completed_plans: 44
+  percent: 69
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Two open threads. (1) **Phase 34.6.1 polish** (INSERTED) — plans 01/02/03 shipped (wrong-answer anti-mash settle; crisp coin + real key + checkered goal flag wired, footprints preserved); only plan 04, the human PLAY-TEST, remains. (2) **Phase 34.6 ALL-8 REDO** — rebuild all 8 level layouts to distinct shapes + kill transport monotony (blocker reopened 2026-07-16); still WIP (level-01/03/04/05/06/07 snapshotted, not finalized). Authoritative plan: `.planning/phases/34.6-level-redesign-rebuild-and-double-every-level/34.6-REDO-ALL8-PLAN.md`. Phase 35 (props) PAUSED behind 34.6.
+**Current Focus:** **Phase 35 — Biome Re-dress & Props.** Phases 34.6 (ALL-8 level redo) and 34.6.1 (re-play polish) are CLOSED as of 2026-07-17 — the user re-played all 8 rebuilt levels and approved; follow-on polish (goal flag 16→32px, level-clear sound gain →0.4, anti-mash settle →750ms) shipped in the same session. Phase 35 context is already gathered (`35-CONTEXT.md`): props layer = restrained/legibility-first, bg + on-surface, extra CC0 where thin, 2-level trial → human sign-off → rest. The deferred coin-pop restyle folds into this phase's art work.
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -36,13 +36,13 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 34.6.1 — Re-play Polish — Coins, Key Framing & Wrong-Answer Feedback
-Plan: 3 of 4 done — 01 (wrong-answer settle), 02 (CC0 sprites), 03 (wiring) shipped + pushed; 04 (human play-test / UAT) PENDING
-Status: In progress — awaiting the play-test, then phase close-out
-Also open: Phase 34.6 ALL-8 level redo (reopened, WIP snapshot pushed — not finalized)
+Phase: 35 — Biome Re-dress & Props (next)
+Plan: 0 of N — context gathered (35-CONTEXT.md), ready to plan
+Status: 34.6 + 34.6.1 CLOSED (user approved 2026-07-17); Phase 35 is next
+Also open: nothing blocking — art track resumes on approved final geometry
 Last activity: 2026-07-17 — Completed quick task 260717-j24 (goal flag enlarged 16→32px decoupled from collider; level-clear sound gain lowered to 0.4) during user's ALL-8 re-play; 34.6/34.6.1 human play-test still the open gate
 
-Progress: [█████░░░░░] 54%  (7 of 13 phases complete: 29–34, 34.5; 34.6 reopened, 34.6.1 in progress; remaining: 35, 36, 37, 38)
+Progress: [███████░░░] 69%  (9 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1; remaining: 35, 36, 37, 38)
 
 ## v6.0 Roadmap Summary
 
