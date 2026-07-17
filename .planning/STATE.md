@@ -40,7 +40,7 @@ Phase: 34.6.1 — Re-play Polish — Coins, Key Framing & Wrong-Answer Feedback
 Plan: 3 of 4 done — 01 (wrong-answer settle), 02 (CC0 sprites), 03 (wiring) shipped + pushed; 04 (human play-test / UAT) PENDING
 Status: In progress — awaiting the play-test, then phase close-out
 Also open: Phase 34.6 ALL-8 level redo (reopened, WIP snapshot pushed — not finalized)
-Last activity: 2026-07-16 — 34.6.1 plans 01-03 executed + pushed; 34.6 WIP snapshotted before dev-host switch
+Last activity: 2026-07-17 — Completed quick task 260717-j24 (goal flag enlarged 16→32px decoupled from collider; level-clear sound gain lowered to 0.4) during user's ALL-8 re-play; 34.6/34.6.1 human play-test still the open gate
 
 Progress: [█████░░░░░] 54%  (7 of 13 phases complete: 29–34, 34.5; 34.6 reopened, 34.6.1 in progress; remaining: 35, 36, 37, 38)
 
@@ -128,6 +128,12 @@ All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (20
 - **Letterbox vs DOM-overlay touch strategy** — the one open technical decision; Phase 37's opening probe resolves it (letterbox primary, overlay fallback)
 - **Real-device facts can't be pre-verified:** touch audio activation (`touchstart` is not activation-triggering) and phone-GPU parallax feel — must be proven on device in Phases 37–38, not assumed
 - **[Phase 23, carried] Playwright script duplication convention** — server/guard code copied verbatim across audit scripts; any fix must be applied by hand in every copy (new touch-audit script follows the same convention)
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260717-j24 | Re-play polish: enlarge goal flag to 32px (decoupled from 16px load-bearing collider) + lower ear-piercing level-clear sound to 0.4 gain | 2026-07-17 | da1cd94 | [260717-j24-re-play-polish-enlarge-goal-flag-to-32px](./quick/260717-j24-re-play-polish-enlarge-goal-flag-to-32px/) |
 
 ## Deferred Items
 

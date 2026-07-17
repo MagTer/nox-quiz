@@ -123,4 +123,5 @@ is fine, mirroring Phase 31).
 - Foreground framing props over the play lane → declined by the user (kept out for legibility).
 - Mobile responsive/touch → Phase 37. n0x logo → Phase 38.
 - GHCR CI/CD → backlog todo (2026-07-15).
+- DEFERRED from quick 260717-j24 (2026-07-17 play-test): restyle the neon-green coin-pickup pop() in src/fx.js — it currently reads as a missing-sprite placeholder; re-dress during the art pass.
 </deferred>
