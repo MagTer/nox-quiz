@@ -436,7 +436,16 @@ Plans:
   3. Each level's in-game look matches the signed-off style-board direction, spot-checked with per-level screenshots; old tint-theme assets are deleted
   4. Full gate suite + structural validator green across all 8 re-dressed levels
 
-**Plans**: TBD
+**Plans**: 8 plans
+
+- [ ] 35-01-PLAN.md — Props infrastructure: CONFIG.PROPS z tunables + collider-free build.js emit loop + main.js load branch + geometry-freeze gate/baseline + screenshot script (no art yet)
+- [ ] 35-02-PLAN.md — 2-level trial: bake swamp+cemetery props, dress level-01 + level-06, capture trial screenshots
+- [ ] 35-03-PLAN.md — Human-verify checkpoint (BLOCKING, non-rubber-stamped) on the 2-level trial look; gates the remaining-6 rollout
+- [ ] 35-04-PLAN.md — Dress level-02 (swamp) + level-05 (cemetery) reusing the trial-baked, approved art
+- [ ] 35-05-PLAN.md — Bake town (pre-sliced) + castle (tileset crops first, CC0 where thin, licenses/credits) prop art
+- [ ] 35-06-PLAN.md — Dress town level-03 + level-04 (level-04 minimal — object budget)
+- [ ] 35-07-PLAN.md — Dress castle level-07 + level-08 with spawn+climb screenshots
+- [ ] 35-08-PLAN.md — Consolidation: delete dead theme-N bake code, restyle coin-collect pop(), full suite + frozen-geometry proof + all-8 spot-check screenshots
 
 ### Phase 36: World Motion & Ambient Life
 
