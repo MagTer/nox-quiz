@@ -479,4 +479,71 @@ export function buildLevel(levelData) {
       "prop",
     ]);
   }
+
+  // --- Moving platforms (MOT-02; Phase 36 — dt raised-cosine ping-pong, native carry) ---
+  // Reads geometry.movers, a NEW motion key EXCLUDED from the check-geometry-frozen
+  // snapshot (36-01) and read by the Phase-30 mover-reachability validator — so the
+  // static geometry stays byte-frozen while movers are still reachability-checked.
+  // Each mover is a solid body({isStatic:true}) ledge that oscillates between its two
+  // descriptor endpoints. The oscillation is a dt-based RAISED-COSINE
+  // ((1 - cos(2π t / period)) / 2): 0 → 1 → 0, so it reaches EXACTLY (x1,y1) at
+  // phase 0 and (x2,y2) at phase 1 (the two points the validator tests) and eases to
+  // REST at both ends. It is `onUpdate` + `dt()` ONLY — no setTimeout/wait/loop
+  // scheduler (SAFE-01). CRITICAL: NO rider-displacement code — the player's own
+  // body() stickToPlatform carries them natively; hand-carrying the rider
+  // double-applies and slides it off (measured anti-pattern, 36-RESEARCH §Anti-Patterns).
+  // Guarded with `?? []` so all 8 currently-inert levels build unchanged.
+  for (const m of g.movers ?? []) {
+    const w = m.w ?? CONFIG.MOVER.WIDTH;
+    const plat = add([
+      sprite(m.sprite ?? CONFIG.MOVER.SPRITE, {
+        frame: CONFIG.MOVER.FRAME, // PLATFORM ledge frame (2)
+        tiled: true, // tile the 16px ledge frame across the ledge width
+        width: w,
+        height: CONFIG.MOVER.HEIGHT,
+      }),
+      pos(m.x1, m.y1),
+      // Tightened collider: the opaque top LEDGE_H of the frame (its lower half is
+      // transparent), mirroring the 16px static-platform collider so a rider stands on
+      // the visible surface, not on empty space. Rect guarded at top of buildLevel.
+      area({ shape: new Rect(vec2(0), w, CONFIG.MOVER.LEDGE_H) }),
+      body({ isStatic: true }), // solid; stickToPlatform on the RIDER does the carry
+      "mover",
+    ]);
+    const period = m.period ?? CONFIG.MOVER.PERIOD_S; // per-mover override allowed
+    let t = 0; // closure-local PER mover — never module-level (anti-leak)
+    plat.onUpdate(() => {
+      // dt-based, scheduler-free (SAFE-01 clean). Raised-cosine eases at BOTH ends.
+      t += dt();
+      const phase = (1 - Math.cos(((2 * Math.PI) / period) * t)) / 2; // 0 → 1 → 0
+      plat.pos.x = m.x1 + (m.x2 - m.x1) * phase;
+      plat.pos.y = m.y1 + (m.y2 - m.y1) * phase;
+      // NO rider code — body() stickToPlatform carries the player natively.
+    });
+  }
+
+  // --- Patrollers (MOT-01; Phase 36 — native patrol(), gentle respawn-hazard) ---
+  // Reads geometry.patrollers (the second NEW motion key excluded from the freeze
+  // snapshot). Each patroller is a slow, telegraphed walker driven by the engine's
+  // built-in patrol() component (dt-based, scheduler-free) between its two waypoints
+  // with endBehavior "ping-pong". Tagged "patroller" — DISTINCT from "enemy" (the
+  // math-blocker tag enemy.js listens for); contact is routed to the respawn seam in
+  // game.js, NOT the challenge seam. Uses the distinct 8-frame skeleton WALK sprite
+  // baked + loaded by 36-10. Guarded with `?? []` so inert levels build unchanged.
+  for (const p of g.patrollers ?? []) {
+    const foe = add([
+      sprite(p.sprite ?? CONFIG.PATROLLER.SPRITE), // per-patroller override, config default
+      pos(p.x1, p.y1),
+      area(),
+      patrol({
+        // FRESH per-patroller waypoints array literal — "ping-pong" reverses it in
+        // place, so a shared array would corrupt every patroller (36-RESEARCH Pitfall 6).
+        waypoints: [vec2(p.x1, p.y1), vec2(p.x2, p.y2)],
+        speed: p.speed ?? CONFIG.PATROLLER.SPEED,
+        endBehavior: "ping-pong", // perpetual back-and-forth (string literal, not the banned loop( call)
+      }),
+      "patroller", // DISTINCT from "enemy" — routes to respawn(), never the math seam
+    ]);
+    foe.play("walk"); // visible walk-cycle telegraph (the "walk" anim registered in main.js)
+  }
 }
