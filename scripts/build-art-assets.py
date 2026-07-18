@@ -1595,10 +1595,15 @@ def bake_prop(out_name, src_rel, crop=None, strip_plate=False, drop_small=0, ret
 
 
 def build_props():
-    """Bake the Phase-35 trial prop vocabulary: a THIN swamp set (levels 1-2)
-    and a RICHER cemetery set (levels 5-6). All native color (0.0% pink measured
-    against the real gate). Every output is named assets/props/<biome>-<name>.png
-    and declared in src/assets-manifest.js under kind:"prop"."""
+    """Bake the Phase-35 prop vocabulary for all four biomes. The trial pair
+    (plan 02): a THIN swamp set (levels 1-2) + a RICHER cemetery set (levels
+    5-6), both native color. The re-dress remainder (plan 05): a town set
+    (levels 3-4) baked WITH the board's steel-blue-night no-pink pass
+    (215,255,-60) -- the town pack ships a salmon dusk tint that trips the gate
+    natively -- and a castle set (levels 7-8) baked NATIVE from tileset crops
+    (measure-first: all under the pink threshold; NO new CC0 needed). Every
+    output is named assets/props/<biome>-<name>.png and declared in
+    src/assets-manifest.js under kind:"prop"."""
     os.makedirs(PROPS_DIR, exist_ok=True)
 
     # ---- Swamp (THIN — a few atmospheric accents) --------------------------
@@ -1628,6 +1633,51 @@ def build_props():
     bake_prop("cemetery-stone-4", os.path.join(cem, "stone-4.png"))
     bake_prop("cemetery-tree", os.path.join(cem, "tree-1.png"))
     bake_prop("cemetery-bush", os.path.join(cem, "bush-large.png"))
+
+    # ---- Town (levels 3-4; RICH pre-sliced vocabulary) ---------------------
+    # Direct pre-sliced named files from the Gothicvania Town pack's
+    # props-sliced/ dir (already covered by assets/LICENSES/gothicvania-town.txt).
+    # These ship with a salmon/mauve dusk tint: measured native they land 10-44%
+    # in the real pink gate band (barrel 26%, crate 26%, well 10%, sign 44%),
+    # so they DO need the board's town no-pink pass. styleboard.py's town()
+    # applies hue_shift_band(_, 215, 255, -60) scene-wide (salmon dusk -> steel-
+    # blue night); applying the SAME tuple uniformly to every town prop is the
+    # board-faithful conform pass and drops all of them to 0.0% pink (verified).
+    TOWN_RETINT = (215, 255, -60)
+    town = os.path.join(
+        "gothicvania-town-files", "GothicVania-town-files",
+        "PNG", "environment", "props-sliced",
+    )
+    bake_prop("town-barrel", os.path.join(town, "barrel.png"), retint=TOWN_RETINT)
+    bake_prop("town-crate", os.path.join(town, "crate.png"), retint=TOWN_RETINT)
+    bake_prop("town-street-lamp", os.path.join(town, "street-lamp.png"), retint=TOWN_RETINT)
+    bake_prop("town-well", os.path.join(town, "well.png"), retint=TOWN_RETINT)
+    bake_prop("town-sign", os.path.join(town, "sign.png"), retint=TOWN_RETINT)
+
+    # ---- Castle (levels 7-8; THINNEST biome) -------------------------------
+    # Tileset-crops-first per the locked "source additional CC0 only where a
+    # biome is thin" decision + Open Question 2 (crops before new CC0). ALL
+    # castle props come from vendored, already-licensed packs -- NO new CC0 was
+    # needed: the Church pack (assets/LICENSES/gothicvania-church.txt) supplies
+    # a fully pre-sliced gothic pillar (column.png) AND a tileset rich in single-
+    # panel castle accents (candle sconce, altar candle, gothic arch window).
+    # Measured native they are all UNDER the pink gate threshold (column 1.2%,
+    # candles 0.0%, candle-stand 2.6%, arch 0.0%) -> baked NATIVE (castle
+    # "measure first"; board-faithful, no retint). Every crop is a SINGLE object
+    # by explicit rect -- never a tiled multi-panel preview sheet (fact #4).
+    church = os.path.join(
+        "gothicvania-church-files", "gothicvania church files", "ENVIRONMENT",
+    )
+    # Pre-sliced gothic pillar (carved gargoyle heads + two wall lanterns): the
+    # castle "column" straight from the pack's own single-object file.
+    bake_prop("castle-column", os.path.join(church, "column.png"))
+    # Single-panel crops from the church tileset (each is ONE object, not a tile
+    # run): a lit candle shelf/sconce, a single altar candle on a stepped plinth,
+    # and a gothic pointed-arch window for far-wall dressing.
+    castle_ts = os.path.join(church, "tileset.png")
+    bake_prop("castle-candles", castle_ts, crop=(193, 38, 224, 59))
+    bake_prop("castle-candle-stand", castle_ts, crop=(247, 88, 273, 117))
+    bake_prop("castle-arch", castle_ts, crop=(286, 16, 321, 81))
 
 
 if __name__ == "__main__":

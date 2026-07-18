@@ -7,15 +7,16 @@
 // relative (the `assets/...` convention main.js's existing loads already use
 // before the `../` prefix is applied at the call site).
 //
-// 49 entries total, grouped by `kind`:
+// 58 entries total, grouped by `kind`:
 //   biome-atlas (4)  — Phase-31-baked 2-frame cap+fill ground atlases
 //   biome-bg    (12) — Phase-31-baked per-biome parallax layers (far/mid/near x 4 biomes)
 //   sprite      (11) — plain single-argument loadSprite calls, gate coverage only
 //   sprite-anim (3)  — sliceX+anims sprites, gate coverage only
 //   sound       (7)  — loadSound calls, gate coverage only
 //   music       (1)  — loadMusic call, gate coverage only
-//   prop        (11) — Phase-35-baked decorative props (swamp x4 + cemetery x7),
-//                      loaded as single static frames by main.js's kind:"prop" branch
+//   prop        (20) — Phase-35-baked decorative props (swamp x4 + cemetery x7 +
+//                      town x5 + castle x4), loaded as single static frames by
+//                      main.js's kind:"prop" branch
 
 export const ASSETS_MANIFEST = [
   // --- biome-atlas: 4 entries ---
@@ -68,9 +69,12 @@ export const ASSETS_MANIFEST = [
   // --- music: 1 entry, gate coverage only ---
   { key: "ambient", path: "assets/music/ambient.ogg", kind: "music" },
 
-  // --- prop: 11 entries (Phase 35 trial — swamp x4 + cemetery x7) ---
-  // Baked native-color (0.0% pink) from the vendored Gothicvania packs by
+  // --- prop: 20 entries (Phase 35 — swamp x4 + cemetery x7 + town x5 + castle x4) ---
+  // Baked from the vendored, already-licensed Gothicvania packs by
   // scripts/build-art-assets.py::build_props(); loaded via main.js kind:"prop".
+  // swamp/cemetery/castle are native color (all under the pink gate); town
+  // carries the board's steel-blue-night no-pink pass (215,255,-60) — the town
+  // pack ships a salmon dusk tint that trips the gate natively.
   { key: "prop-swamp-tree", path: "assets/props/swamp-tree.png", kind: "prop" },
   { key: "prop-swamp-reed", path: "assets/props/swamp-reed.png", kind: "prop" },
   { key: "prop-swamp-vine", path: "assets/props/swamp-vine.png", kind: "prop" },
@@ -82,4 +86,15 @@ export const ASSETS_MANIFEST = [
   { key: "prop-cemetery-stone-4", path: "assets/props/cemetery-stone-4.png", kind: "prop" },
   { key: "prop-cemetery-tree", path: "assets/props/cemetery-tree.png", kind: "prop" },
   { key: "prop-cemetery-bush", path: "assets/props/cemetery-bush.png", kind: "prop" },
+  // town (levels 3-4) — pre-sliced street clutter, board steel-blue-night retint
+  { key: "prop-town-barrel", path: "assets/props/town-barrel.png", kind: "prop" },
+  { key: "prop-town-crate", path: "assets/props/town-crate.png", kind: "prop" },
+  { key: "prop-town-street-lamp", path: "assets/props/town-street-lamp.png", kind: "prop" },
+  { key: "prop-town-well", path: "assets/props/town-well.png", kind: "prop" },
+  { key: "prop-town-sign", path: "assets/props/town-sign.png", kind: "prop" },
+  // castle (levels 7-8) — Church-pack pillar + single-panel tileset crops, native
+  { key: "prop-castle-column", path: "assets/props/castle-column.png", kind: "prop" },
+  { key: "prop-castle-candles", path: "assets/props/castle-candles.png", kind: "prop" },
+  { key: "prop-castle-candle-stand", path: "assets/props/castle-candle-stand.png", kind: "prop" },
+  { key: "prop-castle-arch", path: "assets/props/castle-arch.png", kind: "prop" },
 ];
