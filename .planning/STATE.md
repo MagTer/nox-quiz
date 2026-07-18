@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 35
-current_phase_name: Biome Re-dress & Props
+current_phase: 36
+current_phase_name: World Motion & Ambient Life
 status: in-progress
-stopped_at: "2026-07-17 — Phases 34.6 + 34.6.1 CLOSED (user re-played all 8 redo levels on :8080 and APPROVED). Follow-on re-play polish shipped + committed this session: quick task 260717-j24 (goal flag 16→32px decoupled from collider; level-clear sound gain 1.0→0.4) + fix 17ca3b3 (anti-mash settle 250→750ms, harness waits 420→950ms) + a78e545 (smoke-progress fixtures re-baselined to redo geometry — tree now clean). Coin-pop restyle deferred to Phase 35. NEXT: Phase 35 (Biome Re-dress & Props) — context already gathered (35-CONTEXT.md); plan → execute; pauses at the props style sign-off (human gate)."
-last_updated: "2026-07-17T13:50:00.000Z"
-last_activity: 2026-07-17
-last_activity_desc: "34.6 + 34.6.1 approved & closed after user all-8 re-play; re-play polish (flag/sound/anti-mash) shipped; advancing to Phase 35"
+stopped_at: "2026-07-18 — Phase 35 (Biome Re-dress & Props) COMPLETE: all 8 plans executed, full gate suite green, geometry BYTE-FROZEN across all 8 levels (check-geometry-frozen gate proves it). All 8 levels dressed with a collider-free props layer (swamp/town/cemetery/castle); trial checkpoint (35-03) orchestrator-reviewed under user 'run the whole phase' authorization; dead theme-N bake code deleted; the deferred neon-green coin-pop restyled to a dark-grunge gold glint twinkle. 16 code commits (7c156a8..d2fa37b). ART-06 + ART-07 delivered. NEXT: Phase 36 (World Motion & Ambient Life) — patrols/moving platforms/ambient flicker, dt-based + ADHD-safe, placed on the now-dressed levels. Final kid aesthetic sign-off on the dressed world deferred to Phase 38 (VER-02)."
+last_updated: "2026-07-18T00:10:00.000Z"
+last_activity: 2026-07-18
+last_activity_desc: "Phase 35 complete — all 8 levels dressed with props, geometry frozen, coin-pop restyled; advancing to Phase 36"
 progress:
   total_phases: 13
-  completed_phases: 9
-  total_plans: 44
-  completed_plans: 44
-  percent: 69
+  completed_phases: 10
+  total_plans: 63
+  completed_plans: 63
+  percent: 77
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** **Phase 35 — Biome Re-dress & Props.** Phases 34.6 (ALL-8 level redo) and 34.6.1 (re-play polish) are CLOSED as of 2026-07-17 — the user re-played all 8 rebuilt levels and approved; follow-on polish (goal flag 16→32px, level-clear sound gain →0.4, anti-mash settle →750ms) shipped in the same session. Phase 35 context is already gathered (`35-CONTEXT.md`): props layer = restrained/legibility-first, bg + on-surface, extra CC0 where thin, 2-level trial → human sign-off → rest. The deferred coin-pop restyle folds into this phase's art work.
+**Current Focus:** Phase 36 — World Motion & Ambient Life (Phase 35 complete: all 8 levels dressed with a collider-free props layer, geometry byte-frozen, coin-pop restyled)
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -36,13 +36,13 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 35 — Biome Re-dress & Props (next)
-Plan: 0 of N — context gathered (35-CONTEXT.md), ready to plan
-Status: 34.6 + 34.6.1 CLOSED (user approved 2026-07-17); Phase 35 is next
-Also open: nothing blocking — art track resumes on approved final geometry
-Last activity: 2026-07-17 — Completed quick task 260717-j24 (goal flag enlarged 16→32px decoupled from collider; level-clear sound gain lowered to 0.4) during user's ALL-8 re-play; 34.6/34.6.1 human play-test still the open gate
+Phase: 36 (World Motion & Ambient Life) — next
+Plan: 0 of N — not yet planned
+Status: Phase 35 COMPLETE (all 8 dressed, geometry frozen); Phase 36 is next
+Also open: nothing blocking
+Last activity: 2026-07-18 — Phase 35 complete; advancing to Phase 36
 
-Progress: [███████░░░] 69%  (9 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1; remaining: 35, 36, 37, 38)
+Progress: [████████░░] 77%  (10 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35; remaining: 36, 37, 38)
 
 ## v6.0 Roadmap Summary
 
