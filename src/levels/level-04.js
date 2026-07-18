@@ -200,4 +200,28 @@ export const LEVEL_04 = {
   mechanics: [],
   biome: "town", // level 4 of 8 — Castlevania arc calm->harsh (levels 3-4 town)
   parallax: null,
+
+  // --- Decorative props (ART-06/ART-07, Phase 35) — VISUAL-ONLY, top-level (NOT inside
+  // geometry, so check-geometry-frozen never sees them). No colliders; sprite+pos+z only.
+  // Both layers are NEGATIVE z (back -8, surface -3) so a prop can never occlude the
+  // player/coins/terrain/mechanics (legibility-first, §8.5).
+  //
+  // BUDGET-CRITICAL: this is the LONGEST even level, closest to the 650 OBJECT_BUDGET
+  // ceiling (Pitfall 2 / T-35-09), so props here are MINIMAL — a handful of accents on
+  // the three WIDE floors ONLY (F0/F1/F2 at FLOOR_Y 320), OFF both towers' switchback
+  // climb tiers, the high beam traverse, the descents, and the KEY spur (BKEY). On-surface
+  // props use y = surfaceY - spriteHeight. Every prop is clear of the DOOR@360, ENEMY@3100,
+  // the spike@4750, the coins, the KEY, and the GOAL@5000. Sprite pixel sizes (from
+  // build_props): barrel 24x30, crate 39x35, street-lamp 35x108, well 65x65, sign 35x44.
+  props: [
+    // Background depth — a single town street-lamp behind the spawn base (z -8), for the
+    // vertical Clocktower town mood without adding surface clutter.
+    { sprite: "prop-town-street-lamp", x: 110, y: 212, layer: "back" }, // behind F0 spawn (town depth)
+
+    // On-surface accents on the three wide floors ONLY (y = 320 - spriteHeight) — off
+    // every switchback tier, the beam traverse, and the key spur.
+    { sprite: "prop-town-barrel", x: 60, y: 290, layer: "surface" }, //   F0 spawn-left, before the door@360
+    { sprite: "prop-town-crate", x: 2760, y: 285, layer: "surface" }, //  F1 left corner, before the enemy@3100
+    { sprite: "prop-town-sign", x: 4480, y: 276, layer: "surface" }, //   F2 landing corner, before spike@4750
+  ],
 };
