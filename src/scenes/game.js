@@ -149,6 +149,42 @@ export function gameScene(data) {
   // player so the player spawns onto solid ground.
   buildLevel(level);
 
+  // --- MECH-05: persistent alcove-linked ambient light (Phase 36) ---
+  // buildLevel tagged the light-source prop nearest a secret alcove "alcove-light" and
+  // started it DIM (its dt-sine flicker rides a per-light `litLevel` baseline). lightAmbient()
+  // BRIGHTENS every such light — a tween that raises litLevel DIM -> 1 and LEAVES it there
+  // (self-completing like fx.js one-shots; NO reverse, NO scheduler). Positive-only: nothing
+  // is ever dimmed or removed. Engine refs (get, tween, easings) live INSIDE this scene body
+  // (a727c13). A level with no light near its alcove no-ops (get returns []). The brighten is
+  // driven ONLY here — via onDiscover (a genuinely new secret) OR the derived entry call below.
+  function lightAmbient() {
+    for (const light of get("alcove-light")) {
+      // Single-flight (fx.js idiom): cancel any in-flight brighten so an entry-tween and a
+      // later discovery can't double-drive the same light. The handle lives ON the object
+      // (no module-level state — anti-leak); the tween always ends at 1, so an interrupted
+      // brighten still resolves fully lit.
+      if (light._alcoveTween) light._alcoveTween.cancel();
+      light._alcoveTween = tween(
+        light.litLevel ?? 1,
+        1,
+        CONFIG.AMBIENT.ALCOVE_MS / 1000,
+        (v) => {
+          light.litLevel = v;
+        },
+        easings.easeOutQuad,
+      );
+      light._alcoveTween.onEnd(() => {
+        light._alcoveTween = null;
+      });
+    }
+  }
+
+  // Lit-on-entry is DERIVED from the existing persisted fact (progress.hasSecretFound) — NOT a
+  // new stored flag (mirrors the derived-unlock convention). A level whose secret was found in
+  // a prior run renders its linked light ALREADY lit on re-entry. On a fresh (never-found)
+  // level this is skipped, so the light stays DIM until onDiscover fires during play.
+  if (progress.hasSecretFound(level.id)) lightAmbient();
+
   // --- Parallax background (Phase 18 ART-03; biome-driven since Phase 32 Plan 04) ---
   // Camera-driven layers below gameplay z-order; created after the level so
   // bounds are known and before the player so the player draws on top.
@@ -303,6 +339,28 @@ export function gameScene(data) {
     if (goalReached) return; // fire-once: ignore every subsequent overlap frame
     goalReached = true;
 
+    // MOT-03: a small one-shot "unlock" POP on the goal flag at the reach moment — a single
+    // self-cleaning easeOutQuad scale tween that grows to UNLOCK_SCALE then settles back to 1
+    // via a sin arc (peak at midpoint), then .onEnd restores neutral. tween().onEnd ONLY —
+    // never a scheduler (SAFE-01). Purely cosmetic (goalReached latches it to fire once); the
+    // "goal"-tagged collider is untouched. The flag has no scale() comp by default, so add one
+    // with use() before tweening (engine refs inside the scene body — a727c13).
+    for (const flag of get("goalflag")) {
+      flag.use(scale(1));
+      tween(
+        0,
+        1,
+        CONFIG.AMBIENT.UNLOCK_MS / 1000,
+        (v) => {
+          const s = 1 + (CONFIG.AMBIENT.UNLOCK_SCALE - 1) * Math.sin(v * Math.PI);
+          flag.scaleTo(s, s);
+        },
+        easings.easeOutQuad,
+      ).onEnd(() => {
+        if (flag.exists()) flag.scaleTo(1, 1);
+      });
+    }
+
     // Freeze the level while the gate is open. Zero velocity BEFORE pausing
     // (consistent with reset()'s `player.vel = vec2(0)`): running into the goal leaves
     // vel.x = +RUN_SPEED, and `paused` freezes body() integration without clearing it —
@@ -355,6 +413,9 @@ export function gameScene(data) {
     hud,
     levelId: level.id,
     save: () => writeSave(progress.serialize(brain.snapshot())),
+    // MECH-05: discovering the secret permanently brightens the linked dark light for the
+    // rest of the run (positive-only). Fired once, only on a genuinely new secret.
+    onDiscover: () => lightAmbient(),
   });
 
   // KEY-01 (Phase 34.5): the key/lock mechanic — the game's FIRST non-math gate.
@@ -430,5 +491,10 @@ export function gameScene(data) {
     destroyAll("fx");
     if (player.exists() && player._fxScaleTween) player._fxScaleTween.cancel();
     if (clearTransitionTween) clearTransitionTween.cancel();
+    // MECH-05: cancel any in-flight alcove-light brighten so a tween can't keep writing
+    // litLevel on a prop being torn down (same discipline as the player scale tween above).
+    for (const light of get("alcove-light")) {
+      if (light.exists() && light._alcoveTween) light._alcoveTween.cancel();
+    }
   });
 }

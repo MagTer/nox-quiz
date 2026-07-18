@@ -1,4 +1,10 @@
-// src/mechanics/enemy.js — defeat-enemy collision mechanic (MECH-05).
+// src/mechanics/enemy.js — defeat-enemy (math-blocker) collision mechanic.
+//
+// REQUIREMENT-ID NOTE (Phase 36, A3): this header formerly tagged the defeat-enemy
+// mechanic "MECH-05". That was requirement-ID drift — MECH-05 is the secret-alcove
+// PERSISTENT AMBIENT change (a linked dark light brightens on discovery; see
+// src/mechanics/secretAlcove.js + src/scenes/game.js's lightAmbient()). The enemy here is
+// the math-challenge blocker, unrelated to MECH-05. Comment-only fix; behavior unchanged.
 //
 // This module wires the "enemy" tagged solid colliders created by
 // src/levels/build.js onto the player via the SHARED src/ui/challenge.js seam.
