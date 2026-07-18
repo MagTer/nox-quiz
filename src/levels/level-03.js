@@ -203,4 +203,35 @@ export const LEVEL_03 = {
   mechanics: [],
   biome: "town", // level 3 of 8 — Castlevania arc calm->harsh (levels 3-4 town)
   parallax: null,
+
+  // --- Decorative props (ART-06/ART-07, Phase 35) — VISUAL-ONLY, top-level (NOT
+  // inside geometry, so check-geometry-frozen never sees them). No colliders;
+  // buildLevel emits sprite+pos+z ONLY. Both layers render at NEGATIVE z (back -8,
+  // surface -3), structurally BEHIND the z(0) player/coins/terrain/mechanics — a prop
+  // can never occlude a route, coin, hazard, or the door/enemy/goal (legibility-first,
+  // §8.5). RESTRAINED: town is the RICH-vocabulary biome, so this street dressing stays
+  // deliberately UNDER-dressed — a handful of accents, never clutter.
+  //
+  // Placement rules honored: on-surface props use y = surfaceY - spriteHeight (street
+  // surface = FLOOR_Y 320) so the base rests on the floor; every prop is kept OFF the
+  // rooftop climb lanes (ROOF0/1/2), the market-stall fork, and clear of the DOOR@1060,
+  // ENEMY@2680, the four spikes (2820/3580/4460/6240), the coins, and the GOAL@7500.
+  // Sprite pixel sizes (from build_props): barrel 24x30, crate 39x35, street-lamp 35x108,
+  // well 65x65, sign 35x44.
+  props: [
+    // Background street furniture (layer "back", z -8) for town depth — a lamp down in
+    // the street below the spawn rooftop, and a well behind the mid street. Base at the
+    // floor line; z(-8) keeps them behind every traversal surface.
+    { sprite: "prop-town-street-lamp", x: 300, y: 212, layer: "back" }, // town depth below the spawn rooftop
+    { sprite: "prop-town-well", x: 4400, y: 255, layer: "back" }, //     background well behind the F5 street
+
+    // On-surface street dressing on clear street floors (y = 320 - spriteHeight), each
+    // clear of every mechanic/coin and OFF the roof/fork climb lanes.
+    { sprite: "prop-town-barrel", x: 880, y: 290, layer: "surface" }, //      F1 left corner, before the door@1060
+    { sprite: "prop-town-crate", x: 1810, y: 285, layer: "surface" }, //      F2, between coins (1700/1950)
+    { sprite: "prop-town-street-lamp", x: 2510, y: 212, layer: "surface" }, // F3 left, before the enemy@2680
+    { sprite: "prop-town-barrel", x: 3400, y: 290, layer: "surface" }, //      F4 left, before spike@3580
+    { sprite: "prop-town-crate", x: 5420, y: 285, layer: "surface" }, //      F6 right corner (clear of coin@5240)
+    { sprite: "prop-town-sign", x: 6970, y: 276, layer: "surface" }, //       F8 run-in, left of the goal@7500
+  ],
 };
