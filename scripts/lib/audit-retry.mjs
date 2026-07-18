@@ -34,7 +34,14 @@
 // run-to-run timing difference, not a deterministic bug, i.e. precisely what a
 // resolution retry is for.
 
-import { deriveEncounters, driveToXPlanned, resolveIfBoxed, driveAndDetectAlcove } from './mechanic-drive.mjs';
+import {
+  deriveEncounters,
+  driveToXPlanned,
+  resolveIfBoxed,
+  driveAndDetectAlcove,
+  driveToMover,
+  driveToPatroller,
+} from './mechanic-drive.mjs';
 import { CONFIG } from '../../src/config.js';
 
 /**
@@ -146,6 +153,22 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
         // fails to redetect it.
         everTriggered = outcome.triggered || (previous?.triggered ?? false);
         resolved = outcome.resolved || (previous?.resolved ?? false);
+      } else if (encounter.tag === "mover") {
+        // Phase 36 (MOT-02): a moving platform is a MOTION encounter, not a
+        // challenge-opener — it has its own ride detector (driveToMover RIDES the
+        // platform and proves native stickToPlatform carry). Same OR-across-attempts
+        // contract as the alcove branch: a previously-true ride is never regressed by a
+        // later attempt's own miss.
+        const outcome = await driveToMover(page, encounter, level.geometry);
+        everTriggered = outcome.triggered || (previous?.triggered ?? false);
+        resolved = outcome.resolved || (previous?.resolved ?? false);
+      } else if (encounter.tag === "patroller") {
+        // Phase 36 (MOT-01): a patroller is a forgiving respawn-hazard, not a
+        // challenge-opener — driveToPatroller CROSSES the path and asserts contact fired
+        // the existing respawn seam (a backward pos snap). Same OR-across-attempts contract.
+        const outcome = await driveToPatroller(page, encounter, level.geometry);
+        everTriggered = outcome.triggered || (previous?.triggered ?? false);
+        resolved = outcome.resolved || (previous?.resolved ?? false);
       } else {
         // Phase 24 close-out: driveToXPlanned (geometry-informed walk + planned
         // takeoffs) replaced driveToXClimbing (blind jump-whenever-grounded). Walking
@@ -172,7 +195,12 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
         attempts: (previous?.attempts ?? 0) + 1,
       });
 
-      if (!everTriggered && encounter.tag !== "secret-alcove") {
+      if (
+        !everTriggered &&
+        encounter.tag !== "secret-alcove" &&
+        encounter.tag !== "mover" &&
+        encounter.tag !== "patroller"
+      ) {
         // Matches driveToXClimbing's existing sequential-approach semantics (preserved
         // from the retired single-pass caller): an untriggered mechanic blocks progress
         // to later encounters within the SAME attempt/pass, since the player never
@@ -182,6 +210,13 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
         // secretAlcove.js's own header contract — "this is a walk-through bonus") —
         // an untriggered/unresolved alcove must not prevent the audit from reaching
         // later door/mathGate/enemy encounters in the same attempt.
+        // Phase 36 (MOT-01/MOT-02) fix: movers and patrollers get the SAME exemption. A
+        // mover the audit failed to mount this attempt, or a patroller it did not reach,
+        // is NOT a blocking collider that stops the player's forward progress (the player
+        // simply walks under/past it), so an unresolved mover/patroller must not silently
+        // abort the pass and starve every LATER encounter — the retry budget still gets
+        // its chance, and an un-ridden/un-crossed row still FAILS the caller's
+        // triggered+resolved gate (never relaxed — T-36-04).
         break;
       }
     }

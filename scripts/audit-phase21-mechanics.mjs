@@ -288,8 +288,15 @@ try {
   //
   // WR-03 (Phase 29 review): the `r.tag === "answer-zone"` special case was dropped —
   // deriveEncounters() (scripts/lib/mechanic-drive.mjs) never produces that tag any more
-  // (collect.js and its answer-zone mechanic are gone); every encounter is now door/
-  // math-gate/enemy and must be both triggered AND resolved to pass.
+  // (collect.js and its answer-zone mechanic are gone).
+  // Phase 36 (36-02) update: deriveEncounters() now also emits secret-alcove/mover/
+  // patroller encounters (auditLevelWithRetries dispatches each to its own drive+detect
+  // signal — challenge-resolve for door/math-gate/enemy, alcove-touch for secret-alcove,
+  // ride for mover, cross-and-respawn for patroller). Every encounter of EVERY kind must
+  // be both triggered AND resolved to pass — the gate is unchanged and never relaxed for
+  // the motion rows. (No mover/patroller is placed on the 8 shipped levels yet — those
+  // land in later plans — so this run still only exercises the door/math-gate/enemy/
+  // alcove kinds; the motion path is proven by scripts/audit-motion-fixture.mjs.)
   const allResolved = results.every((r) => r.triggered === true && r.resolved === true);
 
   if (allResolved) {
