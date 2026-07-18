@@ -195,6 +195,43 @@ export const LEVEL_04 = {
 
     // Exactly ONE secret alcove — ~70px above A1's surface (y:246). Off the required path.
     secretAlcove: [{ x: 720, y: 176 }],
+
+    // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
+    // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
+    // HEAVIER density for the INTENSE-EVEN twin-towers town: ONE moving platform + TWO
+    // patrollers (3 motion entities, the level-06 intense template), each authored to the
+    // §6a/§6b HARD rules — both mover endpoints reachable RIGHTWARD from spawn, a checkpoint
+    // before each, solid floor UNDER the mover (miss = WAIT, no killing pit), far end
+    // telegraphed. The mover is the LAST audit encounter (past the enemy@3100 and both
+    // towers, on the wide F2 goal floor's LANDING) so riding it strands no later
+    // blocker-drive; the two patrollers are HOVERING WRAITHS at y:214 over FLAT grounded
+    // walk-lanes (walk under / jump into) OFF every tower climb tier, the beam traverse, the
+    // descents, and every takeoff/landing band. Layout authored DISTINCT from level-02
+    // (swamp spire) — F2-landing mover + F0/F1 street-level wraiths, not F8/F1/F5.
+    movers: [
+      // M0 — a lateral ferry over the WIDE F2 goal floor's LANDING (4460..5260), placed in
+      // the flat stretch AFTER the BD5->F2 descent landing (~4460) and clear to the LEFT of
+      // both the spike@4750 jump-band and the goal@5000. Right extent (4570 + 90 = 4660)
+      // stays ~90px left of the spike takeoff (~4700..4750) so a JUMPING driver clears the
+      // mover's underside; solid F2 floor (to 5260) runs beneath and past it (miss = WAIT,
+      // no killing pit). Both endpoints y:250 = rise 70 from FLOOR_Y 320 → reachability
+      // PASS/WARN (from F2, rightward). Behind checkpoint@4500 (F2 landing); the goal-drive
+      // walks under it (head 288 vs ledge 250..266 = 22px) then jumps the spike to the goal.
+      { x1: 4500, y1: 250, x2: 4570, y2: 250, w: 90 },
+    ],
+    patrollers: [
+      // P0 — a town WRAITH hovering at y:214 over the FLAT F0 spawn lane (0..640) AFTER the
+      // door@360 and BEFORE the Tower-A A1 mount takeoff (~600), sweep 460..560. Behind
+      // checkpoint@96; a contact respawns there and re-walks the ALREADY-open door (no
+      // re-gate). Walking passes beneath (head 288 vs frame bottom 266); a jump meets it.
+      { x1: 460, y1: 214, x2: 560, y2: 214 },
+      // P1 — a town WRAITH hovering at y:214 over the FLAT mid-valley F1 lane (2740..3340),
+      // in the GROUNDED stretch AFTER the enemy@3100 and BEFORE the Tower-B B1 mount takeoff
+      // (~3340), sweep 3200..3300. Behind checkpoint@3180 (F1, past the enemy); a contact
+      // respawns there (enemy already answered — no re-gate). Distinct "patroller" walk
+      // sprite (36-10) reads apart from the math-blocker enemy@3100.
+      { x1: 3200, y1: 214, x2: 3300, y2: 214 },
+    ],
   },
 
   mechanics: [],
@@ -223,5 +260,15 @@ export const LEVEL_04 = {
     { sprite: "prop-town-barrel", x: 60, y: 290, layer: "surface" }, //   F0 spawn-left, before the door@360
     { sprite: "prop-town-crate", x: 2760, y: 285, layer: "surface" }, //  F1 left corner, before the enemy@3100
     { sprite: "prop-town-sign", x: 4480, y: 276, layer: "surface" }, //   F2 landing corner, before spike@4750
+
+    // Phase 36 (MOT-03/MECH-05): the town LIGHT that marks + links the secret alcove — a
+    // street-lamp on Tower-A's A1 tier (y:246) directly below the alcove@(720,176): base
+    // rests on A1 (y = 246 - 108 lamp height = 138), dist to the alcove = 176-138 = 38px <
+    // LINK_DIST 96, so build.js auto-tags it "alcove-light" (starts DIM, brightens on
+    // discovery) — NO descriptor field needed. Renders at z(-3), structurally BEHIND the
+    // z(0) climb/player so it marks the alcove without occluding the Tower-A route
+    // (legibility-first). The 36-04 flicker selector (/lantern|lamp|candle/) also gives it +
+    // the existing back-layer lamp@110 an ambient flame flicker.
+    { sprite: "prop-town-street-lamp", x: 720, y: 138, layer: "surface" },
   ],
 };
