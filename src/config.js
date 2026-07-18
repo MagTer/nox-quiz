@@ -298,6 +298,44 @@ export const CONFIG = {
     WALK_SPEED: 10, // fps — "walk" anim frame rate (read by main.js's patroller loadSprite via CONFIG.PATROLLER?.WALK_SPEED). 8 frames at 10fps = a ~0.8s stride telegraph.
   },
 
+  // --- Ambient life (MOT-03 + MECH-05; Phase 36) — PURE-VISUAL loop tunables ---
+  // Every value here drives a COSMETIC ambient effect that adds NO collider and never
+  // touches gameplay/counting. Two loop kinds only, both SAFE-01 clean (no scheduler):
+  //   1. dt-sine FLICKER on light-source props (continuous onUpdate + dt() in build.js).
+  //   2. self-cleaning tween().onEnd() one-shots (the goal unlock pop + the MECH-05
+  //      alcove-light brighten in game.js).
+  // Read ONLY by src/levels/build.js (flicker + alcove-link detection) and
+  // src/scenes/game.js (unlock pop + lightAmbient()). No magic numbers in those modules.
+  AMBIENT: {
+    // Light-source flicker: a light prop's opacity rides BASE..BASE+AMP on a dt-sine.
+    // Modest + NON-STROBING (ADHD-safe): 0.82..1.0 swing, nested sines for an organic,
+    // non-periodic flame feel. Selector is a sprite-key substring match on
+    // lantern|lamp|candle — covers ALL FOUR biomes' light keys: prop-swamp-lantern +
+    // prop-cemetery-lantern (36-10) alongside prop-town-street-lamp / prop-castle-candles
+    // / prop-castle-candle-stand. dt-driven onUpdate — NO setTimeout/wait/loop (SAFE-01).
+    BASE: 0.82, // 0..1 — opacity floor of a fully-lit flickering light
+    AMP: 0.18, // 0..1 — opacity swing added on top of BASE (peak BASE+AMP = 1.0)
+    FREQ: 9, // rad/s — primary flicker frequency (a gentle shimmer, not a strobe)
+    FREQ2: 23, // rad/s — inner second-harmonic frequency (breaks the periodic look)
+
+    // MECH-05 persistent alcove light: the light-source prop nearest a secretAlcove
+    // (within LINK_DIST) starts DIM — its flicker rides a per-light `litLevel` baseline
+    // (opacity = flicker * litLevel). Discovering the alcove — or entering a level whose
+    // secret was already found in a prior run (state DERIVED from progress.hasSecretFound,
+    // never a new persisted flag) — tweens litLevel DIM -> 1 and LEAVES it there. Positive-
+    // only: nothing is ever dimmed or taken away. A level with no light near its alcove
+    // simply no-ops (get("alcove-light") is empty).
+    DIM: 0.4, // 0..1 — litLevel baseline of an UNDISCOVERED alcove light (dim but visible)
+    LINK_DIST: 96, // px — max prop->alcove distance to treat a light as that alcove's linked light
+    ALCOVE_MS: 500, // ms — the dim->lit brighten tween duration (one easeOutQuad, NO reverse)
+
+    // Goal unlock pop: a one-shot self-cleaning scale pop on the goal flag at the reach
+    // moment — grows to UNLOCK_SCALE then settles back to 1 via a single easeOutQuad
+    // tween().onEnd (sin arc, peak at midpoint). NEVER a scheduler; purely cosmetic.
+    UNLOCK_SCALE: 1.3, // unitless — peak scale of the goal unlock pop
+    UNLOCK_MS: 260, // ms — unlock pop duration (brief, non-strobing)
+  },
+
   // --- Progression / XP (ported VERBATIM from archive/math-lab.html 604-619 — DO NOT re-tune) ---
   // The XP-per-table amounts and the level-threshold curve are the validated v1/v2 values.
   // Read by src/progress.js (Phase 11 Wave 1) only. HARD_TABLES/EASY_TABLES are intentionally

@@ -471,13 +471,60 @@ export function buildLevel(levelData) {
   // everything else (background, the default) at CONFIG.PROPS.Z_BACK — BOTH
   // negative, so a prop can never occlude the z(0) player/coins/terrain/mechanics.
   // Guarded with ?? [] so the not-yet-dressed levels (no props field) still build.
+  //
+  // AMBIENT LIFE (MOT-03/MECH-05; Phase 36): a light-source prop (sprite key matching
+  // LIGHT_RE — lantern|lamp|candle, ALL four biomes' light keys) gets a continuous
+  // dt-sine FLICKER on its opacity: a pure `onUpdate` + `dt()` visual loop, NO scheduler
+  // (SAFE-01), NO area()/body() (props stay collider-free — cosmetic only). The flicker
+  // rides a per-light `litLevel` baseline (opacity = flicker * litLevel), so the MECH-05
+  // alcove-linked light can start DIM and be brightened later without a second opacity
+  // writer fighting this loop.
+  //
+  // MECH-05 link (no descriptor edit — reads EXISTING placed props/entities): the light
+  // nearest a geometry.secretAlcove entry (within CONFIG.AMBIENT.LINK_DIST) is tagged
+  // "alcove-light" and starts at litLevel DIM. 36-10 placed exactly one lantern directly
+  // below the alcove in the swamp (level-01) and cemetery (level-06) biomes for this; every
+  // other level's lights sit far from any alcove and flicker at full litLevel 1. game.js's
+  // lightAmbient() tweens a tagged light's litLevel DIM -> 1 on discovery (or on entry when
+  // already found — DERIVED from progress.hasSecretFound), positive-only.
+  const LIGHT_RE = /lantern|lamp|candle/; // MOT-03 flicker selector — all 4 biomes' light keys
+  const alcovesForLink = g.secretAlcove ?? [];
   for (const pr of levelData.props ?? []) {
-    add([
+    const isLight = LIGHT_RE.test(pr.sprite);
+    // A light is "alcove-linked" if it sits within LINK_DIST of any secret alcove.
+    const linked =
+      isLight &&
+      alcovesForLink.some(
+        (a) => Math.hypot(a.x - pr.x, a.y - pr.y) <= CONFIG.AMBIENT.LINK_DIST,
+      );
+    const propObj = add([
       sprite(pr.sprite),
       pos(pr.x, pr.y),
       z(pr.layer === "surface" ? CONFIG.PROPS.Z_SURFACE : CONFIG.PROPS.Z_BACK),
+      opacity(1),
       "prop",
+      // Tag alcove-linked lights so game.js's lightAmbient() can find + brighten them.
+      ...(linked ? ["alcove-light"] : []),
     ]);
+
+    if (isLight) {
+      // litLevel: the flicker's brightness baseline. Alcove-linked lights start DIM (MECH-05,
+      // brightened on discovery); every other light burns full (litLevel 1). Plain property
+      // (not a component) — game.js's lightAmbient() tweens it up; this loop reads it.
+      propObj.litLevel = linked ? CONFIG.AMBIENT.DIM : 1;
+      let ft = 0; // closure-local phase accumulator PER prop — never module-level (anti-leak)
+      propObj.onUpdate(() => {
+        // dt-based, scheduler-free (SAFE-01). Two nested sines = an organic, non-periodic
+        // flame flicker; multiplied by litLevel so a dim alcove light stays proportionally dim.
+        ft += dt();
+        const flick =
+          CONFIG.AMBIENT.BASE +
+          CONFIG.AMBIENT.AMP *
+            (0.5 +
+              0.5 * Math.sin(ft * CONFIG.AMBIENT.FREQ + Math.sin(ft * CONFIG.AMBIENT.FREQ2)));
+        propObj.opacity = flick * propObj.litLevel;
+      });
+    }
   }
 
   // --- Moving platforms (MOT-02; Phase 36 — dt raised-cosine ping-pong, native carry) ---
