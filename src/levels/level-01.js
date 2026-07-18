@@ -210,6 +210,38 @@ export const LEVEL_01 = {
     // Exactly ONE secret alcove — ~70px above PA's surface (y:254). Off the required
     // path, never signposted. NO key/lock (odd archetype).
     secretAlcove: [{ x: 320, y: 184 }],
+
+    // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
+    // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
+    // LIGHT density for the calm ODD level (the most forgiving of the eight): ONE moving
+    // platform + ONE patroller, authored to LEVEL-DESIGN §6a/§6b —
+    //   * BOTH ping-pong endpoints reachable RIGHTWARD from spawn (§6a validator limit),
+    //   * a checkpoint before each (§6b rule 1),
+    //   * a solid floor UNDER each so a miss means WAIT, never a killing pit (§6b rule 2),
+    //   * the far end visible from the mount ledge (§6b rule 4, telegraphed).
+    movers: [
+      // M0 — a lateral ferry shuttling over the CLEAN F4 island (3360..3700), WHOLLY above
+      // solid floor: a missed hop just lands back on F4 to wait (no killing pit). Behind
+      // checkpoint@3380. Both endpoints at y:250 = rise 70 from FLOOR_Y 320, inside the
+      // ~88px jump envelope → mover-reachability PASS (from F4 floor, rightward). The
+      // running goal-drive WALKS UNDER it (player head 288 vs ledge collider 250..266 =
+      // 22px clearance); the audit mounts it with a rightward hop from F4.
+      { x1: 3420, y1: 250, x2: 3560, y2: 250, w: 130 },
+    ],
+    patrollers: [
+      // P0 — a slow, telegraphed swamp WRAITH hovering over the CLEAN F2 island
+      // (1620..1980), behind checkpoint@1640. It floats at y:214 (bottom of its 52px frame
+      // at 266, a 22px gap ABOVE the walking player's head at 288) over the FLAT mid-lane,
+      // clear of the F2->fork takeoff (~1955): a player just WALKING the calm low path
+      // passes safely beneath it, but a player who JUMPS here (apex feet ~232) meets it —
+      // a gentle, telegraphed air-hazard whose contact is a checkpoint respawn only
+      // (WAIT-not-death, §6b). The 1770..1880 sweep leaves a clear passing window; the
+      // distinct "patroller" walk sprite (36-10) reads apart from the math-blocker
+      // enemy@2700. (Grounded on the narrow required floor lane would force the automated
+      // spawn->goal driver — which walks, never times a window — into a respawn loop and
+      // break the no-softlock browser-boot proof; hovering keeps the walk-lane clear.)
+      { x1: 1770, y1: 214, x2: 1880, y2: 214 },
+    ],
   },
 
   // --- Forward-looking optional slots (buildLevel ignores them when unset) ---
