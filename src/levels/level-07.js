@@ -176,4 +176,33 @@ export const LEVEL_07 = {
   mechanics: [],
   biome: "castle", // level 7 of 8 — Castlevania arc calm->harsh (levels 7-8 castle)
   parallax: null,
+
+  // --- Decorative props (ART-06/ART-07; Phase 35 — VISUAL-ONLY, geometry byte-frozen) ---
+  // The RESTRAINED castle vocabulary (plan-03-approved density) from the plan-05 bake:
+  //   prop-castle-column 114x190 (tall gothic pillar), prop-castle-arch 32x64 (pointed
+  //   window), prop-castle-candles 31x21 (wall sconce), prop-castle-candle-stand 15x25.
+  // level-07 is a HORIZONTAL wall-walk (bounds.top 0) — so the "back" props are anchored
+  // as intentional wall/battlement dressing along the lateral run (base resting on the
+  // floor/walk line, NOT floating high in a shaft). On-surface accents sit only on the
+  // WIDE low floors (W1/W2/W4) and the broad tower top, at clear margins — never on the
+  // narrow WALK/merlon/drawbridge/fork/tower LANE. Every prop is clear of the DOOR@380,
+  // ENEMY@3700, the three spikes (2800/3800/4650), the coins, the GOAL@5580, and the
+  // secret alcove@690. On-surface y = surfaceY - spriteHeight.
+  props: [
+    // Background gothic pillars + arch windows (layer "back", z -8 — behind every
+    // traversal surface) as battlement wall dressing along the horizontal run. Columns
+    // rest on the floor line (y = 320 - 190 = 130); arches are battlement windows at
+    // walk height. All stay inside the 0..360 screen band (bounds.top 0 — no tall shaft).
+    { sprite: "prop-castle-column", x: 60, y: 130, layer: "back" }, //   frames the spawn wall (left of the door@380)
+    { sprite: "prop-castle-arch", x: 1580, y: 124, layer: "back" }, //   battlement window in the WALK2/WALK3 gap depth
+    { sprite: "prop-castle-column", x: 4780, y: 130, layer: "back" }, //  frames the base of the final TOWER climb (behind TW1@4930)
+    { sprite: "prop-castle-arch", x: 5420, y: 58, layer: "back" }, //     far window crowning the keep, left of the goal@5580
+
+    // On-surface castle light-sources (layer "surface", z -3) on the WIDE low floors and
+    // the broad tower top, at clear margins — restrained, off the wall-walk lane.
+    { sprite: "prop-castle-candle-stand", x: 250, y: 295, layer: "surface" }, // W1, between coin@150 and the door@380
+    { sprite: "prop-castle-candles", x: 2960, y: 299, layer: "surface" }, //     W2 right end, past spike@2800 + coin@2900
+    { sprite: "prop-castle-candle-stand", x: 4860, y: 295, layer: "surface" }, // W4 right end, past spike@4650 + coin@4760
+    { sprite: "prop-castle-candles", x: 5720, y: 101, layer: "surface" }, //     TT tower top, right of the goal@5580 (throne accent)
+  ],
 };
