@@ -344,9 +344,17 @@ export const CONFIG = {
     DUST_SPREAD: 8, // px — horizontal spread between dust particles
     DUST_RISE: 16, // px — how far dust rises before fading out
     DUST_MS: 300, // ms — dust rise + fade duration
-    POP_SIZE: 9, // px — coin pop marker base footprint (independent of DUST_SIZE; IN-02)
-    POP_SCALE: 1.5, // unitless — coin/collect pop peak scale
+    // Coin/collect pop — a dark-grunge "glint + radiating sparks" twinkle (Phase 35
+    // Plan 08 restyle): the old flat POP_SIZE rect read as a missing-sprite placeholder
+    // (2026-07-17 play-test). Now a small 45°-rotated diamond core flashes while a ring
+    // of POP_SPARK_COUNT diamond sparks flies outward + fades — one easeOutQuad fade per
+    // transient, self-cleaning via tween().onEnd (no scheduler, non-strobing, no collider).
+    POP_SIZE: 9, // px — collect glint core footprint (rendered as a 45°-rotated diamond; independent of DUST_SIZE; IN-02)
+    POP_SCALE: 1.5, // unitless — collect glint core peak scale
     POP_MS: 220, // ms — coin/collect pop duration (brief)
+    POP_SPARK_COUNT: 6, // count — radiating diamond sparks in the collect twinkle
+    POP_SPARK_SIZE: 4, // px — each collect spark's square (rendered as a 45°-rotated diamond)
+    POP_SPARK_DIST: 14, // px — how far each spark flies outward from the collect point before fading
     BURST_MS: 400, // ms — level-clear burst duration (<= HUD.FLASH_MS feel; non-strobing)
     BURST_SIZE: 80, // px — level-clear burst base square footprint (IN-03)
     BURST_GROW: 4, // unitless — burst peak scale; grows 1 -> BURST_GROW over BURST_MS (IN-03)

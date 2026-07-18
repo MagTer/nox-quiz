@@ -169,39 +169,84 @@ export function popupText(at, label) {
 }
 
 /**
- * A quick neon-green scale-pop + fade at `at` (world-space), then self-destroy.
+ * A quick neon-green collect twinkle at `at` (world-space), then self-destroy.
  *
- * Fired on coin collect at the coin's spot — coins stay count-only, so there is NO
- * "+1" / text, just a brief mark. One smooth easeOutQuad fade: scale grows 1 ->
- * POP_SCALE while opacity fades 1 -> 0 over POP_MS, then .onEnd(destroy). Tagged "fx".
+ * RESTYLE (Phase 35 Plan 08): the old flat POP_SIZE rect read as a missing-sprite
+ * placeholder (2026-07-17 play-test). It is now a dark-grunge "glint": a small
+ * 45°-rotated diamond CORE that flashes (scale 1 -> POP_SCALE, opacity 1 -> 0) while
+ * a ring of POP_SPARK_COUNT diamond SPARKS flies outward (POP_SPARK_DIST) and fades —
+ * a legible collect flourish rather than a solid box. Fired on coin/key/alcove collect
+ * at the item's spot — coins stay count-only, so there is NO "+1"/text, just the mark.
  *
- * @param {Vec2} at  the coin's position (pass a .clone() — the coin is destroyed right after).
+ * Every transient is a pure sprite-less rect() with NO area()/body() — visual only, so
+ * it can never affect coin counting or add a collider. Each animates with ONE smooth
+ * easeOutQuad fade and self-cleans via tween().onEnd(destroy) — no scheduler, no strobe
+ * (SAFE-01 / SAFE-03). The diamonds share CONFIG.PALETTE.REWARD (NO pink). Every engine
+ * global here is referenced INSIDE this body only (a727c13). Tagged "fx".
+ *
+ * @param {Vec2} at  the item's position (pass a .clone() — the item is destroyed right after).
  */
 export function pop(at) {
   const F = CONFIG.FX;
+  const [r, g, b] = CONFIG.PALETTE.REWARD; // dark-grunge reward accent (NO pink)
 
-  const marker = add([
-    rect(F.POP_SIZE, F.POP_SIZE), // dedicated pop footprint — decoupled from DUST_SIZE (IN-02)
+  // Central glint: a 45°-rotated diamond that flashes bigger + fades once. The rotation
+  // is what turns the old axis-aligned "box" into a spark/glint that reads as intentional.
+  const core = add([
+    rect(F.POP_SIZE, F.POP_SIZE),
     pos(at.x, at.y),
-    color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]), // neon-green
+    color(r, g, b),
     opacity(1),
     anchor("center"),
+    rotate(45),
     scale(1),
     z(60),
     "fx",
   ]);
-
   tween(
     0,
     1,
     F.POP_MS / 1000,
     (v) => {
       const s = 1 + (F.POP_SCALE - 1) * v;
-      marker.scaleTo(s, s);
-      marker.opacity = 1 - v;
+      core.scaleTo(s, s);
+      core.opacity = 1 - v;
     },
     easings.easeOutQuad,
-  ).onEnd(() => destroy(marker));
+  ).onEnd(() => destroy(core));
+
+  // Radiating sparks: POP_SPARK_COUNT small diamonds evenly spaced around a ring, each
+  // flying outward POP_SPARK_DIST while fading — a brief collect burst. Mirrors dust()'s
+  // per-particle rise/fade idiom (multi-particle, each self-cleaning; no scheduler).
+  for (let i = 0; i < F.POP_SPARK_COUNT; i++) {
+    const ang = (i / F.POP_SPARK_COUNT) * Math.PI * 2;
+    const dx = Math.cos(ang);
+    const dy = Math.sin(ang);
+    const startX = at.x;
+    const startY = at.y;
+
+    const spark = add([
+      rect(F.POP_SPARK_SIZE, F.POP_SPARK_SIZE),
+      pos(startX, startY),
+      color(r, g, b),
+      opacity(1),
+      anchor("center"),
+      rotate(45),
+      z(60),
+      "fx",
+    ]);
+    tween(
+      0,
+      1,
+      F.POP_MS / 1000,
+      (v) => {
+        spark.pos.x = startX + dx * F.POP_SPARK_DIST * v;
+        spark.pos.y = startY + dy * F.POP_SPARK_DIST * v;
+        spark.opacity = 1 - v;
+      },
+      easings.easeOutQuad,
+    ).onEnd(() => destroy(spark));
+  }
 }
 
 /**
