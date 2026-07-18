@@ -278,6 +278,50 @@ export const LEVEL_02 = {
     // Exactly ONE secret alcove, ~70px above the spawn-area optional platform PA
     // (x:280, y:254, w:120) — off the required path, never signposted.
     secretAlcove: [{ x: 320, y: 184 }],
+
+    // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
+    // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
+    // HEAVIER density for the INTENSE-EVEN swamp spire: ONE moving platform + TWO
+    // patrollers (3 motion entities, matching the level-06 intense template), each
+    // authored to the LEVEL-DESIGN §6a/§6b HARD rules —
+    //   * BOTH mover endpoints reachable RIGHTWARD from spawn (§6a static-validator limit),
+    //   * a checkpoint before each (§6b rule 1),
+    //   * solid floor UNDER the mover so a miss = WAIT, never a killing pit (§6b rule 2),
+    //   * far end telegraphed (§6b rule 4).
+    // Placement discipline (the level-05/06 trial finding): a ridden mover parks the player
+    // ELEVATED and strands the x-sorted audit's NEXT blocker-drive, so the mover is the
+    // LAST encounter (past the enemy@6030, on the wide calm F8 run-in); the two patrollers
+    // are HOVERING WRAITHS at y:214 over FLAT grounded walk-lanes (the walk-only
+    // spawn->goal driver passes safely beneath — no-softlock browser-boot proof — while a
+    // JUMPING player still meets each). NONE placed on a spire climb/descent lane or a
+    // takeoff/landing band (a solid mover in an airborne band catches the descending
+    // driver; a wraith over a jump takeoff respawn-loops it). Swamp-legibility (36-06 flag):
+    // both wraiths ride the OPEN horizontal floor runs where they read clearest.
+    movers: [
+      // M0 — a lateral ferry over the WIDE calm F8 run-in (7000..7480), the level's LAST
+      // audit encounter (riding it strands no later blocker-drive — enemy@6030 is already
+      // past). Placed in F8's LEFT-CENTRE, clear of the F7->F8 landing arc (~7020) and the
+      // GOAL@7360 runway: right extent (7150 + 110 = 7260) stays 100px left of the goal, and
+      // F8's solid floor runs to 7480 (120px PAST the goal) so an audit-mount overshoot lands
+      // on floor, never a pit. Both endpoints y:250 = rise 70 from FLOOR_Y 320 (inside the
+      // ~88px envelope) → mover-reachability PASS/WARN (from F8, rightward). Behind
+      // checkpoint@7040; solid F8 under it → a missed hop lands back on F8 to WAIT
+      // (no killing pit). The goal-drive walks under it (head 288 vs ledge 250..266 = 22px).
+      { x1: 7050, y1: 250, x2: 7150, y2: 250, w: 110 },
+    ],
+    patrollers: [
+      // P0 — a slow swamp WRAITH hovering at y:214 over the FLAT F1 lane (600..1040) AFTER
+      // the door@800 and BEFORE the F1->F2 gap takeoff (~1040), sweep 900..1000. Behind
+      // checkpoint@720; a contact respawns there and re-walks the ALREADY-open door (no
+      // re-gate). Walking passes beneath (head 288 vs frame bottom 266); a jump here meets it.
+      { x1: 900, y1: 214, x2: 1000, y2: 214 },
+      // P1 — a swamp WRAITH hovering at y:214 over the FLAT F5 lane (4420..4900), in the
+      // GROUNDED stretch AFTER the descent-1 landing (~4470) and BEFORE the spire-2 U1
+      // mount takeoff (~4700), sweep 4560..4660. Behind checkpoint@4460 (the F5 landing);
+      // a contact respawns there (door already open — no re-gate). Its distinct "patroller"
+      // walk sprite (36-10) reads apart from the math-blocker enemy@6030.
+      { x1: 4560, y1: 214, x2: 4660, y2: 214 },
+    ],
   },
 
   mechanics: [],
@@ -315,5 +359,15 @@ export const LEVEL_02 = {
     { sprite: "prop-swamp-reed", x: 4600, y: 285, layer: "surface" }, // F5, left of the spire-2 mount
     { sprite: "prop-swamp-fern", x: 6470, y: 288, layer: "surface" }, // F7, left of spike@6660
     { sprite: "prop-swamp-reed", x: 7040, y: 285, layer: "surface" }, // F8 run-in, left of the goal
+
+    // Phase 36 (MOT-03/MECH-05): the swamp LIGHT — a bog lantern on the spawn floor F0
+    // directly below the secret alcove@(320,184), marking it. This is the *-lantern the
+    // 36-04 flicker selector matches (LIGHT_RE /lantern|lamp|candle/) and the light the
+    // MECH-05 link brightens on discovery: dist to the alcove = 242-184 = 58px < LINK_DIST
+    // 96, so build.js auto-tags it "alcove-light" (starts DIM, lit on discovery) — NO
+    // descriptor field needed. On-surface: y = FLOOR_Y(320) - 78 = 242. Clear of the spawn
+    // (x~64), the DOOR@800, the spikes, and every mechanic. (level-02 had NO light before
+    // 36-07 — the swamp intense level's first ambient torch, mirroring level-01's lantern.)
+    { sprite: "prop-swamp-lantern", x: 320, y: 242, layer: "surface" },
   ],
 };
