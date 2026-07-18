@@ -219,6 +219,14 @@ export function gameScene(data) {
   // construct of any kind is introduced (CONTEXT-locked, ADHD-safe).
   player.onCollide("spike", () => respawn());
 
+  // Patrollers (MOT-01; Phase 36): the gentle respawn-hazard class — touching a
+  // moving "patroller" (built distinctly from the "enemy" math-blocker in build.js)
+  // routes into the EXACT same respawn() seam as spikes above. Reposition-in-place,
+  // zero momentum, quick flash — ZERO hurt/score/game-over/HP/timer (CONTEXT-locked,
+  // ADHD-safe). Movers need NO wire here: the engine's body() stickToPlatform carries
+  // the rider automatically.
+  player.onCollide("patroller", () => respawn());
+
   // clearLevel(): the SINGLE shared level-clear body (Phase 34.6, extracted from the
   // former onClear inline block — Pitfall 5: XP path divergence). BOTH end-gate paths
   // call this, and only this, for markCleared/hud/burst/save/transition so they can
