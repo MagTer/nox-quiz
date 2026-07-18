@@ -170,6 +170,56 @@ export const LEVEL_06 = {
 
     // Exactly ONE secret alcove — ~70px above EL0's surface (y:120). Off the required path.
     secretAlcove: [{ x: 360, y: 50 }],
+
+    // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
+    // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
+    // HEAVIER density for the intense EVEN level (the density + no-softlock stress test):
+    // ONE moving platform + TWO patrollers (3 motion entities vs level-01's 2), each
+    // authored to the §6a/§6b HARD rules —
+    //   * BOTH mover endpoints reachable RIGHTWARD from spawn (§6a),
+    //   * a checkpoint before each (§6b rule 1),
+    //   * solid catacomb floor UNDER the mover (a miss = WAIT, no killing pit — §6b rule 2),
+    //   * far end telegraphed (§6b rule 4),
+    //   * NOTHING on the F4 goal runway — it stays a clean full-speed lane (the level-06
+    //     goal-drive invariant).
+    // Placement discipline (verified against the in-engine driver): level-06's vertical
+    // switchback keeps the player AIRBORNE across wide bands (the DS4->F1 landing
+    // ~x1540..1650, the PL1->F2 landing ~x2350..2440, the PL2->F3 landing ~x3120..3190, and
+    // the spike/gap jumps). A SOLID mover ledge in an airborne band catches the descending
+    // player ("never landed"); a hovering wraith in one respawns it mid-hop. AND a ridden
+    // mover leaves the player parked ON it (elevated), which strands the NEXT blocker-drive
+    // in the x-sorted audit — so the mover is placed as the LAST encounter (after the
+    // enemy, mirroring level-01's ridden F4 mover), while the two wraiths hover over
+    // grounded walk-lanes (patrollers pass through at floor level and never strand a later
+    // drive). This keeps the walk-only spawn->goal driver clear (no-softlock browser-boot
+    // proof) and the audit's ride/cross reliable, while a JUMPING player still meets each.
+    movers: [
+      // M1 — coffin-slab ferry over the WIDE goal floor F4 (3790..4470), the level's LAST
+      // audit encounter (riding it strands no later drive). F4 is the only catacomb floor
+      // wide enough to give the audit's rightward-hop mount room to overshoot-and-retry
+      // without running off the ledge (on the cramped F3 the mount overshot across the
+      // F3->F4 gap and could never recover). Placed in F4's LEFT-CENTRE, clear of BOTH the
+      // bare-gap landing (~3850) and the goal@4300 runway: rightmost extent (3990 + 110)
+      // stays 200px left of the goal so the driven player still sweeps the goal collider at
+      // full speed. y:250 = rise 70 from FLOOR_Y 320 → reachability PASS (from F4,
+      // rightward). Wide (w110) for a reliable mount; solid F4 under it → miss = WAIT; the
+      // goal-drive walks under it (22px head clearance).
+      { x1: 3900, y1: 250, x2: 3990, y2: 250, w: 130 },
+    ],
+    patrollers: [
+      // Two crypt WRAITHS hovering at y:214 (52px frame bottom at 266, a 22px gap ABOVE the
+      // walking player's head at 288) over FLAT grounded walk-lanes: a player WALKING passes
+      // safely beneath, but a JUMP in the lane meets it — a gentle, telegraphed air-hazard
+      // whose contact is a checkpoint respawn only (WAIT-not-death, §6b). Neither respawn
+      // lands before an unanswered gate (no re-gate). Distinct "patroller" walk sprite.
+      // P0 — over the FLAT F1 lane AFTER the door@1800 and BEFORE the F1->PL1 takeoff
+      // (~2080), sweep 1900..2020. A contact respawns to checkpoint@1600 (door already open).
+      { x1: 1900, y1: 214, x2: 2020, y2: 214 },
+      // P1 — over F2 (2350..2870) in the GROUNDED lane BETWEEN the PL1->F2 landing arc
+      // (~x2440) and the enemy@2600 / spike-jump@2750, sweep 2470..2560. A contact respawns
+      // to checkpoint@2370 (still on F2; door already open — no re-gate).
+      { x1: 2470, y1: 214, x2: 2560, y2: 214 },
+    ],
   },
 
   mechanics: [],
