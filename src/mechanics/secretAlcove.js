@@ -37,8 +37,15 @@ import * as audio from "../audio.js";
  *   own `writeSave(progress.serialize(brain.snapshot()))` pattern used on goal-clear and
  *   tab-hide). Called synchronously right after a genuinely NEW secret is recorded so the
  *   discovery survives an Escape-to-select bail, which does not otherwise trigger a save.
+ * @param {(alcoveObj: GameObj) => void} [args.onDiscover] optional one-shot hook (MECH-05;
+ *   Phase 36) fired EXACTLY ONCE, only in the genuine-NEW-secret branch below, right after
+ *   the discovery is recorded + persisted. game.js wires this to lightAmbient() — the
+ *   persistent, positive-only ambient change (a linked dark light brightens for the rest of
+ *   the run). It is NOT fired in the already-found replay branch: that path's lit state is
+ *   DERIVED on scene entry from progress.hasSecretFound (game.js), never re-fired here. This
+ *   never opens a challenge and never freezes the player — the walk-through contract stands.
  */
-export function wireSecretAlcove({ player, progress, hud, levelId, save }) {
+export function wireSecretAlcove({ player, progress, hud, levelId, save, onDiscover }) {
   // Fire-once latch keyed by the touched alcove object. Closure-local (never
   // module-level) so it is garbage-collected with the scene and cannot leak across
   // replays — same anti-leak discipline as enemy.js's `defeated` Set. This is the
@@ -80,6 +87,13 @@ export function wireSecretAlcove({ player, progress, hud, levelId, save }) {
     // createProgress(loadSave()) fresh on every entry, so the star marker would never
     // appear even though the alcove was genuinely touched.
     if (save) save();
+
+    // MECH-05 (Phase 36): fire the persistent-ambient hook EXACTLY ONCE, ONLY here in the
+    // genuine-NEW-secret branch (never the already-found replay branch above — that path
+    // derives its lit state on scene entry from progress.hasSecretFound). Positive-only
+    // visual side effect (game.js brightens a linked dark light); the CRITICAL CONTRACT is
+    // intact — this opens no challenge and never freezes the player.
+    if (onDiscover) onDiscover(alcoveObj);
 
     fx.pop(alcoveObj.pos.clone());
     fx.popupText(alcoveObj.pos.clone(), "+5 XP");
