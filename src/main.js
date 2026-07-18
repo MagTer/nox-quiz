@@ -103,10 +103,10 @@ loadSprite("logo-hero", "../assets/logo-hero.png");
 loadSprite("logo-badge", "../assets/logo-badge.png");
 
 // Biome atlas/parallax assets (ART-02/ART-03; Phase 32 Plan 04) — manifest-driven
-// load loop over ASSETS_MANIFEST's biome-atlas/biome-bg entries, replacing the old
-// hand-written per-theme-N block. Every other manifest `kind` is intentionally
-// skipped here — those assets are loaded by the hand-written calls elsewhere in
-// this file, and looping them too would double-load.
+// load loop over ASSETS_MANIFEST's biome-atlas/biome-bg entries (one terrain atlas
+// + three parallax layers per biome: swamp/town/cemetery/castle). Every other
+// manifest `kind` is intentionally skipped here — those assets are loaded by the
+// hand-written calls elsewhere in this file, and looping them too would double-load.
 for (const a of ASSETS_MANIFEST) {
   const webPath = `../${a.path}`;
   if (a.kind === "biome-atlas") {

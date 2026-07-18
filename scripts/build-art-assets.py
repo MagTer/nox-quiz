@@ -227,34 +227,6 @@ def build_ground():
     save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", "ground.png"))
 
 
-def build_ground_theme(theme_id, palette):
-    """Per-level-theme variant of build_ground() (VIS-03; Phase 26 Plan 03).
-
-    Byte-identical body to build_ground() above (same source tiles, same
-    _remap_luminance call) except the sub-palette is a parameter and the
-    output path is suffixed — the original build_ground()/ground.png stays
-    an untouched fallback asset.
-    """
-    target_w, target_h = 16, 16
-    frame_source_tiles = [
-        "tile_0000.png",  # frame 0 — single
-        "tile_0001.png",  # frame 1 — left
-        "tile_0002.png",  # frame 2 — center
-        "tile_0003.png",  # frame 3 — right
-        "tile_0004.png",  # frame 4 — underside (plain dirt, no grass cap)
-    ]
-
-    sheet = Image.new("RGBA", (target_w * len(frame_source_tiles), target_h), (0, 0, 0, 0))
-    for i, fname in enumerate(frame_source_tiles):
-        im = Image.open(os.path.join(SRC, "pixel-platformer", fname)).convert("RGBA")
-        resized = im.resize((target_w, target_h), Image.NEAREST)
-        sheet.paste(resized, (i * target_w, 0), resized)
-
-    remapped = _remap_luminance(sheet, palette)
-    assert remapped.size == (80, 16), f"ground-{theme_id} sheet wrong size: {remapped.size}"
-    save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", f"ground-{theme_id}.png"))
-
-
 # Per-layer environment sub-palettes — all reused from ENVIRONMENT_PALETTE's
 # existing tokens (never invented). REVISED after real human sign-off feedback
 # (2026-07-04, see ENVIRONMENT_PALETTE's comment above): each layer now spans
@@ -300,157 +272,6 @@ ACCENT_STEEL = (0x52, 0x5E, 0x82)  # cooler blue-grey than slate — level 5
 ACCENT_CLAY = (0x70, 0x5A, 0x48)  # warm grey-brown, toward rust — level 6
 ACCENT_RUST = (0x8C, 0x50, 0x36)  # muted rust/umber — level 7
 ACCENT_EMBER = (0xA8, 0x50, 0x2C)  # harshest/most saturated stop — level 8
-
-
-def _accent_sub(base, primary_color):
-    """Return a copy of `base` with an accent hue substituted into the
-    existing "mid grey / clearly-visible material highlight" slot (index 4
-    in the full 7-entry ENVIRONMENT_PALETTE).
-
-    ENVIRONMENT_PALETTE_FAR/_MID/_NEAR are shorter derived slices (3/5/4
-    entries) that don't all literally reach index 4 — when the target index
-    is out of range this appends the color as one extra luma bucket instead
-    of replacing an existing entry. This is functionally equivalent either
-    way: _remap_luminance (above) re-sorts every color list by luminance
-    before use, so neither the original index position nor exact list
-    length — only which colors are present — affects the rendered pixels.
-    """
-    lst = list(base)
-
-    def _set(idx, color):
-        if idx < len(lst):
-            lst[idx] = color
-        else:
-            lst.append(color)
-
-    _set(4, primary_color)
-    return lst
-
-
-def _mid_accent_sub(base, primary_color):
-    """MID-layer-specific accent substitution (Plan 26-08 checkpoint fix).
-
-    Bug this replaces: `_accent_sub` above only overwrites ONE slot (index 4,
-    which for ENVIRONMENT_PALETTE_MID's 5-entry list is originally P5=0x88
-    luma136), leaving the adjacent P4=0x66 (luma102) slot untouched. The
-    `mid` layer's own composited source art (hills1.png + temple/castle/tower
-    motifs) has a dominant fill luminance that _remap_luminance's per-image
-    normalization always buckets into this palette's TOP rank (empirically
-    confirmed: idx 4 of 5, every theme, since the source geometry is
-    level-invariant — only the accent recolor changes). Whichever color ends
-    up ranked highest AFTER _remap_luminance re-sorts by luminance is what
-    the player actually sees as the hill fill. All 8 hand-tuned dark-grunge
-    accent hues (Plan 26-02/26-12, already human-signed-off — their hex
-    values are NOT changed by this fix) have luma ~90-102, clustered BELOW
-    P4's 102 for 7 of 8 accents (only EMBER's 102.2 narrowly clears it) — so
-    the untouched P4 slot silently kept winning the top rank for every theme
-    except 8, making level-01..07's mid hill render as identical neutral
-    grey despite each theme's own distinct accent (found via real in-browser
-    screenshot review at the Plan 26-08 checkpoint, confirmed via direct
-    pixel-luma inspection of the baked assets before this fix).
-
-    Fix: replace BOTH of the two highest slots (indices 3 and 4) with
-    accent-derived shades — a darker body tone (scaled 0.8x per channel,
-    verified to stay above the next-highest surviving base entry, P3's
-    luma68, for even the darkest accent, MOSS at luma90.4 -> shade luma72.2)
-    and the accent itself as the brighter highlight. Whichever of the top
-    two ranks the dominant source pixel lands on, the result is now always
-    accent-family, regardless of the accent's own exact luma — removing the
-    fragile exact-luma-tie dependency `_accent_sub` had. Scoped to the `mid`
-    sub-palette originally (far/ground already read correctly distinct
-    per-theme and still use `_accent_sub` unchanged); `near` shared this same
-    underlying pattern and was left out of scope here — see 26-08-SUMMARY.md
-    — but was confirmed to exhibit the identical bug (all 8 baked
-    `near-theme-*.png` assets pixel-sampled: themes 1-7 shared an identical
-    (102,102,102) dominant fill, only theme-8/EMBER distinct — same
-    exact-luma-tie failure mode) and fixed with the mirrored
-    `_near_accent_sub` below (WR-03 follow-up, 2026-07-08).
-    """
-    lst = list(base)
-
-    def _set(idx, color):
-        if idx < len(lst):
-            lst[idx] = color
-        else:
-            lst.append(color)
-
-    shade = tuple(max(0, round(c * 0.8)) for c in primary_color)
-    _set(3, shade)
-    _set(4, primary_color)
-    return lst
-
-
-def _near_accent_sub(base, primary_color):
-    """NEAR-layer-specific accent substitution (WR-03 follow-up fix, mirrors
-    `_mid_accent_sub` above).
-
-    Bug this replaces: `_accent_sub` targets index 4, but
-    ENVIRONMENT_PALETTE_NEAR is only a 4-entry list (indices 0-3), so index 4
-    is always out of range and the accent gets APPENDED as a 5th bucket
-    instead of overwriting anything — the original P4=0x66 (luma102) slot
-    (last of the 4 base entries) survives untouched. Confirmed empirically:
-    pixel-sampling all 8 baked `near-theme-*.png` assets showed themes 1-7
-    sharing an identical (102,102,102) dominant fill (the untouched P4 slot
-    winning top rank after `_remap_luminance` re-sorts by luminance, since 7
-    of 8 accent hues have luma <102) — only theme-8/EMBER (luma102.2, the one
-    accent that narrowly clears 102) rendered distinct. The exact same
-    exact-luma-tie fragility as `_mid_accent_sub` was written to fix.
-
-    Fix: replace BOTH of the two highest slots (indices 2 and 3 — the last
-    two of this 4-entry list) with accent-derived shades, same shade
-    formula and reasoning as `_mid_accent_sub`. The next-highest surviving
-    base entry is index 1 (luma34), which the darkest accent's shade
-    (MOSS -> luma72.2) safely stays above.
-    """
-    lst = list(base)
-
-    def _set(idx, color):
-        if idx < len(lst):
-            lst[idx] = color
-        else:
-            lst.append(color)
-
-    shade = tuple(max(0, round(c * 0.8)) for c in primary_color)
-    _set(2, shade)
-    _set(3, primary_color)
-    return lst
-
-
-# Theme-to-level mapping — one dedicated accent per level (Plan 26-12
-# mid-execution revision, 2026-07-07: previously 3 shared accents produced
-# identical baked output for level pairs 1/2, 3/4, 7/8, undercutting VIS-03's
-# distinctness requirement; see 26-CONTEXT.md addendum). Phase 26 Plan 06
-# reads this table when it sets each level descriptor's `theme` field; keep
-# this comment block in sync with that plan rather than re-deriving the
-# mapping:
-#   theme-1 -> level-01 : ACCENT_MOSS
-#   theme-2 -> level-02 : ACCENT_FERN
-#   theme-3 -> level-03 : ACCENT_TEAL
-#   theme-4 -> level-04 : ACCENT_SLATE
-#   theme-5 -> level-05 : ACCENT_STEEL
-#   theme-6 -> level-06 : ACCENT_CLAY
-#   theme-7 -> level-07 : ACCENT_RUST
-#   theme-8 -> level-08 : ACCENT_EMBER
-_THEME_ACCENTS = {
-    "theme-1": ACCENT_MOSS,
-    "theme-2": ACCENT_FERN,
-    "theme-3": ACCENT_TEAL,
-    "theme-4": ACCENT_SLATE,
-    "theme-5": ACCENT_STEEL,
-    "theme-6": ACCENT_CLAY,
-    "theme-7": ACCENT_RUST,
-    "theme-8": ACCENT_EMBER,
-}
-
-THEME_PALETTES = {
-    theme_id: {
-        "far": _accent_sub(ENVIRONMENT_PALETTE_FAR, accent),
-        "mid": _mid_accent_sub(ENVIRONMENT_PALETTE_MID, accent),
-        "near": _near_accent_sub(ENVIRONMENT_PALETTE_NEAR, accent),
-        "ground": _accent_sub(ENVIRONMENT_PALETTE, accent),
-    }
-    for theme_id, accent in _THEME_ACCENTS.items()
-}
 
 
 def _load_be(fname):
@@ -503,43 +324,6 @@ def build_parallax():
     near_remapped = _remap_luminance(near, ENVIRONMENT_PALETTE_NEAR)
     assert near_remapped.size == (near_w, near_h), f"near layer wrong size: {near_remapped.size}"
     save(near_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", "near.png"))
-
-
-def build_parallax_theme(theme_id, palette):
-    """Per-level-theme variant of build_parallax() (VIS-03; Phase 26 Plan 03).
-
-    Byte-identical body to build_parallax() above (same source silhouette
-    elements, same compositing) except `palette` is a dict of far/mid/near
-    sub-palettes and the output paths are suffixed — the original
-    build_parallax()/{far,mid,near}.png stay untouched fallback assets.
-    """
-    far_w, far_h = 640, 120
-    far = Image.new("RGBA", (far_w, far_h), (0, 0, 0, 0))
-    mtn = _scale_to_width(_load_be("pointy_mountains.png"), far_w)
-    far.paste(mtn.crop((0, max(0, mtn.height - far_h), far_w, mtn.height)), (0, far_h - min(far_h, mtn.height)), mtn.crop((0, max(0, mtn.height - far_h), far_w, mtn.height)))
-    far_remapped = _remap_luminance(far, palette["far"])
-    assert far_remapped.size == (far_w, far_h), f"far-{theme_id} layer wrong size: {far_remapped.size}"
-    save(far_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"far-{theme_id}.png"))
-
-    mid_w, mid_h = 640, 144
-    mid = Image.new("RGBA", (mid_w, mid_h), (0, 0, 0, 0))
-    hills = _scale_to_width(_load_be("hills1.png"), mid_w)
-    mid.paste(hills.crop((0, max(0, hills.height - mid_h), mid_w, hills.height)), (0, mid_h - min(mid_h, hills.height)), hills.crop((0, max(0, hills.height - mid_h), mid_w, hills.height)))
-    for fname, x, scale in [("temple.png", 60, 0.55), ("castle.png", 280, 0.55), ("tower.png", 500, 0.55)]:
-        motif = _load_be(fname)
-        motif = motif.resize((max(1, round(motif.width * scale)), max(1, round(motif.height * scale))), Image.LANCZOS)
-        mid.paste(motif, (x, mid_h - motif.height), motif)
-    mid_remapped = _remap_luminance(mid, palette["mid"])
-    assert mid_remapped.size == (mid_w, mid_h), f"mid-{theme_id} layer wrong size: {mid_remapped.size}"
-    save(mid_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"mid-{theme_id}.png"))
-
-    near_w, near_h = 640, 90
-    near = Image.new("RGBA", (near_w, near_h), (0, 0, 0, 0))
-    hills2 = _scale_to_width(_load_be("hills2.png"), near_w)
-    near.paste(hills2.crop((0, max(0, hills2.height - near_h), near_w, hills2.height)), (0, near_h - min(near_h, hills2.height)), hills2.crop((0, max(0, hills2.height - near_h), near_w, hills2.height)))
-    near_remapped = _remap_luminance(near, palette["near"])
-    assert near_remapped.size == (near_w, near_h), f"near-{theme_id} layer wrong size: {near_remapped.size}"
-    save(near_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", f"near-{theme_id}.png"))
 
 
 def build_title_bg():
@@ -677,8 +461,8 @@ def build_enemies():
 
 # --- Phase 31 (ART-01): Gothicvania biome terrain atlases + parallax layers ---
 #
-# Extends this file's existing per-variant idiom (build_ground_theme() /
-# build_parallax_theme()) with 4 biomes x (1 terrain atlas + 3 parallax
+# Extends this file's existing terrain/parallax bake idiom (build_ground() /
+# build_parallax()) with 4 biomes x (1 terrain atlas + 3 parallax
 # layers), baked from the re-fetched Gothicvania (ansimuz) CC0 packs under
 # GV_SRC. Every crop rectangle below was hand-identified via a throwaway
 # Pillow crop-preview loop (visually verified against the real source
@@ -734,7 +518,7 @@ def _bottom_anchor(im, target_w, target_h):
     """Bottom-anchor an already-tiled `im` (width == target_w) onto a
     target_h canvas, cropping overflow off the top or padding the top with
     transparency -- the same crop/paste idiom already used by
-    build_parallax()/build_parallax_theme() above.
+    build_parallax() above.
     """
     canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
     src = im.crop((0, max(0, im.height - target_h), target_w, im.height))
@@ -1315,7 +1099,7 @@ FONT_PATH = os.path.join(ROOT, "assets", "_font-src", "monogram.ttf")
 # Logo fill/stroke colors (BRAND-01/BRAND-03; Phase 26 Plan 07) — mirror
 # CONFIG.PALETTE.ACCENT_MOSS/REWARD's CURRENT live hex values from
 # src/config.js (same "read live, don't hand-copy a stale plan literal"
-# principle Plan 26-03 established for THEME_PALETTES above). Named
+# principle the ENVIRONMENT_PALETTE / PLAYER_PALETTE mirrors above follow). Named
 # LOGO_FILL/LOGO_STROKE rather than reusing the module-level ACCENT_MOSS
 # constant defined earlier in this file: that constant is Plan 26-12's
 # per-level-theme accent (theme-1's ground/parallax tint) and happens to
@@ -1686,9 +1470,6 @@ if __name__ == "__main__":
     build_parallax()
     build_title_bg()
     build_palette_swatch()
-    for theme_id, palette in THEME_PALETTES.items():
-        build_ground_theme(theme_id, palette["ground"])
-        build_parallax_theme(theme_id, palette)
     build_door()
     build_math_gate()
     build_enemies()

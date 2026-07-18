@@ -76,8 +76,8 @@ export function buildLevel(levelData) {
   const g = levelData.geometry;
 
   // atlas-${biome} sprite selection (ART-02; Phase 32 Plan 03): biome is a required
-  // field on every descriptor (Plan 32-02) — no fallback, unlike the old theme-aware
-  // groundSprite ternary this replaces.
+  // field on every descriptor (Plan 32-02) and maps 1:1 to a baked per-biome terrain
+  // atlas (swamp/town/cemetery/castle) — a direct lookup, no fallback branch.
   const atlasSprite = `atlas-${levelData.biome}`;
 
   // Frame order per docs/LEVEL-DESIGN.md §9: the baked atlas is a 48x32 sheet of

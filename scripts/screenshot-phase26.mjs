@@ -167,8 +167,8 @@ try {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(1500); // let the game scene build the level
 
-    // 1. Per-level theme screenshot — taken at spawn (no movement needed): the
-    // theme-tinted ground/parallax is already visible without walking anywhere.
+    // 1. Per-level biome screenshot — taken at spawn (no movement needed): the
+    // per-biome atlas ground/parallax is already visible without walking anywhere.
     await page.screenshot({ path: OUT(`phase26-level-${String(n).padStart(2, "0")}-theme.png`) });
     saved.push(`phase26-level-${String(n).padStart(2, "0")}-theme.png`);
 
