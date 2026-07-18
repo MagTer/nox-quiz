@@ -268,6 +268,36 @@ export const CONFIG = {
     SPRITES: ["enemy-hellhound"], // real animated sprite art (ART-05; Phase 33) — the single shared animated blocker sprite, replacing the 3-variant static set
   },
 
+  // --- Moving platform (MOT-02; Phase 36 dt-sine ping-pong carrier) ---
+  // A solid static-body platform that oscillates between its two descriptor endpoints
+  // on a dt-based RAISED-COSINE (eases to rest at BOTH ends — natural endpoint
+  // slow-down, no timer/scheduler). The player is carried NATIVELY by the engine's
+  // body() stickToPlatform — build.js's mover loop adds ZERO rider code (hand-carry is
+  // the measured slide-off anti-pattern, 36-RESEARCH §Anti-Patterns). Inert until a
+  // level authors geometry.movers (36-05); these are the sane defaults a per-mover
+  // descriptor field (period/sprite/w) may override. NO magic numbers in build.js.
+  MOVER: {
+    PERIOD_S: 4, // s — default full round-trip period (endpoint → far → back). Per-mover `period` override allowed. dt raised-cosine so BOTH ends ease to rest.
+    SPRITE: "atlas-castle", // moving-platform sprite key — reuse the castle biome atlas's stone PLATFORM ledge frame (a solid "this one moves" slab); per-mover `sprite` override allowed. Final art/biome confirmed at the 36-05 hazard-placement human checkpoint.
+    FRAME: 2, // atlas frame index — 2 is the PLATFORM ledge frame (0 cap / 1 fill / 2 platform, per build.js + docs/LEVEL-DESIGN §9)
+    WIDTH: 48, // px — default rendered ledge width (3× the 16px ledge frame, tiled). Per-mover `w` override allowed; sets the tightened area() collider width.
+    HEIGHT: 32, // px — rendered sprite height (CAP_FRAME_H = TILE_SIZE*2); the frame's transparent lower half draws a 16px standable ledge.
+    LEDGE_H: 16, // px — tightened collider height matching the frame's opaque top ledge (lower 16px is transparent), mirroring the 16px static-platform collider so a rider stands on the visible surface, not on empty space.
+  },
+
+  // --- Patroller (MOT-01; Phase 36 gentle respawn-hazard walker) ---
+  // A slow, heavily-telegraphed patrol()-driven ping-pong walker tagged "patroller"
+  // (DISTINCT from the "enemy" math-blocker tag, which routes to enemy.js's challenge
+  // seam). Touching one respawns the player at the nearest checkpoint through the
+  // EXISTING spike→respawn seam — ZERO hurt/score/game-over/timer wiring (36-CONTEXT
+  // gentle-hazard mandate). Uses the distinct 8-frame skeleton WALK sprite baked +
+  // loaded by 36-10. Inert until a level authors geometry.patrollers (36-05).
+  PATROLLER: {
+    SPEED: 40, // px/s — SLOW default walk speed, well under patrol()'s 100 px/s default so the waypoint path reads clearly (heavily telegraphed, per CONTEXT). Per-patroller `speed` override allowed.
+    SPRITE: "patroller", // distinct walk-animated sprite key (baked + loaded by 36-10): a shambling biped skeleton, visually distinct from the quadruped idle-only enemy-hellhound math-blocker.
+    WALK_SPEED: 10, // fps — "walk" anim frame rate (read by main.js's patroller loadSprite via CONFIG.PATROLLER?.WALK_SPEED). 8 frames at 10fps = a ~0.8s stride telegraph.
+  },
+
   // --- Progression / XP (ported VERBATIM from archive/math-lab.html 604-619 — DO NOT re-tune) ---
   // The XP-per-table amounts and the level-threshold curve are the validated v1/v2 values.
   // Read by src/progress.js (Phase 11 Wave 1) only. HARD_TABLES/EASY_TABLES are intentionally
