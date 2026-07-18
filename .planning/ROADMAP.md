@@ -460,17 +460,38 @@ Plans:
   4. Discovering a secret alcove leaves a persistent, visible in-level ambient change for the rest of the run (e.g. a torch lights up) — positive-only reinforcement
   5. Validator and interactive audit stay green with motion live — the audit rides every mover and crosses every patroller — and hazard placement gets a genuine human sign-off
 
-**Plans**: 9 plans
+**Plans**: 10 plans
 
 Plans:
+**Wave 1** *(parallel — harness + art infra, file-disjoint, no deps)*
+
 - [ ] 36-01-PLAN.md — Geometry-freeze reconciliation: exclude motion keys from the freeze snapshot (RED-first)
-- [ ] 36-02-PLAN.md — Interactive audit: ride every mover + cross every patroller, RED-first fixture
+- [ ] 36-02-PLAN.md — Interactive audit: ride every mover + cross every patroller — dispatch in audit-retry.mjs, assertive RED-first fixture
+- [ ] 36-10-PLAN.md — Motion art assets: swamp + cemetery light-source props (missing biomes) + distinct walk-animated patroller sprite; lanterns placed in level-01/06 (BEFORE the trial)
+
+**Wave 2**
+
 - [ ] 36-03-PLAN.md — Mover (dt-sine, native carry) + patroller (patrol, respawn-hazard) entity classes + config
+
+**Wave 3**
+
 - [ ] 36-04-PLAN.md — Ambient flicker/unlock anims + MECH-05 alcove persistent torch (derived lit-on-entry)
+
+**Wave 4**
+
 - [ ] 36-05-PLAN.md — Trial: motion on level-01 (calm) + level-06 (intense) + motion-evidence screenshots
+
+**Wave 5**
+
 - [ ] 36-06-PLAN.md — Human sign-off: hazard placement on the 2 trial levels (SC5, non-rubber-stamped)
+
+**Wave 6** *(parallel — file-disjoint)*
+
 - [ ] 36-07-PLAN.md — Rollout: motion on levels 02/03/04 (calm/intense rhythm)
 - [ ] 36-08-PLAN.md — Rollout: motion on levels 05/07/08 (all 8 levels now moving)
+
+**Wave 7**
+
 - [ ] 36-09-PLAN.md — Consolidation: full CLAUDE.md gate suite green + audit rides/crosses all 8, geometry byte-frozen
 
 ### Phase 37: Mobile — Responsive Canvas & Touch Controls
