@@ -198,6 +198,36 @@ export const LEVEL_03 = {
     // Exactly ONE secret alcove — ~70px above ROOF2's surface (y:250). Off the required
     // path, never signposted. NO key/lock (odd archetype).
     secretAlcove: [{ x: 720, y: 180 }],
+
+    // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
+    // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
+    // LIGHT density for the CALM-ODD town (the forgiving end of the town biome pair): ONE
+    // moving platform + ONE patroller (2 motion entities — lighter than the intense evens'
+    // 3, but never mover-free), each authored to the §6a/§6b HARD rules with generous
+    // margins — both mover endpoints reachable RIGHTWARD from spawn, a checkpoint before
+    // each, solid floor UNDER the mover (miss = WAIT, no killing pit), far end telegraphed.
+    // Placement is DISTINCT from level-01 (the other calm level): a wide slow F6-street
+    // ferry (not level-01's F4 island) + a slow wide-sweep wraith over F2 (not level-01's
+    // 1770..1880 F2 island). Both ride the OPEN street floors clear of every roof/fork/stall
+    // climb tier and every takeoff/landing/spike band.
+    movers: [
+      // M0 — a slow lateral ferry over the WIDE clean F6 street (5140..5540), the level's
+      // LAST audit encounter (past the enemy@2680; no later blocker to strand). Placed in
+      // F6's centre, clear of the MS2->F6 landing (~5200) and the F6->DW1 mount takeoff
+      // (~5540): right extent (5380 + 100 = 5480) stays 60px left of the takeoff. Both
+      // endpoints y:250 = rise 70 from FLOOR_Y 320 → reachability PASS/WARN (from F6,
+      // rightward). Behind checkpoint@5160; solid F6 under it → a missed hop lands back on
+      // F6 to WAIT (no killing pit). The goal-drive walks under it (head 288 vs 250..266).
+      { x1: 5280, y1: 250, x2: 5380, y2: 250, w: 100 },
+    ],
+    patrollers: [
+      // P0 — a slow town WRAITH hovering at y:214 over the FLAT F2 street (1650..2050) AFTER
+      // the chimney-reclimb landing (~1700) and BEFORE the market-fork LST1 mount takeoff
+      // (~2050), a WIDE gentle sweep 1780..1960 (distinct from level-01's tight 1770..1880).
+      // Behind checkpoint@1670; a contact respawns there (the door@1060 is already open —
+      // no re-gate). Walking passes beneath (head 288 vs frame bottom 266); a jump meets it.
+      { x1: 1780, y1: 214, x2: 1960, y2: 214 },
+    ],
   },
 
   mechanics: [],
@@ -233,5 +263,15 @@ export const LEVEL_03 = {
     { sprite: "prop-town-barrel", x: 3400, y: 290, layer: "surface" }, //      F4 left, before spike@3580
     { sprite: "prop-town-crate", x: 5420, y: 285, layer: "surface" }, //      F6 right corner (clear of coin@5240)
     { sprite: "prop-town-sign", x: 6970, y: 276, layer: "surface" }, //       F8 run-in, left of the goal@7500
+
+    // Phase 36 (MOT-03/MECH-05): the town LIGHT that marks + links the secret alcove — a
+    // street-lamp on ROOF2's tier (y:250) directly below the alcove@(720,180): base rests
+    // on ROOF2 (y = 250 - 108 lamp height = 142), dist to the alcove = 180-142 = 38px <
+    // LINK_DIST 96, so build.js auto-tags it "alcove-light" (starts DIM, brightens on
+    // discovery) — NO descriptor field needed. Renders at z(-3) BEHIND the z(0)
+    // roof/player so it marks the alcove without occluding the descent (legibility-first).
+    // The 36-04 flicker selector (/lantern|lamp|candle/) gives it + the two existing town
+    // lamps an ambient flame flicker.
+    { sprite: "prop-town-street-lamp", x: 720, y: 142, layer: "surface" },
   ],
 };
