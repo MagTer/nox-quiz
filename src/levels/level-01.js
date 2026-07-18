@@ -225,8 +225,10 @@ export const LEVEL_01 = {
       // checkpoint@3380. Both endpoints at y:250 = rise 70 from FLOOR_Y 320, inside the
       // ~88px jump envelope → mover-reachability PASS (from F4 floor, rightward). The
       // running goal-drive WALKS UNDER it (player head 288 vs ledge collider 250..266 =
-      // 22px clearance); the audit mounts it with a rightward hop from F4.
-      { x1: 3420, y1: 250, x2: 3560, y2: 250, w: 130 },
+      // 22px clearance); the audit mounts it with a rightward hop from F4. w110 (NOT wider:
+      // a wider ledge pushes its right extent to the F4 edge@3700, and the audit mount's
+      // rightward overshoot then runs off into the water and cannot recover).
+      { x1: 3420, y1: 250, x2: 3560, y2: 250, w: 110 },
     ],
     patrollers: [
       // P0 — a slow, telegraphed swamp WRAITH hovering over the CLEAN F2 island
