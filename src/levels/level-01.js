@@ -244,5 +244,12 @@ export const LEVEL_01 = {
     { sprite: "prop-swamp-vine", x: 4280, y: 299, layer: "surface" }, // F5, right of spike@4180
     { sprite: "prop-swamp-fern", x: 5100, y: 288, layer: "surface" }, // F6, right of spike@5020
     { sprite: "prop-swamp-reed", x: 6500, y: 285, layer: "surface" }, // F8 run-in, left of the goal
+
+    // Phase 36 (MOT-03/MECH-05): the swamp LIGHT — a bog will-o'-wisp on the
+    // spawn floor directly below the secret alcove@(320,184), marking it. This is
+    // the *-lantern the 36-04 flicker selector matches and the light 36-05 links
+    // to the alcove (lit-on-discovery). On-surface: y = FLOOR_Y(320) - 78 = 242.
+    // Clear of the spawn (x~64), the DOOR@820, and every hazard.
+    { sprite: "prop-swamp-lantern", x: 320, y: 242, layer: "surface" },
   ],
 };

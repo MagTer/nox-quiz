@@ -206,5 +206,12 @@ export const LEVEL_06 = {
     { sprite: "prop-cemetery-bush", x: 3560, y: 255, layer: "surface" }, //   F3, right of spike@3300
     { sprite: "prop-cemetery-stone-4", x: 3850, y: 282, layer: "surface" }, // F4 run-in
     { sprite: "prop-cemetery-bush", x: 4080, y: 255, layer: "surface" }, //   F4, left of the goal@4300
+
+    // Phase 36 (MOT-03/MECH-05): the cemetery LIGHT — a small grave candle on
+    // the EL0 entry-tier surface (y:120) directly below the secret alcove@(360,50),
+    // marking it. This is the *-lantern the 36-04 flicker selector matches and the
+    // light 36-05 links to the alcove (lit-on-discovery). On-surface: y = 120 - 25
+    // = 95. Visual-only (no collider, negative-z) — it cannot block the EL0 climb.
+    { sprite: "prop-cemetery-lantern", x: 360, y: 95, layer: "surface" },
   ],
 };
