@@ -49,6 +49,15 @@ export function deriveEncounters(geometry) {
     // challenge-opening mechanic — see driveAndDetectAlcove below for their distinct
     // entity-destroy/XP-delta detection signal (never get("challenge").length).
     ...(geometry.secretAlcove ?? []).map((a) => ({ x: a.x, y: a.y, tag: "secret-alcove" })),
+    // Phase 36 (MOT-01/MOT-02): movers and patrollers are MOTION encounters, not
+    // challenge-opening mechanics. Each carries its own drive+detect signal (driveToMover
+    // rides the platform; driveToPatroller crosses the path and asserts the respawn seam
+    // fired) dispatched by tag in audit-retry.mjs's auditLevelWithRetries — mirroring the
+    // driveAndDetectAlcove precedent. The START endpoint (x1,y1) is the drive target so
+    // the audit approaches each entity along its forward path; `idx` addresses the i-th
+    // entity so multiple movers/patrollers never collide on a shared `${tag}@${x}` key.
+    ...(geometry.movers ?? []).map((m, i) => ({ x: m.x1, y: m.y1, tag: "mover", idx: i })),
+    ...(geometry.patrollers ?? []).map((p, i) => ({ x: p.x1, y: p.y1, tag: "patroller", idx: i })),
   ];
   entries.sort((a, b) => a.x - b.x);
   return entries;
@@ -827,6 +836,207 @@ export async function driveAndDetectAlcove(page, encounter, geometry, levelId) {
   // than one alcove for the same level (the documented "only the first one touched
   // pays out" content case) — never as residue surviving a retry's reload.
   const resolved = triggered && (freshAwardCorrect || (delta === 0 && alreadyFoundBefore));
+
+  return { triggered, resolved };
+}
+
+/**
+ * Phase 36 (MOT-02): drive-and-detect for a MOVING PLATFORM (tag "mover"). Follows the
+ * driveAndDetectAlcove precedent — a standalone export SELECTED by tag in
+ * auditLevelWithRetries (audit-retry.mjs), NOT dispatched from deriveEncounters — and
+ * reuses driveToXPlanned for the geometry-informed APPROACH rather than inventing new
+ * navigation.
+ *
+ * The ride signal (36-RESEARCH.md Open Question 2, RESOLVED): "the player's pos tracked
+ * the platform entity's pos for N consecutive grounded frames." Kaplay's native
+ * `body({ stickToPlatform })` moveBy(delta)s the rider every frame the platform it stands
+ * on moves (36-RESEARCH.md §Standard Stack — the carry is engine-side, never hand-rolled),
+ * so a genuinely-carried player's per-frame position delta EQUALS the platform's, whereas
+ * a player merely standing on the static floor shows ~0 delta while the platform moves.
+ * Sampling that equality with ALL input released is the unfalsifiable proof the platform
+ * actually carried her — a false green cannot survive it (T-36-03).
+ *
+ * @param {import("playwright").Page} page - live page, already in the level.
+ * @param {{x:number,y:number,idx?:number}} encounter - the mover encounter (idx = which mover).
+ * @param {object} geometry - level.geometry, threaded to driveToXPlanned for the approach.
+ * @returns {Promise<{triggered: boolean, resolved: boolean}>}
+ *   triggered = the player reached and stood ON the mover (grounded, feet on its top,
+ *   horizontally over its span). resolved = triggered AND the platform CARRIED her (her
+ *   pos tracked the mover's for NEED consecutive grounded, platform-moving frames).
+ */
+export async function driveToMover(page, encounter, geometry) {
+  const idx = encounter.idx ?? 0;
+
+  // APPROACH: walk to a staging point just LEFT of the mover's start endpoint, on the
+  // floor beneath it, using the already-proven planned navigation (reused, not re-invented).
+  const stageX = Math.max(0, encounter.x - 40);
+  await driveToXPlanned(page, stageX, geometry, { targetY: encounter.y });
+
+  const moverExists = await page.evaluate((i) => !!get("mover")[i], idx);
+  if (!moverExists) return { triggered: false, resolved: false };
+
+  // Standing-on-the-mover test: grounded, feet within 8px of the platform top, and the
+  // player's horizontal center within the platform's live x-span (player is 16x32; pos.y
+  // is the top-left corner, so feet = pos.y + 32, center x = pos.x + 8).
+  const isOnMover = () =>
+    page.evaluate((i) => {
+      const p = get("player")[0];
+      const m = get("mover")[i];
+      if (!p || !m) return false;
+      const feet = p.pos.y + 32;
+      const cx = p.pos.x + 8;
+      const onTop = Math.abs(feet - m.pos.y) <= 8;
+      const overSpan = cx >= m.pos.x - 10 && cx <= m.pos.x + (m.width ?? 0) + 10;
+      return p.isGrounded() && onTop && overSpan;
+    }, idx);
+
+  // MOUNT: bounded rightward hops onto the platform top (low + wide, so a rightward jump
+  // from just-left arcs onto it; retries absorb the platform's own motion). A missed hop
+  // simply lands the player back on the floor to try again — never a death (LEVEL-DESIGN
+  // §6b: a missed mover is WAIT-not-death).
+  let mounted = await isOnMover();
+  const mountDeadline = Date.now() + 12_000;
+  while (!mounted && Date.now() < mountDeadline) {
+    await page.keyboard.down("ArrowRight");
+    await page.keyboard.press("Space", { delay: 450 });
+    await page.waitForTimeout(420);
+    await page.keyboard.up("ArrowRight");
+    await page.waitForTimeout(320);
+    mounted = await isOnMover();
+    if (mounted) break;
+    // If we overshot to the RIGHT of the platform, nudge back left before the next hop.
+    const st = await page.evaluate((i) => {
+      const p = get("player")[0];
+      const m = get("mover")[i];
+      return p && m
+        ? { px: p.pos.x, mx: m.pos.x, mw: m.width ?? 0, g: p.isGrounded() }
+        : null;
+    }, idx);
+    if (st && st.g && st.px + 8 > st.mx + st.mw) {
+      await page.keyboard.down("ArrowLeft");
+      await page.waitForTimeout(180);
+      await page.keyboard.up("ArrowLeft");
+      await page.waitForTimeout(150);
+    }
+  }
+
+  if (!mounted) return { triggered: false, resolved: false };
+
+  // CARRY WINDOW: release ALL input and prove the platform carries her. Each grounded,
+  // platform-moving frame where her delta matches the mover's delta counts toward NEED;
+  // NEED consecutive such frames = carried. A slow raised-cosine endpoint (mover delta ~0)
+  // is simply not counted (skipped, never reset) — only a clear grounded-and-moving MISS
+  // resets the streak.
+  await page.keyboard.up("ArrowRight");
+  await page.keyboard.up("ArrowLeft");
+  const NEED = 6;
+  let carried = 0;
+  let prev = await page.evaluate((i) => {
+    const p = get("player")[0];
+    const m = get("mover")[i];
+    return p && m ? { px: p.pos.x, py: p.pos.y, mx: m.pos.x, my: m.pos.y } : null;
+  }, idx);
+  const sampleDeadline = Date.now() + 3000;
+  while (carried < NEED && Date.now() < sampleDeadline) {
+    await page.waitForTimeout(60);
+    const cur = await page.evaluate((i) => {
+      const p = get("player")[0];
+      const m = get("mover")[i];
+      if (!p || !m) return null;
+      return { px: p.pos.x, py: p.pos.y, mx: m.pos.x, my: m.pos.y, g: p.isGrounded() };
+    }, idx);
+    if (!cur || !prev) {
+      prev = cur;
+      continue;
+    }
+    const pdx = cur.px - prev.px;
+    const pdy = cur.py - prev.py;
+    const mdx = cur.mx - prev.mx;
+    const mdy = cur.my - prev.my;
+    const moving = Math.abs(mdx) > 0.3 || Math.abs(mdy) > 0.3;
+    const tracks = Math.abs(pdx - mdx) < 2.5 && Math.abs(pdy - mdy) < 2.5;
+    if (cur.g && moving && tracks) carried += 1;
+    else if (cur.g && moving && !tracks) carried = 0;
+    prev = cur;
+  }
+
+  return { triggered: true, resolved: carried >= NEED };
+}
+
+/**
+ * Phase 36 (MOT-01): drive-and-detect for a PATROLLER (tag "patroller"). Follows the
+ * driveAndDetectAlcove precedent (standalone export, tag-selected in audit-retry.mjs).
+ *
+ * The cross signal (36-RESEARCH.md Open Question 2, RESOLVED): "contact fired the EXISTING
+ * respawn seam — the player's pos snapped backward to lastCheckpoint." A patroller is a
+ * forgiving respawn-hazard (identical class to spikes: game.js wires
+ * player.onCollide("patroller", () => respawn()), reposition-in-place, zero punishment),
+ * so the only thing that yanks the player a large distance BACKWARD on contact is the
+ * respawn. Detecting that backward snap is the unfalsifiable proof the patroller path was
+ * actually crossed AND that contact routed through the respawn seam (T-36-03) — this
+ * deliberately does NOT use driveToXPlanned's own respawn-retry loop, which would silently
+ * absorb the very snap this detector must observe.
+ *
+ * @param {import("playwright").Page} page - live page, already in the level.
+ * @param {{x:number,y:number,idx?:number}} encounter - the patroller encounter (idx = which one).
+ * @returns {Promise<{triggered: boolean, resolved: boolean}>}
+ *   triggered = the player reached the patroller's live x-span. resolved = contact fired
+ *   the respawn seam (a large backward position snap was observed).
+ */
+export async function driveToPatroller(page, encounter, geometry) {
+  const idx = encounter.idx ?? 0;
+
+  // Pre-cross baseline: the player's current x. The cross signal is a large BACKWARD snap
+  // from here (or from the running previous sample) when the respawn seam fires.
+  const startX = await page.evaluate(() => {
+    const p = get("player")[0];
+    return p ? p.pos.x : null;
+  });
+  if (startX === null) return { triggered: false, resolved: false };
+
+  // A respawn moves the player far more than any single walk/jump tick could: at
+  // RUN_SPEED (240px/s) a 50ms poll advances ~12px, so a >120px BACKWARD jump between two
+  // consecutive samples is unambiguously the reposition-in-place respawn, never locomotion.
+  const SNAP = 120;
+
+  await page.keyboard.up("ArrowLeft");
+  await page.keyboard.down("ArrowRight");
+  let triggered = false;
+  let resolved = false;
+  let prevX = startX;
+  const deadline = Date.now() + 22_000;
+  try {
+    while (Date.now() < deadline) {
+      await page.waitForTimeout(50);
+      const s = await page.evaluate((i) => {
+        const p = get("player")[0];
+        const foe = get("patroller")[i];
+        return {
+          px: p ? p.pos.x : null,
+          g: p ? p.isGrounded() : false,
+          fx: foe ? foe.pos.x : null,
+          fw: foe ? foe.width ?? 0 : 0,
+        };
+      }, idx);
+      if (s.px === null) break;
+
+      // Reached the patroller? (player horizontal center within the foe's live x-span + slack)
+      if (s.fx !== null) {
+        const cx = s.px + 8;
+        if (cx >= s.fx - 20 && cx <= s.fx + s.fw + 20) triggered = true;
+      }
+
+      // Respawn detector: a large BACKWARD snap = the onCollide("patroller") reset fired.
+      if (s.px < prevX - SNAP || s.px < startX - SNAP) {
+        triggered = true; // the only thing that snaps her back here is patroller contact
+        resolved = true;
+        break;
+      }
+      prevX = s.px;
+    }
+  } finally {
+    await page.keyboard.up("ArrowRight");
+  }
 
   return { triggered, resolved };
 }
