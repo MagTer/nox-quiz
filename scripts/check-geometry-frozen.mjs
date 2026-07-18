@@ -38,10 +38,27 @@ const BASELINE_PATH = fileURLToPath(
 // JSON.stringify with no whitespace gives a deterministic, byte-comparable string
 // per level (object key order is authored order in the descriptor source, which is
 // itself frozen by this very gate).
+//
+// EXPLICIT EXCLUSION ALLOWLIST — the Phase-36 motion keys `movers` + `patrollers`
+// (World Motion & Ambient Life; see 36-RESEARCH.md §"The geometry-freeze
+// reconciliation", Option C). These MUST live INSIDE `geometry` because the
+// Phase-30 mover-reachability validator (reachability.mjs) reads `geometry.movers`
+// — so unlike Phase-35 props (which dodged this gate by living at TOP-LEVEL
+// `levelData.props`, never `geometry.props`), motion keys can't be made
+// structurally invisible. The equivalent is to strip EXACTLY these two keys from
+// the freeze snapshot: every downstream plan can then author
+// `geometry.movers`/`geometry.patrollers` without tripping the gate, while ALL the
+// kid-validated static arrays (floors/platforms/coins/spikes/goal/checkpoints/
+// doors/mathGates/enemies/keys/locks/secretAlcove/bounds) stay byte-frozen. This
+// same function feeds BOTH the `--write` baseline path and the gate-compare path,
+// so baseline and comparison stay symmetric automatically — NEVER `--write` to
+// "absorb" a motion key (Option A, rejected: it would mask accidental static drift).
 function currentGeometryMap() {
   const map = {};
   for (const id of LEVEL_ORDER) {
-    map[id] = JSON.stringify(getLevel(id).geometry);
+    // Strip only the two Phase-36 motion keys; freeze everything else byte-for-byte.
+    const { movers, patrollers, ...frozen } = getLevel(id).geometry;
+    map[id] = JSON.stringify(frozen);
   }
   return map;
 }
