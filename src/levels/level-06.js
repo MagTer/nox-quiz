@@ -199,10 +199,10 @@ export const LEVEL_06 = {
       // wide enough to give the audit's rightward-hop mount room to overshoot-and-retry
       // without running off the ledge (on the cramped F3 the mount overshot across the
       // F3->F4 gap and could never recover). Placed in F4's LEFT-CENTRE, clear of BOTH the
-      // bare-gap landing (~3850) and the goal@4300 runway: rightmost extent (3990 + 110)
-      // stays 200px left of the goal so the driven player still sweeps the goal collider at
+      // bare-gap landing (~3850) and the goal@4300 runway: rightmost extent (3990 + 130)
+      // stays 180px left of the goal so the driven player still sweeps the goal collider at
       // full speed. y:250 = rise 70 from FLOOR_Y 320 → reachability PASS (from F4,
-      // rightward). Wide (w110) for a reliable mount; solid F4 under it → miss = WAIT; the
+      // rightward). Wide (w130) for a reliable mount; solid F4 under it → miss = WAIT; the
       // goal-drive walks under it (22px head clearance).
       { x1: 3900, y1: 250, x2: 3990, y2: 250, w: 130 },
     ],
