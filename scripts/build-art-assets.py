@@ -1094,6 +1094,58 @@ def build_enemy_hellhound():
     save(sheet, os.path.join(ROOT, "assets", "enemy-hellhound.png"))
 
 
+def build_patroller():
+    """Gothicvania Cemetery's skeleton WALK cycle (8 x 44x52 frame files) ->
+    assets/patroller.png (352x52, sliceX 8, anim `walk`).
+
+    A cosmetic ambient patroller (Phase 36 MOT-01) — deliberately a shambling,
+    hunched BIPED skeleton so it is VISUALLY DISTINCT from the quadruped,
+    idle-only enemy-hellhound math-blocker, and carries a real walk-cycle
+    telegraph (SC1). Sourced from the already-vendored gothicvania-cemetery.txt
+    pack (skeleton-1..8.png — the pack's walk animation; skeleton-rise is a
+    separate rise anim, not used). Native size, NEAREST identity paste (no
+    scale, no bbox re-registration — the 8 source frames already share one
+    44x52 canvas with feet planted at the bottom edge, so a direct paste keeps
+    the walk cycle's bob/registration intact), same discipline as
+    build_enemy_hellhound.
+
+    NO-PINK conform pass: the pack's maroon bone SHADOW color sits at a
+    low-brightness HSV hue that numerically lands in the 211-239 pink band
+    (25.3% measured against the real gate) — the SAME low-brightness
+    hue-instability artifact documented for player-swamphunter, NOT genuine
+    pink. Per the plan's "retint where over threshold" mandate (the town-prop
+    no-pink precedent), a board-faithful hue_shift_band(_, 211, 239, -40) pass
+    shifts ONLY those dark in-band shadow pixels out of the band -> 0.0% pink,
+    with the visible warm-bone silhouette preserved (the shifted pixels are
+    near-black shadow noise; a render before/after is indistinguishable).
+    """
+    frame_w, frame_h = 44, 52
+    num_frames = 8
+    src_dir = os.path.join(
+        GV_SRC,
+        "gothicvania-cemetery-files_1", "gothicvania-cemetery-files",
+        "PNG", "Sprites", "skeleton",
+    )
+    sheet = Image.new("RGBA", (frame_w * num_frames, frame_h), (0, 0, 0, 0))
+    for i in range(num_frames):
+        frame = Image.open(
+            os.path.join(src_dir, f"skeleton-{i + 1}.png")
+        ).convert("RGBA")
+        assert frame.size == (frame_w, frame_h), (
+            f"skeleton-{i + 1}.png unexpected source size: {frame.size}"
+        )
+        sheet.paste(frame, (i * frame_w, 0), frame)
+
+    # No-pink hue-conform pass (see docstring) — only touches in-band dark
+    # shadow pixels; the bone color the player sees is unchanged.
+    sheet = hue_shift_band(sheet, 211, 239, -40)
+
+    assert sheet.size == (frame_w * num_frames, frame_h), (
+        f"patroller sheet wrong size: {sheet.size}"
+    )
+    save(sheet, os.path.join(ROOT, "assets", "patroller.png"))
+
+
 FONT_PATH = os.path.join(ROOT, "assets", "_font-src", "monogram.ttf")
 
 # Logo fill/stroke colors (BRAND-01/BRAND-03; Phase 26 Plan 07) — mirror
@@ -1404,6 +1456,19 @@ def build_props():
     bake_prop("swamp-reed", os.path.join(swamp, "props.png"), crop=(8, 0, 46, 43))
     bake_prop("swamp-vine", os.path.join(swamp, "props.png"), crop=(60, 0, 115, 43))
     bake_prop("swamp-fern", os.path.join(swamp, "props.png"), crop=(128, 0, 173, 43))
+    # Swamp LIGHT-SOURCE (Phase 36 MOT-03/MECH-05): a bog will-o'-wisp. The swamp/
+    # cemetery packs carry NO lantern/brazier object, so — following the castle
+    # crops-before-new-CC0 precedent — the will-o'-wisp is a single frame of the
+    # already-vendored (gothicvania-patreon.txt) Fire-Skull sheet (768x112 = 8x
+    # 96px frames); crop frame 0, bake_prop tightens to its own bbox (68x78). A
+    # floating flaming skull IS the classic bog wisp; measured 0.0% pink NATIVE
+    # (its red/orange flame hue sits well outside the 211-239 pink band) — no
+    # retint, no new CC0.
+    fire_skull = os.path.join(
+        "gothicvaniapatreoncollection", " gothicvania patreon collection",
+        "Fire-Skull-Files", "PNG", "fire-skull.png",
+    )
+    bake_prop("swamp-lantern", fire_skull, crop=(0, 0, 96, 112))
 
     # ---- Cemetery (RICH — statue + tombstones + a tree + a bush) -----------
     cem = os.path.join(
@@ -1417,6 +1482,18 @@ def build_props():
     bake_prop("cemetery-stone-4", os.path.join(cem, "stone-4.png"))
     bake_prop("cemetery-tree", os.path.join(cem, "tree-1.png"))
     bake_prop("cemetery-bush", os.path.join(cem, "bush-large.png"))
+    # Cemetery LIGHT-SOURCE (Phase 36 MOT-03/MECH-05): a grave candle/lantern. The
+    # cemetery pack ships no lantern/brazier, so — crops-before-new-CC0 — reuse the
+    # already-vendored (gothicvania-church.txt) Church tileset's altar-candle-on-a-
+    # stepped-plinth crop (a standing warm-flame gothic candle; the SAME crop rect
+    # the castle-candle-stand prop uses — a shared gothic grave/altar light motif,
+    # biome-coherent for a cemetery). Measured 2.55% pink NATIVE (under the 8%
+    # gate) -> baked NATIVE, no retint, no new CC0.
+    church_ts = os.path.join(
+        "gothicvania-church-files", "gothicvania church files",
+        "ENVIRONMENT", "tileset.png",
+    )
+    bake_prop("cemetery-lantern", church_ts, crop=(247, 88, 273, 117))
 
     # ---- Town (levels 3-4; RICH pre-sliced vocabulary) ---------------------
     # Direct pre-sliced named files from the Gothicvania Town pack's
@@ -1484,4 +1561,5 @@ if __name__ == "__main__":
     build_biome_parallax_castle()
     build_player_swamphunter()
     build_enemy_hellhound()
+    build_patroller()
     build_props()

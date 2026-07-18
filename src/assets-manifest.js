@@ -7,16 +7,17 @@
 // relative (the `assets/...` convention main.js's existing loads already use
 // before the `../` prefix is applied at the call site).
 //
-// 58 entries total, grouped by `kind`:
+// 61 entries total, grouped by `kind`:
 //   biome-atlas (4)  — Phase-31-baked 2-frame cap+fill ground atlases
 //   biome-bg    (12) — Phase-31-baked per-biome parallax layers (far/mid/near x 4 biomes)
 //   sprite      (11) — plain single-argument loadSprite calls, gate coverage only
-//   sprite-anim (3)  — sliceX+anims sprites, gate coverage only
+//   sprite-anim (4)  — sliceX+anims sprites, gate coverage only (+patroller, Phase 36)
 //   sound       (7)  — loadSound calls, gate coverage only
 //   music       (1)  — loadMusic call, gate coverage only
-//   prop        (20) — Phase-35-baked decorative props (swamp x4 + cemetery x7 +
-//                      town x5 + castle x4), loaded as single static frames by
-//                      main.js's kind:"prop" branch
+//   prop        (22) — Phase-35-baked decorative props (swamp x4 + cemetery x7 +
+//                      town x5 + castle x4) + Phase-36 light-source props
+//                      (swamp-lantern + cemetery-lantern), loaded as single
+//                      static frames by main.js's kind:"prop" branch
 
 export const ASSETS_MANIFEST = [
   // --- biome-atlas: 4 entries ---
@@ -56,6 +57,9 @@ export const ASSETS_MANIFEST = [
   { key: "player", path: "assets/player-swamphunter.png", kind: "sprite-anim" },
   { key: "coin", path: "assets/coin.png", kind: "sprite-anim" },
   { key: "enemy-hellhound", path: "assets/enemy-hellhound.png", kind: "sprite-anim" },
+  // Phase 36 (MOT-01): cosmetic ambient patroller — a shambling biped skeleton
+  // walk cycle (8 frames), distinct from the quadruped idle-only enemy-hellhound.
+  { key: "patroller", path: "assets/patroller.png", kind: "sprite-anim" },
 
   // --- sound: 7 entries, gate coverage only ---
   { key: "jump", path: "assets/sfx/jump.ogg", kind: "sound" },
@@ -79,6 +83,8 @@ export const ASSETS_MANIFEST = [
   { key: "prop-swamp-reed", path: "assets/props/swamp-reed.png", kind: "prop" },
   { key: "prop-swamp-vine", path: "assets/props/swamp-vine.png", kind: "prop" },
   { key: "prop-swamp-fern", path: "assets/props/swamp-fern.png", kind: "prop" },
+  // Phase 36 light-source (MOT-03/MECH-05): a bog will-o'-wisp (flaming skull).
+  { key: "prop-swamp-lantern", path: "assets/props/swamp-lantern.png", kind: "prop" },
   { key: "prop-cemetery-statue", path: "assets/props/cemetery-statue.png", kind: "prop" },
   { key: "prop-cemetery-stone-1", path: "assets/props/cemetery-stone-1.png", kind: "prop" },
   { key: "prop-cemetery-stone-2", path: "assets/props/cemetery-stone-2.png", kind: "prop" },
@@ -86,6 +92,9 @@ export const ASSETS_MANIFEST = [
   { key: "prop-cemetery-stone-4", path: "assets/props/cemetery-stone-4.png", kind: "prop" },
   { key: "prop-cemetery-tree", path: "assets/props/cemetery-tree.png", kind: "prop" },
   { key: "prop-cemetery-bush", path: "assets/props/cemetery-bush.png", kind: "prop" },
+  // Phase 36 light-source (MOT-03/MECH-05): a grave candle/lantern (Church-pack
+  // altar-candle crop — a gothic grave/altar light, biome-coherent for a cemetery).
+  { key: "prop-cemetery-lantern", path: "assets/props/cemetery-lantern.png", kind: "prop" },
   // town (levels 3-4) — pre-sliced street clutter, board steel-blue-night retint
   { key: "prop-town-barrel", path: "assets/props/town-barrel.png", kind: "prop" },
   { key: "prop-town-crate", path: "assets/props/town-crate.png", kind: "prop" },

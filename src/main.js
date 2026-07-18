@@ -135,6 +135,25 @@ loadSprite("enemy-hellhound", "../assets/enemy-hellhound.png", {
     idle: { from: 0, to: 5, loop: true, speed: CONFIG.ENEMY.IDLE_SPEED },
   },
 });
+// Cosmetic ambient patroller (MOT-01; Phase 36) — a shambling biped skeleton
+// walk cycle (8 x 44x52 frames), visually distinct from the quadruped idle-only
+// enemy-hellhound math-blocker. The `walk` anim name is what build.js's patroller
+// loop plays via foe.play("walk") (wired in 36-03). Speed reads CONFIG.PATROLLER
+// via OPTIONAL chaining: this art plan (Wave 1) lands BEFORE 36-03 adds
+// CONFIG.PATROLLER, so `?.` falls back to the enemy idle rate rather than throwing
+// on an undefined CONFIG.PATROLLER at load (a727c13-safe — inside the post-init
+// load section, and future-compatible once 36-03 defines WALK_SPEED).
+loadSprite("patroller", "../assets/patroller.png", {
+  sliceX: 8,
+  anims: {
+    walk: {
+      from: 0,
+      to: 7,
+      loop: true,
+      speed: CONFIG.PATROLLER?.WALK_SPEED ?? CONFIG.ENEMY.IDLE_SPEED,
+    },
+  },
+});
 
 // Audio loads (Phase 27 AUD-01/AUD-02) — 7 CC0 SFX + 1 ambient music loop, registered
 // here before any go() so the audio.js seam (src/audio.js) never plays against a
