@@ -305,4 +305,41 @@ export const LEVEL_08 = {
   mechanics: [],
   biome: "castle", // level 8 of 8 — Castlevania arc calm->harsh (levels 7-8 castle)
   parallax: null,
+
+  // --- Decorative props (ART-06/ART-07; Phase 35 — VISUAL-ONLY, geometry byte-frozen) ---
+  // The RESTRAINED castle vocabulary (plan-03-approved density) from the plan-05 bake:
+  //   prop-castle-column 114x190, prop-castle-arch 32x64, prop-castle-candles 31x21,
+  //   prop-castle-candle-stand 15x25.
+  // level-08 IS the tall vertical finale (bounds.top -720). The THRONE KEEP switchback is
+  // a TIGHT 26px-headroom folding spire, so NO prop touches a climb tier: on-surface
+  // accents sit ONLY on the lower-gauntlet FLOORS (F0/F1/F3/F6/F8) at clear margins, and
+  // the switchback lanes, tight-headroom tiers, and the KEY apex spur (KA) stay pristine.
+  // A restrained few background ARCH windows dress the tall shaft at climb altitude (the
+  // "black mess" mitigation, T-35-11 — verified by the level-08 climb screenshot); they
+  // are z -8 (behind every tier) so they never occlude a route. Every prop is clear of the
+  // DOOR@880, ENEMY@3500, the five spikes (1600/2800/4200/5280/6000), the coins, the
+  // GOAL@7620, the KEY@7280, and the secret alcove@320. On-surface y = surfaceY - height.
+  props: [
+    // Background gothic pillars (layer "back", z -8) as gauntlet wall dressing on the
+    // lower run — base resting on the floor line (y = 320 - 190 = 130).
+    { sprite: "prop-castle-column", x: 40, y: 130, layer: "back" }, //   frames the spawn bailey F0 (clear of alcove PA@280)
+    { sprite: "prop-castle-column", x: 3160, y: 130, layer: "back" }, //  gauntlet pillar in the F3/F4 gap depth, before the enemy@3500
+    { sprite: "prop-castle-column", x: 6380, y: 130, layer: "back" }, //  frames the THRONE KEEP run-up (behind F8 base, left of K1@6680)
+
+    // Background arch windows (layer "back", z -8) dressing the TALL switchback shaft at
+    // climb altitude so the keep never reads as an empty parallax void — anchored to the
+    // far wall on the OPEN side of each switchback fold (behind the tiers, never over a
+    // lane). These are the T-35-11 climb-legibility dressing the climb shot verifies.
+    { sprite: "prop-castle-arch", x: 7460, y: -140, layer: "back" }, //  right far-wall window behind the mid switchback (K5/K7)
+    { sprite: "prop-castle-arch", x: 6600, y: -320, layer: "back" }, //  left far-wall window behind the upper switchback (K8/K9)
+    { sprite: "prop-castle-arch", x: 7280, y: -620, layer: "back" }, //  crowning window above the keep summit/apex
+
+    // On-surface castle light-sources (layer "surface", z -3) on the lower-gauntlet floors
+    // ONLY, at clear margins — restrained, off the switchback climb entirely.
+    { sprite: "prop-castle-candles", x: 60, y: 299, layer: "surface" }, //       F0 far-left corner (clear of alcove PA@280)
+    { sprite: "prop-castle-candle-stand", x: 700, y: 295, layer: "surface" }, //  F1, flanks the portcullis door@880 (left of coin@760)
+    { sprite: "prop-castle-candles", x: 3040, y: 299, layer: "surface" }, //      F3 right end, past spike@2800 + coin@2960
+    { sprite: "prop-castle-candle-stand", x: 5520, y: 295, layer: "surface" }, //  F6 right end, past spike@5280 + coin@5440
+    { sprite: "prop-castle-candles", x: 6460, y: 299, layer: "surface" }, //      F8 left end, flanks the throne-keep run-up (left of coin@6520)
+  ],
 };
