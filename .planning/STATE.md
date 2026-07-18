@@ -4,17 +4,17 @@ milestone: v6.0
 milestone_name: SNES-Fidelity World
 current_phase: 36
 current_phase_name: World Motion & Ambient Life
-status: in-progress
+status: executing
 stopped_at: "2026-07-18 — Phase 35 (Biome Re-dress & Props) COMPLETE: all 8 plans executed, full gate suite green, geometry BYTE-FROZEN across all 8 levels (check-geometry-frozen gate proves it). All 8 levels dressed with a collider-free props layer (swamp/town/cemetery/castle); trial checkpoint (35-03) orchestrator-reviewed under user 'run the whole phase' authorization; dead theme-N bake code deleted; the deferred neon-green coin-pop restyled to a dark-grunge gold glint twinkle. 16 code commits (7c156a8..d2fa37b). ART-06 + ART-07 delivered. NEXT: Phase 36 (World Motion & Ambient Life) — patrols/moving platforms/ambient flicker, dt-based + ADHD-safe, placed on the now-dressed levels. Final kid aesthetic sign-off on the dressed world deferred to Phase 38 (VER-02)."
-last_updated: "2026-07-18T00:10:00.000Z"
+last_updated: "2026-07-18T09:25:43.972Z"
 last_activity: 2026-07-18
-last_activity_desc: "Phase 35 complete — all 8 levels dressed with props, geometry frozen, coin-pop restyled; advancing to Phase 36"
+last_activity_desc: Phase 36 execution started
 progress:
   total_phases: 13
-  completed_phases: 10
-  total_plans: 63
-  completed_plans: 63
-  percent: 77
+  completed_phases: 8
+  total_plans: 65
+  completed_plans: 53
+  percent: 62
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 36 — World Motion & Ambient Life (Phase 35 complete: all 8 levels dressed with a collider-free props layer, geometry byte-frozen, coin-pop restyled)
+**Current Focus:** Phase 36 — World Motion & Ambient Life
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -36,11 +36,11 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 36 (World Motion & Ambient Life) — next
-Plan: 0 of N — not yet planned
-Status: Phase 35 COMPLETE (all 8 dressed, geometry frozen); Phase 36 is next
-Also open: nothing blocking
-Last activity: 2026-07-18 — Phase 35 complete; advancing to Phase 36
+Phase: 36 (World Motion & Ambient Life) — AT TRIAL PLAY-TEST GATE (36-06)
+Plan: 6 of 10 — waves 1-4 done (harness + motion art + entity classes + ambient/MECH-05 + 2-level trial); PAUSED at 36-06 human play-test sign-off
+Status: Awaiting user play-test of the motion trial (level-01 calm + level-06 intense) before the remaining-6 rollout (36-07/08) + consolidation (36-09)
+Also open: 36-06 human-verify — motion feel / no-softlock / patroller-trap / telegraphing / MECH-05 torch. Resume rollout only after sign-off.
+Last activity: 2026-07-18 — Phase 36 trial executed (waves 1-4); stopped at the play-test gate
 
 Progress: [████████░░] 77%  (10 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35; remaining: 36, 37, 38)
 
