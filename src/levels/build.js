@@ -520,7 +520,17 @@ export function buildLevel(levelData) {
   const LIGHT_RE = /lantern|lamp|candle/; // MOT-03 flicker selector — all 4 biomes' light keys
   const alcovesForLink = g.secretAlcove ?? [];
   for (const pr of levelData.props ?? []) {
-    const isLight = LIGHT_RE.test(pr.sprite);
+    // POL-04 (Phase 39): an OPT-IN solid prop (barrel/crate) — the ONLY prop that gets
+    // physics. A solid prop is never a light (mutually exclusive), so exclude it from the
+    // flicker/alcove-light paths below. Collider dims come from a config/descriptor
+    // PRIMARY source (pr.solidW/H, else CONFIG.PROPS.SOLID_W/H) — NEVER an async read of
+    // the loaded sprite's width/height (Kaplay loads sprites async; the size may not be
+    // readable here at construction time), and the SAME sizing the reachability model
+    // (reachability.mjs solidBoxes) uses, so the built collider matches the checked box.
+    const isSolid = pr.solid === true;
+    const solidW = pr.solidW ?? CONFIG.PROPS.SOLID_W;
+    const solidH = pr.solidH ?? CONFIG.PROPS.SOLID_H;
+    const isLight = !isSolid && LIGHT_RE.test(pr.sprite);
     // A light is "alcove-linked" if it sits within LINK_DIST of any secret alcove.
     const linked =
       isLight &&
@@ -530,9 +540,23 @@ export function buildLevel(levelData) {
     const propObj = add([
       sprite(pr.sprite),
       pos(pr.x, pr.y),
-      z(pr.layer === "surface" ? CONFIG.PROPS.Z_SURFACE : CONFIG.PROPS.Z_BACK),
+      // Solid props sit at play depth (SOLID_Z, z(0)) so they visually block; default
+      // decoration props stay at the negative Z_SURFACE/Z_BACK depths (behind the player).
+      z(
+        isSolid
+          ? CONFIG.PROPS.SOLID_Z
+          : pr.layer === "surface"
+            ? CONFIG.PROPS.Z_SURFACE
+            : CONFIG.PROPS.Z_BACK,
+      ),
       opacity(1),
       "prop",
+      // Opt-in solid: static collider sized from the config/descriptor PRIMARY source
+      // above (magic-number-free). Default props (no `solid`) add NO area()/body() — the
+      // header invariant (props are the one pure sprite+pos+z entity class) holds for them.
+      ...(isSolid
+        ? [area({ shape: new Rect(vec2(0), solidW, solidH) }), body({ isStatic: true })]
+        : []),
       // Tag alcove-linked lights so game.js's lightAmbient() can find + brighten them.
       ...(linked ? ["alcove-light"] : []),
     ]);

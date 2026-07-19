@@ -116,6 +116,19 @@ export const CONFIG = {
   PROPS: {
     Z_BACK: -8, // z — parallax-adjacent background props (just in front of NEAR_Z −10)
     Z_SURFACE: -3, // z — on-surface props resting on ledges/floors (nearer, still behind z(0) play)
+    // --- Solid props (POL-04; Phase 39 — opt-in `pr.solid` town barrels/crates) ---
+    // A prop that sets `solid: true` becomes a static-collider obstacle: it gets an
+    // area() + body({ isStatic: true }) and is raised to SOLID_Z (play depth, NOT the
+    // negative decoration depth above) so it VISUALLY blocks. Default props stay
+    // collider-free at negative z — this branch never regresses the whole layer.
+    SOLID_Z: 0, // z — solid props sit at play depth (z(0), same plane as the player/terrain) so they block, not just decorate. (Z_BACK/Z_SURFACE above are negative decoration depths.)
+    // PRIMARY collider sizing source (magic-number-free): the built collider and the
+    // reachability model (reachability.mjs solidBoxes) BOTH read these — Kaplay loads
+    // sprites async, so the loaded sprite's width/height may NOT be readable at build
+    // time; async sprite introspection is at most a FALLBACK, never the source of truth.
+    // Per-prop `solidW`/`solidH` override these defaults. ~24×24 = a barrel/crate footprint.
+    SOLID_W: 24, // px — default solid-prop collider width (town barrel/crate footprint). Per-prop `solidW` override allowed.
+    SOLID_H: 24, // px — default solid-prop collider height. Per-prop `solidH` override allowed. Under the ~88px jump envelope (docs/LEVEL-DESIGN.md) so a solid prop stays jump-clearable.
   },
 
   // --- Terrain rendering tunables (ART-02/ART-03; Phase 32) ---
