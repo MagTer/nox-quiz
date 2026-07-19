@@ -229,20 +229,32 @@ export const LEVEL_04 = {
       // on F2 to WAIT; an overshoot to the spike@4750 is a gentle respawn to checkpoint@4560
       // ~2s away (§8.5 rule 4) — NOT a killing pit. Both endpoints y:250 = rise 70 from
       // FLOOR_Y 320 → reachability PASS/WARN. Goal-drive walks under it (head 288 vs 250..266).
-      { x1: 4500, y1: 250, x2: 4540, y2: 250, w: 120, period: 10 },
+      // POL-03 (Phase 39): the ~40px near-zero sweep is WIDENED to 80px (4460..4540) so the
+      // ferry VISIBLY slides. Only x1 moved LEFT (4500 -> 4460, the F2 left edge) — x2 and w
+      // are held so the rightmost extent stays x2+w = 4660, ~30px LEFT of the goal-drive's
+      // spike-jump takeoff (~4690): the documented NO-SOFTLOCK constraint above is preserved
+      // byte-for-byte. Both endpoints y:250 ride solid F2 (miss = WAIT, no pit). EXEMPT motion
+      // key — frozen-hash-neutral.
+      { x1: 4460, y1: 250, x2: 4540, y2: 250, w: 120, period: 10 },
     ],
     patrollers: [
-      // P0 — a town WRAITH hovering at y:214 over the FLAT F0 spawn lane (0..640) AFTER the
-      // door@360 and BEFORE the Tower-A A1 mount takeoff (~600), sweep 460..560. Behind
-      // checkpoint@96; a contact respawns there and re-walks the ALREADY-open door (no
-      // re-gate). Walking passes beneath (head 288 vs frame bottom 266); a jump meets it.
-      { x1: 460, y1: 214, x2: 560, y2: 214 },
-      // P1 — a town WRAITH hovering at y:214 over the FLAT mid-valley F1 lane (2740..3340),
-      // in the GROUNDED stretch AFTER the enemy@3100 and BEFORE the Tower-B B1 mount takeoff
-      // (~3340), sweep 3200..3300. Behind checkpoint@3180 (F1, past the enemy); a contact
-      // respawns there (enemy already answered — no re-gate). Distinct "patroller" walk
-      // sprite (36-10) reads apart from the math-blocker enemy@3100.
-      { x1: 3200, y1: 214, x2: 3300, y2: 214 },
+      // P0 — a GROUNDED town SKELETON (POL-01, Phase 39) walking the FLAT F0 spawn lane
+      // (0..640). Feet on FLOOR_Y 320 (44x52 topleft → y:268), a 180px sweep 400..580 at
+      // speed 80 (was a stationary y:214 hover), endpoints OFF the F0 coins (@150, @520).
+      // Sits AFTER the door@360 (+ the solid barrel@100 before it) and BEFORE the Tower-A A1
+      // mount takeoff (~620). Behind checkpoint@96; a contact respawns there and re-walks the
+      // ALREADY-open door (no re-gate). A grounded skeleton across the lane now genuinely
+      // BLOCKS (intended danger) — the walk-only driver hops it (39-04 patroller-hop) and
+      // stays clearable (docs/LEVEL-DESIGN.md).
+      { x1: 400, y1: 268, x2: 580, y2: 268, speed: 80 },
+      // P1 — a GROUNDED town SKELETON (POL-01) walking the FLAT mid-valley F1 lane
+      // (2740..3340). Feet on FLOOR_Y (y:268), a 160px sweep 3140..3300 at speed 80 (was a
+      // y:214 hover), endpoints OFF the F1 coins (@2900, @3250). Sits in the GROUNDED stretch
+      // AFTER the enemy@3100 and BEFORE the Tower-B B1 mount takeoff (~3340). Behind
+      // checkpoint@3180 (F1, past the enemy); a contact respawns there (enemy already answered
+      // — no re-gate). Distinct "patroller" walk sprite (36-10) reads apart from the
+      // math-blocker enemy@3100.
+      { x1: 3140, y1: 268, x2: 3300, y2: 268, speed: 80 },
     ],
   },
 
@@ -269,8 +281,8 @@ export const LEVEL_04 = {
 
     // On-surface accents on the three wide floors ONLY (y = 320 - spriteHeight) — off
     // every switchback tier, the beam traverse, and the key spur.
-    { sprite: "prop-town-barrel", x: 60, y: 290, layer: "surface" }, //   F0 spawn-left, before the door@360
-    { sprite: "prop-town-crate", x: 2760, y: 285, layer: "surface" }, //  F1 left corner, before the enemy@3100
+    { sprite: "prop-town-barrel", x: 200, y: 290, layer: "surface", solid: true }, //   POL-04 SOLID jump-over — F0 (moved from x:60; a solid prop must NOT overlap the checkpoint@96 respawn point — the player respawns INSIDE the collider and death-loops — nor SPAWN_X 64, so 200 keeps an 88px gap), before the door@360; 24px collider << 88px jump envelope
+    { sprite: "prop-town-crate", x: 2860, y: 285, layer: "surface", solid: true }, //  POL-04 SOLID jump-over — F1 (moved from 2760: clears the checkpoint@2820 respawn point, ~24px gap, and coin@2900), before the enemy@3100
     { sprite: "prop-town-sign", x: 4480, y: 276, layer: "surface" }, //   F2 landing corner, before spike@4750
 
     // Phase 36 (MOT-03/MECH-05): the town LIGHT that marks + links the secret alcove — a
