@@ -4,11 +4,11 @@ milestone: v6.0
 milestone_name: SNES-Fidelity World
 current_phase: 38
 current_phase_name: n0x Logo & Closing Verification
-status: in-progress
+status: executing
 stopped_at: "2026-07-18 — Phase 35 (Biome Re-dress & Props) COMPLETE: all 8 plans executed, full gate suite green, geometry BYTE-FROZEN across all 8 levels (check-geometry-frozen gate proves it). All 8 levels dressed with a collider-free props layer (swamp/town/cemetery/castle); trial checkpoint (35-03) orchestrator-reviewed under user 'run the whole phase' authorization; dead theme-N bake code deleted; the deferred neon-green coin-pop restyled to a dark-grunge gold glint twinkle. 16 code commits (7c156a8..d2fa37b). ART-06 + ART-07 delivered. NEXT: Phase 36 (World Motion & Ambient Life) — patrols/moving platforms/ambient flicker, dt-based + ADHD-safe, placed on the now-dressed levels. Final kid aesthetic sign-off on the dressed world deferred to Phase 38 (VER-02)."
-last_updated: "2026-07-19T06:19:30.117Z"
+last_updated: "2026-07-19T15:18:17.409Z"
 last_activity: 2026-07-19
-last_activity_desc: "Phase 38 BRAND-01 baked: N0X logo A (Emerald Chisel) + SNES-fidelity castle-interior title backdrop; gates+browser-boot green; awaiting human sign-off"
+last_activity_desc: Phase 37 complete + N0X logo direction picked (A); context cleared for a fresh session
 progress:
   total_phases: 13
   completed_phases: 12
@@ -38,7 +38,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 Phase: 38 (n0x Logo & Closing Verification) — FINAL phase, human/real-world gated
 Plan: 0 of N — not planned yet. LOGO DECIDED: candidate A "Emerald Chisel" (uppercase N0X, moss→neon chiseled bevel). Resume contract: .planning/phases/38-n0x-logo-closing-verification/38-DECISIONS.md
-Status: Phase 37 COMPLETE (12/13, 92%, 15/15 gates green). NEXT ACTION on resume: bake logo A → assets/logo-hero.png (360×90) + logo-badge.png (144×36) via build-art-assets.py (port brand-candidates/generate-v2.py a_emerald()), re-gate, then hand to user for BRAND-01 sign-off.
+Status: Ready to execute
 Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (covers ALL new content incl. deferred Phase-36 motion feel); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
 Last activity: 2026-07-19 — Phase 37 complete + N0X logo direction picked (A); context cleared for a fresh session
 NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.

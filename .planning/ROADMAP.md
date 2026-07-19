@@ -598,6 +598,7 @@ Plans:
 **Goal:** Turn the levels from a walk-through with cosmetic hazards into real platforming, per the user's post-kid-playthrough feedback (2026-07-19). Grounded, visibly-patrolling skeletons; a new sliding-spike moving hazard; moving platforms relocated over the real holes (removing the static stepping-stones + teaching the walk-only audit harness to ride a mover + re-freezing the geometry baseline); solid jump-over barrels/boxes; and prop cleanup. Difficulty rises deliberately (real timed gaps + grounded enemies) while staying ADHD-safe (no timers/countdowns).
 
 **Requirements**:
+
 - **POL-01** — Grounded patrol skeletons: drop `geometry.patrollers` to floor level with a wide, visible ping-pong sweep, moved off the floor coins, so they read as real telegraphed hazards (contact = respawn to checkpoint). All 8 levels. Freeze-EXEMPT (patrollers stripped from the frozen hash).
 - **POL-02** — Sliding-spike moving hazard: NEW mechanic — a spike that patrols horizontally along the ground (reuse the mover raised-cosine oscillation / `stickToPlatform`-adjacent pattern), placed at a few chosen spots. New builder branch + config + validator/audit awareness.
 - **POL-03** — Movers over real holes (FULL): relocate the existing movers over the actual pits, remove the static stepping-stones bridging those pits, update the walk-only `browser-boot.mjs` / `audit-phase21-mechanics.mjs` drivers to ride a moving platform (else they softlock), and re-freeze `scripts/fixtures/geometry-frozen-baseline.json` (`check-geometry-frozen.mjs --write`) as a deliberate acknowledgment. Touches FROZEN geometry (floors/platforms) → re-baseline required.
@@ -610,14 +611,21 @@ Plans:
 **Plans:** 8 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 39-01-PLAN.md — Builder + harness foundation: sliding-spike loop + config (POL-02), solid-prop branch + config (POL-04), frozen-strip + driver/reachability awareness
 - [ ] 39-02-PLAN.md — Re-bake prop-swamp-lantern from a non-skull source, keeping the alcove-light key/path stable (POL-05)
 - [ ] 39-03-PLAN.md — Teach browser-boot.mjs + audit-phase21 to ride a mover (POL-03 harness capability)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 39-04-PLAN.md — Levels 1-2 data: ground skeletons (POL-01) + confirm lantern alcove link (POL-05)
 - [ ] 39-05-PLAN.md — Levels 3-4 data: ground skeletons (POL-01), 6 solid town props (POL-04), well off spike (POL-05), L4 mover widen (POL-03)
 - [ ] 39-06-PLAN.md — Levels 5-7 data: ground skeletons (POL-01), sliding spikes on L5/L7 (POL-02), L7 mover widen (POL-03)
 - [ ] 39-07-PLAN.md — Level 8 data: ground skeletons (POL-01), movers over the real moat + chasm with stepping-stones removed (POL-03 FROZEN), columns off gaps/spawn (POL-05)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 39-08-PLAN.md — Re-baseline frozen geometry (--write) + full gate suite + human playthrough sign-off; queue VER-02 kid-UAT re-run
 
 ---
