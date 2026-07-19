@@ -608,7 +608,7 @@ Plans:
 **Decisions (user, 2026-07-19):** skull→lantern (keep alcove light); moving spikes = slide-along-ground; movers-over-holes = full re-placement + harness update; skeletons = ground patrol. Barrels default = all 6 town props solid (revisit if a route is blocked).
 
 **Depends on:** Phase 38 (BRAND-01 already signed off). **NOTE:** Phase 38's VER-02 kid-UAT must RE-RUN after this phase — it now covers this revised platforming.
-**Plans:** 5/8 plans executed
+**Plans:** 6/8 plans executed
 
 Plans:
 **Wave 1**
@@ -621,7 +621,7 @@ Plans:
 
 - [x] 39-04-PLAN.md — Levels 1-2 data: ground skeletons (POL-01) + confirm lantern alcove link (POL-05)
 - [x] 39-05-PLAN.md — Levels 3-4 data: ground skeletons (POL-01), 6 solid town props (POL-04), well off spike (POL-05), L4 mover widen (POL-03)
-- [ ] 39-06-PLAN.md — Levels 5-7 data: ground skeletons (POL-01), sliding spikes on L5/L7 (POL-02), L7 mover widen (POL-03)
+- [x] 39-06-PLAN.md — Levels 5-7 data: ground skeletons (POL-01), sliding spikes on L5/L7 (POL-02), L7 mover widen (POL-03)
 - [ ] 39-07-PLAN.md — Level 8 data: ground skeletons (POL-01), movers over the real moat + chasm with stepping-stones removed (POL-03 FROZEN), columns off gaps/spawn (POL-05)
 
 **Wave 3** *(blocked on Wave 2 completion)*

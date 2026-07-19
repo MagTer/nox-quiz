@@ -36,3 +36,21 @@
   - **Follow-up:** a future harness pass should re-pin/verify the mover mount against the
     project's canonical node runtime (or widen the mount deadline/hop cadence in the SHARED
     `driveToMover` once a real node baseline is fixed) so the diagnostic reads green under CI.
+
+## From 39-06 (POL-01/02/03 — L5/L6/L7 polish)
+
+- **`audit-phase21-mechanics.mjs` exceeded a 570s cap and was killed mid-run** (node
+  v24.18.0, same runtime drift as the 39-03 entry above). With patrollers now GENUINELY
+  moving (the build.js patrol() re-arm fix, commit 938faae), the audit's per-encounter
+  drives take longer per level (each `driveToPatroller` now crosses a moving sweep) —
+  the already-slow diagnostic now overruns. Per the phase's standing carve-out this is
+  non-blocking: `browser-boot.mjs` (PASS, exit 0, all 8 levels, zero driver diagnostics
+  on Task 1's run) + `validate-levels.mjs` (0 HARD-FAIL) are the authoritative gates, and
+  39-06 substituted targeted Playwright probes proving sliding-spike oscillation
+  (L5 2790↔2859, L7 2830↔2899 @ y304) + the shared "spike"→respawn seam firing on
+  slider contact. A future harness pass should re-baseline the audit's runtime budget
+  now that patrollers actually walk.
+- **The audit's `driveAndDetectPatroller` was authored against FROZEN patrollers** (the
+  Kaplay 3001.0.19 patrol() born-finished bug meant every patroller since Phase 36 stood
+  still at x1). Its "reached the foe's live x-span" trigger logic should be re-validated
+  against genuinely ping-ponging skeletons in the same future harness pass.

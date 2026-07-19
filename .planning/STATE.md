@@ -5,15 +5,15 @@ milestone_name: SNES-Fidelity World
 current_phase: 39
 current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 status: executing
-stopped_at: Completed 39-05-PLAN.md
-last_updated: "2026-07-19T18:48:55.303Z"
+stopped_at: Completed 39-06-PLAN.md
+last_updated: "2026-07-19T21:23:43.145Z"
 last_activity: 2026-07-19
 last_activity_desc: Phase 39 execution started
 progress:
   total_phases: 14
   completed_phases: 10
   total_plans: 80
-  completed_plans: 75
+  completed_plans: 76
   percent: 71
 ---
 
@@ -37,14 +37,14 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 39 (playthrough-polish-grounded-patrolling-skeletons-sliding-spi) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (covers ALL new content incl. deferred Phase-36 motion feel); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
 Last activity: 2026-07-19 — Phase 39 execution started
 NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.
 Ignore untracked strays (pre-existing, not ours): .planning/phases/26-*/ + assets/enemy-{1,2,3}.png
 
-Progress: [█████████░] 94%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
+Progress: [██████████] 95%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
 
 ## v6.0 Roadmap Summary
 
@@ -79,6 +79,7 @@ Progress: [█████████░] 94%  (12 of 13 phases complete: 29–
 | Phase 39 P03 | ~50m | 2 tasks | 2 files |
 | Phase 39 P04 | 40min | 2 tasks | 3 files |
 | Phase 39 P05 | 120min | 2 tasks | 3 files |
+| Phase 39 P06 | 70min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,8 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - [Phase ?]: 39-04: grounded L1/L2 skeleton patrollers (y:214->268) + shared walk-driver patroller-hop; a grounded ping-pong patroller is un-passable by the walk-only driver for any phase (IVT), so browser-boot needed the forecasted hop retune.
 - [Phase ?]: L3 F2 crate left non-solid: F2's only clean street must host the grounded patroller; can't clearably carry both (user decision #5 route-breaks exception). 5 of 6 town props solid.
 - [Phase ?]: Walk-driver prop-hop guard hardened: !nearTakeoff + solidAhead gate (fixes solid-prop-before-mount deadlock without regressing prop-free climb levels).
+- [Phase ?]: 39-06: Kaplay 3001.0.19 patrol() born-finished bug found+fixed (build.js waypoints-setter re-arm) — EVERY patroller since Phase 36 stood frozen at x1; the kid's 'stationary skeleton' report was this engine bug, and the frozen body camping on drive targets caused the walk-driver death-loop noise
+- [Phase ?]: 39-06: sliding spikes placed in a static spike's shadow (L5 F3 2790-2860, L7 W2 2830-2900) so the driver's existing static-spike hop clears both hazards in one arc — zero new driver logic
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -184,8 +187,8 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 
 ## Session Continuity
 
-Last session: 2026-07-19T18:48:55.291Z
-Stopped at: Completed 39-05-PLAN.md
+Last session: 2026-07-19T21:23:43.133Z
+Stopped at: Completed 39-06-PLAN.md
 Resume file: None
 
 ---
