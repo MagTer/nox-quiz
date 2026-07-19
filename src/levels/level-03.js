@@ -206,19 +206,28 @@ export const LEVEL_03 = {
     // 3, but never mover-free), each authored to the §6a/§6b HARD rules with generous
     // margins — both mover endpoints reachable RIGHTWARD from spawn, a checkpoint before
     // each, solid floor UNDER the mover (miss = WAIT, no killing pit), far end telegraphed.
-    // Placement is DISTINCT from level-01 (the other calm level): a wide slow F6-street
+    // Placement is DISTINCT from level-01 (the other calm level): a wide slow F8 goal-floor
     // ferry (not level-01's F4 island) + a slow wide-sweep wraith over F2 (not level-01's
-    // 1770..1880 F2 island). Both ride the OPEN street floors clear of every roof/fork/stall
+    // 1770..1880 F2 island). Both ride OPEN street floors clear of every roof/fork/stall
     // climb tier and every takeoff/landing/spike band.
     movers: [
-      // M0 — a slow lateral ferry over the WIDE clean F6 street (5140..5540), the level's
-      // LAST audit encounter (past the enemy@2680; no later blocker to strand). Placed in
-      // F6's centre, clear of the MS2->F6 landing (~5200) and the F6->DW1 mount takeoff
-      // (~5540): right extent (5380 + 100 = 5480) stays 60px left of the takeoff. Both
-      // endpoints y:250 = rise 70 from FLOOR_Y 320 → reachability PASS/WARN (from F6,
-      // rightward). Behind checkpoint@5160; solid F6 under it → a missed hop lands back on
-      // F6 to WAIT (no killing pit). The goal-drive walks under it (head 288 vs 250..266).
-      { x1: 5280, y1: 250, x2: 5380, y2: 250, w: 100 },
+      // M0 — a slow WIDE (w130) lateral ferry over the final F8 street (6940..7700), the
+      // level's LAST audit encounter (past the enemy@2680; no later blocker to strand).
+      // AUTHORING NOTE (36-07 audit tuning): the town is a horizontal HOP-CHAIN — every
+      // street floor has a jump-reachable platform 30px past its right edge (F6->DW1,
+      // F5->MS1, ...), so the audit's rightward mount-jump ESCAPES FORWARD onto that next
+      // climb instead of landing on the ledge; the F6 first-pass mover was chased onto DW1
+      // every attempt and never mounted. The ONLY street whose downstream feature is a clean
+      // dead-end (the GOAL, no forward platform) is F8, in the stretch AFTER the optional
+      // roof PD@7100..7210: this mirrors level-02/06's proven goal-floor recipe (WIDE ledge,
+      // goal the sole "soft reset"). Placed 7240..7320 (right extent 7450), ~50px of solid
+      // F8 to the GOAL@7500. The WIDE (w130) ledge is the reliability lever — it rides the
+      // interactive audit at att=1 across repeated runs (default CONFIG.MOVER.PERIOD_S).
+      // Both endpoints y:250 = rise 70 from FLOOR_Y 320 → reachability
+      // PASS/WARN (from F8, rightward). Behind checkpoint@6960; solid F8 under it → a missed
+      // hop lands back on F8 to WAIT (no killing pit). The goal-drive walks under it
+      // (head 288 vs ledge 250..266 = 22px) on the final approach to the goal.
+      { x1: 7240, y1: 250, x2: 7320, y2: 250, w: 130 },
     ],
     patrollers: [
       // P0 — a slow town WRAITH hovering at y:214 over the FLAT F2 street (1650..2050) AFTER
