@@ -136,7 +136,7 @@ All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (20
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260717-j24 | Re-play polish: enlarge goal flag to 32px (decoupled from 16px load-bearing collider) + lower ear-piercing level-clear sound to 0.4 gain | 2026-07-17 | da1cd94 | [260717-j24-re-play-polish-enlarge-goal-flag-to-32px](./quick/260717-j24-re-play-polish-enlarge-goal-flag-to-32px/) |
-| 260719-iuv | Phase 38 BRAND-01: baked N0X logo A "Emerald Chisel" → logo-hero (360×90) + logo-badge (144×36); rebuilt title-bg from Gothicvania castle-interior source at native SNES-fidelity color (was grey silhouette). All gates + browser-boot green; awaiting human BRAND-01 sign-off | 2026-07-19 | 8e54c0b | [260719-iuv-phase-38-brand-01-bake-n0x-logo-a-emeral](./quick/260719-iuv-phase-38-brand-01-bake-n0x-logo-a-emeral/) |
+| 260719-iuv | Phase 38 BRAND-01: baked N0X logo A "Emerald Chisel" → logo-hero (360×90) + logo-badge (144×36); rebuilt title-bg from Gothicvania castle-interior source at native SNES-fidelity color (was grey silhouette). All gates + browser-boot green; awaiting human BRAND-01 sign-off | 2026-07-19 | ee35994 | [260719-iuv-phase-38-brand-01-bake-n0x-logo-a-emeral](./quick/260719-iuv-phase-38-brand-01-bake-n0x-logo-a-emeral/) |
 
 ## Deferred Items
 
