@@ -171,6 +171,41 @@ export const LEVEL_07 = {
     // Exactly ONE secret alcove — ~70px above CU1's surface (y:254). Off the required
     // path, never signposted. NO key/lock (odd archetype).
     secretAlcove: [{ x: 690, y: 184 }],
+
+    // ========================= MOTION (Phase 36-08) =========================
+    // check-geometry-frozen EXCLUDES geometry.movers / geometry.patrollers — every static
+    // array above stays byte-frozen; motion is ADD-ONLY via these two keys.
+    // CALM-ODD density (the CALMER castle intro): ONE moving platform + ONE patroller (2 motion
+    // entities — LIGHTER than the intense-even 08's 3, but never mover-free), each authored to
+    // the §6a/§6b HARD rules with generous margins — both mover endpoints reachable RIGHTWARD
+    // from spawn, a checkpoint before each, solid wall UNDER the mover (miss = WAIT, no killing
+    // pit), far end telegraphed. level-07 stays the monotonic STAIRCASE (its static geometry is
+    // untouched); the motion layout is its own, distinct from level-08's switchback.
+    movers: [
+      // M0 — a slow rampart-slab ferry over the W4 fork-base wall (4420..4900), the level's LAST
+      // audit encounter (past the enemy@3700; riding it strands no later blocker). W4 is the
+      // final FLOOR_Y floor before the tower climb (TW1@4930). Placed in W4's flat run BEFORE the
+      // spike@4650: right extent (4530+60) = 4590 stays clear of the spike-jump takeoff (~4600) so
+      // the ledge never overhangs the arc. y:250 = rise 70 from FLOOR_Y 320 -> reachability PASS/WARN (from
+      // W4, rightward). Behind checkpoint@4440 (W4, before spike@4650); solid W4 under it -> a
+      // missed hop lands back on W4 to WAIT (no killing pit). WALK-REACHED: x1:4490 sits in W4's
+      // flat run AFTER the FL2->W4 landing (~4470) and BEFORE the spike@4650 jump-takeoff (~4600),
+      // so the driver walks straight onto it (no fragile precise-landing) and the ledge (ends
+      // 4590) never overhangs the spike-jump arc. The goal-drive walks under it, jumps spike@4650,
+      // then climbs TW1->TT to the goal.
+      { x1: 4490, y1: 250, x2: 4530, y2: 250, w: 60 },
+    ],
+    patrollers: [
+      // P0 — a castle WRAITH hovering at y:214 (frame bottom ~266, a 22px gap ABOVE the walking
+      // player's head at 288) over the FLAT grounded W1 spawn-wall lane AFTER the door@380 and
+      // BEFORE the CU1 rampart-climb takeoff (~620), sweep 450..550. WALK-REACHED (the driver
+      // walks W1 straight from the door under it — no jump-gap landing at the patroller's x), the
+      // level-06 P0 recipe. A player WALKING passes safely beneath; a JUMP in the lane meets it —
+      // a gentle, telegraphed air-hazard whose contact is a checkpoint respawn only (WAIT-not-
+      // death, §6b rule 3: ZERO hurt wiring). A contact respawns to checkpoint@96 (W1) — BEFORE
+      // the door@380, but the door STAYS cleared on respawn (unlock derived), so NO re-gate loop.
+      { x1: 450, y1: 214, x2: 550, y2: 214 },
+    ],
   },
 
   mechanics: [],
@@ -201,6 +236,12 @@ export const LEVEL_07 = {
     // On-surface castle light-sources (layer "surface", z -3) on the WIDE low floors and
     // the broad tower top, at clear margins — restrained, off the wall-walk lane.
     { sprite: "prop-castle-candle-stand", x: 250, y: 295, layer: "surface" }, // W1, between coin@150 and the door@380
+    // MECH-05 alcove torch (Phase 36-08): the level's existing candles (below) all sit far from
+    // the secret alcove@(690,184), so this candle is placed on CU1 (x:650, y:254, w:110) just
+    // below the alcove — dist 49 < LINK_DIST 96, so build.js tags it "alcove-light" and it starts
+    // DIM, brightening on discovery (36-04 auto-link by proximity). y = CU1 surface 254 - candles
+    // height 21 = 233. Flickers via the same /lantern|lamp|candle/ selector. Collider-free.
+    { sprite: "prop-castle-candles", x: 690, y: 233, layer: "surface" }, //     CU1 — the MECH-05 alcove torch (links alcove@690,184; dist 49)
     { sprite: "prop-castle-candles", x: 2960, y: 299, layer: "surface" }, //     W2 right end, past spike@2800 + coin@2900
     { sprite: "prop-castle-candle-stand", x: 4860, y: 295, layer: "surface" }, // W4 right end, past spike@4650 + coin@4760
     { sprite: "prop-castle-candles", x: 5720, y: 101, layer: "surface" }, //     TT tower top, right of the goal@5580 (throne accent)
