@@ -17,38 +17,41 @@ import { ASSETS_MANIFEST } from "./assets-manifest.js";
 
 // kaplay() returns a context and, with global: true (the default), also
 // exposes scene/add/text/pos/anchor/color/go/loadSprite on the global scope.
+// --- Responsive display via letterbox (Phase 37 MOB-01) — DISPLAY ONLY ---
+// The internal render buffer stays 640x360, so every collider, jump, camera,
+// and level number in CONFIG remains valid. `letterbox: true` (which REQUIRES
+// width+height) makes the engine fit that 640x360 buffer into whatever size the
+// canvas's parent container (#stage in index.html) reports, per device class:
+// on desktop the #stage wrapper is fixed 960x540, so 640x360 scales up 1.5x
+// into a 16:9 box with ZERO bars (the desktop look is preserved); on a
+// coarse-pointer device #stage is full-viewport, so the engine pillar/letterbox
+// bars the game to fit any screen (the engine's onResize refits automatically,
+// no app resize code). crisp:true still emits image-rendering:pixelated under
+// letterbox, keeping the pixel art sharp on the upscale.
+//
+// Why this replaced the old CSS display-scale approach: the engine routes EVERY
+// pointer — mouse (read from the element's untransformed offsetX/offsetY box)
+// AND touch (read from clientX minus the on-screen getBoundingClientRect box) —
+// through one and the same window->content transform (Qe). With no CSS scale on
+// the canvas, its rendered box equals its layout box, so both inputs live in a
+// single coordinate space that Qe maps into 640x360. That is the whole fix: it
+// keeps every position-scoped box.onClick() landing (mouse) while making taps
+// land at the same game coordinate (touch fires the same left-press via the
+// default-on touchToMouse). The earlier build enlarged the displayed canvas so
+// mouse offsetX stayed correct, but that same visual enlargement inflated the
+// touch rect by the scale factor and desynced tap coordinates by exactly that
+// factor — which is precisely what the 37-01 touch-coordinate probe measured
+// (a center tap read game-x 480 instead of 320). letterbox removes the scale,
+// unifies the mapping, and there is no CSS transform on the canvas at all.
 const k = kaplay({
   width: 640,
   height: 360,
+  letterbox: true,                  // fit 640x360 into #stage; unifies mouse+touch through one Qe transform (requires width+height)
   background: CONFIG.PALETTE.BG,    // project dark-grunge background (single source of truth)
-  crisp: true,                      // pixel-perfect upscale (image-rendering: pixelated) — keeps art sharp when the canvas is scaled up
+  crisp: true,                      // pixel-perfect upscale (image-rendering: pixelated) — keeps art sharp under the letterbox scale
   canvas: document.querySelector("#game"),
+  // touchToMouse defaults ON — a tap synthesizes a left-mouse press so box.onClick fires on both click and tap. Leave it unset.
 });
-
-// --- Display scaling (+50%) — DISPLAY ONLY, not internal resolution ---
-// The internal render buffer stays 640x360 (above), so every collider, jump,
-// camera, and level number in CONFIG remains valid. We enlarge the *displayed*
-// canvas via a CSS `transform: scale()`, NOT `width`/`height`. This is
-// deliberate, not stylistic: Kaplay's non-letterbox mouse handler reads the
-// browser-native `event.offsetX/offsetY` directly as the mouse position,
-// assuming the canvas's CSS-rendered size equals its internal resolution
-// (640x360). `offsetX/offsetY` are computed in the element's untransformed
-// layout box, so a `transform: scale()` visually enlarges the canvas while
-// leaving that assumption intact; setting `width`/`height` instead changes the
-// layout box itself and desyncs offsetX/offsetY from the 640x360 world space
-// — silently breaking every object-scoped, position-based `box.onClick()`
-// (area()-gated hit-testing) while leaving position-agnostic global onClick
-// handlers (e.g. the title screen's "click anywhere to start") unaffected.
-// Found via the Phase 14 mandatory browser-boot checkpoint: level-select tile
-// clicks silently missed their target after the width/height version shipped.
-// `transform-origin` defaults to the element's center; index.html flex-centers
-// the canvas on BOTH axes (see its <style> comment — the earlier margin:auto
-// approach only centered horizontally), so scaling from center keeps the
-// visually-enlarged canvas centered without any layout changes.
-{
-  const canvas = document.querySelector("#game");
-  canvas.style.transform = "scale(1.5)";
-}
 
 // --- Sprite loads (Phase 9 + Phase 18 art/animation/parallax) ---
 // Register every image asset by name BEFORE the boot go() so scenes never draw
