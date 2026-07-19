@@ -1568,19 +1568,22 @@ def build_props():
     bake_prop("swamp-reed", os.path.join(swamp, "props.png"), crop=(8, 0, 46, 43))
     bake_prop("swamp-vine", os.path.join(swamp, "props.png"), crop=(60, 0, 115, 43))
     bake_prop("swamp-fern", os.path.join(swamp, "props.png"), crop=(128, 0, 173, 43))
-    # Swamp LIGHT-SOURCE (Phase 36 MOT-03/MECH-05): a bog will-o'-wisp. The swamp/
-    # cemetery packs carry NO lantern/brazier object, so — following the castle
-    # crops-before-new-CC0 precedent — the will-o'-wisp is a single frame of the
-    # already-vendored (gothicvania-patreon.txt) Fire-Skull sheet (768x112 = 8x
-    # 96px frames); crop frame 0, bake_prop tightens to its own bbox (68x78). A
-    # floating flaming skull IS the classic bog wisp; measured 0.0% pink NATIVE
-    # (its red/orange flame hue sits well outside the 211-239 pink band) — no
-    # retint, no new CC0.
-    fire_skull = os.path.join(
-        "gothicvaniapatreoncollection", " gothicvania patreon collection",
-        "Fire-Skull-Files", "PNG", "fire-skull.png",
+    # Swamp LIGHT-SOURCE (POL-05, Phase 39): a single HANGING LANTERN — the locked
+    # skull → lantern swap (user decision 2026-07-19 #1), keeping the MECH-05 secret-
+    # alcove flicker light. The prior bake used a flaming-skull frame (a bog will-o'-wisp);
+    # per feedback the skull reads wrong, so this crops ONE amber-glass lantern head
+    # (pointed iron cap + warm glass box) from the already-vendored (gothicvania-town.txt)
+    # town street-lamp — a genuine dark-grunge lantern object, measured 0.0% pink NATIVE
+    # (the warm amber flame sits well outside the 211-239 pink band) → no retint, no new
+    # CC0. The OUTPUT name stays `swamp-lantern` so the manifest key (prop-swamp-lantern),
+    # loader, and level data are untouched, and the sprite key still matches build.js's
+    # LIGHT_RE (/lantern|lamp|candle/) so the alcove-light link + flicker survive — ONLY
+    # the pixels change (skull → lantern).
+    town_lamp = os.path.join(
+        "gothicvania-town-files", "GothicVania-town-files",
+        "PNG", "environment", "props-sliced", "street-lamp.png",
     )
-    bake_prop("swamp-lantern", fire_skull, crop=(0, 0, 96, 112))
+    bake_prop("swamp-lantern", town_lamp, crop=(10, 1, 26, 20))
 
     # ---- Cemetery (RICH — statue + tombstones + a tree + a bush) -----------
     cem = os.path.join(
