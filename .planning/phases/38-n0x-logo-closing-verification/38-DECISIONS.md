@@ -2,9 +2,14 @@
 
 **Updated:** 2026-07-19
 
-## LOGO PICK (BRAND-01) — DECIDED
+## LOGO PICK (BRAND-01) — SIGNED OFF ✅
 
 **Chosen direction: Candidate A — "Emerald Chisel"** (user, 2026-07-19).
+
+**BRAND-01 SIGNED OFF by user 2026-07-19** on the live title + level-select shots
+(commit ee35994): "loggan och title screen ser jättebra ut." The baked logo A +
+the SNES-fidelity castle-interior title backdrop are both approved. BRAND-01 is
+CLOSED.
 
 - Source preview: `.planning/phases/38-n0x-logo-closing-verification/brand-candidates/A-emerald-chisel.png`
   (+ `A-emerald-chisel-hero-transparent.png`).
