@@ -470,6 +470,17 @@ export const CONFIG = {
     CONFIRM_TITLE_SIZE: 22, // px — "Reset ALL progress?" heading text size
     CONFIRM_BODY_SIZE: 16, // px — confirm overlay body text size
     CONFIRM_HINT_SIZE: 14, // px — "Y = yes / N = cancel" hint text size
+    // --- Tappable Yes/No confirm widgets (Phase 37 MOB-03; coarse-pointer only) ---
+    // On a touch device the keyboard Y/N/ESC confirm has no clickable target, so two
+    // tappable buttons are mounted BELOW the hint line. Desktop (pointer:fine) never
+    // renders these — the keyboard flow stays byte-identical. Panel is 160px tall,
+    // centered, so it spans center().y ± 80; the button row at +58 (H=30 → +43..+73)
+    // sits clear of the hint text at +30 and inside the panel's lower edge.
+    CONFIRM_BTN_W: 96, // px — Yes/No button width
+    CONFIRM_BTN_H: 30, // px — Yes/No button height
+    CONFIRM_BTN_DY: 58, // px — button-row vertical offset BELOW panel center
+    CONFIRM_BTN_DX: 74, // px — horizontal offset of each button from panel center (Yes left, No right)
+    CONFIRM_BTN_SIZE: 16, // px — Yes/No button label text size
     RESET_FLASH_MS: 900, // ms — self-destroying "Progress reset." confirmation duration
   },
 

@@ -35,6 +35,19 @@ import * as audio from "../audio.js"; // gesture-gated music start + per-scene m
 export function titleScene(data) {
   const T = CONFIG.TITLE;
 
+  // MOB-03: coarse-pointer feature-detect (37-RESEARCH.md Pitfall 5 — NOT UA-sniffing,
+  // NOT isTouchscreen() which false-positives on touch-capable laptops). `coarse` is true
+  // only when the device's PRIMARY pointer is coarse (a finger). Every touch-only widget
+  // added below is gated on it, so a desktop (pointer:fine) registers NOTHING new and this
+  // scene stays byte-identical to the pre-Phase-37 keyboard-only flow (browser-boot proves
+  // it). window.matchMedia is a browser global read inside the factory body (a727c13 —
+  // never a Kaplay engine global at module top level). Guard the reference so a non-browser
+  // import (node validators) never throws on a missing matchMedia.
+  const coarse =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches;
+
   // AUD-03: mount the mute key + icon fresh on every title-scene entry (mirrors the
   // onKeyPress("r", openResetConfirm) bare-call convention below) — go() clears the
   // app-wide input bus on every scene transition (Phase 22-03 engine-verified finding),
@@ -95,7 +108,14 @@ export function titleScene(data) {
 
   // Muted "press R to reset progress" prompt — deliberately secondary (grey, small) to
   // the bright green start prompt above it, near the bottom edge of the canvas.
-  add([
+  //
+  // MOB-03: on a coarse pointer this text object ALSO becomes a tap target — an area()
+  // hitbox + onClick(openResetConfirm) is attached below so a tap arms the confirm exactly
+  // like the "r" key does (the onKeyPress("r", openResetConfirm) at the bottom is UNCHANGED
+  // and still fires on keyboard). On desktop (pointer:fine) `coarse` is false, so the
+  // component list is byte-identical to before and no onClick is wired. Captured into a
+  // closure-local so start()'s race guard can read resetPrompt.isHovering() (see start).
+  const resetPromptComps = [
     text("press R to reset progress", { size: T.RESET_SIZE }),
     anchor("center"),
     pos(center().x, T.RESET_Y),
@@ -103,24 +123,60 @@ export function titleScene(data) {
     fixed(),
     z(9000),
     "title",
-  ]);
+  ];
+  if (coarse) resetPromptComps.push(area()); // clickable hitbox — text() alone has none
+  const resetPrompt = add(resetPromptComps);
+  // openResetConfirm is a hoisted function declaration below — safe to reference here.
+  if (coarse) resetPrompt.onClick(openResetConfirm);
 
-  // Dual-input start (she plays on a laptop): Enter, Space, and a full-screen click
-  // all advance to the level-select. These are a closure-local, REASSIGNABLE array
-  // (not one-shot consts) because the Reset Progress confirm overlay below must be
-  // able to cancel/re-arm them for its lifetime — Kaplay's global onClick has no
-  // z-order occlusion, so a click on the confirm panel would ALSO fire "start" unless
-  // it is disarmed while the overlay is open (see module header + T-260707-01).
+  // Dual-input start (she plays on a laptop): Enter, Space, and a full-screen click all
+  // advance to the level-select. The Enter/Space controllers live in a closure-local,
+  // REASSIGNABLE array (not one-shot consts) because the Reset Progress confirm overlay
+  // below cancels/re-arms them for its lifetime. The full-screen onClick(start) is instead
+  // registered ONCE and persistently (never in startCtrls) — Kaplay's global onClick has no
+  // z-order occlusion, so a click on the confirm panel would ALSO fire "start"; rather than
+  // cancel/re-arm it (which re-registers a handler mid-click and re-fires start — the
+  // touch-tap-ui-probe navigate bug, see start's guard (1)), start no-ops via its own
+  // `if (confirmOpen) return` guard while the overlay is open (see module header + T-260707-01).
   // AUD-02: ensureMusicPlaying() MUST be the literal first statement — browser
   // autoplay policy requires AudioContext.resume() to happen synchronously within the
   // original user-gesture call stack. Do NOT wrap this in .then()/a tween callback/
   // anything deferred; `start` is invoked directly and synchronously by
   // onKeyPress("enter"|"space", start) and onClick(start) below.
   const start = () => {
+    // MOB-03 race guards (both deterministic, order-independent). The global onClick(start)
+    // registered below has NO z-order occlusion, so it fires on ANY tap/click — including one
+    // that also hits a reset widget. Two guards make that harmless without relying on Kaplay's
+    // handler dispatch order:
+    //   (1) confirmOpen: while the reset confirm overlay is up, NEVER navigate. This is the
+    //       load-bearing guard for the touch Yes/No buttons — those call close/confirm from
+    //       INSIDE a mousePress dispatch, and the persistent onClick(start) below is registered
+    //       BEFORE the buttons exist, so it always runs FIRST in that dispatch while confirmOpen
+    //       is still true → it no-ops before the button handler flips confirmOpen. (Kaplay's
+    //       KEvent.trigger iterates handlers head->tail in registration order — verified in
+    //       lib/kaplay.mjs.) This is why onClick(start) is registered ONCE and NEVER re-armed:
+    //       re-registering it inside a button's click handler would append a NEW handler that
+    //       fires in the SAME dispatch, after confirmOpen was cleared — the exact navigate bug
+    //       the touch-tap-ui-probe caught.
+    //   (2) coarse + resetPrompt.isHovering(): belt-and-braces for the ARM tap — a tap ON the
+    //       reset prompt sets mousePos over it (touchToMouse), so if start somehow ran before
+    //       resetPrompt.onClick armed the overlay, it still no-ops. Coarse-gated + short-
+    //       circuited so on desktop (no area() on resetPrompt) isHovering() is never called and
+    //       the behavior is byte-identical.
+    // AUD-02: ensureMusicPlaying() still runs synchronously within this gesture's call stack
+    // once the guards pass (a cheap synchronous `if` never breaks the user-activation stack).
+    if (confirmOpen) return;
+    if (coarse && resetPrompt.isHovering()) return;
     audio.ensureMusicPlaying();
     go("select");
   };
-  let startCtrls = [onKeyPress("enter", start), onKeyPress("space", start), onClick(start)];
+  // onClick(start) is PERSISTENT — registered exactly once and NEVER cancelled/re-armed (see
+  // guard (1) above for why re-registration is the bug). Only the Enter/Space KEY controllers
+  // live in the reassignable startCtrls array that openResetConfirm cancels + closeResetConfirm
+  // re-arms; those are keyboard handlers, never re-registered mid-click, so the keyboard reset
+  // flow is byte-for-byte identical to before.
+  onClick(start);
+  let startCtrls = [onKeyPress("enter", start), onKeyPress("space", start)];
 
   // --- Reset Progress control (quick-260707-95c) ---
   // Anti-leak: confirmOpen is a closure-local re-entrancy guard, never module-level.
@@ -131,15 +187,18 @@ export function titleScene(data) {
 
   /**
    * Open the "Reset ALL progress?" confirm overlay. No-op if already open (guards
-   * against a second "R" press stacking a duplicate overlay). Disarms the existing
-   * start controllers for the overlay's duration so a stray Enter/Space/click cannot
-   * navigate away mid-confirm.
+   * against a second "R" press stacking a duplicate overlay). Disarms the Enter/Space
+   * start KEY controllers for the overlay's duration; the persistent onClick(start) is
+   * left registered and instead no-ops via its own `if (confirmOpen) return` guard, so a
+   * stray Enter/Space/click cannot navigate away mid-confirm.
    */
   function openResetConfirm() {
     if (confirmOpen) return;
     confirmOpen = true;
 
-    // Disarm start while the overlay is open (see comment above startCtrls).
+    // Disarm the Enter/Space start keys while the overlay is open (see comment above
+    // startCtrls). onClick(start) is NOT in this array — it stays persistent and is gated
+    // by the confirmOpen guard inside start (re-arming it mid-click is the navigate bug).
     startCtrls.forEach((c) => c.cancel());
     startCtrls = [];
 
@@ -210,6 +269,47 @@ export function titleScene(data) {
     const noCtrl = onKeyPress("n", closeResetConfirm);
     const escCtrl = onKeyPress("escape", closeResetConfirm);
     confirmCtrls = [yesCtrl, noCtrl, escCtrl];
+
+    // MOB-03: on a coarse pointer, mount two tappable Yes/No buttons below the hint line
+    // (the keyboard hint + Y/N/ESC handlers above are UNCHANGED). Each is a dark-grunge
+    // rect (CONFIG.PALETTE, sized from CONFIG.TITLE.CONFIRM_BTN_*) carrying an area()+onClick
+    // and a centered label, both tagged "reset-confirm" so closeResetConfirm's existing
+    // destroyAll("reset-confirm") tears them down with the rest of the overlay — no extra
+    // teardown. The onClick handlers reuse the SAME confirmReset / closeResetConfirm
+    // functions the keys call. While the overlay is open startCtrls is already []
+    // (openResetConfirm cancelled it above), so a Yes/No tap can never leak into start().
+    // Desktop never enters this branch, so the overlay is byte-identical there.
+    if (coarse) {
+      const btnY = center().y + T.CONFIRM_BTN_DY;
+      const mkButton = (dx, labelText, accent, onTap) => {
+        const bx = center().x + dx;
+        add([
+          rect(T.CONFIRM_BTN_W, T.CONFIRM_BTN_H),
+          area(),
+          anchor("center"),
+          pos(bx, btnY),
+          color(CONFIG.PALETTE.SURFACE_ALT[0], CONFIG.PALETTE.SURFACE_ALT[1], CONFIG.PALETTE.SURFACE_ALT[2]),
+          outline(2, rgb(accent[0], accent[1], accent[2])),
+          fixed(),
+          z(9992),
+          "title",
+          "reset-confirm",
+        ]).onClick(onTap);
+        add([
+          text(labelText, { size: T.CONFIRM_BTN_SIZE }),
+          anchor("center"),
+          pos(bx, btnY),
+          color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
+          fixed(),
+          z(9993),
+          "title",
+          "reset-confirm",
+        ]);
+      };
+      // Yes = destructive → DANGER accent; No = safe cancel → BORDER accent.
+      mkButton(-T.CONFIRM_BTN_DX, "YES", CONFIG.PALETTE.DANGER, confirmReset);
+      mkButton(T.CONFIRM_BTN_DX, "NO", CONFIG.PALETTE.BORDER, closeResetConfirm);
+    }
   }
 
   /**
@@ -223,7 +323,10 @@ export function titleScene(data) {
     confirmCtrls = [];
     destroyAll("reset-confirm");
     confirmOpen = false;
-    startCtrls = [onKeyPress("enter", start), onKeyPress("space", start), onClick(start)];
+    // Re-arm ONLY the Enter/Space start keys. onClick(start) is persistent (never cancelled),
+    // so it is NOT re-registered here — re-registering it inside this click-invoked path is the
+    // exact same-dispatch navigate bug guard (1) in start documents.
+    startCtrls = [onKeyPress("enter", start), onKeyPress("space", start)];
   }
 
   /**
