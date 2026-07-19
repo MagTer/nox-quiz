@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 36
-current_phase_name: World Motion & Ambient Life
-status: executing
+current_phase: 37
+current_phase_name: Mobile — Responsive Canvas & Touch Controls
+status: in-progress
 stopped_at: "2026-07-18 — Phase 35 (Biome Re-dress & Props) COMPLETE: all 8 plans executed, full gate suite green, geometry BYTE-FROZEN across all 8 levels (check-geometry-frozen gate proves it). All 8 levels dressed with a collider-free props layer (swamp/town/cemetery/castle); trial checkpoint (35-03) orchestrator-reviewed under user 'run the whole phase' authorization; dead theme-N bake code deleted; the deferred neon-green coin-pop restyled to a dark-grunge gold glint twinkle. 16 code commits (7c156a8..d2fa37b). ART-06 + ART-07 delivered. NEXT: Phase 36 (World Motion & Ambient Life) — patrols/moving platforms/ambient flicker, dt-based + ADHD-safe, placed on the now-dressed levels. Final kid aesthetic sign-off on the dressed world deferred to Phase 38 (VER-02)."
 last_updated: "2026-07-18T09:25:43.972Z"
 last_activity: 2026-07-18
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 36 — World Motion & Ambient Life
+**Current Focus:** Phase 37 — Mobile (Responsive Canvas & Touch). Phase 36 complete: world motion live on all 8 levels (movers + patrollers + ambient flicker + MECH-05 alcove torch), no-softlock proven, geometry byte-frozen, 11/11 gates green.
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -36,13 +36,13 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 36 (World Motion & Ambient Life) — AT TRIAL PLAY-TEST GATE (36-06)
-Plan: 6 of 10 — waves 1-4 done (harness + motion art + entity classes + ambient/MECH-05 + 2-level trial); PAUSED at 36-06 human play-test sign-off
-Status: Awaiting user play-test of the motion trial (level-01 calm + level-06 intense) before the remaining-6 rollout (36-07/08) + consolidation (36-09)
-Also open: 36-06 human-verify — motion feel / no-softlock / patroller-trap / telegraphing / MECH-05 torch. Resume rollout only after sign-off.
-Last activity: 2026-07-18 — Phase 36 trial executed (waves 1-4); stopped at the play-test gate
+Phase: 37 (Mobile — Responsive Canvas & Touch Controls) — next
+Plan: 0 of N — not yet planned
+Status: Phase 36 COMPLETE (all 8 levels moving, 11/11 gates green, geometry byte-frozen, no-softlock proven); Phase 37 is next
+Also open: Phase 36 hands-on motion FEEL sign-off DEFERRED to Phase 38 kid-UAT (user-authorized auto-advance 2026-07-18 — "move on anyway, I'll risk adjusting more levels")
+Last activity: 2026-07-19 — Phase 36 complete (world motion live on all 8 levels); advancing to Phase 37
 
-Progress: [████████░░] 77%  (10 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35; remaining: 36, 37, 38)
+Progress: [█████████░] 85%  (11 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36; remaining: 37, 38)
 
 ## v6.0 Roadmap Summary
 
