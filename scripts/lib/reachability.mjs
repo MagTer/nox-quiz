@@ -272,8 +272,23 @@ export function canReach(fromNode, toNode, envelope) {
  * Build the full directed adjacency: Map<nodeId, Array<{ to, marginRatio }>>,
  * testing canReach between every ordered pair of distinct nodes (both directions —
  * the player can jump either way).
+ *
+ * POL-03 (Phase 39): a MOVING PLATFORM that spans a real pit is a traversal route the
+ * static jump graph cannot express — no static ledge exists between the two floors, so
+ * a walk-only jump graph reports the far side unreachable. `movers` (default []) adds a
+ * bidirectional RIDE edge between the two floor/platform nodes a mover FERRIES between,
+ * BUT ONLY when BOTH mover endpoints sit flush on a real surface (|endpoint.y - node.y|
+ * < 4 AND the endpoint x lies within that node's span). That is exactly a floor-level
+ * ferry whose two rest endpoints touch the near/far ledges — the player walks on at one
+ * rest, is carried, walks off at the other. Every SHIPPED mover rides at a RAISED y
+ * (250 over FLOOR_Y 320): its endpoints are NOT surface-flush, so this adds ZERO edges
+ * for them (verified against all 8 levels) — they keep being validated purely by the
+ * jump graph + the separate mover-reachability endpoint check. The ride edge carries
+ * marginRatio 0 (a walk-on/walk-off ferry demands no jump precision). This is the
+ * validate-levels half of CONTEXT POL-03's "teach any reachability check to ride a
+ * moving platform"; the browser-boot half rides via mechanic-drive.mjs's driveToMover.
  */
-export function buildGraph(nodes, envelope) {
+export function buildGraph(nodes, envelope, movers = []) {
   const graph = new Map();
   for (const n of nodes) graph.set(n.id, []);
   for (const from of nodes) {
@@ -283,6 +298,19 @@ export function buildGraph(nodes, envelope) {
       if (result) {
         graph.get(from.id).push({ to: to.id, marginRatio: result.marginRatio });
       }
+    }
+  }
+  // POL-03 mover-ride bridge edges (surface-flush ferries only — see the doc block).
+  const onSurface = (x, y) => {
+    const n = nodeContaining(nodes, x, y);
+    return n && x >= n.xStart && x <= n.xEnd && Math.abs(y - n.y) < 4 ? n : null;
+  };
+  for (const m of movers) {
+    const n1 = onSurface(m.x1, m.y1);
+    const n2 = onSurface(m.x2, m.y2);
+    if (n1 && n2 && n1.id !== n2.id) {
+      graph.get(n1.id).push({ to: n2.id, marginRatio: 0 });
+      graph.get(n2.id).push({ to: n1.id, marginRatio: 0 });
     }
   }
   return graph;
@@ -883,7 +911,7 @@ export function bestWitnessToCoin(coin, nodes, spawnPaths, envelope, solids = []
  */
 export function planCoinWitnesses(geometry, envelope = JUMP_ENVELOPE, solidProps = []) {
   const nodes = buildNodes(geometry);
-  const graph = buildGraph(nodes, envelope);
+  const graph = buildGraph(nodes, envelope, geometry.movers ?? []);
   const spawnNode = nodeContaining(nodes, SPAWN_X);
   const spawnPaths = spawnNode ? bfsWithPathMargin(graph, spawnNode.id) : new Map();
   const solids = solidBoxes(geometry, solidProps);
@@ -969,7 +997,7 @@ export function findHeadroomViolations(geometry, minHeadroom = MIN_HEADROOM_PX) 
  */
 export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE, solidProps = []) {
   const nodes = buildNodes(geometry);
-  const graph = buildGraph(nodes, envelope);
+  const graph = buildGraph(nodes, envelope, geometry.movers ?? []);
   const rows = [];
 
   const floorNodes = nodes.filter((n) => n.id.startsWith("floor-"));
@@ -1518,6 +1546,43 @@ if (isMain) {
     check(!threw, "checkLevelReachability must never throw when geometry.movers is omitted");
     const moverRows = result?.rows.filter((r) => r.check === "mover-reachability") ?? [];
     check(moverRows.length === 0, `expected zero mover-reachability rows when omitted, got ${moverRows.length}`);
+  }
+
+  // Case N (POL-03 mover-ride bridge edge): two floors separated by a pit too wide
+  // to jump. Without a mover the far floor + goal are unreachable; a FLOOR-LEVEL
+  // ferry whose endpoints sit flush on each floor edge (y=320) bridges them, so
+  // spawn-goal + gap-width become reachable. A RAISED ferry (endpoints at y=250,
+  // not surface-flush) must NOT add the bridge — proving shipped raised movers are
+  // untouched.
+  {
+    const pit = {
+      floors: [{ x: 0, w: 400 }, { x: 1200, w: 400 }], // 800px pit 400..1200 (unjumpable)
+      goal: { x: 1300, y: 320 },
+    };
+    // (a) no mover -> far floor unreachable (spawn-goal + gap-width HARD-FAIL)
+    const bare = checkLevelReachability({ ...pit }, testEnvelope);
+    const bareGoal = bare.rows.find((r) => r.check === "spawn-goal");
+    check(bareGoal?.status === "HARD-FAIL", `expected spawn-goal HARD-FAIL with an unbridged pit, got ${JSON.stringify(bareGoal)}`);
+    // (b) FLOOR-LEVEL ferry flush on both edges -> bridged (spawn-goal reachable)
+    const ferried = checkLevelReachability(
+      { ...pit, movers: [{ x1: 400, y1: 320, x2: 1200, y2: 320, w: 120 }] },
+      testEnvelope
+    );
+    const ferriedGoal = ferried.rows.find((r) => r.check === "spawn-goal");
+    check(
+      ferriedGoal && ferriedGoal.status !== "HARD-FAIL",
+      `expected spawn-goal reachable once a floor-level ferry bridges the pit, got ${JSON.stringify(ferriedGoal)}`
+    );
+    // (c) RAISED ferry (y=250, not surface-flush) adds NO bridge -> still unreachable
+    const raised = checkLevelReachability(
+      { ...pit, movers: [{ x1: 400, y1: 250, x2: 1200, y2: 250, w: 120 }] },
+      testEnvelope
+    );
+    const raisedGoal = raised.rows.find((r) => r.check === "spawn-goal");
+    check(
+      raisedGoal?.status === "HARD-FAIL",
+      `expected a RAISED (non-surface-flush) ferry to add NO bridge edge, got ${JSON.stringify(raisedGoal)}`
+    );
   }
 
   // --- Phase 34 (bestWitnessToCoin / coin-reachability) behavior cases ---
