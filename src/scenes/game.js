@@ -32,6 +32,8 @@ import { wireSecretAlcove } from "../mechanics/secretAlcove.js";
 import { wireKey } from "../mechanics/key.js";
 import { createProgress, loadSave, writeSave } from "../progress.js";
 import { mountHud } from "../ui/hud.js";
+import { mountTouchControls } from "../ui/touchControls.js"; // MOB-02: on-screen virtual buttons (coarse-pointer only; desktop no-op)
+import * as input from "../input.js"; // the ONE input seam (37-03) — reset() on scene leave clears held-state + jump callbacks (anti-leak)
 import * as fx from "../fx.js"; // engine-side juice (coin pop + clear burst) — JUICE-02/03
 import * as audio from "../audio.js"; // per-scene mute UI + belt-and-braces music re-assert (AUD-02/AUD-03)
 
@@ -194,6 +196,17 @@ export function gameScene(data) {
   // The coyote/buffer/variable-height jump now lives inside makePlayer (Plan 02).
   // The Plan 01 basic grounded jump was removed so there is exactly ONE jump path.
   const player = makePlayer(startX, startY);
+
+  // --- MOB-02: on-screen touch controls (Phase 37-06) ---
+  // Mount the virtual left/right/jump buttons that feed the SAME input.js seam player.js
+  // reads (setLeftHeld/setRightHeld + fireJumpPress/fireJumpRelease) — so touch reuses the
+  // LOCKED coyote/buffer/variable-height jump, never a parallel path. The module SELF-GATES
+  // on matchMedia("(pointer: coarse)"), so on desktop (fine pointer) this is a harmless no-op
+  // that draws nothing → browser-boot stays byte-identical. Challenge-pause-aware: the getter
+  // below hands the module the SAME freeze the keyboard respects (player.paused halts the
+  // player's onUpdate while the math gate is open), so the buttons never set held-state while
+  // the run is frozen. Mounted AFTER makePlayer so the getter can read the live player.
+  const touchControls = mountTouchControls(() => player.paused);
 
   // --- Checkpoints (last-touched marker = respawn point) ---
 
@@ -489,6 +502,12 @@ export function gameScene(data) {
   onSceneLeave(() => {
     destroyAll("parallax");
     destroyAll("fx");
+    // MOB-02 anti-leak (T-37-06): tear down the touch buttons + their onTouchStart/onTouchEnd
+    // controllers (destroy() cancels them + destroyAll("touchctl")), then reset the input seam
+    // so no virtual held-state or jump callback survives go()/respawn into a re-entered scene.
+    // On desktop touchControls.destroy() is the no-op handle's empty body (nothing was mounted).
+    touchControls.destroy();
+    input.reset();
     if (player.exists() && player._fxScaleTween) player._fxScaleTween.cancel();
     if (clearTransitionTween) clearTransitionTween.cancel();
     // MECH-05: cancel any in-flight alcove-light brighten so a tween can't keep writing
