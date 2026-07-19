@@ -300,6 +300,55 @@ export const LEVEL_08 = {
     // w:120) — off the required path, never signposted, free to skip. x:320 sits inside PA's own
     // span (280..400) so the rightward-travel point model credits it as an in-footprint hop.
     secretAlcove: [{ x: 320, y: 184 }],
+
+    // ========================= MOTION (Phase 36-08) =========================
+    // check-geometry-frozen EXCLUDES geometry.movers / geometry.patrollers — every static
+    // array above stays byte-frozen; motion is ADD-ONLY via these two keys.
+    // INTENSE-EVEN density (the castle finale): ONE moving platform + TWO patrollers (3 motion
+    // entities — HEAVIER than the calm-odd 05/07's 2, matching the shipped level-06 intense
+    // template), each authored to the §6a/§6b HARD rules —
+    //   * BOTH mover endpoints reachable RIGHTWARD from spawn (§6a),
+    //   * a checkpoint before each (§6b rule 1),
+    //   * solid castle floor UNDER the mover (a miss = WAIT, no killing pit — §6b rule 2),
+    //   * far end telegraphed (§6b rule 4).
+    // NO-SOFTLOCK OVER SWITCHBACK-DRAMA (the 36-05/36-07 precedent, load-bearing): the THRONE
+    // KEEP is a TIGHT 26px-headroom folding spire over a 740px fall — a mover on a climb tier is
+    // both a softlock hazard AND unmountable by the headless driver (documented on level-04/06).
+    // So the mover rides the WIDE clean F8 keep RUN-UP (the last FLOOR_Y encounter, past the
+    // enemy@3500), and the two wraiths hover over grounded lower-gauntlet lanes. This keeps the
+    // walk-only browser-boot spawn->goal driver clear (the deterministic no-softlock proof) while
+    // a JUMPING player still meets every entity. level-08 stays the SWITCHBACK (its static keep is
+    // untouched); the motion layout is its own, distinct from level-07's staircase.
+    movers: [
+      // M0 — a gentle castle-slab ferry over the WIDE F8 THRONE-KEEP RUN-UP (6440..7120), the
+      // level's LAST audit encounter (past the enemy@3500; riding it strands no later blocker).
+      // Placed in F8's run-up LEFT stretch, clear of BOTH the F7->F8 landing (~6440..6540) and
+      // the K1 keep-climb takeoff (K1 left edge 6680): right extent (6600+60) = 6660 stays 20px
+      // left of K1, so it never overlaps a keep climb tier and the keep climb reads clean. y:250
+      // = rise 70 from FLOOR_Y 320 -> reachability PASS/WARN (from F8, rightward). Behind
+      // checkpoint@6480; solid F8 under it -> a missed hop lands back on F8 to WAIT (no killing
+      // pit). WALK-REACHED: x1:6560 sits in F8's flat run past the F7->F8 landing (~6440..6540)
+      // and clear of the K1 keep-climb takeoff (K1 left edge 6680; ledge right extent 6660), so
+      // the driver walks straight onto it and the ledge never overhangs the K1 climb arc.
+      { x1: 6560, y1: 250, x2: 6600, y2: 250, w: 60 },
+    ],
+    patrollers: [
+      // Two castle WRAITHS hovering at y:214 (frame bottom ~266, a 22px gap ABOVE the walking
+      // player's head at 288) over FLAT grounded gauntlet lanes: a player WALKING passes safely
+      // beneath, but a JUMP in the lane meets it — a gentle, telegraphed air-hazard whose contact
+      // is a checkpoint respawn only (WAIT-not-death, §6b rule 3: ZERO hurt wiring). Both are
+      // WALK-REACHED (placed after a resolved blocker on a flat run, no jump-gap landing at the
+      // patroller's x — the level-06 P0 recipe), and each respawns to a checkpoint before an
+      // already-CLEARED blocker (unlock derived, stays cleared) so there is NO re-gate loop.
+      // P0 — over the FLAT F1 lane AFTER the door@880 and BEFORE the F1->F2 takeoff (~1160), sweep
+      // 960..1060. The driver walks F1 straight from the door under it. Respawns to checkpoint@660
+      // (F1; door@880 stays cleared).
+      { x1: 960, y1: 214, x2: 1060, y2: 214 },
+      // P1 — over the FLAT F4 lane AFTER the enemy@3500 and BEFORE the F4->F5 takeoff (~3700),
+      // sweep 3560..3660. The driver walks F4 straight past the resolved enemy under it. Respawns
+      // to checkpoint@3430 (F4; enemy@3500 stays cleared).
+      { x1: 3560, y1: 214, x2: 3660, y2: 214 },
+    ],
   },
 
   mechanics: [],
@@ -337,6 +386,12 @@ export const LEVEL_08 = {
     // On-surface castle light-sources (layer "surface", z -3) on the lower-gauntlet floors
     // ONLY, at clear margins — restrained, off the switchback climb entirely.
     { sprite: "prop-castle-candles", x: 60, y: 299, layer: "surface" }, //       F0 far-left corner (clear of alcove PA@280)
+    // MECH-05 alcove torch: a candle on PA (x:280, y:254, w:120) directly below the secret
+    // alcove@(320,184) — dist 49 < LINK_DIST 96, so build.js tags it "alcove-light" and it
+    // starts DIM, brightening on discovery (36-04 auto-link by proximity). y = PA surface 254
+    // - candles height 21 = 233. This is the *-lantern-family light the 36-04 flicker selector
+    // (/lantern|lamp|candle/) matches, so it also flickers. Collider-free (cosmetic-only).
+    { sprite: "prop-castle-candles", x: 320, y: 233, layer: "surface" }, //      PA — the MECH-05 alcove torch (links alcove@320,184; dist 49)
     { sprite: "prop-castle-candle-stand", x: 700, y: 295, layer: "surface" }, //  F1, flanks the portcullis door@880 (left of coin@760)
     { sprite: "prop-castle-candles", x: 3040, y: 299, layer: "surface" }, //      F3 right end, past spike@2800 + coin@2960
     { sprite: "prop-castle-candle-stand", x: 5520, y: 295, layer: "surface" }, //  F6 right end, past spike@5280 + coin@5440
