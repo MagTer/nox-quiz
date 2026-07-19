@@ -645,6 +645,17 @@ export function buildLevel(levelData) {
       }),
       "patroller", // DISTINCT from "enemy" — routes to respawn(), never the math seam
     ]);
+    // VENDORED-ENGINE BUG WORKAROUND (Kaplay 3001.0.19, found Phase 39-06 via live
+    // Playwright probe): the patrol() factory initializes its internal "finished" flag
+    // as `s = opts.waypoints != null` — so a patroller CONSTRUCTED with waypoints is
+    // born "finished" and its update() body never runs: every patroller since Phase 36
+    // stood FROZEN at (x1,y1) (the kid's "stationary skeleton" report was this, not
+    // slowness). The `waypoints` SETTER is the only path that re-arms the component
+    // (it resets the waypoint cursor AND clears the finished flag), so re-assigning
+    // the same fresh array through it starts the ping-pong walk. Probe-verified:
+    // frozen without this line; full-sweep ping-pong with it. Do NOT remove on a
+    // Kaplay upgrade without re-probing (and never upgrade Kaplay casually — CLAUDE.md).
+    foe.waypoints = [vec2(p.x1, p.y1), vec2(p.x2, p.y2)];
     foe.play("walk"); // visible walk-cycle telegraph (the "walk" anim registered in main.js)
   }
 }

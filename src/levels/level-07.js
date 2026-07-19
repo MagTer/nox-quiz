@@ -196,15 +196,16 @@ export const LEVEL_07 = {
       { x1: 4490, y1: 250, x2: 4530, y2: 250, w: 60 },
     ],
     patrollers: [
-      // P0 — a castle WRAITH hovering at y:214 (frame bottom ~266, a 22px gap ABOVE the walking
-      // player's head at 288) over the FLAT grounded W1 spawn-wall lane AFTER the door@380 and
-      // BEFORE the CU1 rampart-climb takeoff (~620), sweep 450..550. WALK-REACHED (the driver
-      // walks W1 straight from the door under it — no jump-gap landing at the patroller's x), the
-      // level-06 P0 recipe. A player WALKING passes safely beneath; a JUMP in the lane meets it —
-      // a gentle, telegraphed air-hazard whose contact is a checkpoint respawn only (WAIT-not-
-      // death, §6b rule 3: ZERO hurt wiring). A contact respawns to checkpoint@96 (W1) — BEFORE
-      // the door@380, but the door STAYS cleared on respawn (unlock derived), so NO re-gate loop.
-      { x1: 450, y1: 214, x2: 550, y2: 214 },
+      // P0 — POL-01 (Phase 39): GROUNDED (y:214 -> y:268, feet on FLOOR_Y 320) skeleton walking
+      // the FLAT W1 spawn-wall lane AFTER the door@380 and BEFORE the CU1 rampart-climb takeoff
+      // (~620). Sweep 415..520 (105px) @speed 80 — the RIGHT end is held at 520 so even the
+      // latest grounded-patroller hop lands ~612, still on solid W1 before the 620->650 CU1 gap
+      // (a wider sweep would risk a hop landing in that gap). The driver reaches the door FIRST
+      // (an earlier encounter), solves + destroys it, THEN meets the skeleton just past the door
+      // exit and hops it early. Endpoints eased OFF the coins (@150 before the door, @500
+      // mid-sweep clear of both ends). Contact respawns to checkpoint@96 (door stays cleared —
+      // derived unlock, no re-gate loop).
+      { x1: 415, y1: 268, x2: 520, y2: 268, speed: 80 },
     ],
   },
 

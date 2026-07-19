@@ -207,18 +207,26 @@ export const LEVEL_06 = {
       { x1: 3900, y1: 250, x2: 3990, y2: 250, w: 130 },
     ],
     patrollers: [
-      // Two crypt WRAITHS hovering at y:214 (52px frame bottom at 266, a 22px gap ABOVE the
-      // walking player's head at 288) over FLAT grounded walk-lanes: a player WALKING passes
-      // safely beneath, but a JUMP in the lane meets it — a gentle, telegraphed air-hazard
-      // whose contact is a checkpoint respawn only (WAIT-not-death, §6b). Neither respawn
-      // lands before an unanswered gate (no re-gate). Distinct "patroller" walk sprite.
-      // P0 — over the FLAT F1 lane AFTER the door@1800 and BEFORE the F1->PL1 takeoff
-      // (~2080), sweep 1900..2020. A contact respawns to checkpoint@1600 (door already open).
-      { x1: 1900, y1: 214, x2: 2020, y2: 214 },
-      // P1 — over F2 (2350..2870) in the GROUNDED lane BETWEEN the PL1->F2 landing arc
-      // (~x2440) and the enemy@2600 / spike-jump@2750, sweep 2470..2560. A contact respawns
-      // to checkpoint@2370 (still on F2; door already open — no re-gate).
-      { x1: 2470, y1: 214, x2: 2560, y2: 214 },
+      // POL-01 (Phase 39): both crypt skeletons GROUNDED (y:214 hover -> y:268, feet on
+      // FLOOR_Y 320, 44x52 frame) and widened @speed 80 so each visibly WALKS its catacomb
+      // lane. A grounded skeleton genuinely blocks — the walk-only browser-boot driver
+      // clears each with the grounded-patroller hop (landing ~92px past the sweep's right
+      // end, so each right end is capped to keep every hop on solid floor). Contact is
+      // still a checkpoint respawn only (WAIT-not-death, §6b: ZERO hurt wiring); neither
+      // respawn lands before an unanswered gate (door unlock derived — no re-gate).
+      // P0 — walks the FLAT F1 lane AFTER the door@1800, sweep 1860..1990 (130px, was
+      // 1900..2020@y214). RIGHT end capped at 1990 so the latest hop lands ~2082, still on
+      // solid F1 (ends 2100) before the F1->PL1 takeoff (~2080). Endpoints eased OFF the
+      // floor coins (@1950 is mid-sweep, clear of both ends). Contact respawns to
+      // checkpoint@1600 (door already open).
+      { x1: 1860, y1: 268, x2: 1990, y2: 268, speed: 80 },
+      // P1 — walks F2 (2350..2870) in the lane BETWEEN the PL1->F2 landing arc (~x2440)
+      // and the enemy@2600, sweep 2435..2540 (105px, was 2470..2560@y214). RIGHT end capped
+      // at 2540 (44px body edge 2584) to stay clear of the enemy blocker@2600 — a hop that
+      // overshoots meets the tall enemy blocker and drops into the math challenge, never
+      // past it. Coin@2380 sits left of the sweep. Contact respawns to checkpoint@2370
+      // (still on F2; door already open — no re-gate).
+      { x1: 2435, y1: 268, x2: 2540, y2: 268, speed: 80 },
     ],
   },
 

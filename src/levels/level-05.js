@@ -202,16 +202,17 @@ export const LEVEL_05 = {
       { x1: 4980, y1: 250, x2: 5070, y2: 250, w: 130 },
     ],
     patrollers: [
-      // P0 — a crypt WRAITH hovering at y:214 (frame bottom ~266, a 22px gap ABOVE the walking
-      // player's head at 288) over the FLAT grounded F1 lane AFTER the door@1080 and BEFORE the
-      // F1->PL1 takeoff (~1350), sweep 1150..1250. WALK-REACHED (no jump-gap landing at the
-      // patroller's x — the driver walks F1 straight from the door under it), the level-06 P0
-      // recipe. A player WALKING passes safely beneath; a JUMP in the lane meets it — a gentle,
-      // telegraphed air-hazard whose contact is a checkpoint respawn only (WAIT-not-death, §6b
-      // rule 3: ZERO hurt wiring). A contact respawns to checkpoint@860 (F1) — that is BEFORE the
+      // P0 — POL-01 (Phase 39): GROUNDED skeleton walking the F1 basin lane AFTER the
+      // door@1080 and BEFORE the F1->PL1 takeoff (~1350). Dropped from the old y:214 hover to
+      // y:268 (feet on FLOOR_Y 320, 44x52 frame), a wide 120px sweep 1120..1240 @speed 80 so it
+      // visibly patrols; endpoints eased OFF the floor coins (@920 sits left of the sweep; @1200
+      // is mid-sweep, clear of both eased ends). A now-grounded skeleton genuinely blocks the
+      // lane — the walk-only browser-boot driver clears it with the grounded-patroller hop
+      // (lands ~1332, back on F1 before the 1350->1380 PL1 gap; the sweep's right end 1240 keeps
+      // every hop landing on solid F1). Contact respawns to checkpoint@860 (F1) — BEFORE the
       // door@1080, but the door STAYS cleared on respawn (unlock derived from cleared facts), so
-      // there is NO re-gate loop (the shipped level-06 P0 pattern).
-      { x1: 1150, y1: 214, x2: 1250, y2: 214 },
+      // there is NO re-gate loop.
+      { x1: 1120, y1: 268, x2: 1240, y2: 268, speed: 80 },
     ],
   },
 
