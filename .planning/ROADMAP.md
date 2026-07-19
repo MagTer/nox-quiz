@@ -608,14 +608,14 @@ Plans:
 **Decisions (user, 2026-07-19):** skull→lantern (keep alcove light); moving spikes = slide-along-ground; movers-over-holes = full re-placement + harness update; skeletons = ground patrol. Barrels default = all 6 town props solid (revisit if a route is blocked).
 
 **Depends on:** Phase 38 (BRAND-01 already signed off). **NOTE:** Phase 38's VER-02 kid-UAT must RE-RUN after this phase — it now covers this revised platforming.
-**Plans:** 2/8 plans executed
+**Plans:** 3/8 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 39-01-PLAN.md — Builder + harness foundation: sliding-spike loop + config (POL-02), solid-prop branch + config (POL-04), frozen-strip + driver/reachability awareness
 - [x] 39-02-PLAN.md — Re-bake prop-swamp-lantern from a non-skull source, keeping the alcove-light key/path stable (POL-05)
-- [ ] 39-03-PLAN.md — Teach browser-boot.mjs + audit-phase21 to ride a mover (POL-03 harness capability)
+- [x] 39-03-PLAN.md — Teach browser-boot.mjs + audit-phase21 to ride a mover (POL-03 harness capability)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
