@@ -566,9 +566,18 @@ const TAKEOFF_FRACTIONS = [0.5, 0, 1, 0.25, 0.75];
  * the same reason this file's header gives for never modelling them as blocking
  * edges: the math mechanics have no lockout state, so a barrier is always eventually
  * passable and can never make a coin permanently unreachable. Spikes likewise: a spike
- * hit costs a free checkpoint respawn, never a game-over.
+ * hit costs a free checkpoint respawn, never a game-over — and a POL-02 SLIDING spike
+ * (geometry.slidingSpikes) keeps that property: its floor span stays walkable between
+ * sweeps, so it too can never make a coin/route permanently unreachable (not modelled).
+ *
+ * POL-04 (Phase 39): opt-in SOLID PROPS *are* modelled. They are TOP-LEVEL props
+ * (levelData.props), NOT geometry, so callers thread the `solid:true` subset in as the
+ * 2nd arg. Each becomes a real static AABB (build.js gives it body({isStatic:true})),
+ * sized from the SAME primary source build.js uses (pr.solidW/H, else CONFIG.PROPS.SOLID_W/H)
+ * so the checked box matches the built collider byte-for-byte. Default empty → a level
+ * with no solid props behaves identically to before.
  */
-export function solidBoxes(geometry) {
+export function solidBoxes(geometry, solidProps = []) {
   const boxes = [];
   (geometry.floors ?? []).forEach((f, i) =>
     boxes.push({
@@ -582,6 +591,13 @@ export function solidBoxes(geometry) {
   (geometry.platforms ?? []).forEach((p, i) =>
     boxes.push({ id: `platform-${i}`, x0: p.x, x1: p.x + p.w, y0: p.y, y1: p.y + p.h })
   );
+  // POL-04 solid props: same top-left origin (pr.x, pr.y) + config/descriptor sizing as
+  // build.js's solid-prop branch, so the model matches the built body({isStatic:true}).
+  solidProps.forEach((pr, i) => {
+    const w = pr.solidW ?? CONFIG.PROPS.SOLID_W;
+    const h = pr.solidH ?? CONFIG.PROPS.SOLID_H;
+    boxes.push({ id: `solidprop-${i}`, x0: pr.x, x1: pr.x + w, y0: pr.y, y1: pr.y + h });
+  });
   return boxes;
 }
 
@@ -865,12 +881,12 @@ export function bestWitnessToCoin(coin, nodes, spawnPaths, envelope, solids = []
  *
  * PURE and node-importable — no engine globals, ever (a727c13).
  */
-export function planCoinWitnesses(geometry, envelope = JUMP_ENVELOPE) {
+export function planCoinWitnesses(geometry, envelope = JUMP_ENVELOPE, solidProps = []) {
   const nodes = buildNodes(geometry);
   const graph = buildGraph(nodes, envelope);
   const spawnNode = nodeContaining(nodes, SPAWN_X);
   const spawnPaths = spawnNode ? bfsWithPathMargin(graph, spawnNode.id) : new Map();
-  const solids = solidBoxes(geometry);
+  const solids = solidBoxes(geometry, solidProps);
 
   return (geometry.coins ?? []).map((coin, index) => ({
     index,
@@ -951,7 +967,7 @@ export function findHeadroomViolations(geometry, minHeadroom = MIN_HEADROOM_PX) 
  * >= WARN_MARGIN_RATIO of the calibrated envelope. PASS: otherwise. WARN rows
  * never increment hardFailCount.
  */
-export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
+export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE, solidProps = []) {
   const nodes = buildNodes(geometry);
   const graph = buildGraph(nodes, envelope);
   const rows = [];
@@ -1083,7 +1099,7 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE) {
   // (34-03/04/05) and the in-engine gate (34-02) can both act on it directly.
   // 34-02: the SAME obstruction-aware model the in-engine gate consumes — the static
   // claim and the replayed claim must never diverge.
-  const coinSolids = solidBoxes(geometry);
+  const coinSolids = solidBoxes(geometry, solidProps);
   for (const [i, c] of (geometry.coins ?? []).entries()) {
     const w = bestWitnessToCoin(c, nodes, spawnPaths, envelope, coinSolids);
     if (w === null) {

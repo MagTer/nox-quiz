@@ -55,11 +55,14 @@ async function buildDescriptors(fixturePath) {
     if (!descriptor) {
       throw new Error(`--fixture ${fixturePath} exports no value carrying a .geometry property`);
     }
-    return [{ id: descriptor.id ?? fixturePath, biome: descriptor.biome, geometry: descriptor.geometry }];
+    // POL-04 (Phase 39): capture the TOP-LEVEL `props` array too (NOT geometry.props) —
+    // an opt-in solid prop is route-affecting, so its `solid:true` subset must reach
+    // checkLevelReachability so a level with a solid crate still validates as clearable.
+    return [{ id: descriptor.id ?? fixturePath, biome: descriptor.biome, geometry: descriptor.geometry, props: descriptor.props ?? [] }];
   }
   return LEVEL_ORDER.map((id) => {
     const level = getLevel(id);
-    return { id, biome: level.biome, geometry: level.geometry };
+    return { id, biome: level.biome, geometry: level.geometry, props: level.props ?? [] };
   });
 }
 
@@ -97,7 +100,13 @@ async function main() {
       failures += overHoleRows.length;
     }
 
-    const { rows, hardFailCount } = checkLevelReachability(descriptor.geometry);
+    // POL-04: pass the level's SOLID props (opt-in `solid:true`) so a solid crate is
+    // modelled as a real obstacle in the clearability check. Default (no solid props) is
+    // an empty array → the check behaves byte-identically to before.
+    const solidProps = (descriptor.props ?? []).filter((p) => p.solid);
+    // envelope=undefined → checkLevelReachability applies its own JUMP_ENVELOPE default
+    // (no need to re-import the constant here); solidProps is the only new argument.
+    const { rows, hardFailCount } = checkLevelReachability(descriptor.geometry, undefined, solidProps);
     for (const row of rows) {
       console.log(`${descriptor.id} | ${row.check} | ${row.status} | ${row.descriptor}`);
     }

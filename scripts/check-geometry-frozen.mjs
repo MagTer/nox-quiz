@@ -56,8 +56,10 @@ const BASELINE_PATH = fileURLToPath(
 function currentGeometryMap() {
   const map = {};
   for (const id of LEVEL_ORDER) {
-    // Strip only the two Phase-36 motion keys; freeze everything else byte-for-byte.
-    const { movers, patrollers, ...frozen } = getLevel(id).geometry;
+    // Strip the Phase-36 motion keys (movers/patrollers) AND the Phase-39 sliding-spike
+    // motion key (POL-02) — all three are EXEMPT so placement tuning never trips the
+    // freeze gate; everything else is frozen byte-for-byte.
+    const { movers, patrollers, slidingSpikes, ...frozen } = getLevel(id).geometry;
     map[id] = JSON.stringify(frozen);
   }
   return map;

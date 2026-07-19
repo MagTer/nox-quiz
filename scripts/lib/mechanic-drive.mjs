@@ -58,6 +58,14 @@ export function deriveEncounters(geometry) {
     // entity so multiple movers/patrollers never collide on a shared `${tag}@${x}` key.
     ...(geometry.movers ?? []).map((m, i) => ({ x: m.x1, y: m.y1, tag: "mover", idx: i })),
     ...(geometry.patrollers ?? []).map((p, i) => ({ x: p.x1, y: p.y1, tag: "patroller", idx: i })),
+    // Phase 39 (POL-02): a sliding spike is a MOTION variant of the static spike — same
+    // "spike" tag, same game.js "spike"→respawn seam, hopped by the SAME opportunistic
+    // spike-hop fire path inside driveToXPlanned (FIRE_WINDOW.spike / spikeJumpHoldMs).
+    // Emitted idx-keyed at its START endpoint (x1) so the audit approaches it along its
+    // forward path and multiple sliding spikes never collide on a shared `${tag}@${x}`
+    // key. Inert until a level authors geometry.slidingSpikes (39-04+); mirrors the
+    // movers/patrollers motion-encounter shape above.
+    ...(geometry.slidingSpikes ?? []).map((s, i) => ({ x: s.x1, y: s.y1, tag: "spike", idx: i })),
   ];
   entries.sort((a, b) => a.x - b.x);
   return entries;
@@ -403,6 +411,16 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
     // Bound on arrival-walk direction reversals, so a trigger that never fires can
     // never become an infinite ping-pong across targetX.
     maxArrivalTurns = 6,
+    // POL-04 (Phase 39) reactive stall-recovery for a JUMP-OVER SOLID PROP. A solid
+    // top-level prop (body({isStatic:true})) is invisible to the route planner
+    // (planTakeoffs models only geometry floors/platforms), so the walk-only driver
+    // physically stalls against it. If PHYSICAL x fails to advance this long while
+    // grounded, driving forward, with no planned takeoff pending, try ONE
+    // envelope-bounded hop (jumpHoldMs = the full ~88px jump arc) to clear it.
+    propStallMs = 700,
+    // Cooldown between recovery hops so a genuinely-unclearable wall still trips the hard
+    // stall guard (stallMs) as a real "cannot progress" finding, not an infinite jump.
+    propJumpCooldownMs = 1200,
   } = opts;
 
   // Per-kind fire windows (px past the takeoff mark, IN THE DIRECTION OF TRAVEL).
@@ -476,6 +494,13 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
   let bestLeg = -1; // the leg `bestAlong` is measured on
   let bestAlong = -Infinity; // furthest ALONG-THE-ROUTE progress seen on that leg
   let lastProgressAt = Date.now();
+  // POL-04 solid-prop wall detector: last PHYSICAL x while grounded + driving forward,
+  // and when it last advanced. A normal walk keeps advancing x so this never fires; only
+  // a body({isStatic:true}) solid prop the route planner can't see stalls it.
+  let physX = null;
+  let physHeld = 0;
+  let physAdvanceAt = Date.now();
+  let lastPropJumpAt = 0;
   const deadline = Date.now() + maxMs;
 
   try {
@@ -682,6 +707,34 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
             ` (x=${x}) — genuine "cannot progress" finding.`
         );
         break;
+      }
+
+      // --- POL-04 reactive stall-recovery: jump a jump-over SOLID PROP. ---
+      // A solid top-level prop (body({isStatic:true})) is invisible to planTakeoffs
+      // (which models only geometry floors/platforms), so no takeoff is planned for it and
+      // the walk-only driver's PHYSICAL x simply stops advancing while grounded and driving
+      // forward — with no pending planned takeoff and no challenge open (a challenge would
+      // have broken this loop above). One envelope-bounded hop (jumpHoldMs, the full jump
+      // arc) clears such a prop and the walk resumes; the cooldown keeps an unclearable
+      // wall falling through to the hard stall guard above as a real finding. Inert on
+      // prop-free levels: a normal walk keeps advancing x, so physAdvanceAt refreshes and
+      // this branch never fires. Lives in this SHARED lib so browser-boot.mjs AND
+      // audit-phase21-mechanics.mjs inherit it via their existing import (no copied code).
+      if (s.grounded && held !== 0 && !pending && !backingUp) {
+        if (physX === null || held !== physHeld || held * (x - physX) > 2) {
+          physX = x;
+          physHeld = held;
+          physAdvanceAt = Date.now();
+        } else if (
+          Date.now() - physAdvanceAt > propStallMs &&
+          Date.now() - lastPropJumpAt > propJumpCooldownMs
+        ) {
+          lastPropJumpAt = Date.now();
+          physAdvanceAt = Date.now();
+          await page.keyboard.press("Space", { delay: jumpHoldMs });
+        }
+      } else {
+        physX = null; // airborne / turning / near a planned takeoff — restart the wall timer
       }
 
       const nearTakeoff = pending !== null && Math.abs(x - pending.x) < lookaheadPx;
