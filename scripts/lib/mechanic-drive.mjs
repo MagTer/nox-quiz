@@ -421,6 +421,25 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
     // Cooldown between recovery hops so a genuinely-unclearable wall still trips the hard
     // stall guard (stallMs) as a real "cannot progress" finding, not an infinite jump.
     propJumpCooldownMs = 1200,
+    // POL-01 (Phase 39) grounded-patroller hop. A skeleton patroller now walks ON the
+    // floor lane (feet on FLOOR_Y), so — unlike the pre-39 hover placements the walk-only
+    // driver strolled safely beneath — it fully blocks the corridor: for ANY sweep phase
+    // the driver, which must traverse the whole span while the skeleton is inside it,
+    // shares an x with it and respawns (intermediate-value certainty, not a timing flake).
+    // Contact routes through respawn (a WARP), never a physical stall, so the POL-04
+    // prop-hop above never engages. The kid clears these by JUMPING; this teaches the
+    // driver the same: an envelope-bounded hop when a grounded patroller is close ahead
+    // in the direction of travel at the driver's own feet height. patrollerHopAheadPx is
+    // the take-off lead (fire while the skeleton is still this far off so the ~178px
+    // 450ms-hold arc lands beyond it). patrollerRehopBehindPx re-fires the hop when a
+    // skeleton fleeing in the SAME direction ends up UNDER/just-behind the landing (the
+    // driver at 240px/s outruns an 85px/s skeleton, but its arc can drop onto one that
+    // scooted forward) — a bunny-hop out instead of walking straight back into it. The
+    // short cooldown only de-dupes multi-fire within one ground contact; back-to-back
+    // grounded hops chain freely (airtime ~740ms >> cooldown).
+    patrollerHopAheadPx = 70,
+    patrollerRehopBehindPx = 60,
+    patrollerJumpCooldownMs = 400,
   } = opts;
 
   // Per-kind fire windows (px past the takeoff mark, IN THE DIRECTION OF TRAVEL).
@@ -501,15 +520,19 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
   let physHeld = 0;
   let physAdvanceAt = Date.now();
   let lastPropJumpAt = 0;
+  let lastPatrollerJumpAt = 0; // POL-01 grounded-patroller hop cooldown
   const deadline = Date.now() + maxMs;
 
   try {
     while (Date.now() < deadline) {
       const s = await page.evaluate(() => {
         const p = get("player")[0];
-        return p
-          ? { x: p.pos.x, y: p.pos.y, grounded: p.isGrounded(), ch: get("challenge").length }
-          : null;
+        if (!p) return null;
+        // POL-01 (Phase 39): live grounded-patroller spans, so the walk-only driver can
+        // HOP a skeleton that now stands in the walk-lane (see the patroller-hop block
+        // below). Empty on every non-patroller level, so the extra work is negligible.
+        const foes = get("patroller").map((f) => ({ x: f.pos.x, y: f.pos.y, w: f.width ?? 0 }));
+        return { x: p.pos.x, y: p.pos.y, grounded: p.isGrounded(), ch: get("challenge").length, foes };
       });
       if (!s) break;
       x = s.x;
@@ -737,8 +760,45 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
         physX = null; // airborne / turning / near a planned takeoff — restart the wall timer
       }
 
+      // --- POL-01 reactive hop over a GROUNDED PATROLLER blocking the walk-lane. ---
+      // (Full rationale on the patrollerHopAheadPx opt above.) A patroller contact is a
+      // respawn (a WARP), not a physical stall, so the POL-04 prop-hop never engages — we
+      // must LEAP proactively BEFORE touching it. Fire when a same-floor skeleton sits
+      // within patrollerHopAheadPx ahead in the direction of travel; the ~178px 450ms-hold
+      // arc (apex feet ~232, clearing its top at 268) lands beyond its 44px body. A
+      // mistimed hop (the skeleton drifted under the landing) just respawns and re-approaches
+      // — the cooldown retries it rather than machine-gunning Space. Inert on every
+      // hover/patroller-free level: s.foes is empty, so this whole block is skipped.
+      // Is a PLANNED route takeoff imminent? (a far pending gap/mount does NOT count —
+      // only one inside the lookahead band, which the driver is actively about to fly.)
       const nearTakeoff = pending !== null && Math.abs(x - pending.x) < lookaheadPx;
-      await page.waitForTimeout(nearTakeoff || arrived ? nearPollMs : pollMs);
+
+      let patrollerAhead = false;
+      // Suppress the patroller-hop only when a planned takeoff is IMMINENT (nearTakeoff),
+      // NOT merely pending: a distant leg-end gap (e.g. L2's F1->F2 gap at ~1040) must not
+      // veto hopping a skeleton that sits BEFORE it (the F1 skeleton at ~860). Firing here
+      // never launches into a solid door/gate — those are DESTROYED on solve (door.js), so
+      // by the time the goal-drive re-passes, the collider is gone.
+      if (s.grounded && held !== 0 && !nearTakeoff && !backingUp && s.foes && s.foes.length) {
+        const feet = y + PLAYER_H;
+        for (const foe of s.foes) {
+          if (Math.abs(feet - (foe.y + 52)) > 40) continue; // not standing on this floor level
+          // Signed gap between the driver's leading edge and the skeleton's leading edge,
+          // measured in the direction of travel: positive = skeleton ahead, negative =
+          // skeleton overlapping/just-behind (a fleeing skeleton the arc dropped onto).
+          const ahead = held > 0 ? foe.x - (x + 16) : x - (foe.x + foe.w);
+          if (ahead > -patrollerRehopBehindPx && ahead <= patrollerHopAheadPx) {
+            patrollerAhead = true;
+            if (Date.now() - lastPatrollerJumpAt > patrollerJumpCooldownMs) {
+              lastPatrollerJumpAt = Date.now();
+              await page.keyboard.press("Space", { delay: jumpHoldMs });
+            }
+            break;
+          }
+        }
+      }
+
+      await page.waitForTimeout(nearTakeoff || arrived || patrollerAhead ? nearPollMs : pollMs);
     }
   } finally {
     // Release BOTH arrows unconditionally — a latched key would poison the caller's own

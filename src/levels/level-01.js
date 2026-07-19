@@ -231,18 +231,19 @@ export const LEVEL_01 = {
       { x1: 3420, y1: 250, x2: 3560, y2: 250, w: 110 },
     ],
     patrollers: [
-      // P0 — a slow, telegraphed swamp WRAITH hovering over the CLEAN F2 island
-      // (1620..1980), behind checkpoint@1640. It floats at y:214 (bottom of its 52px frame
-      // at 266, a 22px gap ABOVE the walking player's head at 288) over the FLAT mid-lane,
-      // clear of the F2->fork takeoff (~1955): a player just WALKING the calm low path
-      // passes safely beneath it, but a player who JUMPS here (apex feet ~232) meets it —
-      // a gentle, telegraphed air-hazard whose contact is a checkpoint respawn only
-      // (WAIT-not-death, §6b). The 1770..1880 sweep leaves a clear passing window; the
-      // distinct "patroller" walk sprite (36-10) reads apart from the math-blocker
-      // enemy@2700. (Grounded on the narrow required floor lane would force the automated
-      // spawn->goal driver — which walks, never times a window — into a respawn loop and
-      // break the no-softlock browser-boot proof; hovering keeps the walk-lane clear.)
-      { x1: 1770, y1: 214, x2: 1880, y2: 214 },
+      // P0 — a grounded, telegraphed swamp SKELETON walking the CLEAN F2 island
+      // (1620..1980), behind checkpoint@1640. POL-01 (Phase 39, locked decision #4): its
+      // feet rest on FLOOR_Y — y:268 = 320 - the 52px skeleton frame (topleft anchor, so
+      // the frame bottom = 268+52 = 320) — so it reads as a biped WALKING the lane, not a
+      // wraith floating on the coin. A WIDE 200px ping-pong (1630..1830, speed 85 >> the
+      // 40 default) sweeps VISIBLY across the mid-lane; the endpoints sit off the floor
+      // coin@1800 (it only transits it, never parks on it). Contact is a checkpoint
+      // respawn only (WAIT-not-death, §6b); the distinct "patroller" walk sprite (36-10)
+      // reads apart from the math-blocker enemy@2700. A grounded skeleton genuinely blocks
+      // the walk-lane now — the kid JUMPS it (apex feet ~232 clears its top at 268); the
+      // walk-only browser-boot driver clears it via the shared patroller-hop recovery in
+      // mechanic-drive.mjs (POL-01 harness retune), so no-softlock traversal is preserved.
+      { x1: 1630, y1: 268, x2: 1830, y2: 268, speed: 85 },
     ],
   },
 

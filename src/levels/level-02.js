@@ -316,17 +316,26 @@ export const LEVEL_02 = {
       { x1: 7040, y1: 250, x2: 7140, y2: 250, w: 140 },
     ],
     patrollers: [
-      // P0 — a slow swamp WRAITH hovering at y:214 over the FLAT F1 lane (600..1040) AFTER
-      // the door@800 and BEFORE the F1->F2 gap takeoff (~1040), sweep 900..1000. Behind
-      // checkpoint@720; a contact respawns there and re-walks the ALREADY-open door (no
-      // re-gate). Walking passes beneath (head 288 vs frame bottom 266); a jump here meets it.
-      { x1: 900, y1: 214, x2: 1000, y2: 214 },
-      // P1 — a swamp WRAITH hovering at y:214 over the FLAT F5 lane (4420..4900), in the
-      // GROUNDED stretch AFTER the descent-1 landing (~4470) and BEFORE the spire-2 U1
-      // mount takeoff (~4700), sweep 4560..4660. Behind checkpoint@4460 (the F5 landing);
-      // a contact respawns there (door already open — no re-gate). Its distinct "patroller"
-      // walk sprite (36-10) reads apart from the math-blocker enemy@6030.
-      { x1: 4560, y1: 214, x2: 4660, y2: 214 },
+      // P0 — a grounded swamp SKELETON walking the FLAT F1 lane (600..1040) AFTER the
+      // door@800 and BEFORE the F1->F2 gap takeoff (~1040). POL-01 (Phase 39): feet on
+      // FLOOR_Y (y:268 = 320 - the 52px frame, topleft anchor), a WIDE 130px ping-pong
+      // (860..990, speed 85) that reads as a walk; the left endpoint sits ~40px right of
+      // the door (open by the time the player is here) so the walker has run-up before the
+      // skeleton zone, the endpoints stay off the floor coin@920, and its 44px body stays
+      // on F1 (right end 990+44=1034 < the 1040 gap lip). Behind checkpoint@720; a contact
+      // respawns there and re-walks the ALREADY-open door (no re-gate). The kid JUMPS it
+      // (apex feet ~232 over its top at 268); the walk-only browser-boot driver clears it
+      // via the shared patroller-hop recovery (POL-01).
+      { x1: 860, y1: 268, x2: 990, y2: 268, speed: 85 },
+      // P1 — a grounded swamp SKELETON walking the FLAT F5 lane (4420..4900), in the
+      // stretch AFTER the descent-1 landing (~4470) and BEFORE the spire-2 U1 mount
+      // takeoff (~4700). POL-01: feet on FLOOR_Y (y:268), a WIDE 160px ping-pong
+      // (4560..4720, speed 85) threaded BETWEEN the two floor coins@4540 & @4780 (endpoints
+      // off both). Behind checkpoint@4460 (the F5 landing); a contact respawns there (door
+      // already open — no re-gate). Its distinct "patroller" walk sprite (36-10) reads
+      // apart from the math-blocker enemy@6030; the kid jumps it, the browser-boot driver
+      // hops it via the shared patroller-hop recovery (POL-01).
+      { x1: 4560, y1: 268, x2: 4720, y2: 268, speed: 85 },
     ],
   },
 
