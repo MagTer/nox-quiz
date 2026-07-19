@@ -522,8 +522,8 @@ Plans:
 **Wave 3** *(parallel — file-disjoint; all blocked on 37-02)*
 
 - [ ] 37-03-PLAN.md — Input seam (src/input.js) + player.js wiring, keyboard byte-identical, CONFIG.TOUCH tunables — MOB-02
-- [ ] 37-04-PLAN.md — Portrait "rotate your device" overlay + gesture suppression (touch-action:none, viewport meta; no orientation.lock) — MOB-04
-- [ ] 37-05-PLAN.md — Tappable UI proof (tap resolves answer + mute) + audio gesture-gate wiring + iOS ITP doc — MOB-03, MOB-05
+- [ ] 37-04-PLAN.md — Portrait "rotate your device" overlay + gesture suppression (touch-action:none, viewport meta; no orientation.lock) + machine-asserted portrait/landscape overlay probe (touch-orientation-probe) — MOB-04
+- [ ] 37-05-PLAN.md — Tappable UI proof (tap resolves answer + mute + arms/confirms the title reset, added tappable in title.js keyboard byte-identical) + audio gesture-gate wiring + iOS ITP doc — MOB-03, MOB-05
 
 **Wave 4** *(blocked on 37-03)*
 
