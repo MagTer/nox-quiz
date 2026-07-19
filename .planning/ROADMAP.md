@@ -507,8 +507,31 @@ Plans:
   4. Holding the device portrait shows a "rotate your device" overlay, and browser scroll/zoom gestures never fight the game (`touch-action: none`, viewport meta — no `screen.orientation.lock()` reliance)
   5. Audio genuinely starts after the first touch on a real device (`touchstart` is not an activation-triggering event — verified, not assumed), and iOS ITP 7-day storage eviction is documented as expectation (laptop stays the progress home)
 
-**Plans**: TBD
+**Plans**: 7 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [ ] 37-01-PLAN.md — RED-first Playwright touch-coordinate probe (proves the current CSS-transform desync, ~480 vs ~320) — MOB-01
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 37-02-PLAN.md — Letterbox migration (main.js + index.html #stage container): probe flips GREEN, desktop parity gate green, stale comments rewritten — MOB-01
+
+**Wave 3** *(parallel — file-disjoint; all blocked on 37-02)*
+
+- [ ] 37-03-PLAN.md — Input seam (src/input.js) + player.js wiring, keyboard byte-identical, CONFIG.TOUCH tunables — MOB-02
+- [ ] 37-04-PLAN.md — Portrait "rotate your device" overlay + gesture suppression (touch-action:none, viewport meta; no orientation.lock) — MOB-04
+- [ ] 37-05-PLAN.md — Tappable UI proof (tap resolves answer + mute) + audio gesture-gate wiring + iOS ITP doc — MOB-03, MOB-05
+
+**Wave 4** *(blocked on 37-03)*
+
+- [ ] 37-06-PLAN.md — Touch controls UI (coarse-pointer-only left/right/jump, per-identifier multi-touch, variable-height via the seam) + touch-drive harness — MOB-02
+
+**Wave 5** *(blocked on 37-04/05/06)*
+
+- [ ] 37-07-PLAN.md — Consolidation: full gate suite green (existing + 3 new touch gates) + 37-VERIFICATION.md (MOB-05 device audio + MOB-06 deferred to Phase 38) — MOB-01..05
 
 ### Phase 38: n0x Logo & Closing Verification
 
@@ -567,7 +590,7 @@ Plans:
 | 34. Level Quality Pass | v6.0 | 6/7 | In Progress|  |
 | 35. Biome Re-dress & Props | v6.0 | 0/TBD | Not started | - |
 | 36. World Motion & Ambient Life | v6.0 | 0/TBD | Not started | - |
-| 37. Mobile — Responsive Canvas & Touch Controls | v6.0 | 0/TBD | Not started | - |
+| 37. Mobile — Responsive Canvas & Touch Controls | v6.0 | 0/7 | Not started | - |
 | 38. n0x Logo & Closing Verification | v6.0 | 0/TBD | Not started | - |
 
 ---
