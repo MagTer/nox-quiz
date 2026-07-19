@@ -9,8 +9,31 @@ import { readFile } from "fs/promises";
 import { existsSync, readdirSync } from "fs";
 import { extname, join, resolve, sep } from "path";
 import { LEVEL_ORDER, getLevel } from "../src/levels/index.js";
-import { deriveEncounters, driveToXPlanned, resolveIfBoxed } from "./lib/mechanic-drive.mjs";
+import { deriveEncounters, driveToXPlanned, driveToMover, resolveIfBoxed } from "./lib/mechanic-drive.mjs";
 import { CONFIG } from "../src/config.js";
+
+// Phase 39 (POL-03): does this mover span a REAL pit (a hole in the floor that no static
+// floor run or platform bridges between its two endpoints)? Today every mover rides SOLID
+// floor by design (CONTEXT decision #3), so this is FALSE for all shipped movers and the
+// ride branch in the spawn->goal drive stays inert — the walk-only path is unchanged. Once
+// plan 39-07 relocates a mover over a real killing pit (removing the static stepping-stones),
+// this returns TRUE and the walk-only driver rides across via the SHARED driveToMover instead
+// of walking into the pit and respawning forever. Floor-coverage predicate mirrors
+// over-hole-check.mjs's `fullyOnOneFloor` interval test (this is a MENTION of that idiom, not
+// a copied driver — the ride LOGIC stays single-sourced in mechanic-drive.mjs:920).
+function moverBridgesRealPit(mover, geometry) {
+  const lo = Math.min(mover.x1, mover.x2);
+  const hi = Math.max(mover.x1, mover.x2);
+  if (hi - lo < 1) return false; // a stationary / near-zero-sweep mover bridges nothing
+  const floorRuns = (geometry.floors ?? []).map((f) => [f.x, f.x + f.w]);
+  const platformRuns = (geometry.platforms ?? []).map((p) => [p.x, p.x + p.w]);
+  const covered = (x) =>
+    floorRuns.some(([a, b]) => x >= a && x <= b) ||
+    platformRuns.some(([a, b]) => x >= a && x <= b);
+  // A real pit = at least one point between the endpoints with no floor/platform beneath it.
+  for (let x = lo; x <= hi; x += 8) if (!covered(x)) return true;
+  return false;
+}
 
 // WR-02: resolve playwright dynamically instead of a hardcoded, machine-specific absolute
 // path. Tries (1) normal project-relative resolution (works once `playwright` is a real
@@ -521,6 +544,20 @@ try {
     // at the next still-locked encounter and never actually reach the goal (CR-01,
     // 32-REVIEW.md). Resolve every remaining encounter on the path first.
     for (const encounter of drivableEncounters) {
+      // Phase 39 (POL-03): if this encounter is a mover that spans a REAL pit (no static
+      // bridge between its endpoints), the walk-only driveToXPlanned would march into the
+      // hole and respawn forever — so RIDE across via the SHARED driveToMover instead, then
+      // resume the walk to the next encounter. Inert today (moverBridgesRealPit is false for
+      // every shipped mover, which all ride solid floor), so this is a no-op-safe crossing
+      // that only engages once plan 39-07 relocates a mover over a real killing pit. The
+      // ride LOGIC is single-sourced in mechanic-drive.mjs:920 — this only INVOKES it.
+      if (encounter.tag === "mover") {
+        const mover = level.geometry.movers?.[encounter.idx ?? 0];
+        if (mover && moverBridgesRealPit(mover, level.geometry)) {
+          await driveToMover(page, encounter, level.geometry);
+          continue;
+        }
+      }
       const { triggered } = await driveToXPlanned(page, encounter.x, level.geometry);
       if (triggered) {
         await resolveIfBoxed(page);
