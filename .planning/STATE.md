@@ -5,15 +5,15 @@ milestone_name: SNES-Fidelity World
 current_phase: 39
 current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 status: executing
-stopped_at: Completed 39-03-PLAN.md
-last_updated: "2026-07-19T16:44:51.128Z"
+stopped_at: Completed 39-04-PLAN.md
+last_updated: "2026-07-19T17:40:21.770Z"
 last_activity: 2026-07-19
 last_activity_desc: Phase 39 execution started
 progress:
   total_phases: 14
   completed_phases: 10
   total_plans: 80
-  completed_plans: 73
+  completed_plans: 74
   percent: 71
 ---
 
@@ -37,14 +37,14 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 39 (playthrough-polish-grounded-patrolling-skeletons-sliding-spi) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (covers ALL new content incl. deferred Phase-36 motion feel); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
 Last activity: 2026-07-19 — Phase 39 execution started
 NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.
 Ignore untracked strays (pre-existing, not ours): .planning/phases/26-*/ + assets/enemy-{1,2,3}.png
 
-Progress: [█████████░] 91%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
+Progress: [█████████░] 93%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
 
 ## v6.0 Roadmap Summary
 
@@ -77,6 +77,7 @@ Progress: [█████████░] 91%  (12 of 13 phases complete: 29–
 | Phase 39 P01 | 20min | 3 tasks | 6 files |
 | Phase 39 P02 | 6min | 2 tasks | 3 files |
 | Phase 39 P03 | ~50m | 2 tasks | 2 files |
+| Phase 39 P04 | 40min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,7 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - [Phase ?]: 39-02: swamp-lantern re-baked from town street-lamp (non-skull), stable prop-swamp-lantern key preserves MECH-05 alcove flicker (POL-05)
 - [Phase ?]: 39-03: browser-boot rides a mover-bridged pit via the SHARED driveToMover, gated by moverBridgesRealPit (inert on all 8 current levels; engages once 39-07 relocates a mover over a real hole)
 - [Phase ?]: 39-03: audit-phase21 mover-mount is flaky under node v24 (harness pins v22); pre-existing, not caused by this plan — logged to deferred-items, delicate shared mount NOT re-tuned
+- [Phase ?]: 39-04: grounded L1/L2 skeleton patrollers (y:214->268) + shared walk-driver patroller-hop; a grounded ping-pong patroller is un-passable by the walk-only driver for any phase (IVT), so browser-boot needed the forecasted hop retune.
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -179,8 +181,8 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 
 ## Session Continuity
 
-Last session: 2026-07-19T16:44:43.723Z
-Stopped at: Completed 39-03-PLAN.md
+Last session: 2026-07-19T17:40:21.756Z
+Stopped at: Completed 39-04-PLAN.md
 Resume file: None
 
 ---
