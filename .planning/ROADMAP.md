@@ -593,6 +593,26 @@ Plans:
 | 37. Mobile — Responsive Canvas & Touch Controls | v6.0 | 0/7 | Not started | - |
 | 38. n0x Logo & Closing Verification | v6.0 | 0/TBD | Not started | - |
 
+### Phase 39: Playthrough Polish — grounded patrolling skeletons, sliding-spike moving hazard, moving platforms relocated over real holes, solid jump-over barrels/boxes, and prop cleanup
+
+**Goal:** Turn the levels from a walk-through with cosmetic hazards into real platforming, per the user's post-kid-playthrough feedback (2026-07-19). Grounded, visibly-patrolling skeletons; a new sliding-spike moving hazard; moving platforms relocated over the real holes (removing the static stepping-stones + teaching the walk-only audit harness to ride a mover + re-freezing the geometry baseline); solid jump-over barrels/boxes; and prop cleanup. Difficulty rises deliberately (real timed gaps + grounded enemies) while staying ADHD-safe (no timers/countdowns).
+
+**Requirements**:
+- **POL-01** — Grounded patrol skeletons: drop `geometry.patrollers` to floor level with a wide, visible ping-pong sweep, moved off the floor coins, so they read as real telegraphed hazards (contact = respawn to checkpoint). All 8 levels. Freeze-EXEMPT (patrollers stripped from the frozen hash).
+- **POL-02** — Sliding-spike moving hazard: NEW mechanic — a spike that patrols horizontally along the ground (reuse the mover raised-cosine oscillation / `stickToPlatform`-adjacent pattern), placed at a few chosen spots. New builder branch + config + validator/audit awareness.
+- **POL-03** — Movers over real holes (FULL): relocate the existing movers over the actual pits, remove the static stepping-stones bridging those pits, update the walk-only `browser-boot.mjs` / `audit-phase21-mechanics.mjs` drivers to ride a moving platform (else they softlock), and re-freeze `scripts/fixtures/geometry-frozen-baseline.json` (`check-geometry-frozen.mjs --write`) as a deliberate acknowledgment. Touches FROZEN geometry (floors/platforms) → re-baseline required.
+- **POL-04** — Solid props: add an opt-in `solid` collider branch to the `build.js` props layer (area + static body); make the 6 town barrels/crates (L3/L4) jump-over obstacles. Must not block any required route (validator/audit awareness).
+- **POL-05** — Prop cleanup: swap the L1/L2 fire-skull (`prop-swamp-lantern`) for a non-skull lantern that PRESERVES the secret-alcove flicker-light (MECH-05 link); move the L3 `prop-town-well` off the F5 spike; reposition the L8 `prop-castle-column` face-columns off the two gaps (x3160, x6380) and off the spawn (x40). Freeze-EXEMPT (props are top-level, outside the hash).
+
+**Decisions (user, 2026-07-19):** skull→lantern (keep alcove light); moving spikes = slide-along-ground; movers-over-holes = full re-placement + harness update; skeletons = ground patrol. Barrels default = all 6 town props solid (revisit if a route is blocked).
+
+**Depends on:** Phase 38 (BRAND-01 already signed off). **NOTE:** Phase 38's VER-02 kid-UAT must RE-RUN after this phase — it now covers this revised platforming.
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 39 to break down)
+
 ---
 
 *Archives: [v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) · [v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md) · [v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md) · [v4.1-ROADMAP.md](milestones/v4.1-ROADMAP.md) · [v5.0-ROADMAP.md](milestones/v5.0-ROADMAP.md)*

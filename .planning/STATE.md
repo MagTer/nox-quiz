@@ -73,6 +73,15 @@ Progress: [██████████] 92%  (12 of 13 phases complete: 29–
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- **Phase 39 added (2026-07-19): Playthrough Polish.** From the user's post-kid-playthrough
+  feedback. Grounded patrolling skeletons (POL-01), a new sliding-spike moving hazard (POL-02),
+  moving platforms relocated over real holes + audit-harness update + geometry re-baseline (POL-03),
+  solid jump-over barrels/boxes (POL-04), prop cleanup (POL-05: skull→lantern keeping alcove light,
+  well off spikes, L8 columns). User decisions locked in the phase CONTEXT.md. Phase 38's VER-02
+  kid-UAT must RE-RUN after Phase 39. BRAND-01 already signed off (logo A + title backdrop).
+
 ### Decisions
 
 Full log in PROJECT.md Key Decisions. Binding for v6.0:
