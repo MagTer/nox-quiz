@@ -214,6 +214,23 @@ export const LEVEL_05 = {
       // there is NO re-gate loop.
       { x1: 1120, y1: 268, x2: 1240, y2: 268, speed: 80 },
     ],
+
+    // ===================== SLIDING SPIKES (POL-02, Phase 39) =====================
+    // The NEW moving-spike hazard (built by plan 39-01: geometry.slidingSpikes -> a
+    // "spike"-tagged, body-less sprite oscillating via onUpdate/dt() raised-cosine, reusing
+    // the existing game.js "spike"->respawn seam). EXEMPT from the freeze hash (stripped
+    // alongside movers/patrollers), so authoring it here is hash-neutral. Ground-sliding:
+    // y1 = y2 = FLOOR_Y - SPIKE_SIZE (304), x1 != x2. reachability treats it as passable.
+    slidingSpikes: [
+      // S0 — slides along the F3 catacomb floor (2530..3030) in the lane JUST PAST the
+      // static spike@2760, sweeping 2790<->2860 (70px). It rides in the "shadow" of the
+      // static spike: the driver's planned static-spike hop (takeoff ~2740) arcs over the
+      // whole sweep and lands ~2880, so the pair reads + clears as one "spike cluster to
+      // time" (L5's declared §8.5 action beat). checkpoint@2680 sits BEFORE the static
+      // spike so a contact respawns to a safe run-up (never inside the sweep). Clear of
+      // coin@2900 (right of x2) and the PL3@3060 takeoff. Default 3s period.
+      { x1: 2790, y1: FLOOR_Y - CONFIG.SPIKE_SIZE, x2: 2860, y2: FLOOR_Y - CONFIG.SPIKE_SIZE },
+    ],
   },
 
   mechanics: [],

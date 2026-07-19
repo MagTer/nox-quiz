@@ -193,7 +193,14 @@ export const LEVEL_07 = {
       // so the driver walks straight onto it (no fragile precise-landing) and the ledge (ends
       // 4590) never overhangs the spike-jump arc. The goal-drive walks under it, jumps spike@4650,
       // then climbs TW1->TT to the goal.
-      { x1: 4490, y1: 250, x2: 4530, y2: 250, w: 60 },
+      //
+      // POL-03 (Phase 39, motion-only): the sweep was a near-zero ~40px (4490<->4530) that
+      // barely read as motion. WIDENED LEFTWARD to 80px (x1 4490 -> 4450) so the slab
+      // visibly slides, while the RIGHT extent (x2+w = 4530+60 = 4590) is held byte-stable
+      // to preserve the documented no-softlock margin from the spike@4650 jump-takeoff
+      // (~4600). x1:4450 stays on solid W4 (starts 4420) after the FL2->W4 landing (~4470),
+      // so both endpoints remain jump-reachable and a missed hop still lands on W4 to WAIT.
+      { x1: 4450, y1: 250, x2: 4530, y2: 250, w: 60 },
     ],
     patrollers: [
       // P0 — POL-01 (Phase 39): GROUNDED (y:214 -> y:268, feet on FLOOR_Y 320) skeleton walking
@@ -206,6 +213,23 @@ export const LEVEL_07 = {
       // mid-sweep clear of both ends). Contact respawns to checkpoint@96 (door stays cleared —
       // derived unlock, no re-gate loop).
       { x1: 415, y1: 268, x2: 520, y2: 268, speed: 80 },
+    ],
+
+    // ===================== SLIDING SPIKES (POL-02, Phase 39) =====================
+    // The NEW moving-spike hazard (built by plan 39-01: geometry.slidingSpikes -> a
+    // "spike"-tagged, body-less sprite oscillating via onUpdate/dt() raised-cosine, reusing
+    // the existing game.js "spike"->respawn seam). EXEMPT from the freeze hash (stripped
+    // alongside movers/patrollers). Ground-sliding: y1 = y2 = FLOOR_Y - SPIKE_SIZE (304),
+    // x1 != x2. reachability treats it as passable.
+    slidingSpikes: [
+      // S0 — slides along the W2 courtyard floor (2600..3020) in the lane JUST PAST the
+      // static spike@2800, sweeping 2830<->2900 (70px). It rides in the "shadow" of the
+      // static spike: the driver's planned static-spike hop (takeoff ~2780) arcs over the
+      // whole sweep and lands ~2915, so the pair reads + clears as one moving "spike cluster
+      // to time" (L7's declared §8.5 action beat). checkpoint@2720 sits BEFORE the static
+      // spike so a contact respawns to a safe run-up (never inside the sweep). Clear of the
+      // DB1@3050 drawbridge takeoff. Default 3s period.
+      { x1: 2830, y1: FLOOR_Y - CONFIG.SPIKE_SIZE, x2: 2900, y2: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
   },
 
