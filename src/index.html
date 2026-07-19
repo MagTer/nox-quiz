@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Nox Run — loading</title>
   <style>
     /*
@@ -18,15 +18,55 @@
           pillar/letterbox bars to fit any screen; the canvas is responsive
           (Kaplay's onResize refits on rotate/resize automatically).
       The body still flex-centers #stage on both axes so the fixed desktop
-      wrapper sits centered in the viewport. (viewport meta, touch-action, and
-      the portrait overlay are a later plan's scope — this only establishes the
-      container.)
+      wrapper sits centered in the viewport.
+
+      Gesture suppression + portrait overlay (MOB-04, plan 37-04):
+        - #game has `touch-action: none` so the browser never claims the touch
+          for pinch-zoom / scroll / double-tap-zoom — the game owns every touch
+          over the canvas (the reliable suppressor per 37-RESEARCH.md; the
+          viewport meta's user-scalable=no/maximum-scale=1 is honored
+          inconsistently on iOS, so touch-action carries the guarantee).
+        - #rotate is a dark-grunge "rotate your device" overlay, hidden by
+          default. It is swapped in for #stage ONLY on a coarse-pointer device
+          held in portrait, via the pure-CSS `@media (pointer: coarse) and
+          (orientation: portrait)` query — NOT the JS lock API for screen
+          orientation (unsupported/permission-gated on iOS Safari). Desktop (pointer:fine)
+          never matches, so the overlay can never show there and the
+          kid-validated desktop look is byte-unchanged.
     */
     html, body { margin: 0; background: #0a0a0a; height: 100%; }
     body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     canvas { display: block; }
+    #game { touch-action: none; }  /* suppress pinch-zoom/scroll/double-tap-zoom over the canvas */
     @media (pointer: fine)   { #stage { width: 960px; height: 540px; } }
     @media (pointer: coarse) { #stage { width: 100vw;  height: 100vh; } }
+
+    /* Portrait "rotate your device" overlay — hidden by default; only ever
+       shown on a coarse-pointer device in portrait (see media query below). */
+    #rotate { display: none; }
+    #rotate {
+      position: fixed;
+      inset: 0;
+      background: #0a0a0a;
+      color: #e8e8e8;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      font: 600 20px/1.5 system-ui, sans-serif;
+      letter-spacing: 0.02em;
+      z-index: 10;
+    }
+    #rotate .rotate-glyph {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #00ff88;  /* grunge accent, matches the file:// guard heading */
+    }
+    @media (pointer: coarse) and (orientation: portrait) {
+      #rotate { display: flex; }
+      #stage  { display: none; }
+    }
   </style>
   <!--
     file:// protocol guard — runs FIRST as a non-module inline script.
@@ -59,6 +99,13 @@
 <body>
   <div id="stage">
     <canvas id="game"></canvas>
+  </div>
+  <!-- Portrait rotate prompt (MOB-04). Static markup only — no user/localStorage
+       value is ever interpolated here (T-37-03). Swapped in for #stage by the
+       coarse-pointer+portrait media query above; never shown on desktop. -->
+  <div id="rotate">
+    <div class="rotate-glyph" aria-hidden="true">&#x21BB;</div>
+    <div>Rotate your device to play</div>
   </div>
   <!-- Relative src so src/ is the import base; resolves identically in dev and container. -->
   <script type="module" src="main.js"></script>
