@@ -607,11 +607,18 @@ Plans:
 **Decisions (user, 2026-07-19):** skull→lantern (keep alcove light); moving spikes = slide-along-ground; movers-over-holes = full re-placement + harness update; skeletons = ground patrol. Barrels default = all 6 town props solid (revisit if a route is blocked).
 
 **Depends on:** Phase 38 (BRAND-01 already signed off). **NOTE:** Phase 38's VER-02 kid-UAT must RE-RUN after this phase — it now covers this revised platforming.
-**Plans:** 0 plans
+**Plans:** 8 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 39 to break down)
+- [ ] 39-01-PLAN.md — Builder + harness foundation: sliding-spike loop + config (POL-02), solid-prop branch + config (POL-04), frozen-strip + driver/reachability awareness
+- [ ] 39-02-PLAN.md — Re-bake prop-swamp-lantern from a non-skull source, keeping the alcove-light key/path stable (POL-05)
+- [ ] 39-03-PLAN.md — Teach browser-boot.mjs + audit-phase21 to ride a mover (POL-03 harness capability)
+- [ ] 39-04-PLAN.md — Levels 1-2 data: ground skeletons (POL-01) + confirm lantern alcove link (POL-05)
+- [ ] 39-05-PLAN.md — Levels 3-4 data: ground skeletons (POL-01), 6 solid town props (POL-04), well off spike (POL-05), L4 mover widen (POL-03)
+- [ ] 39-06-PLAN.md — Levels 5-7 data: ground skeletons (POL-01), sliding spikes on L5/L7 (POL-02), L7 mover widen (POL-03)
+- [ ] 39-07-PLAN.md — Level 8 data: ground skeletons (POL-01), movers over the real moat + chasm with stepping-stones removed (POL-03 FROZEN), columns off gaps/spawn (POL-05)
+- [ ] 39-08-PLAN.md — Re-baseline frozen geometry (--write) + full gate suite + human playthrough sign-off; queue VER-02 kid-UAT re-run
 
 ---
 
