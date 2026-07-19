@@ -298,16 +298,22 @@ export const LEVEL_02 = {
     // driver; a wraith over a jump takeoff respawn-loops it). Swamp-legibility (36-06 flag):
     // both wraiths ride the OPEN horizontal floor runs where they read clearest.
     movers: [
-      // M0 — a lateral ferry over the WIDE calm F8 run-in (7000..7480), the level's LAST
-      // audit encounter (riding it strands no later blocker-drive — enemy@6030 is already
-      // past). Placed in F8's LEFT-CENTRE, clear of the F7->F8 landing arc (~7020) and the
-      // GOAL@7360 runway: right extent (7150 + 110 = 7260) stays 100px left of the goal, and
-      // F8's solid floor runs to 7480 (120px PAST the goal) so an audit-mount overshoot lands
-      // on floor, never a pit. Both endpoints y:250 = rise 70 from FLOOR_Y 320 (inside the
-      // ~88px envelope) → mover-reachability PASS/WARN (from F8, rightward). Behind
-      // checkpoint@7040; solid F8 under it → a missed hop lands back on F8 to WAIT
-      // (no killing pit). The goal-drive walks under it (head 288 vs ledge 250..266 = 22px).
-      { x1: 7050, y1: 250, x2: 7150, y2: 250, w: 110 },
+      // M0 — a WIDE (w140) lateral ferry over the calm F8 goal run-in (7000..7480), the
+      // level's LAST audit encounter (riding it strands no later blocker-drive — enemy@6030
+      // is already past). Modelled on level-06's proven goal-floor mover: a WIDE ledge on a
+      // goal floor whose ONLY downstream feature is the GOAL (a clean "soft reset" — the rare
+      // overshoot that reaches goal@7360 just ends that audit attempt and the next reload
+      // retries). The load-bearing reliability lever (found by tuning the 36-07 audit mount):
+      // the ledge must be WIDE (w140, not the first-pass w80) so the audit's ~160px running
+      // mount-jump lands ON the ledge instead of sailing past it — w140 rides att=1 in the
+      // interactive audit; w80 never mounted. (Default CONFIG.MOVER.PERIOD_S — a per-mover
+      // `period` slow-down was trialled but did NOT help this short-approach F8 mover, so it
+      // is omitted.) Right extent (7140+140 = 7280) leaves ~80px of solid F8 before the goal.
+      // Both endpoints y:250 = rise 70 from FLOOR_Y 320 →
+      // mover-reachability PASS/WARN (from F8, rightward). Behind checkpoint@7040; solid F8
+      // under it → a missed hop lands back on F8 to WAIT (no killing pit). The goal-drive
+      // walks under it (head 288 vs ledge 250..266 = 22px).
+      { x1: 7040, y1: 250, x2: 7140, y2: 250, w: 140 },
     ],
     patrollers: [
       // P0 — a slow swamp WRAITH hovering at y:214 over the FLAT F1 lane (600..1040) AFTER
