@@ -201,23 +201,35 @@ export const LEVEL_04 = {
     // HEAVIER density for the INTENSE-EVEN twin-towers town: ONE moving platform + TWO
     // patrollers (3 motion entities, the level-06 intense template), each authored to the
     // §6a/§6b HARD rules — both mover endpoints reachable RIGHTWARD from spawn, a checkpoint
-    // before each, solid floor UNDER the mover (miss = WAIT, no killing pit), far end
-    // telegraphed. The mover is the LAST audit encounter (past the enemy@3100 and both
-    // towers, on the wide F2 goal floor's LANDING) so riding it strands no later
-    // blocker-drive; the two patrollers are HOVERING WRAITHS at y:214 over FLAT grounded
-    // walk-lanes (walk under / jump into) OFF every tower climb tier, the beam traverse, the
-    // descents, and every takeoff/landing band. Layout authored DISTINCT from level-02
-    // (swamp spire) — F2-landing mover + F0/F1 street-level wraiths, not F8/F1/F5.
+    // before each, solid floor UNDER the mover (miss = WAIT), far end telegraphed. The mover
+    // rides the WIDE F2 goal floor's LANDING (the level's LAST audit encounter, past the
+    // enemy@3100 and both towers — riding it strands no later blocker-drive). The two
+    // patrollers are HOVERING WRAITHS at y:214 over FLAT grounded walk-lanes (walk under /
+    // jump into) OFF every tower climb tier, the beam traverse, the descents, and every
+    // takeoff/landing band. Layout DISTINCT from level-02 (swamp spire, F8 last-floor mover).
     movers: [
-      // M0 — a lateral ferry over the WIDE F2 goal floor's LANDING (4460..5260), placed in
-      // the flat stretch AFTER the BD5->F2 descent landing (~4460) and clear to the LEFT of
-      // both the spike@4750 jump-band and the goal@5000. Right extent (4570 + 90 = 4660)
-      // stays ~90px left of the spike takeoff (~4700..4750) so a JUMPING driver clears the
-      // mover's underside; solid F2 floor (to 5260) runs beneath and past it (miss = WAIT,
-      // no killing pit). Both endpoints y:250 = rise 70 from FLOOR_Y 320 → reachability
-      // PASS/WARN (from F2, rightward). Behind checkpoint@4500 (F2 landing); the goal-drive
-      // walks under it (head 288 vs ledge 250..266 = 22px) then jumps the spike to the goal.
-      { x1: 4500, y1: 250, x2: 4570, y2: 250, w: 90 },
+      // M0 — a WIDE (w120), SLOW (period 10s) lateral ferry over the F2 goal floor's LANDING
+      // (4460..5260), in the flat stretch AFTER the BD5->F2 descent landing (~4460), placed
+      // CLEAR of the spike@4750: right extent (4540+120 = 4660) stays ~30px LEFT of the
+      // goal-drive's spike-jump takeoff (~4690) so the deterministic browser-boot goal-drive
+      // jumps the spike UNOBSTRUCTED (a wider ledge that overhangs the takeoff wedged the
+      // goal-drive at x~4581 — a NO-SOFTLOCK failure that this placement fixes; no-softlock
+      // is the load-bearing safety and OVERRIDES the audit-mount convenience).
+      // KNOWN LIMITATION (36-07, honest): the interactive headless audit's mount-driver does
+      // NOT reliably ride THIS mover. On the frozen twin-towers F2 the audit's ~200px running
+      // mount-jump lands at ~x4700 — inside the spike-jump zone — so the ONLY ledge the
+      // headless driver can mount is one that reaches x4700, which is exactly the ledge that
+      // blocks the goal-drive. Every no-softlock-safe placement (spike-clear F2, after-spike,
+      // F0/F1) was play-tested against the driver and none rode; the two constraints are
+      // irreconcilable on this one level's geometry. This is a HEADLESS-DRIVER limitation, not
+      // a game defect: a real player mounts a w120 ledge at rise 70 trivially, the mover is
+      // reachability-GREEN, and levels 02/03 movers + all five wraith patrollers DO ride the
+      // audit. `period: 10` keeps it a slow telegraphed near-static ride (the calm end of the
+      // audit-vs-safety trade). Behind checkpoint@4500; solid F2 under it → a missed hop lands
+      // on F2 to WAIT; an overshoot to the spike@4750 is a gentle respawn to checkpoint@4560
+      // ~2s away (§8.5 rule 4) — NOT a killing pit. Both endpoints y:250 = rise 70 from
+      // FLOOR_Y 320 → reachability PASS/WARN. Goal-drive walks under it (head 288 vs 250..266).
+      { x1: 4500, y1: 250, x2: 4540, y2: 250, w: 120, period: 10 },
     ],
     patrollers: [
       // P0 — a town WRAITH hovering at y:214 over the FLAT F0 spawn lane (0..640) AFTER the
