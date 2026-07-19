@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 38
-current_phase_name: n0x Logo & Closing Verification
+current_phase: 39
+current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 status: executing
-stopped_at: "2026-07-18 — Phase 35 (Biome Re-dress & Props) COMPLETE: all 8 plans executed, full gate suite green, geometry BYTE-FROZEN across all 8 levels (check-geometry-frozen gate proves it). All 8 levels dressed with a collider-free props layer (swamp/town/cemetery/castle); trial checkpoint (35-03) orchestrator-reviewed under user 'run the whole phase' authorization; dead theme-N bake code deleted; the deferred neon-green coin-pop restyled to a dark-grunge gold glint twinkle. 16 code commits (7c156a8..d2fa37b). ART-06 + ART-07 delivered. NEXT: Phase 36 (World Motion & Ambient Life) — patrols/moving platforms/ambient flicker, dt-based + ADHD-safe, placed on the now-dressed levels. Final kid aesthetic sign-off on the dressed world deferred to Phase 38 (VER-02)."
-last_updated: "2026-07-19T15:18:17.409Z"
+stopped_at: Completed 39-01-PLAN.md
+last_updated: "2026-07-19T15:41:58.212Z"
 last_activity: 2026-07-19
-last_activity_desc: Phase 37 complete + N0X logo direction picked (A); context cleared for a fresh session
+last_activity_desc: Phase 39 execution started
 progress:
-  total_phases: 13
-  completed_phases: 12
-  total_plans: 72
-  completed_plans: 70
-  percent: 92
+  total_phases: 14
+  completed_phases: 10
+  total_plans: 80
+  completed_plans: 71
+  percent: 71
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -28,7 +28,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core Value:** She opens it because she *wants* to, not because she has to.
-**Current Focus:** Phase 38 — n0x Logo & Closing Verification (the FINAL phase). Phase 37 complete: letterbox migration (mouse+touch coords unified), touch controls, tappable answers/mute/reset, portrait overlay — desktop byte-identical, MOB-01..05 delivered. Phase 38 is almost entirely human/real-world gated (n0x logo sign-off, live Dokploy deploy, kid-UAT VER-02, on-device touch tuning MOB-06 + audio proof MOB-05).
+**Current Focus:** Phase 39 — playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 
 **Shipped State (v5.0, 2026-07-09):** Replayable 8-level Kaplay platformer — signed-off logo/title → 2×4 level-select → 8 distinctly-themed dark-grunge levels with a gentle ramp → forgiving no-timer math mechanics + hidden secret alcoves → persisted XP/level/unlock (`noxrun_platformer_v1`) → full ADHD-safe audio layer. All 25 v5.0 requirements satisfied under genuine automated + human sign-off.
 
@@ -36,15 +36,15 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 38 (n0x Logo & Closing Verification) — FINAL phase, human/real-world gated
-Plan: 0 of N — not planned yet. LOGO DECIDED: candidate A "Emerald Chisel" (uppercase N0X, moss→neon chiseled bevel). Resume contract: .planning/phases/38-n0x-logo-closing-verification/38-DECISIONS.md
+Phase: 39 (playthrough-polish-grounded-patrolling-skeletons-sliding-spi) — EXECUTING
+Plan: 2 of 8
 Status: Ready to execute
 Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (covers ALL new content incl. deferred Phase-36 motion feel); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
-Last activity: 2026-07-19 — Phase 37 complete + N0X logo direction picked (A); context cleared for a fresh session
+Last activity: 2026-07-19 — Phase 39 execution started
 NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.
 Ignore untracked strays (pre-existing, not ours): .planning/phases/26-*/ + assets/enemy-{1,2,3}.png
 
-Progress: [██████████] 92%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
+Progress: [█████████░] 89%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
 
 ## v6.0 Roadmap Summary
 
@@ -70,6 +70,11 @@ Progress: [██████████] 92%  (12 of 13 phases complete: 29–
 **Velocity (through v5.0):** 28 phases, 107 plans completed across 6 shipped milestones (2026-06-20 → 2026-07-09). Per-plan history archived in `.planning/milestones/`.
 
 **v6.0:** 20 plans completed (Phases 29-34). Phase 34 ran 7 plans (6 executed, 34-05 deliberately skipped).
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 39 P01 | 20min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -117,6 +122,8 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - [Phase ?]: level-06 rebuilt as 'The Necropolis': 666px main-route double-switchback cathedral spire (taller than level-02's 518px), diamond fork, crypt-tower + 2 catacomb descents, optional math-skip key on the 740px KA apex (keys, no locks)
 - [Phase ?]: level-04 rebuilt as the intense TOWN even 'The Clocktower' (592px switchback spire + math-skip key); length capped at goal 9460 by the HARD perf-objects budget (650 caps) — the longest even level
 - [Phase ?]: Phase 34.6 closeout: consolidated suite green across all 8 rebuilt levels in one pass, 0 HARD-FAIL; the 13 deferred Phase-34 fails (8 coin, 5 headroom) deleted; docs/LEVEL-REVIEW.md rebuild review written (real monotonic ramp, L7 staircase != L8 switchback, §8.5-feel deferred to Phase 38 kid-UAT).
+- [Phase ?]: 39-01: sliding spike is an add-alongside motion variant (geometry.slidingSpikes) sharing the 'spike' tag + respawn seam
+- [Phase ?]: 39-01: solid-prop collider sized from config/descriptor PRIMARY source (never async sprite dims), matching the reachability model byte-for-byte
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -167,9 +174,9 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 
 ## Session Continuity
 
-Last session: 2026-07-16T04:13:17.335Z
-Stopped at: Phase 35 context gathered (props layer: restrained/legibility-first, bg+on-surface, extra CC0 where thin, 2-level trial → sign-off → rest)
-Resume file: .planning/phases/35-biome-re-dress-props/35-CONTEXT.md
+Last session: 2026-07-19T15:41:51.668Z
+Stopped at: Completed 39-01-PLAN.md
+Resume file: None
 
 ---
 
