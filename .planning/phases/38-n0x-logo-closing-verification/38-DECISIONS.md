@@ -11,7 +11,17 @@
 - Generator: `brand-candidates/generate-v2.py` (function `a_emerald()`) — the repeatable source.
 - Treatment: **uppercase N0X**, moss→neon-green chiseled bevel, neon rim-light + outer glow, drop shadow. SNES-fidelity (higher pixel grid than v1). Matches the current NOX RUN moss/neon identity — the "safe, strong evolution."
 
-### To bake it (the actual BRAND-01 work, not yet done)
+### BAKE DONE (2026-07-19, quick task 260719-iuv) — awaiting human sign-off
+- `a_emerald()` ported into `scripts/build-art-assets.py` (`build_logo` + `_logo_*` helpers).
+- `assets/logo-hero.png` (360×90, NEAREST upscale) + `assets/logo-badge.png` (144×36, LANCZOS
+  downscale for legibility) re-baked.
+- **Title backdrop also rebuilt** (`build_title_bg`): the old grey Kenney silhouette →
+  Gothicvania castle-interior source at native SNES-fidelity color + darken + center
+  vignette. Same 640×360 filename, no scene edit.
+- All gates green incl. browser-boot PASS. Live title+select shots shown to user.
+- REMAINING for BRAND-01: the human sign-off itself (multi-round). Not auto-closed.
+
+### To bake it (the actual BRAND-01 work — DONE, steps kept for reference)
 1. Port `a_emerald()` into `scripts/build-art-assets.py`'s `build_logo()` path (or a new `build_n0x_logo()`), producing the two real assets at their locked sizes:
    - `assets/logo-hero.png` — **360×90** (title hero)
    - `assets/logo-badge.png` — **144×36** (level-select badge)

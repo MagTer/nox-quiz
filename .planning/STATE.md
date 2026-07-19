@@ -8,7 +8,7 @@ status: in-progress
 stopped_at: "2026-07-18 — Phase 35 (Biome Re-dress & Props) COMPLETE: all 8 plans executed, full gate suite green, geometry BYTE-FROZEN across all 8 levels (check-geometry-frozen gate proves it). All 8 levels dressed with a collider-free props layer (swamp/town/cemetery/castle); trial checkpoint (35-03) orchestrator-reviewed under user 'run the whole phase' authorization; dead theme-N bake code deleted; the deferred neon-green coin-pop restyled to a dark-grunge gold glint twinkle. 16 code commits (7c156a8..d2fa37b). ART-06 + ART-07 delivered. NEXT: Phase 36 (World Motion & Ambient Life) — patrols/moving platforms/ambient flicker, dt-based + ADHD-safe, placed on the now-dressed levels. Final kid aesthetic sign-off on the dressed world deferred to Phase 38 (VER-02)."
 last_updated: "2026-07-19T06:19:30.117Z"
 last_activity: 2026-07-19
-last_activity_desc: "Phase 37 complete (mobile/touch, desktop byte-identical); advancing to Phase 38 (final)"
+last_activity_desc: "Phase 38 BRAND-01 baked: N0X logo A (Emerald Chisel) + SNES-fidelity castle-interior title backdrop; gates+browser-boot green; awaiting human sign-off"
 progress:
   total_phases: 13
   completed_phases: 12
@@ -136,6 +136,7 @@ All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (20
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260717-j24 | Re-play polish: enlarge goal flag to 32px (decoupled from 16px load-bearing collider) + lower ear-piercing level-clear sound to 0.4 gain | 2026-07-17 | da1cd94 | [260717-j24-re-play-polish-enlarge-goal-flag-to-32px](./quick/260717-j24-re-play-polish-enlarge-goal-flag-to-32px/) |
+| 260719-iuv | Phase 38 BRAND-01: baked N0X logo A "Emerald Chisel" → logo-hero (360×90) + logo-badge (144×36); rebuilt title-bg from Gothicvania castle-interior source at native SNES-fidelity color (was grey silhouette). All gates + browser-boot green; awaiting human BRAND-01 sign-off | 2026-07-19 | 8e54c0b | [260719-iuv-phase-38-brand-01-bake-n0x-logo-a-emeral](./quick/260719-iuv-phase-38-brand-01-bake-n0x-logo-a-emeral/) |
 
 ## Deferred Items
 

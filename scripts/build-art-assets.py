@@ -32,7 +32,7 @@ import json
 import os
 import subprocess
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "assets", "_kenney-src")
@@ -326,31 +326,73 @@ def build_parallax():
     save(near_remapped.convert("RGB"), os.path.join(ROOT, "assets", "parallax", "near.png"))
 
 
-def build_title_bg():
-    """Kenney "Background Elements" composite -> assets/tiles/title-bg.png (640x360).
+# Title backdrop tuning (Phase 38). DARKEN blends the whole plate toward black
+# so the interior's bright stained-glass windows can't out-shout the logo;
+# VIGNETTE_ALPHA is the peak opacity of a soft black ellipse dropped behind the
+# centered N0X hero so it reads regardless of what pixel-art sits under it.
+TITLE_BG_DARKEN = 0.62      # kept fraction of original brightness (0=black, 1=native)
+TITLE_BG_VIGNETTE_ALPHA = 0.42  # peak alpha of the center logo-backing shade
 
-    Composites castle + hills1 + a cloud element into one very-low-contrast
-    backdrop scene per 18-UI-SPEC.md's title-bg art direction (dark-grunge,
-    no animation, no bright/rapidly moving elements).
+
+def build_title_bg():
+    """Gothicvania castle-interior background -> assets/tiles/title-bg.png (640x360).
+
+    Phase 38 (BRAND-01): replaces the old Kenney-silhouette-through-_remap_luminance
+    grey backdrop with a real SNES-fidelity scene, sourced from the SAME
+    public-domain Gothicvania pack the level parallax uses. The plate is the
+    castle biome's own far-layer source (old-dark-castle-interior-background.png:
+    green stained-glass windows + stone columns), at NATIVE color -- matching the
+    already-shipped castle atlas/door/parallax and the emerald N0X logo's
+    moss/neon identity. Same window crop (250,0,890,304) and bottom-anchor +
+    stretch_top ceiling-fill as build_biome_parallax_castle's far plate, so the
+    title reads as the castle biome the player will actually enter.
+
+    Two title-only treatments on top of the raw plate:
+      * a global darken (TITLE_BG_DARKEN) so the bright windows can't overpower
+        the logo, and
+      * a soft radial black vignette (TITLE_BG_VIGNETTE_ALPHA) centered where
+        title.js anchors the N0X hero, guaranteeing logo contrast without a hard
+        backing rectangle.
+    Ships opaque RGB at the locked 640x360, filename unchanged (no scene/manifest
+    edit needed).
     """
     w, h = 640, 360
-    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    plate_path = os.path.join(
+        GV_SRC,
+        "gothicvaniapatreoncollection",
+        " gothicvania patreon collection",
+        "Old-dark-Castle-tileset-Files",
+        "PNG",
+        "old-dark-castle-interior-background.png",
+    )
+    src = Image.open(plate_path).convert("RGBA").crop((250, 0, 890, 304))  # 640x304 window
 
-    hills = _scale_to_width(_load_be("hills1.png"), w)
-    canvas.paste(hills.crop((0, max(0, hills.height - 140), w, hills.height)), (0, h - min(140, hills.height)), hills.crop((0, max(0, hills.height - 140), w, hills.height)))
+    base_color = _dominant_opaque_color(src)
+    canvas = Image.new("RGBA", (w, h), base_color + (255,))
+    top = h - src.height  # 56 -> bottom-anchored, dark ceiling stretched above
+    canvas.alpha_composite(src, (0, top))
+    _stretch_top(canvas, top)
 
-    castle = _load_be("castle.png")
-    castle = castle.resize((max(1, round(castle.width * 1.1)), max(1, round(castle.height * 1.1))), Image.LANCZOS)
-    canvas.paste(castle, ((w - castle.width) // 2, h - 140 - castle.height + 30), castle)
+    # Global darken: blend every pixel toward black by (1 - TITLE_BG_DARKEN).
+    black = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+    canvas = Image.blend(canvas, black, 1.0 - TITLE_BG_DARKEN)
 
-    cloud = _load_be("cloud1.png")
-    cloud = cloud.resize((max(1, round(cloud.width * 0.8)), max(1, round(cloud.height * 0.8))), Image.LANCZOS)
-    canvas.paste(cloud, (80, 60), cloud)
-    canvas.paste(cloud, (420, 40), cloud)
+    # Soft radial logo-backing vignette, centered on title.js's logo anchor
+    # (screen center, nudged up to match the hero's baseline). Built as a blurred
+    # white ellipse used as the alpha of a black overlay -> a gradient shadow, no
+    # hard edge.
+    cx, cy = w // 2, 150
+    rx, ry = 250, 90
+    shade_mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(shade_mask).ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=255)
+    shade_mask = shade_mask.filter(ImageFilter.GaussianBlur(60))
+    shade_mask = shade_mask.point(lambda v: int(v * TITLE_BG_VIGNETTE_ALPHA))
+    shade = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    shade.putalpha(shade_mask)
+    canvas.alpha_composite(shade)
 
-    remapped = _remap_luminance(canvas, ENVIRONMENT_PALETTE_TITLE)
-    assert remapped.size == (w, h), f"title-bg wrong size: {remapped.size}"
-    save(remapped.convert("RGB"), os.path.join(ROOT, "assets", "tiles", "title-bg.png"))
+    assert canvas.size == (w, h), f"title-bg wrong size: {canvas.size}"
+    save(canvas.convert("RGB"), os.path.join(ROOT, "assets", "tiles", "title-bg.png"))
 
 
 def build_door():
@@ -1148,97 +1190,167 @@ def build_patroller():
 
 FONT_PATH = os.path.join(ROOT, "assets", "_font-src", "monogram.ttf")
 
-# Logo fill/stroke colors (BRAND-01/BRAND-03; Phase 26 Plan 07) — mirror
-# CONFIG.PALETTE.ACCENT_MOSS/REWARD's CURRENT live hex values from
-# src/config.js (same "read live, don't hand-copy a stale plan literal"
-# principle the ENVIRONMENT_PALETTE / PLAYER_PALETTE mirrors above follow). Named
-# LOGO_FILL/LOGO_STROKE rather than reusing the module-level ACCENT_MOSS
-# constant defined earlier in this file: that constant is Plan 26-12's
-# per-level-theme accent (theme-1's ground/parallax tint) and happens to
-# share the same hex value as CONFIG.PALETTE.ACCENT_MOSS today only by
-# coincidence of which level is first — redefining ACCENT_MOSS here would
-# silently collide with that unrelated, already-in-use module constant.
-LOGO_FILL = (0x47, 0x68, 0x47)  # == CONFIG.PALETTE.ACCENT_MOSS
-LOGO_STROKE = (0x00, 0xFF, 0x88)  # == CONFIG.PALETTE.REWARD
+# --- N0X logo (BRAND-01, Phase 38): "Emerald Chisel" candidate A ---
+#
+# Supersedes the Phase-26 "NOX RUN" monogram wordmark. User-picked direction
+# (2026-07-19, .planning/phases/38-n0x-logo-closing-verification/38-DECISIONS.md):
+# uppercase N0X rendered chiseled/dimensional — a moss->neon vertical-gradient
+# body, a neon rim-light on the up-left glyph edges, a dark chisel-shadow on the
+# down-right edges, a soft neon outer glow, and a drop shadow. A higher pixel
+# grid than the v1 wordmark = SNES fidelity. The pixel ops below are the verbatim
+# a_emerald() pipeline from the throwaway generator
+# brand-candidates/generate-v2.py, which produced the exact preview the user
+# picked — refactored only into _logo_* helpers + a size-to-target step.
+#
+# Colors mirror CONFIG.PALETTE (the SAME live hex the rest of this file
+# mirrors): ACCENT_MOSS as the body base, REWARD (neon green) for the rim +
+# glow. Non-pink by construction (the pink-scan gate passes).
+LOGO_TEXT = "N0X"
+LOGO_MOSS = (0x47, 0x68, 0x47)    # == CONFIG.PALETTE.ACCENT_MOSS (body top, lerped toward REWARD)
+LOGO_REWARD = (0x00, 0xFF, 0x88)  # == CONFIG.PALETTE.REWARD (rim light + outer glow)
+LOGO_FONT_SIZE = 92               # native render size; NEAREST-scaled to each locked target
+LOGO_BOLD = 1                     # MaxFilter passes thickening the thin monogram glyph mask
 
 
-LOGO_TEXT = "NOX RUN"
-LOGO_FONT_SIZE = 32  # px — deliberately small (not 64): keeps the padded source
-# canvas below BOTH bake targets (360x90 hero, 144x36 badge) so Image.NEAREST
-# always scales UP, never down — a downscale-via-NEAREST softened/lost stroke
-# pixels at badge size in this plan's first attempt (human-verify feedback,
-# 2026-07-07: "logo... hard to read, especially on the level select screen").
-LOGO_STROKE_WIDTH = 2  # px — kept absolute (not scaled with font size); at
-# LOGO_FONT_SIZE 32 this stroke reads as a clearly visible neon edge without
-# fully engulfing the smaller glyph's dark fill (a size-64/stroke-2 pairing
-# tried during Task 1 left almost no fill visible — chunky-but-hard-to-read).
-LOGO_LETTER_SPACING = 4  # px of EXTRA gap inserted after each character's
-# own monospace advance width (human-verify feedback, 2026-07-07: "slightly
-# more spacing between the letters would make it easier to read").
+def _logo_lerp(a, b, t):
+    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
+
+
+def _logo_glyph_mask(txt, size, bold):
+    """Filled L-mode alpha mask of `txt` in the monogram pixel font, dilated
+    `bold` times (MaxFilter 3) so the thin font can carry a chiseled bevel."""
+    font = ImageFont.truetype(FONT_PATH, size)
+    bb = font.getbbox(txt)
+    pad = bold + 3
+    w, h = bb[2] - bb[0] + 2 * pad, bb[3] - bb[1] + 2 * pad
+    m = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(m).text((pad - bb[0], pad - bb[1]), txt, font=font, fill=255)
+    for _ in range(bold):
+        m = m.filter(ImageFilter.MaxFilter(3))
+    return m
+
+
+def _logo_vgrad(size, top, bot):
+    w, h = size
+    g = Image.new("RGB", (w, h))
+    px = g.load()
+    for y in range(h):
+        c = _logo_lerp(top, bot, y / max(1, h - 1))
+        for x in range(w):
+            px[x, y] = c
+    return g
+
+
+def _logo_beveled(mask, body_top, body_bot, hi, lo, outline, rim_px):
+    """mask -> RGBA chiseled glyph: black outline under a vertical body
+    gradient, a neon rim on the up-left edges + a dark chisel on the down-right
+    edges (the ImageChops.offset edge-difference trick from a_emerald())."""
+    W, H = mask.size
+    out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    dil = mask
+    for _ in range(rim_px):
+        dil = dil.filter(ImageFilter.MaxFilter(3))
+    o = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    o.paste(outline + (255,), (0, 0), dil)
+    out.alpha_composite(o)
+    grad = _logo_vgrad((W, H), body_top, body_bot).convert("RGBA")
+    grad.putalpha(mask)
+    out.alpha_composite(grad)
+    hi_edge = Image.new("L", (W, H), 0)
+    lo_edge = Image.new("L", (W, H), 0)
+    for d in range(1, rim_px + 1):
+        hi_edge = ImageChops.lighter(hi_edge, ImageChops.subtract(mask, ImageChops.offset(mask, -d, -d)))
+        lo_edge = ImageChops.lighter(lo_edge, ImageChops.subtract(mask, ImageChops.offset(mask, d, d)))
+    hl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    hl.paste(hi + (255,), (0, 0), hi_edge)
+    out.alpha_composite(hl)
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    sh.paste(lo + (255,), (0, 0), lo_edge)
+    out.alpha_composite(sh)
+    return out
+
+
+def _logo_with_glow(mark, mask, glow_col, blur, grow, alpha):
+    W, H = mark.size
+    g = mask
+    for _ in range(grow):
+        g = g.filter(ImageFilter.MaxFilter(3))
+    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    gl.paste(glow_col + (alpha,), (0, 0), g)
+    gl = gl.filter(ImageFilter.GaussianBlur(blur))
+    base = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    base.alpha_composite(gl)
+    base.alpha_composite(mark)
+    return base
+
+
+def _logo_drop_shadow(mark, dx, dy, blur, alpha):
+    W, H = mark.size
+    pad = 8
+    a = mark.split()[3]
+    sh = Image.new("RGBA", (W + pad, H + pad), (0, 0, 0, 0))
+    tmp = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    tmp.paste((0, 0, 0, alpha), (0, 0), a)
+    tmp = tmp.filter(ImageFilter.GaussianBlur(blur))
+    sh.alpha_composite(tmp, (pad // 2 + dx, pad // 2 + dy))
+    sh.alpha_composite(mark, (pad // 2, pad // 2))
+    return sh
+
+
+def _build_n0x_mark():
+    """The finished RGBA 'Emerald Chisel' N0X mark at native resolution
+    (a_emerald() from generate-v2.py), trimmed to its own alpha bbox."""
+    m = _logo_glyph_mask(LOGO_TEXT, LOGO_FONT_SIZE, LOGO_BOLD)
+    mark = _logo_beveled(
+        m,
+        _logo_lerp(LOGO_MOSS, LOGO_REWARD, 0.25), (0x22, 0x38, 0x28),
+        LOGO_REWARD, (0x0E, 0x1C, 0x14),
+        (0, 0, 0), 2,
+    )
+    mark = _logo_with_glow(mark, m, LOGO_REWARD, 5, 2, 90)
+    mark = _logo_drop_shadow(mark, 3, 4, 2, 160)
+    return mark.crop(mark.getbbox())
 
 
 def build_logo():
-    """Bake the "NOX RUN" wordmark -> assets/logo-hero.png (360x90) and
-    assets/logo-badge.png (144x36) using the CC0 "monogram" pixel font
-    (BRAND-01/BRAND-03; Phase 26 Plan 07).
+    """Bake the N0X "Emerald Chisel" logo -> assets/logo-hero.png (360x90) and
+    assets/logo-badge.png (144x36) (BRAND-01, Phase 38).
 
-    Renders CHARACTER BY CHARACTER (not one draw.text(long_string) call) at a
-    fixed per-character pitch (monogram's own uniform monospace advance width
-    + LOGO_LETTER_SPACING extra gap) onto a small transparent source canvas —
-    Pillow's draw.text() has no letter-spacing/tracking parameter, so this is
-    the direct way to add gap between glyphs. The canvas is sized to the
-    stroked text's own ink bbox (using the SPACED total width, not the
-    single-call bbox), height-rounded so the canvas is an exact 4:1
-    width:height ratio — this is what lets both target canvases below
-    (360x90 and 144x36, both also exactly 4:1) scale up UNIFORMLY, never a
-    non-uniform/distorting stretch. `Image.NEAREST` scales that SAME small
-    source canvas independently to each target size (the badge is never
-    derived by shrinking the hero PNG — each is its own baked NEAREST scale,
-    per this plan's explicit "do not runtime-scale one into the other"
-    rule); NEAREST preserves the pixel font's crisp blocky edges instead of
-    introducing anti-aliased smoothing on upscale — and LOGO_FONT_SIZE is
-    deliberately chosen small enough that both scale steps are upscales.
+    The native mark (_build_n0x_mark) is centered on a transparent canvas of an
+    EXACT 4:1 ratio, then Image.NEAREST-scaled independently to each locked
+    target (the badge is never derived by shrinking the hero PNG — each is its
+    own scale of the SAME source). The 4:1 canvas is what lets both 4:1 targets
+    scale UNIFORMLY (equal x/y factor), never a distorting non-uniform stretch.
+    N0X is ~2:1, so the canvas is HEIGHT-constrained and the wordmark sits
+    centered with transparent side margins — invisible at runtime (title.js
+    anchors it at screen center, so only the glyphs show). The source canvas is
+    kept small enough that the hero is a NEAREST UPSCALE (crisp blocky SNES
+    pixels). The badge (144x36) is a ~0.55x DOWNSCALE of the same source, so it
+    uses LANCZOS, not NEAREST: at that size NEAREST drops rows unevenly and the
+    chiseled strokes break up (verified this bake) — the exact "hard to read on
+    the level-select screen" failure past human-verify flagged. LANCZOS keeps
+    the small badge legible; it is already this file's downscale idiom
+    (build_title_bg resizes its castle/cloud plates with LANCZOS too). The
+    NEAREST-only rule governs the hero upscale, where anti-alias smear would
+    soften the crisp SNES pixels — it does not apply to a downscale.
     """
-    font = ImageFont.truetype(FONT_PATH, LOGO_FONT_SIZE)
-    probe = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
+    mark = _build_n0x_mark()
+    mw, mh = mark.size
 
-    # monogram is a genuinely monospace font (every glyph reports the same
-    # advance width) — confirmed live via font.getlength() before relying on
-    # a single char_pitch for the whole string instead of per-glyph metrics.
-    advance = font.getlength("N")
-    char_pitch = advance + LOGO_LETTER_SPACING
-
-    # Vertical extent + left-side stroke overflow read from the ORIGINAL
-    # single-call bbox (stroke_width bleeds a couple px left/above the
-    # nominal glyph origin) — spacing only changes horizontal layout.
-    full_bbox = probe.textbbox((0, 0), LOGO_TEXT, font=font, stroke_width=LOGO_STROKE_WIDTH)
-    ink_h = full_bbox[3] - full_bbox[1]
-    left_overflow = -full_bbox[0]
-
-    ink_w = round(char_pitch * (len(LOGO_TEXT) - 1) + advance) + 2 * left_overflow
-    canvas_w = ink_w
-    canvas_h = round(canvas_w / 4)  # exact 4:1 canvas -> uniform hero/badge scale
-    pad_top = (canvas_h - ink_h) // 2
-
+    pad_y = 6
+    canvas_h = mh + 2 * pad_y
+    canvas_w = canvas_h * 4  # exact 4:1
+    if mw > canvas_w:  # guard: never clip a wider-than-4:1 mark (N0X won't hit this)
+        canvas_w = mw + 2 * pad_y
+        canvas_h = round(canvas_w / 4)
     canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(canvas)
-    y = pad_top - full_bbox[1]
-    for i, ch in enumerate(LOGO_TEXT):
-        x = left_overflow + i * char_pitch
-        draw.text(
-            (x, y),
-            ch,
-            font=font,
-            fill=(*LOGO_FILL, 255),
-            stroke_width=LOGO_STROKE_WIDTH,
-            stroke_fill=(*LOGO_STROKE, 255),
-        )
+    canvas.alpha_composite(mark, ((canvas_w - mw) // 2, (canvas_h - mh) // 2))
 
-    hero = canvas.resize((360, 90), Image.NEAREST)
+    hero = canvas.resize((360, 90), Image.NEAREST)  # upscale -> crisp blocky pixels
     assert hero.size == (360, 90), f"logo-hero wrong size: {hero.size}"
     save(hero, os.path.join(ROOT, "assets", "logo-hero.png"))
 
-    badge = canvas.resize((144, 36), Image.NEAREST)
+    badge = canvas.resize((144, 36), Image.LANCZOS)  # downscale -> legibility over blockiness
     assert badge.size == (144, 36), f"logo-badge wrong size: {badge.size}"
     save(badge, os.path.join(ROOT, "assets", "logo-badge.png"))
 
