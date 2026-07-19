@@ -340,14 +340,18 @@ export const LEVEL_08 = {
       // WALK-REACHED (placed after a resolved blocker on a flat run, no jump-gap landing at the
       // patroller's x — the level-06 P0 recipe), and each respawns to a checkpoint before an
       // already-CLEARED blocker (unlock derived, stays cleared) so there is NO re-gate loop.
-      // P0 — over the FLAT F1 lane AFTER the door@880 and BEFORE the F1->F2 takeoff (~1160), sweep
-      // 960..1060. The driver walks F1 straight from the door under it. Respawns to checkpoint@660
+      // P0 — GROUNDED skeleton (POL-01, decision #4): feet on FLOOR_Y (frame 44x52 → y=268),
+      // wide visible sweep 940..1100 on the FLAT F1 lane AFTER the door@880 and BEFORE the
+      // F1->F2 takeoff (~1160). Rest endpoints (940/1100) sit OFF the floor coins (760/1040) —
+      // it WALKS across the lane rather than parking on a coin. The walk-only browser-boot driver
+      // HOPS it (taught in 39-04); a jumping player meets it. Contact → respawn to checkpoint@660
       // (F1; door@880 stays cleared).
-      { x1: 960, y1: 214, x2: 1060, y2: 214 },
-      // P1 — over the FLAT F4 lane AFTER the enemy@3500 and BEFORE the F4->F5 takeoff (~3700),
-      // sweep 3560..3660. The driver walks F4 straight past the resolved enemy under it. Respawns
-      // to checkpoint@3430 (F4; enemy@3500 stays cleared).
-      { x1: 3560, y1: 214, x2: 3660, y2: 214 },
+      { x1: 940, y1: 268, x2: 1100, y2: 268, speed: 80 },
+      // P1 — GROUNDED skeleton (POL-01): feet on FLOOR_Y (y=268), wide sweep 3540..3700 on the
+      // FLAT F4 lane AFTER the enemy@3500 and BEFORE the F4->F5 takeoff (F4 ends 3760). Rest
+      // endpoints (3540/3700) sit OFF the floor coins (3300/3660) — it walks the lane, never parks
+      // on a coin. Contact → respawn to checkpoint@3430 (F4; enemy@3500 stays cleared).
+      { x1: 3540, y1: 268, x2: 3700, y2: 268, speed: 80 },
     ],
   },
 
@@ -371,9 +375,12 @@ export const LEVEL_08 = {
   props: [
     // Background gothic pillars (layer "back", z -8) as gauntlet wall dressing on the
     // lower run — base resting on the floor line (y = 320 - 190 = 130).
-    { sprite: "prop-castle-column", x: 40, y: 130, layer: "back" }, //   frames the spawn bailey F0 (clear of alcove PA@280)
-    { sprite: "prop-castle-column", x: 3160, y: 130, layer: "back" }, //  gauntlet pillar in the F3/F4 gap depth, before the enemy@3500
-    { sprite: "prop-castle-column", x: 6380, y: 130, layer: "back" }, //  frames the THRONE KEEP run-up (behind F8 base, left of K1@6680)
+    // POL-05 (decision, 2026-07-19): all three repositioned so NONE floats over a gap or the
+    // spawn point — each column base (width 114 → spans x..x+114) now rests on a SOLID floor run,
+    // reading as intentional gauntlet wall dressing behind traversable ground.
+    { sprite: "prop-castle-column", x: 160, y: 130, layer: "back" }, //   F0 bailey backdrop (right of spawn@96, clear of alcove PA@280); off the old x:40 spawn overlap
+    { sprite: "prop-castle-column", x: 3320, y: 130, layer: "back" }, //  on solid F4 (3240..3760) before the enemy@3500; off the old F3/F4 gap (3080..3240)
+    { sprite: "prop-castle-column", x: 6500, y: 130, layer: "back" }, //  on solid F8 (6440..7120) framing the THRONE KEEP run-up; off the old F7/F8 gap (6280..6440)
 
     // Background arch windows (layer "back", z -8) dressing the TALL switchback shaft at
     // climb altitude so the keep never reads as an empty parallax void — anchored to the
