@@ -433,9 +433,14 @@ const deepEqual = (a, b) => {
     ],
   };
 
-  const actual = getLevel("level-04").geometry;
+  // Phase 36: strip the freeze-EXCLUDED motion keys (movers/patrollers) before comparing —
+  // this golden fixture asserts the STATIC geometry (floors/platforms/coins/goal/doors/enemies/
+  // keys) is unchanged, exactly like scripts/check-geometry-frozen.mjs excludes them. level-04
+  // legitimately gained motion in Phase 36-07; check-geometry-frozen confirms the static arrays
+  // stayed byte-identical, so this deepEqual must ignore the add-only motion keys too.
+  const { movers, patrollers, ...actual } = getLevel("level-04").geometry;
   check(deepEqual(actual, expectedGeometry),
-    `LVL-02 regression: getLevel("level-04").geometry must match the authored descriptor`);
+    `LVL-02 regression: getLevel("level-04").geometry (static keys) must match the authored descriptor`);
 }
 
 // --- LVL-01/04: full registry length and derived unlock of the second level ---
