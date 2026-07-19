@@ -6,23 +6,27 @@
   <title>Nox Run — loading</title>
   <style>
     /*
-      Flex-centers the canvas on BOTH axes. This matters specifically because
-      main.js applies `transform: scale(1.5)` to the canvas for the +50%
-      display-scale feature (CSS transform, not width/height — see main.js's
-      comment for why). transform-origin defaults to the element's own center,
-      so scaling only fills the viewport symmetrically if the canvas was
-      already centered on both axes BEFORE the transform. A plain
-      `display:block; margin:auto` (the pre-Kaplay original) only centers
-      block-level elements HORIZONTALLY — vertical auto-margins resolve to 0
-      in normal flow — so the un-transformed 640x360 canvas sat at the TOP of
-      the page, and scaling it from its own (vertically off-center) middle
-      pushed content ~90px above the viewport (clipped) while leaving ~90px
-      of dead background exposed at the bottom. Found via headless playtest
-      after the transform-scale fix landed.
+      #stage is the canvas's parent: under Kaplay's `letterbox: true` (see
+      main.js) the engine sizes the #game canvas to this wrapper's offset box
+      and fits the internal 640x360 buffer into it — there is NO CSS transform
+      on the canvas at all. The wrapper's size is chosen per device class so
+      the display adapts without any app resize code:
+        - pointer:fine (desktop/mouse) → fixed 960x540, so 640x360 letterboxes
+          up exactly 1.5x into a 16:9 box with ZERO bars — the kid-validated
+          desktop look is preserved geometry-for-geometry.
+        - pointer:coarse (touch)       → full viewport, so the engine adds
+          pillar/letterbox bars to fit any screen; the canvas is responsive
+          (Kaplay's onResize refits on rotate/resize automatically).
+      The body still flex-centers #stage on both axes so the fixed desktop
+      wrapper sits centered in the viewport. (viewport meta, touch-action, and
+      the portrait overlay are a later plan's scope — this only establishes the
+      container.)
     */
     html, body { margin: 0; background: #0a0a0a; height: 100%; }
     body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     canvas { display: block; }
+    @media (pointer: fine)   { #stage { width: 960px; height: 540px; } }
+    @media (pointer: coarse) { #stage { width: 100vw;  height: 100vh; } }
   </style>
   <!--
     file:// protocol guard — runs FIRST as a non-module inline script.
@@ -53,7 +57,9 @@
   </script>
 </head>
 <body>
-  <canvas id="game"></canvas>
+  <div id="stage">
+    <canvas id="game"></canvas>
+  </div>
   <!-- Relative src so src/ is the import base; resolves identically in dev and container. -->
   <script type="module" src="main.js"></script>
 </body>
