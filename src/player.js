@@ -19,6 +19,7 @@
 import { CONFIG } from "./config.js";
 import * as fx from "./fx.js"; // engine-side juice (squash/stretch/dust) — JUICE-01
 import * as audio from "./audio.js"; // SFX seam (Phase 27 AUD-01) — jump/land call sites
+import * as input from "./input.js"; // the ONE input seam (MOB-02; Phase 37) — ORs keyboard + virtual buttons so the jump physics below are the single shared path
 
 // Jump keys: arrow-up, space, and W (consistent with the run WASD/arrows scheme).
 const JUMP_KEYS = ["space", "up", "w"];
@@ -33,6 +34,14 @@ export function makePlayer(startX, startY) {
     scale(1), // VISUAL only — enables squash/stretch via .scaleTo() (JUICE-01); brief small deltas keep area() fair
     "player",
   ]);
+
+  // Route the keyboard's jump keys THROUGH the input seam (MOB-02) so keyboard and
+  // (future) touch buttons drive the SAME buffer/coyote/variable-height path registered
+  // via input.onJumpPress/onJumpRelease below. Called ONCE per makePlayer, AFTER kaplay()
+  // has run (engine globals safe). initKeyboardJump reset()s the seam's callback registry
+  // first, so nothing accumulates across scene re-entries — hence it MUST run before the
+  // onJumpPress/onJumpRelease registrations further down.
+  input.initKeyboardJump(JUMP_KEYS);
 
   // Land juice (JUICE-01): body().onGround fires when the feet hit the floor — squash
   // the player and kick up a few dust particles. Both are self-cleaning fx.js transients
@@ -66,11 +75,14 @@ export function makePlayer(startX, startY) {
   let landHold = 0;
 
   player.onUpdate(() => {
-    // Horizontal run: read held input, derive -1/0/+1, set vel.x = dir * RUN_SPEED.
-    // body() applies dt() internally when integrating vel, so this is dt-correct.
+    // Horizontal run: read held input via the seam, derive -1/0/+1, set vel.x = dir *
+    // RUN_SPEED. input.isLeftHeld()/isRightHeld() OR the EXACT same keyboard keys
+    // (left/a, right/d) with the virtual buttons, so keyboard movement is byte-identical
+    // (the virtual term is always false on desktop). body() applies dt() internally when
+    // integrating vel, so this is dt-correct.
     let dir = 0;
-    if (isKeyDown("left") || isKeyDown("a")) dir -= 1;
-    if (isKeyDown("right") || isKeyDown("d")) dir += 1;
+    if (input.isLeftHeld()) dir -= 1;
+    if (input.isRightHeld()) dir += 1;
     player.vel.x = dir * CONFIG.RUN_SPEED;
 
     // Coyote: refill to full while grounded, otherwise bleed down by dt() (clamp 0).
@@ -90,22 +102,27 @@ export function makePlayer(startX, startY) {
     }
   });
 
-  // Press registers a buffered jump (fires on the next grounded/coyote frame).
-  // onKeyPress is a GLOBAL controller — player.paused does NOT pause it (the engine
+  // Press registers a buffered jump (fires on the next grounded/coyote frame). Registered
+  // on the input seam (input.onJumpPress) instead of directly on onKeyPress — so BOTH the
+  // keyboard (routed through initKeyboardJump above) and the future touch buttons drive
+  // this SAME body. The body is byte-identical to the pre-seam onKeyPress handler.
+  // The jump-fire path is a GLOBAL edge — player.paused does NOT pause it (the engine
   // only gates the object's own onUpdate). Without this guard, pressing jump while the
   // run is frozen (e.g. the math gate is open) still mutates `buffer`; that buffered
   // jump is latent today (only consumed inside the paused onUpdate) but would lurch the
   // player on any future unpause path that does not first zero `buffer`. Skipping the
   // write while paused keeps the freeze airtight without affecting normal jump feel.
-  onKeyPress(JUMP_KEYS, () => {
+  input.onJumpPress(() => {
     if (player.paused) return; // do not queue jumps while the run is frozen
     audio.playSfx("jump", CONFIG.AUDIO.JUMP_VOLUME);
     buffer = CONFIG.BUFFER_MS / 1000;
   });
 
   // Variable height: releasing while still rising cuts the upward velocity short.
-  // Up is NEGATIVE Y in Kaplay (Vec2.UP = (0,-1)), so "rising" is vel.y < 0.
-  onKeyRelease(JUMP_KEYS, () => {
+  // Up is NEGATIVE Y in Kaplay (Vec2.UP = (0,-1)), so "rising" is vel.y < 0. Registered
+  // on the input seam (input.onJumpRelease) — same edge for keyboard and touch, NO timer
+  // (pure release-edge + vel.y sign). Body byte-identical to the pre-seam onKeyRelease.
+  input.onJumpRelease(() => {
     if (player.vel.y < 0) player.vel.y *= CONFIG.JUMP_CUT;
   });
 
