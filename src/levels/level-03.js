@@ -230,12 +230,22 @@ export const LEVEL_03 = {
       { x1: 7240, y1: 250, x2: 7320, y2: 250, w: 130 },
     ],
     patrollers: [
-      // P0 — a slow town WRAITH hovering at y:214 over the FLAT F2 street (1650..2050) AFTER
-      // the chimney-reclimb landing (~1700) and BEFORE the market-fork LST1 mount takeoff
-      // (~2050), a WIDE gentle sweep 1780..1960 (distinct from level-01's tight 1770..1880).
-      // Behind checkpoint@1670; a contact respawns there (the door@1060 is already open —
-      // no re-gate). Walking passes beneath (head 288 vs frame bottom 266); a jump meets it.
-      { x1: 1780, y1: 214, x2: 1960, y2: 214 },
+      // P0 — a GROUNDED town SKELETON (POL-01, Phase 39) walking the FLAT F2 street
+      // (1650..2050). Feet on FLOOR_Y 320 (44x52 topleft frame → y = 320-52 = 268), a WIDE
+      // 200px ping-pong sweep 1790..1990 at speed 80 (was a stationary y:214 hover over the
+      // coins), shifted so its endpoints sit OFF the F2 floor coins (@1700, @1950). Sits AFTER
+      // the chimney-reclimb landing (~1700) + the solid crate@1690 and BEFORE the market-fork
+      // LST1 mount takeoff (~2040). Behind checkpoint@1670; a contact respawns there (door@1060
+      // already open — no re-gate). A grounded skeleton across the lane now genuinely BLOCKS —
+      // that is the intended danger; the walk-only driver hops it (39-04 patroller-hop), and
+      // there is room to pass/hop between sweeps (level stays clearable, docs/LEVEL-DESIGN.md).
+      // Sweep is CLEARABILITY-BOUNDED to 120px (1760..1880): the driver gets a full run-up from
+      // respawn@1670 (the F2 crate is non-solid, so nothing steals its speed), landing its
+      // full-arc patroller-hop (~1938) BEYOND the skeleton's rightmost extent (1880+44=1924) and
+      // clear of the LST1 mount takeoff (~2040). A wider sweep pushes the skeleton into the
+      // takeoff's 150px hop-suppression zone and re-breaks the goal-drive; clearability
+      // (CONTEXT + CLAUDE.md) outranks the 200px target here.
+      { x1: 1760, y1: 268, x2: 1880, y2: 268, speed: 80 },
     ],
   },
 
@@ -262,15 +272,15 @@ export const LEVEL_03 = {
     // the street below the spawn rooftop, and a well behind the mid street. Base at the
     // floor line; z(-8) keeps them behind every traversal surface.
     { sprite: "prop-town-street-lamp", x: 300, y: 212, layer: "back" }, // town depth below the spawn rooftop
-    { sprite: "prop-town-well", x: 4400, y: 255, layer: "back" }, //     background well behind the F5 street
+    { sprite: "prop-town-well", x: 5000, y: 255, layer: "back" }, //     POL-05: MOVED off the F5 spike@4460 (was x:4400) to a clear background stretch (between the MS stalls; ~540px from spike@4460, ~1240px from spike@6240). Prop = EXEMPT; the spike stays frozen.
 
     // On-surface street dressing on clear street floors (y = 320 - spriteHeight), each
     // clear of every mechanic/coin and OFF the roof/fork climb lanes.
-    { sprite: "prop-town-barrel", x: 880, y: 290, layer: "surface" }, //      F1 left corner, before the door@1060
-    { sprite: "prop-town-crate", x: 1810, y: 285, layer: "surface" }, //      F2, between coins (1700/1950)
-    { sprite: "prop-town-street-lamp", x: 2510, y: 212, layer: "surface" }, // F3 left, before the enemy@2680
-    { sprite: "prop-town-barrel", x: 3400, y: 290, layer: "surface" }, //      F4 left, before spike@3580
-    { sprite: "prop-town-crate", x: 5420, y: 285, layer: "surface" }, //      F6 right corner (clear of coin@5240)
+    { sprite: "prop-town-barrel", x: 960, y: 290, layer: "surface", solid: true }, //  POL-04 SOLID jump-over — F1 (moved from 880: a solid prop must NOT overlap a checkpoint respawn point — the player would respawn INSIDE the collider and death-loop; checkpoint@880, so 960 keeps a 64px gap), before the door@1060; 24px collider << 88px jump envelope
+    { sprite: "prop-town-crate", x: 1810, y: 285, layer: "surface" }, //      F2 street dressing (NON-solid). POL-04 "revisit if a route breaks" EXCEPTION (user decision #5): F2 is the ONLY clean flat street that can host L3's grounded skeleton patroller (POL-01, core), and its 400px — bounded by the chimney-landing respawn@1670 on the left and the LST1 mount's 150px takeoff-suppression zone on the right — cannot ALSO clearably carry a solid jump-over crate: a solid crate here steals the walk-driver's run-up to the patroller, shortening its clearing hop so it lands back on the skeleton and the browser-boot goal-drive respawn-loops (proven). So this one crate stays decoration (5 of 6 town props are solid); the patroller grounding is kept.
+    { sprite: "prop-town-street-lamp", x: 2510, y: 212, layer: "surface" }, // F3 left, before the enemy@2680 (decoration — NON-solid)
+    { sprite: "prop-town-barrel", x: 3400, y: 290, layer: "surface", solid: true }, //  POL-04 SOLID jump-over — F4 left (past the AW2 landing ~3360), before coin@3480 + spike@3580
+    { sprite: "prop-town-crate", x: 5340, y: 285, layer: "surface", solid: true }, //  POL-04 SOLID jump-over — F6 (moved from 5420: a solid prop must sit >150px BEFORE a platform-mount takeoff or it lands in the walk-driver's hop-suppression zone and deadlocks the goal-drive; DW1 takeoff@~5540, so 5340 keeps 176px clearance), clear of coin@5240 + checkpoint@5160
     { sprite: "prop-town-sign", x: 6970, y: 276, layer: "surface" }, //       F8 run-in, left of the goal@7500
 
     // Phase 36 (MOT-03/MECH-05): the town LIGHT that marks + links the secret alcove — a

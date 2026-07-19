@@ -421,6 +421,10 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
     // Cooldown between recovery hops so a genuinely-unclearable wall still trips the hard
     // stall guard (stallMs) as a real "cannot progress" finding, not an infinite jump.
     propJumpCooldownMs = 1200,
+    // How close (px) a SOLID prop's near face must be, ahead of the driver's leading edge,
+    // for the stall-recovery hop to arm. Gates the hop on a REAL solid prop being in the way
+    // (39-05) so it never fires on a bare climb-tier stall on a prop-free level.
+    propAheadPx = 24,
     // POL-01 (Phase 39) grounded-patroller hop. A skeleton patroller now walks ON the
     // floor lane (feet on FLOOR_Y), so — unlike the pre-39 hover placements the walk-only
     // driver strolled safely beneath — it fully blocks the corridor: for ANY sweep phase
@@ -532,7 +536,14 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
         // HOP a skeleton that now stands in the walk-lane (see the patroller-hop block
         // below). Empty on every non-patroller level, so the extra work is negligible.
         const foes = get("patroller").map((f) => ({ x: f.pos.x, y: f.pos.y, w: f.width ?? 0 }));
-        return { x: p.pos.x, y: p.pos.y, grounded: p.isGrounded(), ch: get("challenge").length, foes };
+        // POL-04 (Phase 39): live SOLID-prop spans. A solid prop sits at play depth z>=0
+        // (CONFIG.PROPS.SOLID_Z) with an area()+body(); decoration props stay at NEGATIVE z
+        // and are excluded. This lets the prop-hop fire ONLY when a real solid prop blocks
+        // the lane (never on a climb tier / bare stall), so it stays inert on prop-free levels.
+        const solids = get("prop")
+          .filter((pr) => (pr.z ?? -100) >= 0)
+          .map((pr) => ({ x: pr.pos.x, w: pr.width ?? 24, baseY: pr.pos.y + (pr.height ?? 30) }));
+        return { x: p.pos.x, y: p.pos.y, grounded: p.isGrounded(), ch: get("challenge").length, foes, solids };
       });
       if (!s) break;
       x = s.x;
@@ -732,18 +743,42 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
         break;
       }
 
+      // Is a PLANNED route takeoff IMMINENT? (a far pending gap/mount does NOT count — only
+      // one inside the lookahead band, which the driver is actively about to fly.) Shared by
+      // BOTH the POL-04 prop-hop and the POL-01 patroller-hop below so a hazard that sits
+      // BEFORE a distant leg-end takeoff is still cleared; only an imminent takeoff vetoes.
+      const nearTakeoff = pending !== null && Math.abs(x - pending.x) < lookaheadPx;
+
       // --- POL-04 reactive stall-recovery: jump a jump-over SOLID PROP. ---
       // A solid top-level prop (body({isStatic:true})) is invisible to planTakeoffs
       // (which models only geometry floors/platforms), so no takeoff is planned for it and
       // the walk-only driver's PHYSICAL x simply stops advancing while grounded and driving
-      // forward — with no pending planned takeoff and no challenge open (a challenge would
-      // have broken this loop above). One envelope-bounded hop (jumpHoldMs, the full jump
-      // arc) clears such a prop and the walk resumes; the cooldown keeps an unclearable
-      // wall falling through to the hard stall guard above as a real finding. Inert on
-      // prop-free levels: a normal walk keeps advancing x, so physAdvanceAt refreshes and
-      // this branch never fires. Lives in this SHARED lib so browser-boot.mjs AND
-      // audit-phase21-mechanics.mjs inherit it via their existing import (no copied code).
-      if (s.grounded && held !== 0 && !pending && !backingUp) {
+      // forward into it. One envelope-bounded hop (jumpHoldMs, the full jump arc) clears such
+      // a prop and the walk resumes; the cooldown keeps an unclearable wall falling through to
+      // the hard stall guard above as a real finding.
+      //
+      // TWO guards, both required (learned in 39-05):
+      //  * !nearTakeoff (NOT !pending): a solid town prop on a floor whose forward exit is a
+      //    platform mount (e.g. L4 F1 -> Tower-B) sits BEFORE that distant pending takeoff, so
+      //    a bare !pending veto would deadlock the driver against the prop; it must hop first
+      //    and only defer to an IMMINENT takeoff (mirrors the 39-04 patroller-hop rule).
+      //  * solidAhead: a real solid prop (z>=0 play depth) is within propAheadPx of the
+      //    driver's leading edge at its own floor level. WITHOUT this, the looser !nearTakeoff
+      //    guard fires on any far-from-takeoff stall — including a climb-tier repositioning on
+      //    a prop-FREE level (L6 leg 2 regressed exactly this way) — launching a spurious hop
+      //    that blows the next climb. Gating on an actual solid prop keeps the hop inert unless
+      //    one is genuinely blocking the lane.
+      // Lives in this SHARED lib so browser-boot.mjs AND audit-phase21-mechanics.mjs inherit it
+      // via their existing import (no copied code).
+      const feetForSolid = y + PLAYER_H;
+      const solidAhead =
+        s.solids &&
+        s.solids.some((sp) => {
+          if (Math.abs(feetForSolid - sp.baseY) > 24) return false; // player not on this prop's floor
+          const gap = held > 0 ? sp.x - (x + 16) : x - (sp.x + sp.w);
+          return gap > -12 && gap <= propAheadPx;
+        });
+      if (s.grounded && held !== 0 && !nearTakeoff && !backingUp && solidAhead) {
         if (physX === null || held !== physHeld || held * (x - physX) > 2) {
           physX = x;
           physHeld = held;
@@ -769,10 +804,7 @@ export async function driveToXPlanned(page, targetX, geometry, opts = {}) {
       // mistimed hop (the skeleton drifted under the landing) just respawns and re-approaches
       // — the cooldown retries it rather than machine-gunning Space. Inert on every
       // hover/patroller-free level: s.foes is empty, so this whole block is skipped.
-      // Is a PLANNED route takeoff imminent? (a far pending gap/mount does NOT count —
-      // only one inside the lookahead band, which the driver is actively about to fly.)
-      const nearTakeoff = pending !== null && Math.abs(x - pending.x) < lookaheadPx;
-
+      // (nearTakeoff is computed once above, shared with the POL-04 prop-hop.)
       let patrollerAhead = false;
       // Suppress the patroller-hop only when a planned takeoff is IMMINENT (nearTakeoff),
       // NOT merely pending: a distant leg-end gap (e.g. L2's F1->F2 gap at ~1040) must not
