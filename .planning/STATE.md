@@ -5,15 +5,15 @@ milestone_name: SNES-Fidelity World
 current_phase: 39
 current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 status: executing
-stopped_at: Completed 39-01-PLAN.md
-last_updated: "2026-07-19T15:41:58.212Z"
+stopped_at: Completed 39-02-PLAN.md
+last_updated: "2026-07-19T16:00:33.979Z"
 last_activity: 2026-07-19
 last_activity_desc: Phase 39 execution started
 progress:
   total_phases: 14
   completed_phases: 10
   total_plans: 80
-  completed_plans: 71
+  completed_plans: 72
   percent: 71
 ---
 
@@ -37,14 +37,14 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 39 (playthrough-polish-grounded-patrolling-skeletons-sliding-spi) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (covers ALL new content incl. deferred Phase-36 motion feel); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
 Last activity: 2026-07-19 — Phase 39 execution started
 NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.
 Ignore untracked strays (pre-existing, not ours): .planning/phases/26-*/ + assets/enemy-{1,2,3}.png
 
-Progress: [█████████░] 89%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
+Progress: [█████████░] 90%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
 
 ## v6.0 Roadmap Summary
 
@@ -75,6 +75,7 @@ Progress: [█████████░] 89%  (12 of 13 phases complete: 29–
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 39 P01 | 20min | 3 tasks | 6 files |
+| Phase 39 P02 | 6min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,7 @@ Full log in PROJECT.md Key Decisions. Binding for v6.0:
 - [Phase ?]: Phase 34.6 closeout: consolidated suite green across all 8 rebuilt levels in one pass, 0 HARD-FAIL; the 13 deferred Phase-34 fails (8 coin, 5 headroom) deleted; docs/LEVEL-REVIEW.md rebuild review written (real monotonic ramp, L7 staircase != L8 switchback, §8.5-feel deferred to Phase 38 kid-UAT).
 - [Phase ?]: 39-01: sliding spike is an add-alongside motion variant (geometry.slidingSpikes) sharing the 'spike' tag + respawn seam
 - [Phase ?]: 39-01: solid-prop collider sized from config/descriptor PRIMARY source (never async sprite dims), matching the reachability model byte-for-byte
+- [Phase ?]: 39-02: swamp-lantern re-baked from town street-lamp (non-skull), stable prop-swamp-lantern key preserves MECH-05 alcove flicker (POL-05)
 
 ### Cross-Cutting Mitigations (every engine-touching phase)
 
@@ -174,8 +176,8 @@ All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dok
 
 ## Session Continuity
 
-Last session: 2026-07-19T15:41:51.668Z
-Stopped at: Completed 39-01-PLAN.md
+Last session: 2026-07-19T16:00:33.967Z
+Stopped at: Completed 39-02-PLAN.md
 Resume file: None
 
 ---
