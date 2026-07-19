@@ -147,4 +147,31 @@ export function wireAudioUI() {
 
   onKeyPress(CONFIG.AUDIO.MUTE_KEY, handleToggle);
   icon.onClick(handleToggle); // object-scoped — only fires when the icon itself is clicked
+
+  // --- MOB-05: global first-gesture audio unlock (belt-and-braces over title.js) ---
+  // A bare global onClick registered fresh on EVERY scene mount (go() clears the app
+  // input bus per wireAudioUI's own contract above), so the FIRST tap/click ANYWHERE in
+  // ANY scene unlocks the AudioContext — not just the title's start prompt. On touch,
+  // Kaplay's touchToMouse synthesizes this left-click from a real tap, so a first finger
+  // press unlocks audio too. ensureMusicPlaying() is idempotent (its null-handle guard),
+  // so firing it on every first tap is harmless on repeat and byte-identical on desktop
+  // (a click that would already run start()'s own ensureMusicPlaying()).
+  //
+  // WHY onClick (NOT touchstart) — iOS user-activation rule (37-RESEARCH.md Pitfall 6):
+  // iOS Safari treats only certain events (pointerup / click / touchend / keydown) as a
+  // user activation that may call AudioContext.resume(). A `touchstart` is NOT activation-
+  // triggering on iOS, so wiring unlock there leaves music silent. Kaplay's onClick fires
+  // on the pointerup/click edge, so it satisfies the activation rule. Do NOT rewire this
+  // to touchstart. The REAL-DEVICE proof that this unlocks iOS audio is DEFERRED to a
+  // physical-device gate (Phase 38 / MOB-06): Playwright synthetic taps grant activation
+  // unconditionally, so a headless pass cannot prove the iOS-specific case.
+  //
+  // iOS ITP ~7-DAY STORAGE EVICTION (documentation-only expectation, 37-RESEARCH.md A4):
+  // On iOS, Intelligent Tracking Prevention may evict this origin's localStorage (the mute
+  // flag above AND src/progress.js's save blob) after ~7 days without a first-party
+  // interaction. There is NO backend fix and NO code path here depends on persistence
+  // surviving that window — the guarded seams already default forgivingly on a missing
+  // value. The laptop remains the progress home; an evicted iOS save simply reads as a
+  // fresh start, exactly like clearing browser data (per CLAUDE.md's persistence canon).
+  onClick(() => ensureMusicPlaying());
 }
