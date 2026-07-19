@@ -527,4 +527,26 @@ export const CONFIG = {
     ICON_X: 600, // px — top-right corner, clear of CONFIG.HUD (top-left, X:16/Y:16) and CONFIG.HINT (bottom-left, X:16/Y:330)
     ICON_Y: 8, // px — top-right corner Y
   },
+
+  // --- Touch controls (MOB-02; Phase 37) — virtual thumb-button tunables ---
+  // Geometry + look for the on-screen virtual buttons drawn by src/ui/touchControls.js
+  // (Phase 37-06). ALL numbers the touch UI needs live HERE (binding rule: zero magic
+  // numbers in touchControls.js). This plan (37-03) only lands the tunables + the input
+  // seam; nothing draws yet. Rects are in the internal 640x360 GAME space (letterbox maps
+  // taps into this space via the engine's single Qe transform — 37-RESEARCH §2), so X/Y/W/H
+  // are directly the coordinates the button's area()/AABB hit-test uses. LEFT/RIGHT sit
+  // bottom-LEFT (walk pad for one thumb); JUMP sits bottom-RIGHT (the other thumb).
+  // Every W and H is >=64px — deliberately OVERSIZED for a 12-year-old's thumbs (CONTEXT
+  // "≥64px effective hit zones"). Dark-grunge + semi-transparent (OPACITY) so the buttons
+  // never fight the level art for attention. Visible ONLY on touch devices (feature-detect
+  // in 37-06, NOT here). Each rect is a top-left {X,Y} origin + {W,H} size.
+  TOUCH: {
+    LEFT: { X: 24, Y: 264, W: 72, H: 72 }, // px — walk-left pad, bottom-left (bottom edge 336, 24px clear of the 360 floor)
+    RIGHT: { X: 112, Y: 264, W: 72, H: 72 }, // px — walk-right pad, sits 16px right of LEFT (24+72+16=112), same bottom band
+    JUMP: { X: 528, Y: 248, W: 88, H: 88 }, // px — jump pad, bottom-RIGHT (right edge 616, 24px clear of the 640 edge; largest zone — the most-tapped button)
+    OPACITY: 0.35, // 0..1 — resting button fill opacity (semi-transparent dark-grunge; unobtrusive over level art)
+    PRESSED_OPACITY: 0.55, // 0..1 — brighter fill while a finger holds the button (press feedback; still non-strobing)
+    GLYPH_SIZE: 28, // px — button glyph/label text size
+    GLYPHS: { LEFT: "<", RIGHT: ">", JUMP: "JUMP" }, // ASCII-only glyphs (TOFU-safe); real art/icons are tuned on-device at MOB-06 (Phase 38)
+  },
 };
