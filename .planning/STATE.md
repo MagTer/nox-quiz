@@ -36,11 +36,13 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 38 (n0x Logo & Closing Verification) — next; the FINAL phase, human/real-world gated
-Plan: 0 of N — not yet planned
-Status: Phase 37 COMPLETE (mobile/touch, desktop byte-identical, 15/15 gates green); Phase 38 is the finish line
-Also open (all roll into Phase 38): motion FEEL sign-off (36); MOB-06 kid touch-layout tuning + MOB-05 real-device audio proof (37); n0x logo, live Dokploy playthrough, kid-UAT VER-02, MOVE-05 non-60Hz feel
-Last activity: 2026-07-19 — Phase 37 complete; advancing to Phase 38 (final)
+Phase: 38 (n0x Logo & Closing Verification) — FINAL phase, human/real-world gated
+Plan: 0 of N — not planned yet. LOGO DECIDED: candidate A "Emerald Chisel" (uppercase N0X, moss→neon chiseled bevel). Resume contract: .planning/phases/38-n0x-logo-closing-verification/38-DECISIONS.md
+Status: Phase 37 COMPLETE (12/13, 92%, 15/15 gates green). NEXT ACTION on resume: bake logo A → assets/logo-hero.png (360×90) + logo-badge.png (144×36) via build-art-assets.py (port brand-candidates/generate-v2.py a_emerald()), re-gate, then hand to user for BRAND-01 sign-off.
+Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (covers ALL new content incl. deferred Phase-36 motion feel); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
+Last activity: 2026-07-19 — Phase 37 complete + N0X logo direction picked (A); context cleared for a fresh session
+NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.
+Ignore untracked strays (pre-existing, not ours): .planning/phases/26-*/ + assets/enemy-{1,2,3}.png
 
 Progress: [██████████] 92%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
 
