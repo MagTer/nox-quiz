@@ -259,6 +259,36 @@ export function buildLevel(levelData) {
     ]);
   }
 
+  // --- Sliding spikes (POL-02; Phase 39 — a horizontally-sliding ground hazard) ---
+  // COMPOSES the spike entity above (same "spike" tag + same tightened SPIKE_HITBOX
+  // area(), reusing spikeOffX/spikeOffY) with the mover's dt raised-cosine oscillation
+  // below — so it routes to the EXISTING game.js:269 "spike"→respawn seam with ZERO new
+  // wiring. The ONE structural difference from a mover: NO body() — a spike is a hazard
+  // trigger, not a standable ledge. The pos-relative area() tracks the moving sprite
+  // automatically. `onUpdate` + `dt()` ONLY (SAFE-01, no scheduler). Reads the EXEMPT
+  // geometry.slidingSpikes key (stripped from the freeze hash like movers/patrollers);
+  // guarded with `?? []` so levels without it still build.
+  for (const s of g.slidingSpikes ?? []) {
+    const spk = add([
+      sprite("spike"),
+      pos(s.x1, s.y1),
+      area({
+        shape: new Rect(vec2(0), CONFIG.SPIKE_HITBOX_W, CONFIG.SPIKE_HITBOX_H),
+        offset: vec2(spikeOffX, spikeOffY),
+      }),
+      "spike",
+    ]);
+    const period = s.period ?? CONFIG.SLIDING_SPIKE.PERIOD_S; // per-slidingSpike override allowed
+    let t = 0; // closure-local PER entity — never module-level (anti-leak)
+    spk.onUpdate(() => {
+      // dt-based, scheduler-free (SAFE-01 clean). Raised-cosine eases at BOTH ends.
+      t += dt();
+      const phase = (1 - Math.cos(((2 * Math.PI) / period) * t)) / 2; // 0 → 1 → 0
+      spk.pos.x = s.x1 + (s.x2 - s.x1) * phase;
+      spk.pos.y = s.y1 + (s.y2 - s.y1) * phase;
+    });
+  }
+
   // --- Goal (REQUIRED) — decoupled into a VISUAL flag + a load-bearing collider ---
   // Mirrors the door split below (invisible collider + separate visible art). WHY the
   // split: the flag needed to render bigger (quick 260717-j24 play-test — 16px read as

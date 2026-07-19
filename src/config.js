@@ -156,6 +156,18 @@ export const CONFIG = {
   SPIKE_SIZE: 16, // px — spike sprite footprint (full tile); the hitbox is tightened below
   SPIKE_HITBOX_W: 12, // px — tightened spike collider width (narrower than the 16px tile — fair points-only hit)
   SPIKE_HITBOX_H: 8, // px — tightened spike collider height (only the upper visible spikes, not the empty base)
+  // --- Sliding spike (POL-02; Phase 39 — horizontally-sliding ground hazard) ---
+  // A NEW motion variant of the static spike above: same "spike" tag + same tightened
+  // SPIKE_HITBOX_W/H collider, but it OSCILLATES between two descriptor endpoints via a
+  // dt-based RAISED-COSINE ((1 - cos(2π t / period)) / 2): 0 → 1 → 0, easing to rest at
+  // both ends — `onUpdate` + `dt()` ONLY, NO setTimeout/wait/loop scheduler (SAFE-01), and
+  // NO body() (a spike is a hazard trigger, not a standable ledge — the ONE structural
+  // difference from a mover). Reuses the EXISTING game.js "spike"→respawn seam (ZERO new
+  // wiring). Authored under the EXEMPT geometry.slidingSpikes key `{ x1, y1, x2, y2, period? }`
+  // (stripped from the freeze hash like movers/patrollers). Inert until a level authors it.
+  SLIDING_SPIKE: {
+    PERIOD_S: 3, // s — default full round-trip period (endpoint → far → back). Per-slidingSpike `period` override allowed. Hitbox reuses SPIKE_SIZE / SPIKE_HITBOX_W / SPIKE_HITBOX_H above.
+  },
   GOAL_SIZE: 16, // px — LOAD-BEARING goal-trigger collider footprint. Harness-critical
   // (browser-boot / audit-endgate-key onCollide depend on this exact 16px area —
   // level-06 path-B halts ~13-16px short with ~0-3px overlap). DO NOT change.
