@@ -175,33 +175,14 @@ export const LEVEL_07 = {
     // ========================= MOTION (Phase 36-08) =========================
     // check-geometry-frozen EXCLUDES geometry.movers / geometry.patrollers — every static
     // array above stays byte-frozen; motion is ADD-ONLY via these two keys.
-    // CALM-ODD density (the CALMER castle intro): ONE moving platform + ONE patroller (2 motion
-    // entities — LIGHTER than the intense-even 08's 3, but never mover-free), each authored to
-    // the §6a/§6b HARD rules with generous margins — both mover endpoints reachable RIGHTWARD
-    // from spawn, a checkpoint before each, solid wall UNDER the mover (miss = WAIT, no killing
-    // pit), far end telegraphed. level-07 stays the monotonic STAIRCASE (its static geometry is
-    // untouched); the motion layout is its own, distinct from level-08's switchback.
-    movers: [
-      // M0 — a slow rampart-slab ferry over the W4 fork-base wall (4420..4900), the level's LAST
-      // audit encounter (past the enemy@3700; riding it strands no later blocker). W4 is the
-      // final FLOOR_Y floor before the tower climb (TW1@4930). Placed in W4's flat run BEFORE the
-      // spike@4650: right extent (4530+60) = 4590 stays clear of the spike-jump takeoff (~4600) so
-      // the ledge never overhangs the arc. y:250 = rise 70 from FLOOR_Y 320 -> reachability PASS/WARN (from
-      // W4, rightward). Behind checkpoint@4440 (W4, before spike@4650); solid W4 under it -> a
-      // missed hop lands back on W4 to WAIT (no killing pit). WALK-REACHED: x1:4490 sits in W4's
-      // flat run AFTER the FL2->W4 landing (~4470) and BEFORE the spike@4650 jump-takeoff (~4600),
-      // so the driver walks straight onto it (no fragile precise-landing) and the ledge (ends
-      // 4590) never overhangs the spike-jump arc. The goal-drive walks under it, jumps spike@4650,
-      // then climbs TW1->TT to the goal.
-      //
-      // POL-03 (Phase 39, motion-only): the sweep was a near-zero ~40px (4490<->4530) that
-      // barely read as motion. WIDENED LEFTWARD to 80px (x1 4490 -> 4450) so the slab
-      // visibly slides, while the RIGHT extent (x2+w = 4530+60 = 4590) is held byte-stable
-      // to preserve the documented no-softlock margin from the spike@4650 jump-takeoff
-      // (~4600). x1:4450 stays on solid W4 (starts 4420) after the FL2->W4 landing (~4470),
-      // so both endpoints remain jump-reachable and a missed hop still lands on W4 to WAIT.
-      { x1: 4450, y1: 250, x2: 4530, y2: 250, w: 60 },
-    ],
+    // Batch-2 (2026-07-20): the W4 rampart-slab mover ({x1:4450, x2:4530, w:60} at y:250)
+    // was REMOVED — it floated pointlessly above the solid fork-base wall
+    // (live-playthrough flag: nothing to reach from it, the route walks under it). W4 is
+    // plain solid ground beneath its old sweep, so removing it strands nothing — and the
+    // spike@4650 jump-takeoff (~4600) is now trivially unobstructed. EXEMPT motion key;
+    // frozen-hash-neutral. The level keeps its grounded W1 skeleton patroller and its W2
+    // sliding spike (retuned below).
+    movers: [],
     patrollers: [
       // P0 — POL-01 (Phase 39): GROUNDED (y:214 -> y:268, feet on FLOOR_Y 320) skeleton walking
       // the FLAT W1 spawn-wall lane AFTER the door@380 and BEFORE the CU1 rampart-climb takeoff
@@ -228,8 +209,14 @@ export const LEVEL_07 = {
       // whole sweep and lands ~2915, so the pair reads + clears as one moving "spike cluster
       // to time" (L7's declared §8.5 action beat). checkpoint@2720 sits BEFORE the static
       // spike so a contact respawns to a safe run-up (never inside the sweep). Clear of the
-      // DB1@3050 drawbridge takeoff. Default 3s period.
-      { x1: 2830, y1: FLOOR_Y - CONFIG.SPIKE_SIZE, x2: 2900, y2: FLOOR_Y - CONFIG.SPIKE_SIZE },
+      // DB1@3050 drawbridge takeoff.
+      // Batch-2 (2026-07-20): period 3 (default) -> 2. The live playthrough read this
+      // slider as NOT moving — an in-engine probe proved it DOES oscillate (x 2833->2900
+      // over 1.6s), but at the default 3s period its endpoint dwells read as parked,
+      // especially resting beside the identical static spike. 2s (peak ~110px/s) makes the
+      // slide unmistakable while staying a purely SPATIAL, jump-the-cluster hazard (the
+      // same planned hop arcs over the whole sweep regardless of phase — no timing gamble).
+      { x1: 2830, y1: FLOOR_Y - CONFIG.SPIKE_SIZE, x2: 2900, y2: FLOOR_Y - CONFIG.SPIKE_SIZE, period: 2 },
     ],
   },
 
@@ -254,7 +241,14 @@ export const LEVEL_07 = {
     // rest on the floor line (y = 320 - 190 = 130); arches are battlement windows at
     // walk height. All stay inside the 0..360 screen band (bounds.top 0 — no tall shaft).
     { sprite: "prop-castle-column", x: 60, y: 130, layer: "back" }, //   frames the spawn wall (left of the door@380)
-    { sprite: "prop-castle-arch", x: 1580, y: 124, layer: "back" }, //   battlement window in the WALK2/WALK3 gap depth
+    // Batch-2 (2026-07-20): the arch@1580 (the "battlement window" in the WALK2/WALK3
+    // murder-hole gap) was REMOVED — investigated from the live playthrough's "doorway
+    // floating in thin air after the 4th platform, before the 5th": it is NOT a
+    // geometry.doors gate (L7 has exactly ONE door, on solid W1@380) but this 32x64
+    // prop-castle-arch, whose dark pointed-door art hung mid-air over the gap and read as
+    // a floating doorway. It gates nothing (props are collider-free) -> removed. The
+    // arch@5420 below STAYS: its base rests exactly on the TT tower-top line (58+64=122),
+    // so it reads as an intentional keep doorway beside the goal, not a floater.
     { sprite: "prop-castle-column", x: 4780, y: 130, layer: "back" }, //  frames the base of the final TOWER climb (behind TW1@4930)
     { sprite: "prop-castle-arch", x: 5420, y: 58, layer: "back" }, //     far window crowning the keep, left of the goal@5580
 
