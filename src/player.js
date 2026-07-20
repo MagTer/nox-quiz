@@ -29,7 +29,13 @@ export function makePlayer(startX, startY) {
     sprite("player"), // CC0 16x32 player sprite (replaces the Phase 8 placeholder rect)
     pos(startX, startY),
     area({ shape: new Rect(vec2(0), 16, 32) }), // collider explicitly locked to 16x32 (ART-04) — independent of whichever anim frame is currently playing, so the visually taller player-swamphunter sheet can never silently resize the physics hitbox
-    body({ maxVelocity: CONFIG.MAX_FALL_SPEED }), // gravity + collision + anti-tunnel terminal cap
+    // stickToPlatform: false (2026-07-20): Kaplay 3001.0.19's native platform-stick is
+    // live-probe-measured DEFECTIVE for the pos-teleported movers (rider drifts toward the
+    // trailing edge under the raised-cosine's acceleration, then curPlatform drops mid-ride
+    // and the rider freezes while the deck sails on). build.js's mover loop now carries the
+    // rider EXPLICITLY (exact per-frame deck delta) — native stick must be off or the two
+    // carriers double-apply and slide the rider off the front. See CONFIG.MOVER's comment.
+    body({ maxVelocity: CONFIG.MAX_FALL_SPEED, stickToPlatform: false }), // gravity + collision + anti-tunnel terminal cap
     opacity(1), // enables the respawn flash (scene tweens player.opacity)
     scale(1), // VISUAL only — enables squash/stretch via .scaleTo() (JUICE-01); brief small deltas keep area() fair
     "player",

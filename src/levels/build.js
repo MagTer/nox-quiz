@@ -581,7 +581,7 @@ export function buildLevel(levelData) {
     }
   }
 
-  // --- Moving platforms (MOT-02; Phase 36 — dt raised-cosine ping-pong, native carry) ---
+  // --- Moving platforms (MOT-02; Phase 36 — dt raised-cosine ping-pong, explicit carry) ---
   // Reads geometry.movers, a NEW motion key EXCLUDED from the check-geometry-frozen
   // snapshot (36-01) and read by the Phase-30 mover-reachability validator — so the
   // static geometry stays byte-frozen while movers are still reachability-checked.
@@ -590,10 +590,21 @@ export function buildLevel(levelData) {
   // ((1 - cos(2π t / period)) / 2): 0 → 1 → 0, so it reaches EXACTLY (x1,y1) at
   // phase 0 and (x2,y2) at phase 1 (the two points the validator tests) and eases to
   // REST at both ends. It is `onUpdate` + `dt()` ONLY — no setTimeout/wait/loop
-  // scheduler (SAFE-01). CRITICAL: NO rider-displacement code — the player's own
-  // body() stickToPlatform carries them natively; hand-carrying the rider
-  // double-applies and slides it off (measured anti-pattern, 36-RESEARCH §Anti-Patterns).
-  // Guarded with `?? []` so all 8 currently-inert levels build unchanged.
+  // scheduler (SAFE-01).
+  //
+  // EXPLICIT RIDER CARRY (2026-07-20 — reverses the Phase-36 "native carry" claim, which
+  // a live Playwright probe on L8's moat ferry REFUTED): Kaplay 3001.0.19's body()
+  // stickToPlatform does NOT reliably carry a rider on a pos-teleported static mover —
+  // the rider drifted toward the trailing edge while the raised-cosine accelerated
+  // (~17px lost in 0.6s) and the engine then dropped curPlatform entirely mid-ride,
+  // freezing the rider while the deck sailed on (the play-test "I fall off the back"
+  // report). So each frame this loop applies the deck's OWN (dx,dy) to any player
+  // standing on the deck — detected geometrically (grounded + feet at deck top + center
+  // over the padded span, the same predicate mechanic-drive.mjs's isOnMover ride proof
+  // uses; curPlatform() is deliberately NOT trusted). Native stick is disabled on the
+  // player body (player.js stickToPlatform: false), so this is the SINGLE carrier —
+  // double-apply is impossible by construction.
+  // Guarded with `?? []` so all currently-inert levels build unchanged.
   for (const m of g.movers ?? []) {
     const w = m.w ?? CONFIG.MOVER.WIDTH;
     const plat = add([
@@ -617,9 +628,30 @@ export function buildLevel(levelData) {
       // dt-based, scheduler-free (SAFE-01 clean). Raised-cosine eases at BOTH ends.
       t += dt();
       const phase = (1 - Math.cos(((2 * Math.PI) / period) * t)) / 2; // 0 → 1 → 0
-      plat.pos.x = m.x1 + (m.x2 - m.x1) * phase;
-      plat.pos.y = m.y1 + (m.y2 - m.y1) * phase;
-      // NO rider code — body() stickToPlatform carries the player natively.
+      const nx = m.x1 + (m.x2 - m.x1) * phase;
+      const ny = m.y1 + (m.y2 - m.y1) * phase;
+      const ddx = nx - plat.pos.x; // this frame's deck delta — applied to riders below
+      const ddy = ny - plat.pos.y;
+      plat.pos.x = nx;
+      plat.pos.y = ny;
+      // Explicit rider carry (see the block comment above): any player standing on the
+      // deck moves by EXACTLY the deck's delta this frame, so a rider standing anywhere
+      // on the deck — including the trailing edge — tracks it perfectly at any ferry
+      // speed. Rider dims come from the entity itself (16x32 area, pos = top-left), so
+      // no player-size literal leaks in here; tolerances are CONFIG.MOVER tunables.
+      for (const rider of get("player")) {
+        if (!rider.isGrounded()) continue;
+        const feet = rider.pos.y + rider.height;
+        const cx = rider.pos.x + rider.width / 2;
+        const onDeck =
+          Math.abs(feet - plat.pos.y) <= CONFIG.MOVER.CARRY_TOL_Y &&
+          cx >= plat.pos.x - CONFIG.MOVER.CARRY_PAD_X &&
+          cx <= plat.pos.x + w + CONFIG.MOVER.CARRY_PAD_X;
+        if (onDeck) {
+          rider.pos.x += ddx;
+          rider.pos.y += ddy;
+        }
+      }
     });
   }
 

@@ -277,13 +277,18 @@ export function canReach(fromNode, toNode, envelope) {
  * static jump graph cannot express — no static ledge exists between the two floors, so
  * a walk-only jump graph reports the far side unreachable. `movers` (default []) adds a
  * bidirectional RIDE edge between the two floor/platform nodes a mover FERRIES between,
- * BUT ONLY when BOTH mover endpoints sit flush on a real surface (|endpoint.y - node.y|
- * < 4 AND the endpoint x lies within that node's span). That is exactly a floor-level
- * ferry whose two rest endpoints touch the near/far ledges — the player walks on at one
- * rest, is carried, walks off at the other. Every SHIPPED mover rides at a RAISED y
- * (250 over FLOOR_Y 320): its endpoints are NOT surface-flush, so this adds ZERO edges
- * for them (verified against all 8 levels) — they keep being validated purely by the
- * jump graph + the separate mover-reachability endpoint check. The ride edge carries
+ * BUT ONLY when at BOTH rests the DECK sits flush on a real surface: |rest.y - node.y|
+ * < 4 AND the deck's x-span at that rest ([x, x + w], w = m.w ?? CONFIG.MOVER.WIDTH)
+ * overlaps that node's span. The DECK-SPAN test (2026-07-20, was an endpoint-POINT
+ * test) models the physical ferry faithfully: (x1,y1)/(x2,y2) are the deck's top-LEFT
+ * corner, and the L8 far-rest retune docks the deck's RIGHT edge just past the pit lip
+ * (x2 itself hangs over the pit), so the point test would wrongly drop the bridge the
+ * player really rides — she boards/alights across the whole deck, not at its left
+ * corner. That is exactly a floor-level ferry whose two rest positions touch the
+ * near/far ledges — the player walks on at one rest, is carried, walks off at the
+ * other. A RAISED mover (e.g. y 250 over FLOOR_Y 320) is NOT surface-flush at either
+ * rest, so this adds ZERO edges for it — it keeps being validated purely by the jump
+ * graph + the separate mover-reachability endpoint check. The ride edge carries
  * marginRatio 0 (a walk-on/walk-off ferry demands no jump precision). This is the
  * validate-levels half of CONTEXT POL-03's "teach any reachability check to ride a
  * moving platform"; the browser-boot half rides via mechanic-drive.mjs's driveToMover.
@@ -301,13 +306,15 @@ export function buildGraph(nodes, envelope, movers = []) {
     }
   }
   // POL-03 mover-ride bridge edges (surface-flush ferries only — see the doc block).
-  const onSurface = (x, y) => {
-    const n = nodeContaining(nodes, x, y);
-    return n && x >= n.xStart && x <= n.xEnd && Math.abs(y - n.y) < 4 ? n : null;
-  };
+  // DECK-SPAN rest test (2026-07-20): the deck at rest occupies [x, x + w] at flush y;
+  // it docks a node when that span overlaps the node's span. The previous endpoint-POINT
+  // test broke on far rests whose left corner hangs over the pit (L8's retuned ferries).
+  const restOnSurface = (x, y, w) =>
+    nodes.find((n) => Math.abs(y - n.y) < 4 && x <= n.xEnd && x + w >= n.xStart) ?? null;
   for (const m of movers) {
-    const n1 = onSurface(m.x1, m.y1);
-    const n2 = onSurface(m.x2, m.y2);
+    const deckW = m.w ?? CONFIG.MOVER.WIDTH;
+    const n1 = restOnSurface(m.x1, m.y1, deckW);
+    const n2 = restOnSurface(m.x2, m.y2, deckW);
     if (n1 && n2 && n1.id !== n2.id) {
       graph.get(n1.id).push({ to: n2.id, marginRatio: 0 });
       graph.get(n2.id).push({ to: n1.id, marginRatio: 0 });
@@ -1158,8 +1165,22 @@ export function checkLevelReachability(geometry, envelope = JUMP_ENVELOPE, solid
   // places the first one), so this produces zero rows against all 8 shipped
   // levels — nothing to report on an empty array.
   for (const [i, m] of (geometry.movers ?? []).entries()) {
-    const r1 = bestMarginToPoint({ x: m.x1, y: m.y1 }, nodes, spawnPaths, envelope);
-    const r2 = bestMarginToPoint({ x: m.x2, y: m.y2 }, nodes, spawnPaths, envelope);
+    // DECK-SPAN rest fallback (2026-07-20, mirrors buildGraph's restOnSurface): (x,y) is
+    // the deck's top-LEFT corner, so a pit ferry's far rest can hang its left corner over
+    // the pit while the deck's body docks flush on the far floor (L8's retuned ferries).
+    // A rest whose deck span overlaps a spawn-reachable surface at flush y is a WALK-ON
+    // board — marginRatio 0, the same value buildGraph's ride edge carries (no jump
+    // precision demanded). Any other rest keeps the original endpoint-point jump test.
+    const deckW = m.w ?? CONFIG.MOVER.WIDTH;
+    const restReach = (x, y) => {
+      const flush = nodes.find(
+        (n) => Math.abs(y - n.y) < 4 && x <= n.xEnd && x + deckW >= n.xStart,
+      );
+      if (flush && spawnPaths.has(flush.id)) return { marginRatio: 0 };
+      return bestMarginToPoint({ x, y }, nodes, spawnPaths, envelope);
+    };
+    const r1 = restReach(m.x1, m.y1);
+    const r2 = restReach(m.x2, m.y2);
     if (r1 === null || r2 === null) {
       const badEndpoint = r1 === null ? `x1:${m.x1} y1:${m.y1}` : `x2:${m.x2} y2:${m.y2}`;
       rows.push({

@@ -296,13 +296,27 @@ export const CONFIG = {
   // --- Moving platform (MOT-02; Phase 36 dt-sine ping-pong carrier) ---
   // A solid static-body platform that oscillates between its two descriptor endpoints
   // on a dt-based RAISED-COSINE (eases to rest at BOTH ends — natural endpoint
-  // slow-down, no timer/scheduler). The player is carried NATIVELY by the engine's
-  // body() stickToPlatform — build.js's mover loop adds ZERO rider code (hand-carry is
-  // the measured slide-off anti-pattern, 36-RESEARCH §Anti-Patterns). Inert until a
-  // level authors geometry.movers (36-05); these are the sane defaults a per-mover
-  // descriptor field (period/sprite/w) may override. NO magic numbers in build.js.
+  // slow-down, no timer/scheduler). The rider is carried EXPLICITLY by build.js's
+  // mover loop (per-frame deck delta applied to any player standing on the deck).
+  // 2026-07-20 REVERSAL of the Phase-36 "native carry" claim, live-probe-measured:
+  // Kaplay 3001.0.19's body() stickToPlatform does NOT reliably carry a rider on a
+  // pos-teleported static mover — the rider drifts toward the trailing edge while the
+  // raised-cosine accelerates (~17px lost over 0.6s on L8's moat ferry) and the engine
+  // then drops curPlatform entirely mid-ride, freezing the rider while the deck sails
+  // on (the kid's "I fall off the back" report). Native stick is therefore DISABLED on
+  // the player body (player.js stickToPlatform: false) so the explicit carry is the
+  // single carrier — no double-apply possible. Inert until a level authors
+  // geometry.movers (36-05); these are the sane defaults a per-mover descriptor field
+  // (period/sprite/w) may override. NO magic numbers in build.js.
   MOVER: {
     PERIOD_S: 4, // s — default full round-trip period (endpoint → far → back). Per-mover `period` override allowed. dt raised-cosine so BOTH ends ease to rest.
+    // Rider-detection box for the explicit carry (build.js mover onUpdate): a player is
+    // "on the deck" when grounded, feet within CARRY_TOL_Y of the deck top, and center-x
+    // within the deck span padded by CARRY_PAD_X — the same geometric predicate the
+    // browser-boot ride proof (mechanic-drive.mjs isOnMover) has always used, chosen over
+    // the engine's curPlatform() because the probe showed curPlatform drops mid-ride.
+    CARRY_TOL_Y: 6, // px — max |rider feet - deck top| to count as standing on the deck
+    CARRY_PAD_X: 8, // px — horizontal slack past each deck edge before a rider stops being carried
     SPRITE: "atlas-castle", // moving-platform sprite key — reuse the castle biome atlas's stone PLATFORM ledge frame (a solid "this one moves" slab); per-mover `sprite` override allowed. Final art/biome confirmed at the 36-05 hazard-placement human checkpoint.
     FRAME: 2, // atlas frame index — 2 is the PLATFORM ledge frame (0 cap / 1 fill / 2 platform, per build.js + docs/LEVEL-DESIGN §9)
     WIDTH: 48, // px — default rendered ledge width (3× the 16px ledge frame, tiled). Per-mover `w` override allowed; sets the tightened area() collider width.

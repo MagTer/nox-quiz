@@ -321,16 +321,26 @@ export const LEVEL_08 = {
       // driver mounts by hopping right off the near floor (its arc lands ~140px past the board
       // point), so the wide deck catches it regardless of the ferry's phase, and the slow
       // raised-cosine dwells long at each rest endpoint (a generous board/alight window). Both
-      // far rests stop short of the first post-pit spike (moat far edge 2700 < spike@2800; chasm
-      // far edge 5180 < spike@5280) so the ferry never carries a rider onto a spike.
+      // far rests stop short of the first post-pit spike (moat far edge 2540 < spike@2800; chasm
+      // far edge 5020 < spike@5280) so the ferry never carries a rider onto a spike.
+      //
+      // FAR-REST RETUNE (2026-07-20 play-test: "it moves too far right — it overlaps the base
+      // platform quite far"): x1/x2 are the DECK'S LEFT EDGE, so the old x2 values (2520/5000 =
+      // the far floors' own left edges) parked the ENTIRE 180px deck on top of the far floor at
+      // rest. Each x2 is now farFloorX + 20 - w, so at the far rest the deck's RIGHT edge laps
+      // just 20px onto the far floor — the ferry docks at the pit lip instead of burying itself
+      // in the base platform. (The raised-cosine reaches exactly (x2,y2) at phase 1, so the lip
+      // IS the far rest.) Near rests are unchanged: the deck's left edge is flush on the near
+      // floor's right edge (walk-on board).
 
-      // M-MOAT — spans the 640px MOAT (F2 ends 1880 → F3 starts 2520). Near rest [1880,2060]
-      // touches F2's edge (board); far rest [2520,2700] sits on F3 (alight). Behind checkpoint@1820.
-      { x1: 1880, y1: 320, x2: 2520, y2: 320, w: 180, period: 6 },
+      // M-MOAT — spans the 640px MOAT (F2 ends 1880 → F3 starts 2520). Near rest deck
+      // [1880,2060] flush on F2's edge (board); far rest deck [2360,2540] laps 20px onto F3
+      // (alight at the lip). Behind checkpoint@1820.
+      { x1: 1880, y1: 320, x2: 2360, y2: 320, w: 180, period: 6 },
       // M-CHASM — spans the 520px DRAWBRIDGE CHASM (F5 ends 4480 → F6 starts 5000). Near rest
-      // [4480,4660] touches F5's edge (board); far rest [5000,5180] sits on F6 (alight). Behind
-      // checkpoint@4440.
-      { x1: 4480, y1: 320, x2: 5000, y2: 320, w: 180, period: 6 },
+      // deck [4480,4660] flush on F5's edge (board); far rest deck [4840,5020] laps 20px onto
+      // F6 (alight at the lip). Behind checkpoint@4440.
+      { x1: 4480, y1: 320, x2: 4840, y2: 320, w: 180, period: 6 },
     ],
     patrollers: [
       // Two castle WRAITHS hovering at y:214 (frame bottom ~266, a 22px gap ABOVE the walking
