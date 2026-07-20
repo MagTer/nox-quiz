@@ -201,34 +201,12 @@ export const LEVEL_03 = {
 
     // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
     // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
-    // LIGHT density for the CALM-ODD town (the forgiving end of the town biome pair): ONE
-    // moving platform + ONE patroller (2 motion entities — lighter than the intense evens'
-    // 3, but never mover-free), each authored to the §6a/§6b HARD rules with generous
-    // margins — both mover endpoints reachable RIGHTWARD from spawn, a checkpoint before
-    // each, solid floor UNDER the mover (miss = WAIT, no killing pit), far end telegraphed.
-    // Placement is DISTINCT from level-01 (the other calm level): a wide slow F8 goal-floor
-    // ferry (not level-01's F4 island) + a slow wide-sweep wraith over F2 (not level-01's
-    // 1770..1880 F2 island). Both ride OPEN street floors clear of every roof/fork/stall
-    // climb tier and every takeoff/landing/spike band.
-    movers: [
-      // M0 — a slow WIDE (w130) lateral ferry over the final F8 street (6940..7700), the
-      // level's LAST audit encounter (past the enemy@2680; no later blocker to strand).
-      // AUTHORING NOTE (36-07 audit tuning): the town is a horizontal HOP-CHAIN — every
-      // street floor has a jump-reachable platform 30px past its right edge (F6->DW1,
-      // F5->MS1, ...), so the audit's rightward mount-jump ESCAPES FORWARD onto that next
-      // climb instead of landing on the ledge; the F6 first-pass mover was chased onto DW1
-      // every attempt and never mounted. The ONLY street whose downstream feature is a clean
-      // dead-end (the GOAL, no forward platform) is F8, in the stretch AFTER the optional
-      // roof PD@7100..7210: this mirrors level-02/06's proven goal-floor recipe (WIDE ledge,
-      // goal the sole "soft reset"). Placed 7240..7320 (right extent 7450), ~50px of solid
-      // F8 to the GOAL@7500. The WIDE (w130) ledge is the reliability lever — it rides the
-      // interactive audit at att=1 across repeated runs (default CONFIG.MOVER.PERIOD_S).
-      // Both endpoints y:250 = rise 70 from FLOOR_Y 320 → reachability
-      // PASS/WARN (from F8, rightward). Behind checkpoint@6960; solid F8 under it → a missed
-      // hop lands back on F8 to WAIT (no killing pit). The goal-drive walks under it
-      // (head 288 vs ledge 250..266 = 22px) on the final approach to the goal.
-      { x1: 7240, y1: 250, x2: 7320, y2: 250, w: 130 },
-    ],
+    // Batch-2 (2026-07-20): the F8 goal-street mover ({x1:7240, x2:7320, w:130} at y:250)
+    // was REMOVED — it floated pointlessly above the solid final street by the finish flag
+    // (live-playthrough flag). F8 is plain solid ground beneath its old sweep, so removing
+    // it strands nothing. EXEMPT motion key; frozen-hash-neutral. The level keeps its
+    // grounded F2 skeleton patroller + a NEW sliding ground spike (below).
+    movers: [],
     patrollers: [
       // P0 — a GROUNDED town SKELETON (POL-01, Phase 39) walking the FLAT F2 street
       // (1650..2050). Feet on FLOOR_Y 320 (44x52 topleft frame → y = 320-52 = 268), a WIDE
@@ -246,6 +224,21 @@ export const LEVEL_03 = {
       // takeoff's 150px hop-suppression zone and re-breaks the goal-drive; clearability
       // (CONTEXT + CLAUDE.md) outranks the 200px target here.
       { x1: 1760, y1: 268, x2: 1880, y2: 268, speed: 80 },
+    ],
+
+    // ===================== SLIDING SPIKES (POL-02 pattern; Batch-2 2026-07-20) =====================
+    // The proven L5/L7 "spike cluster to time" recipe copied byte-for-byte in RELATIVE
+    // geometry: the slider rides in the SHADOW of a static spike, sweeping spike+30 ..
+    // spike+100, so the driver's planned static-spike hop (takeoff ~spike-52, landing
+    // ~spike+83..100) arcs over the whole sweep and the pair clears as one timed cluster.
+    // EXEMPT from the freeze hash (stripped alongside movers/patrollers). Ground-sliding:
+    // y1 = y2 = FLOOR_Y - SPIKE_SIZE (304). Default 3s period.
+    slidingSpikes: [
+      // S0 — slides along the F7 street (6020..6460) just past the static spike@6240,
+      // sweeping 6270<->6340 (70px). checkpoint@6140 sits BEFORE the static spike (safe
+      // run-up, never inside the sweep); clear of coin@6120 (left of the cluster) and the
+      // FW1@6490 awning takeoff (~6420+); F7 has ~120px of clear floor past the sweep.
+      { x1: 6270, y1: FLOOR_Y - CONFIG.SPIKE_SIZE, x2: 6340, y2: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
   },
 
@@ -272,7 +265,7 @@ export const LEVEL_03 = {
     // the street below the spawn rooftop, and a well behind the mid street. Base at the
     // floor line; z(-8) keeps them behind every traversal surface.
     { sprite: "prop-town-street-lamp", x: 300, y: 212, layer: "back" }, // town depth below the spawn rooftop
-    { sprite: "prop-town-well", x: 5000, y: 255, layer: "back" }, //     POL-05: MOVED off the F5 spike@4460 (was x:4400) to a clear background stretch (between the MS stalls; ~540px from spike@4460, ~1240px from spike@6240). Prop = EXEMPT; the spike stays frozen.
+    { sprite: "prop-town-well", x: 5420, y: 255, layer: "back" }, //     Batch-2 (2026-07-20): the POL-05 move to x:5000 landed the well in THIN AIR — 5000..5065 hangs over the F5->F6 water gap (4660..5140), dangling under the MS2 stall. Now on SOLID F6 (5140..5540): 5420..5485, right of the solid crate@5340 (41px clear), 55px left of the floor edge, ~960px from the F5 spike@4460. Base 255+65=320 rests on the F6 street line. Prop = EXEMPT; the spike stays frozen.
 
     // On-surface street dressing on clear street floors (y = 320 - spriteHeight), each
     // clear of every mechanic/coin and OFF the roof/fork climb lanes.
