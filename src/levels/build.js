@@ -657,5 +657,21 @@ export function buildLevel(levelData) {
     // Kaplay upgrade without re-probing (and never upgrade Kaplay casually — CLAUDE.md).
     foe.waypoints = [vec2(p.x1, p.y1), vec2(p.x2, p.y2)];
     foe.play("walk"); // visible walk-cycle telegraph (the "walk" anim registered in main.js)
+    // FACE THE TRAVEL DIRECTION (2026-07-20 play-test: "skeletons moonwalk" — the walk
+    // sprite always faced one way, so the return leg of the ping-pong read as a
+    // moonwalk). patrol() never sets flipX, so derive facing from the per-frame x
+    // delta here. The baked patroller sheet's frames natively face LEFT (verified
+    // against assets/patroller.png + a live-browser screenshot), so moving RIGHT
+    // needs flipX = true and moving LEFT needs flipX = false; a zero delta (the
+    // ping-pong turn instant / a paused frame) keeps the last facing. Closure-local
+    // prevX PER patroller (anti-leak, mirrors the mover's `t`); `onUpdate` only —
+    // no scheduler (SAFE-01).
+    let prevX = foe.pos.x;
+    foe.onUpdate(() => {
+      const dxp = foe.pos.x - prevX;
+      prevX = foe.pos.x;
+      if (dxp > 0) foe.flipX = true; // art faces LEFT natively -> flip to face right
+      else if (dxp < 0) foe.flipX = false; // native facing already looks left
+    });
   }
 }
