@@ -1035,33 +1035,139 @@ export async function driveToMover(page, encounter, geometry) {
       return p.isGrounded() && onTop && overSpan;
     }, idx);
 
-  // MOUNT: bounded rightward hops onto the platform top (low + wide, so a rightward jump
-  // from just-left arcs onto it; retries absorb the platform's own motion). A missed hop
-  // simply lands the player back on the floor to try again — never a death (LEVEL-DESIGN
-  // §6b: a missed mover is WAIT-not-death).
+  // MOUNT (re-tuned 2026-07-20 — node-v24 + genuinely-moving movers): PHASE-GATED, not
+  // blind-cadence. The original loop fired rightward full-hold hops on a fixed ~1.2s
+  // cadence at the mover's x1 endpoint — pure phase-luck against an oscillating deck
+  // (raised-cosine, period 4–10s), and every missed hop ratcheted the player ~150-200px
+  // RIGHT (ArrowRight stayed held through the 450ms press + 420ms follow), walking it off
+  // past the target (L1's F4 island edge, L8's pits). That luck broke when the node-v22
+  // → v24 runtime shifted the cadence (5/8 shipped movers `triggered:false`, see Phase 39
+  // deferred-items.md), and broke harder once Phase 39's POL-03 ferries genuinely bridge
+  // pits (a missed hop is now a checkpoint respawn far from the mount point).
+  //
+  // The deck's motion is DETERMINISTIC AUTHORED DATA (build.js's raised-cosine over the
+  // descriptor's x1/x2/period), so instead of gambling, derive its phase from its live
+  // position + travel direction, WAIT with no input at a computed takeoff point until the
+  // deck is about to dwell at its (x1,y1) rest, and only then commit ONE deliberate move:
+  //   * ELEVATED deck (y1 above the player's feet): a single full-hold jump from
+  //     takeoffX = landX - 118 — the measured envelope (~210px/s air speed, rise back
+  //     through the 70px deck height at t≈0.57s) lands the DESCENDING arc at landX, the
+  //     deck's near-center at rest. Committed when time-to-rest ∈ [0.5s, 1.0s] (inbound),
+  //     so the deck arrives home just as the arc comes down: worst-case deck offset at
+  //     landing is ~13px, well inside every shipped deck's ≥60px width.
+  //   * FLUSH deck (y1 at feet level — L8's pit ferries): walk straight on during the
+  //     rest dwell (committed when inbound and nearly home, so the pit gap ahead is
+  //     already closed by the arriving deck).
+  // Between commits a small re-stage walk returns the player to the takeoff point — a
+  // missed elevated hop lands on the floor past/under the deck (walk back); a missed
+  // ferry board falls into the pit and respawns at the checkpoint just before it (walk
+  // forward). The deadline covers ≥3 full periods of the slowest shipped mover (10s).
+  const gm = (geometry.movers ?? [])[idx];
   let mounted = await isOnMover();
-  const mountDeadline = Date.now() + 12_000;
-  while (!mounted && Date.now() < mountDeadline) {
-    await page.keyboard.down("ArrowRight");
-    await page.keyboard.press("Space", { delay: 450 });
-    await page.waitForTimeout(420);
-    await page.keyboard.up("ArrowRight");
-    await page.waitForTimeout(320);
-    mounted = await isOnMover();
-    if (mounted) break;
-    // If we overshot to the RIGHT of the platform, nudge back left before the next hop.
-    const st = await page.evaluate((i) => {
-      const p = get("player")[0];
-      const m = get("mover")[i];
-      return p && m
-        ? { px: p.pos.x, mx: m.pos.x, mw: m.width ?? 0, g: p.isGrounded() }
-        : null;
-    }, idx);
-    if (st && st.g && st.px + 8 > st.mx + st.mw) {
-      await page.keyboard.down("ArrowLeft");
-      await page.waitForTimeout(180);
-      await page.keyboard.up("ArrowLeft");
-      await page.waitForTimeout(150);
+  if (!mounted && gm) {
+    const period = gm.period ?? CONFIG.MOVER.PERIOD_S;
+    const w = gm.w ?? CONFIG.MOVER.WIDTH;
+    const spanX = gm.x2 - gm.x1;
+    const spanY = gm.y2 - gm.y1;
+    const spanLen = Math.max(Math.abs(spanX), Math.abs(spanY));
+    // Phase fraction f ∈ [0,1]: 0 = at the (x1,y1) rest, 1 = at the far (x2,y2) rest,
+    // read off the dominant travel axis (every shipped mover is horizontal; a vertical
+    // one would read y the same way).
+    const phaseOf = (mx, my) => {
+      const span = Math.abs(spanX) >= Math.abs(spanY) ? spanX : spanY;
+      const off = Math.abs(spanX) >= Math.abs(spanY) ? mx - gm.x1 : my - gm.y1;
+      return span === 0 ? 0 : Math.min(1, Math.max(0, off / span));
+    };
+    // Seconds until the deck next reaches its (x1,y1) rest, from the raised-cosine's
+    // closed form: f = (1 - cos θ)/2 with θ sweeping 0→2π per period, rest at θ = 0/2π.
+    const timeToRest = (f, inbound) => {
+      const theta = Math.acos(1 - 2 * Math.min(1, Math.max(0, f))); // outbound angle, [0, π]
+      return (inbound ? theta : 2 * Math.PI - theta) * (period / (2 * Math.PI));
+    };
+    const landX = gm.x1 + Math.min(w, 90) / 2; // near-center of the deck at rest
+    const JUMP_LAND_LEAD = 118; // px from takeoff to the arc's descending 70px-rise crossing
+    let takeoffX = landX - JUMP_LAND_LEAD;
+    // Clamp the takeoff onto the launch surface's own span, so waiting for the deck's
+    // phase can never park the player over the lip (L1's F4 island starts at 3360 while
+    // the raw lead computes 3357 — the ±14px re-stage band would dangle her over the
+    // water). The launch surface is whichever authored floor/platform BELOW the deck
+    // contains the approach's staging area; same {x,w}/FLOOR_Y conventions as
+    // reachability.mjs's buildNodes.
+    const launch = [
+      ...(geometry.floors ?? []).map((fl) => ({ x0: fl.x, xE: fl.x + fl.w, y: CONFIG.FLOOR_Y })),
+      ...(geometry.platforms ?? []).map((pl) => ({ x0: pl.x, xE: pl.x + pl.w, y: pl.y })),
+    ].find((sfc) => sfc.y > gm.y1 && gm.x1 - 20 >= sfc.x0 && gm.x1 - 20 <= sfc.xE);
+    if (launch) takeoffX = Math.max(takeoffX, launch.x0 + 8);
+    const ferryWaitX = gm.x1 - 36; // flush deck: wait just short of the boarding lip
+
+    let prevF = null;
+    const mountDeadline = Date.now() + 30_000;
+    while (!mounted && Date.now() < mountDeadline) {
+      const st = await page.evaluate((i) => {
+        const p = get("player")[0];
+        const m = get("mover")[i];
+        return p && m
+          ? { px: p.pos.x, py: p.pos.y, g: p.isGrounded(), mx: m.pos.x, my: m.pos.y }
+          : null;
+      }, idx);
+      if (!st) break;
+      if (!st.g) {
+        // Airborne (falling into a ferry pit / mid respawn) — wait it out, phase reading
+        // stays valid but the inbound estimate is refreshed next grounded sample.
+        await page.waitForTimeout(90);
+        continue;
+      }
+
+      const needJump = gm.y1 < st.py + 32 - 6; // deck top above the player's feet?
+      const waitX = needJump ? takeoffX : ferryWaitX;
+
+      // RE-STAGE: hold position at the takeoff point while waiting for the deck's phase.
+      // Proportional bounded taps, so a checkpoint respawn (ferry miss) walks back in a
+      // few iterations and a small overshoot corrects in one.
+      if (Math.abs(st.px - waitX) > 14) {
+        const dir = st.px < waitX ? "ArrowRight" : "ArrowLeft";
+        await page.keyboard.down(dir);
+        await page.waitForTimeout(Math.min(400, Math.max(50, (Math.abs(st.px - waitX) / 240) * 800)));
+        await page.keyboard.up(dir);
+        await page.waitForTimeout(80);
+        prevF = null; // sample gap too coarse for a direction read — refresh it
+        continue;
+      }
+
+      const f = phaseOf(st.mx, st.my);
+      const inbound = prevF !== null && f < prevF - 1e-3;
+      prevF = f;
+      const tRest = timeToRest(f, inbound);
+
+      // PHASE GATE (see header): elevated decks fire inside the [0.5s, 1.0s] inbound
+      // band so the arc and the deck arrive together; flush ferries board when the deck
+      // is inbound-nearly-home or dwelling at the lip. A zero-span (static) deck is
+      // degenerate-at-rest and commits immediately.
+      const commit = spanLen === 0
+        ? true
+        : needJump
+          ? inbound && tRest >= 0.5 && tRest <= 1.0
+          : (inbound && tRest <= 0.35) || f <= 0.015;
+      if (!commit) {
+        await page.waitForTimeout(70);
+        continue;
+      }
+
+      if (needJump) {
+        await page.keyboard.down("ArrowRight");
+        await page.keyboard.press("Space", { delay: 450 }); // full-hold arc (anti-JUMP_CUT)
+        await page.waitForTimeout(170); // ride the arc down onto the deck, then stop
+        await page.keyboard.up("ArrowRight");
+        await page.waitForTimeout(260);
+      } else {
+        await page.keyboard.down("ArrowRight");
+        // Walk from the lip well onto the deck (bounded by the deck's own width).
+        await page.waitForTimeout(Math.min(900, ((36 + Math.min(w * 0.6, 140)) / 240) * 1000));
+        await page.keyboard.up("ArrowRight");
+        await page.waitForTimeout(200);
+      }
+      prevF = null; // long input gap — refresh the direction read next iteration
+      mounted = await isOnMover();
     }
   }
 
@@ -1081,7 +1187,11 @@ export async function driveToMover(page, encounter, geometry) {
     const m = get("mover")[i];
     return p && m ? { px: p.pos.x, py: p.pos.y, mx: m.pos.x, my: m.pos.y } : null;
   }, idx);
-  const sampleDeadline = Date.now() + 3000;
+  // 4.5s (was 3s): the phase-gated mount above deliberately boards at the (x1,y1) REST
+  // dwell, so the deck barely moves for the first few hundred ms (slowest shipped period
+  // is 10s) — the window must outlast that dwell to observe genuine carried motion. The
+  // loop still exits the moment NEED tracking samples accumulate (~360ms of real carry).
+  const sampleDeadline = Date.now() + 4500;
   while (carried < NEED && Date.now() < sampleDeadline) {
     await page.waitForTimeout(60);
     const cur = await page.evaluate((i) => {
@@ -1113,7 +1223,8 @@ export async function driveToMover(page, encounter, geometry) {
   // FAR rest (its far edge overlapping the far floor), then walk right until grounded on ground
   // PAST the mover's far edge. Bounded + best-effort: for a solid-floor mover the far side is
   // already floor, so this simply walks off onto it (harmless); the return value is unchanged.
-  const gm = (geometry.movers ?? [])[idx];
+  // (`gm` — this mover's descriptor — is hoisted above the phase-gated mount block, which
+  // reads the same authored x1/x2/period data.)
   if (gm) {
     const farEndX = Math.max(gm.x1, gm.x2); // rightward travel toward the goal
     // Deposit the rider MINIMALLY — just onto the far floor's near edge (farEndX sits flush on
@@ -1149,6 +1260,102 @@ export async function driveToMover(page, encounter, geometry) {
   }
 
   return { triggered: true, resolved: carried >= NEED };
+}
+
+/**
+ * Phase 39 follow-up (2026-07-20 harness re-tune): drive-and-detect for a SLIDING SPIKE
+ * (tag "spike" — deriveEncounters emits ONLY geometry.slidingSpikes under this tag;
+ * static spikes are never encounters). Mirrors driveToPatroller's respawn-seam proof.
+ *
+ * Why the default path could never work: a spike NEVER opens a challenge, so routing a
+ * slider row through driveToXPlanned + resolveIfBoxed reads `triggered:false`
+ * unconditionally — and audit-retry's sequential-approach break then starved every LATER
+ * encounter on L5/L7 in every attempt (the post-39-04 audit stall). Worse, both shipped
+ * sliders deliberately ride in the "shadow" of a static spike whose PLANNED hop arcs over
+ * the whole sweep (the §8.5 "spike cluster" authoring), so driveToXPlanned aimed AT the
+ * slider's x1 sails over it, then arrival-walks backward INTO the sweep and dies there
+ * repeatedly until its own maxDeaths guard gives up — 8 silent respawns per attempt.
+ *
+ * The detect: approach PAST the whole cluster first (driveToXPlanned to a point beyond
+ * the sweep — the planned static-spike hop clears both hazards, exactly as the goal-drive
+ * does), then sweep back LEFT through the slider's authored window with the respawn
+ * detector armed. The slider is always somewhere inside [x1, x2+SPIKE_SIZE], the player's
+ * leftward sweep traverses that whole window, and both positions are continuous — so
+ * contact is intermediate-value-certain, and the only thing that can then yank the player
+ * a large distance is game.js's "spike"→respawn seam (the same unfalsifiable snap signal
+ * driveToPatroller uses).
+ *
+ * @param {import("playwright").Page} page - live page, already in the level.
+ * @param {{x:number,y:number,idx?:number}} encounter - the slider encounter (x = x1).
+ * @param {object} geometry - level.geometry, threaded to driveToXPlanned for the approach.
+ * @returns {Promise<{triggered: boolean, resolved: boolean}>}
+ *   triggered = the player entered the slider's authored sweep window.
+ *   resolved = contact fired the respawn seam (a large position snap was observed).
+ */
+export async function driveToSlidingSpike(page, encounter, geometry) {
+  const idx = encounter.idx ?? 0;
+  const gs = (geometry.slidingSpikes ?? [])[idx];
+  if (!gs) return { triggered: false, resolved: false };
+
+  const sweepLo = Math.min(gs.x1, gs.x2) - 20;
+  const sweepHi = Math.max(gs.x1, gs.x2) + CONFIG.SPIKE_SIZE + 20;
+
+  // APPROACH past the cluster: the planned static-spike hop lands ~2880-2915, past both
+  // shipped sweeps; the extra lead keeps the arrival walk clear of the slider's far
+  // endpoint. driveToXPlanned's own respawn self-heal absorbs an unlucky landing phase.
+  await driveToXPlanned(page, sweepHi + 60, geometry);
+
+  const startX = await page.evaluate(() => {
+    const p = get("player")[0];
+    return p ? p.pos.x : null;
+  });
+  if (startX === null) return { triggered: false, resolved: false };
+
+  // A respawn moves the player far more than any 50ms walk tick (~12px) could — same
+  // SNAP rationale as driveToPatroller (checkpoints sit >=120px before both sweeps).
+  const SNAP = 120;
+
+  let triggered = false;
+  let resolved = false;
+  let prevX = startX;
+  const deadline = Date.now() + 15_000;
+  await page.keyboard.up("ArrowRight");
+  await page.keyboard.down("ArrowLeft");
+  try {
+    while (Date.now() < deadline) {
+      await page.waitForTimeout(50);
+      const s = await page.evaluate(() => {
+        const p = get("player")[0];
+        return p ? { px: p.pos.x } : null;
+      });
+      if (!s) break;
+
+      if (s.px + 8 >= sweepLo && s.px + 8 <= sweepHi) triggered = true;
+
+      // Respawn detector: any large snap = the "spike"→respawn seam fired (the leftward
+      // walk itself can only move ~12px/tick; the respawn warps >=120px).
+      if (Math.abs(s.px - prevX) > SNAP) {
+        triggered = true;
+        resolved = true;
+        break;
+      }
+      // Swept past the window's left edge without contact this pass — turn around and
+      // re-cross (bounded by the deadline; one crossing is normally enough, see header).
+      if (s.px + 8 < sweepLo - 30) {
+        await page.keyboard.up("ArrowLeft");
+        await page.keyboard.down("ArrowRight");
+      } else if (s.px + 8 > sweepHi + 50) {
+        await page.keyboard.up("ArrowRight");
+        await page.keyboard.down("ArrowLeft");
+      }
+      prevX = s.px;
+    }
+  } finally {
+    await page.keyboard.up("ArrowLeft");
+    await page.keyboard.up("ArrowRight");
+  }
+
+  return { triggered, resolved };
 }
 
 /**

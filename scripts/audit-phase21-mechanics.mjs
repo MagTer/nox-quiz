@@ -47,8 +47,15 @@ const FALLBACK_PLAYWRIGHT_PATH = (() => {
   const base = `${process.env.HOME}/.nvm/versions/node`;
   try {
     for (const v of readdirSync(base).sort().reverse()) {
-      const p = `${base}/${v}/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs`;
-      if (existsSync(p)) return p;
+      // Node-v24 drift fix (2026-07-20): playwright may be installed globally in its own
+      // right (npm i -g playwright — the current layout on this box) OR bundled under
+      // gsd-pi (the historical layout). Check BOTH per node version, direct install first.
+      for (const p of [
+        `${base}/${v}/lib/node_modules/playwright/index.mjs`,
+        `${base}/${v}/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs`,
+      ]) {
+        if (existsSync(p)) return p;
+      }
     }
   } catch {
     // ~/.nvm missing entirely — fall through to the historical pin below
@@ -152,6 +159,15 @@ PORT = server.address().port;
 
 const browser = await chromium.launch({ headless: true });
 
+// Maintenance (2026-07-20, node-v24 re-tune): AUDIT_LEVELS=level-01,level-08 narrows the
+// run to a subset of levels for BOUNDED per-level diagnosis (the full 8-level run is long
+// now that patrollers/movers genuinely move). Unset (the default) audits the full
+// LEVEL_ORDER roster — verdict semantics are unchanged; a filtered run's verdict only
+// speaks for the levels it actually drove.
+const AUDIT_LEVELS = process.env.AUDIT_LEVELS
+  ? process.env.AUDIT_LEVELS.split(",").map((s) => s.trim()).filter(Boolean)
+  : null;
+
 const results = [];
 
 // Phase 24 (24-06): per-level context recycling — a fresh browser context/page for
@@ -197,6 +213,9 @@ async function newLevelPage() {
 
 try {
   for (let i = 0; i < LEVEL_ORDER.length; i++) {
+    // AUDIT_LEVELS diagnostic filter (see above) — `i` still indexes the FULL roster, so
+    // the select-grid row/col cursor math below stays correct for the levels that DO run.
+    if (AUDIT_LEVELS && !AUDIT_LEVELS.includes(LEVEL_ORDER[i])) continue;
     const { context, page } = await newLevelPage();
 
     try {

@@ -61,8 +61,15 @@ const FALLBACK_PLAYWRIGHT_PATH = (() => {
   const base = `${process.env.HOME}/.nvm/versions/node`;
   try {
     for (const v of readdirSync(base).sort().reverse()) {
-      const p = `${base}/${v}/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs`;
-      if (existsSync(p)) return p;
+      // Node-v24 drift fix (2026-07-20): playwright may be installed globally in its own
+      // right (npm i -g playwright — the current layout on this box) OR bundled under
+      // gsd-pi (the historical layout). Check BOTH per node version, direct install first.
+      for (const p of [
+        `${base}/${v}/lib/node_modules/playwright/index.mjs`,
+        `${base}/${v}/lib/node_modules/gsd-pi/node_modules/playwright/index.mjs`,
+      ]) {
+        if (existsSync(p)) return p;
+      }
     }
   } catch {
     // ~/.nvm missing entirely — fall through to the historical pin below

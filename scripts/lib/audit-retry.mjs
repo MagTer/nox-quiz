@@ -41,6 +41,7 @@ import {
   driveAndDetectAlcove,
   driveToMover,
   driveToPatroller,
+  driveToSlidingSpike,
 } from './mechanic-drive.mjs';
 import { CONFIG } from '../../src/config.js';
 
@@ -71,6 +72,33 @@ import { CONFIG } from '../../src/config.js';
 export async function auditLevelWithRetries(page, level, { maxAttempts = 5, reloadLevel } = {}) {
   const results = new Map(); // `${tag}@${x}` -> { triggered, resolved, attempts }
   const encounters = deriveEncounters(level.geometry);
+
+  // Phase 39 follow-up (2026-07-20 harness re-tune): MOTION encounters (secret-alcove/
+  // mover/patroller/sliding-spike) each have their own drive+detect helper whose approach
+  // IGNORES challenge state — but on attempt 2+ an earlier, already-green door/math-gate
+  // is BACK (every attempt is a fresh reload) while the cost guard skips its row, so its
+  // blocker stops the approach cold with the challenge panel open, and the motion row
+  // reads triggered:false as a pure navigation artifact (observed live: an L8 attempt-2
+  // drive to mover@4480 stalled at x=864 against the re-closed door@880). Fix: if a
+  // challenge is open after a motion drive that did not fully succeed, clear it with the
+  // SAME resolveIfBoxed the challenge rows use (solving a door/gate destroys its blocker
+  // for the rest of this attempt) and re-drive. Bounded (a level has at most a handful of
+  // blockers between any two encounters), OR-ed so a re-drive can only improve the
+  // outcome, and the blocker row's own recorded result is untouched.
+  const driveMotionUnblocked = async (drive) => {
+    let outcome = await drive();
+    for (let unblock = 0; unblock < 3 && !(outcome.triggered && outcome.resolved); unblock++) {
+      const open = await page.evaluate(() => get("challenge").length);
+      if (open === 0) break;
+      await resolveIfBoxed(page);
+      const again = await drive();
+      outcome = {
+        triggered: outcome.triggered || again.triggered,
+        resolved: outcome.resolved || again.resolved,
+      };
+    }
+    return outcome;
+  };
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (attempt > 1) {
@@ -136,6 +164,27 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
       // even though the whole point of OR-across-attempts is that it might succeed
       // on attempt 2. The level reload above still happened this attempt regardless.
       if (previous?.triggered && previous.resolved === true) {
+        // Phase 39 follow-up (2026-07-20 harness re-tune): a POL-03 ferry mover is not
+        // just an encounter — it is TRANSPORT. On level-08 the two ferries are the ONLY
+        // way across their real pits (the static stepping stones are gone), and each
+        // retry attempt starts from a FRESH reload at spawn. Skipping an already-green
+        // mover here therefore strands the player on the near side, and every LATER
+        // encounter past the pit reads `triggered:false` on attempt 2+ purely as a
+        // navigation artifact (driveToXPlanned cannot fly a 640px pit). So when any
+        // later encounter still needs this attempt, RE-RIDE the ferry for transport
+        // only: its outcome is deliberately ignored — the recorded green can never be
+        // regressed, per this file's OR-across-attempts contract. Solid-floor movers
+        // (L1-L7) cost a few extra seconds of riding; correctness is unchanged.
+        if (encounter.tag === "mover") {
+          const laterUndone = encounters.some((e2) => {
+            if (e2.x <= encounter.x) return false;
+            const r2 = results.get(`${e2.tag}@${e2.x}`);
+            return !(r2?.triggered && r2.resolved === true);
+          });
+          if (laterUndone) {
+            await driveMotionUnblocked(() => driveToMover(page, encounter, level.geometry));
+          }
+        }
         continue;
       }
 
@@ -147,7 +196,9 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
       let everTriggered;
       let resolved;
       if (encounter.tag === "secret-alcove") {
-        const outcome = await driveAndDetectAlcove(page, encounter, level.geometry, level.id);
+        const outcome = await driveMotionUnblocked(() =>
+          driveAndDetectAlcove(page, encounter, level.geometry, level.id)
+        );
         // Still OR-ed across attempts per this file's existing contract — do not
         // regress a previously-true outcome even if this attempt's own drive somehow
         // fails to redetect it.
@@ -159,14 +210,31 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
         // platform and proves native stickToPlatform carry). Same OR-across-attempts
         // contract as the alcove branch: a previously-true ride is never regressed by a
         // later attempt's own miss.
-        const outcome = await driveToMover(page, encounter, level.geometry);
+        const outcome = await driveMotionUnblocked(() =>
+          driveToMover(page, encounter, level.geometry)
+        );
         everTriggered = outcome.triggered || (previous?.triggered ?? false);
         resolved = outcome.resolved || (previous?.resolved ?? false);
       } else if (encounter.tag === "patroller") {
         // Phase 36 (MOT-01): a patroller is a forgiving respawn-hazard, not a
         // challenge-opener — driveToPatroller CROSSES the path and asserts contact fired
         // the existing respawn seam (a backward pos snap). Same OR-across-attempts contract.
-        const outcome = await driveToPatroller(page, encounter, level.geometry);
+        const outcome = await driveMotionUnblocked(() =>
+          driveToPatroller(page, encounter, level.geometry)
+        );
+        everTriggered = outcome.triggered || (previous?.triggered ?? false);
+        resolved = outcome.resolved || (previous?.resolved ?? false);
+      } else if (encounter.tag === "spike") {
+        // Phase 39 follow-up (2026-07-20 harness re-tune): a "spike"-tagged encounter is
+        // always a SLIDING spike (deriveEncounters only emits geometry.slidingSpikes under
+        // this tag) — a respawn-hazard like the patroller, NEVER a challenge-opener. The
+        // old fall-through to the default branch below could never read triggered:true
+        // (spikes open no challenge) and its sequential-approach break then starved every
+        // later L5/L7 encounter in every attempt. driveToSlidingSpike crosses the authored
+        // sweep and asserts the same respawn-seam snap driveToPatroller does.
+        const outcome = await driveMotionUnblocked(() =>
+          driveToSlidingSpike(page, encounter, level.geometry)
+        );
         everTriggered = outcome.triggered || (previous?.triggered ?? false);
         resolved = outcome.resolved || (previous?.resolved ?? false);
       } else {
@@ -199,7 +267,13 @@ export async function auditLevelWithRetries(page, level, { maxAttempts = 5, relo
         !everTriggered &&
         encounter.tag !== "secret-alcove" &&
         encounter.tag !== "mover" &&
-        encounter.tag !== "patroller"
+        encounter.tag !== "patroller" &&
+        // Phase 39 follow-up: a sliding spike gets the same exemption as the other
+        // motion hazards — it is not a blocking collider (the goal path hops its whole
+        // sweep via the shadowing static spike's planned takeoff), so an unproven
+        // slider must not abort the pass and starve later encounters; its own row
+        // still fails the caller's triggered+resolved gate.
+        encounter.tag !== "spike"
       ) {
         // Matches driveToXClimbing's existing sequential-approach semantics (preserved
         // from the retired single-pass caller): an untriggered mechanic blocks progress
