@@ -5,10 +5,10 @@ milestone_name: SNES-Fidelity World
 current_phase: 39
 current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 status: executing
-stopped_at: Completed 39-07-PLAN.md
+stopped_at: 39-08 paused at human playthrough checkpoint — user found issues during UAT, needs rework
 last_updated: "2026-07-20T00:08:10.151Z"
-last_activity: 2026-07-19
-last_activity_desc: Phase 39 execution started
+last_activity: 2026-07-20
+last_activity_desc: "Phase 39: 7/8 plans committed + audit harness fixed (Fable); 39-08 blocked on playthrough issues"
 progress:
   total_phases: 14
   completed_phases: 10
@@ -36,11 +36,17 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 39 (playthrough-polish-grounded-patrolling-skeletons-sliding-spi) — EXECUTING
-Plan: 8 of 8
-Status: Ready to execute
-Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (covers ALL new content incl. deferred Phase-36 motion feel); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
-Last activity: 2026-07-19 — Phase 39 execution started
+Phase: 39 (playthrough-polish-grounded-patrolling-skeletons-sliding-spi) — EXECUTING (7/8 plans done, 39-08 BLOCKED at human gate)
+Plan: 39-08 of 8 — IN PROGRESS, paused at human playthrough sign-off checkpoint
+Status: NEEDS REWORK — user ran the playthrough/kid-UAT and found "a lot of issues" (NOT enumerated in this session). Resume by capturing those specific issues first, then fixing before the phase can close.
+
+**Phase 39 handoff → see `.planning/phases/39-playthrough-polish-grounded-patrolling-skeletons-sliding-spi/.continue-here.md` for full detail.** Quick state:
+- 39-01..39-07 committed WITH SUMMARYs; 39-08 Task 1 (frozen re-baseline `71137e7`) + Task 2 (gate suite) done; Task 3 (human playthrough + VER-02 kid-UAT) NOT approved.
+- Big root-cause win: Kaplay `patrol()` "born-finished" bug fixed (skeletons were frozen since Phase 36) — commit `938faae`.
+- Audit harness (`audit-phase21-mechanics.mjs`) substantially fixed by a Fable subagent — commit `6bae6d1` (isolated L1/L5/L8 now 18/18 triggered+resolved; 4 residual mover rows need a QUIET-machine sequential re-run to confirm — likely a parallel-run fps artifact).
+- MODEL NOTE: Opus struggled on this game's mechanic debugging; Fable found the root causes. Per user, escalate hard bugs to Fable (see memory `escalate-to-fable-on-issues`).
+Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (now ALSO covers Phase-39 revised platforming); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
+Last activity: 2026-07-20 — Phase 39 execution: 7/8 plans + audit-harness fix committed; 39-08 blocked on playthrough issues
 NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.
 Ignore untracked strays (pre-existing, not ours): .planning/phases/26-*/ + assets/enemy-{1,2,3}.png
 
