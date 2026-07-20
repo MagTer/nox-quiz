@@ -9,6 +9,10 @@ artifacts/
 __pycache__/
 *.pyc
 
+# Claude Code per-machine local settings (worktree.baseRef etc.) — machine-specific,
+# never shared. Set here so `gsd-tools worktree set-baseref` output doesn't clutter the tree.
+.claude/settings.local.json
+
 # Third-party Gothicvania source-pack downloads (multi-MB raw zips, re-fetchable any
 # time from .planning/research/v6-scouting/ASSET-SCOUTING.md's URL table). Only the
 # baked/cropped output PNGs get vendored into assets/ proper — this deliberately
