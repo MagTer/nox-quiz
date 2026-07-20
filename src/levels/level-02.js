@@ -281,40 +281,13 @@ export const LEVEL_02 = {
 
     // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
     // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
-    // HEAVIER density for the INTENSE-EVEN swamp spire: ONE moving platform + TWO
-    // patrollers (3 motion entities, matching the level-06 intense template), each
-    // authored to the LEVEL-DESIGN §6a/§6b HARD rules —
-    //   * BOTH mover endpoints reachable RIGHTWARD from spawn (§6a static-validator limit),
-    //   * a checkpoint before each (§6b rule 1),
-    //   * solid floor UNDER the mover so a miss = WAIT, never a killing pit (§6b rule 2),
-    //   * far end telegraphed (§6b rule 4).
-    // Placement discipline (the level-05/06 trial finding): a ridden mover parks the player
-    // ELEVATED and strands the x-sorted audit's NEXT blocker-drive, so the mover is the
-    // LAST encounter (past the enemy@6030, on the wide calm F8 run-in); the two patrollers
-    // are HOVERING WRAITHS at y:214 over FLAT grounded walk-lanes (the walk-only
-    // spawn->goal driver passes safely beneath — no-softlock browser-boot proof — while a
-    // JUMPING player still meets each). NONE placed on a spire climb/descent lane or a
-    // takeoff/landing band (a solid mover in an airborne band catches the descending
-    // driver; a wraith over a jump takeoff respawn-loops it). Swamp-legibility (36-06 flag):
-    // both wraiths ride the OPEN horizontal floor runs where they read clearest.
-    movers: [
-      // M0 — a WIDE (w140) lateral ferry over the calm F8 goal run-in (7000..7480), the
-      // level's LAST audit encounter (riding it strands no later blocker-drive — enemy@6030
-      // is already past). Modelled on level-06's proven goal-floor mover: a WIDE ledge on a
-      // goal floor whose ONLY downstream feature is the GOAL (a clean "soft reset" — the rare
-      // overshoot that reaches goal@7360 just ends that audit attempt and the next reload
-      // retries). The load-bearing reliability lever (found by tuning the 36-07 audit mount):
-      // the ledge must be WIDE (w140, not the first-pass w80) so the audit's ~160px running
-      // mount-jump lands ON the ledge instead of sailing past it — w140 rides att=1 in the
-      // interactive audit; w80 never mounted. (Default CONFIG.MOVER.PERIOD_S — a per-mover
-      // `period` slow-down was trialled but did NOT help this short-approach F8 mover, so it
-      // is omitted.) Right extent (7140+140 = 7280) leaves ~80px of solid F8 before the goal.
-      // Both endpoints y:250 = rise 70 from FLOOR_Y 320 →
-      // mover-reachability PASS/WARN (from F8, rightward). Behind checkpoint@7040; solid F8
-      // under it → a missed hop lands back on F8 to WAIT (no killing pit). The goal-drive
-      // walks under it (head 288 vs ledge 250..266 = 22px).
-      { x1: 7040, y1: 250, x2: 7140, y2: 250, w: 140 },
-    ],
+    // TWO grounded skeleton patrollers on the flat F1/F5 lanes, authored to the
+    // LEVEL-DESIGN §6a/§6b HARD rules (checkpoint before each; contact = respawn only).
+    // Batch-2 (2026-07-20): the F8 goal-run-in mover ({x1:7040, x2:7140, w:140} at y:250)
+    // was REMOVED — it floated pointlessly above the solid final floor by the finish flag
+    // (live-playthrough flag). F8 is plain solid ground beneath its old sweep, so removing
+    // it strands nothing. EXEMPT motion key; frozen-hash-neutral.
+    movers: [],
     patrollers: [
       // P0 — a grounded swamp SKELETON walking the FLAT F1 lane (600..1040) AFTER the
       // door@800 and BEFORE the F1->F2 gap takeoff (~1040). POL-01 (Phase 39): feet on
