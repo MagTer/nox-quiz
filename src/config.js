@@ -126,9 +126,15 @@ export const CONFIG = {
     // reachability model (reachability.mjs solidBoxes) BOTH read these — Kaplay loads
     // sprites async, so the loaded sprite's width/height may NOT be readable at build
     // time; async sprite introspection is at most a FALLBACK, never the source of truth.
-    // Per-prop `solidW`/`solidH` override these defaults. ~24×24 = a barrel/crate footprint.
-    SOLID_W: 24, // px — default solid-prop collider width (town barrel/crate footprint). Per-prop `solidW` override allowed.
-    SOLID_H: 24, // px — default solid-prop collider height. Per-prop `solidH` override allowed. Under the ~88px jump envelope (docs/LEVEL-DESIGN.md) so a solid prop stays jump-clearable.
+    // Per-prop `solidW`/`solidH` override these defaults.
+    // WYSIWYG (2026-07-20 play-test fix): build.js now DRAWS a solid prop's sprite at
+    // exactly solidW x solidH, so collider == visible art by construction. Every shipped
+    // solid prop therefore sets per-prop solidW/solidH to its sprite's TRUE pixel size
+    // (town-barrel 24x30, town-crate 39x35 — measured from assets/props/*.png); these
+    // defaults are only the fallback for a future solid prop that omits them (and would
+    // scale that prop's art to 24x24 — set the real size instead).
+    SOLID_W: 24, // px — FALLBACK solid-prop collider width. Per-prop `solidW` (the sprite's true width) preferred.
+    SOLID_H: 24, // px — FALLBACK solid-prop collider height. Per-prop `solidH` (the sprite's true height) preferred. Keep well under the ~88px jump envelope (docs/LEVEL-DESIGN.md) so a solid prop stays jump-clearable.
   },
 
   // --- Terrain rendering tunables (ART-02/ART-03; Phase 32) ---

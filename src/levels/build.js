@@ -538,7 +538,13 @@ export function buildLevel(levelData) {
         (a) => Math.hypot(a.x - pr.x, a.y - pr.y) <= CONFIG.AMBIENT.LINK_DIST,
       );
     const propObj = add([
-      sprite(pr.sprite),
+      // WYSIWYG solid props (2026-07-20 play-test: the crate's collider didn't match the
+      // drawn crate): a SOLID prop is drawn at EXACTLY solidW x solidH — the same box its
+      // area() collider uses below — so collider == visible art by construction. The level
+      // data sets per-prop solidW/solidH to the sprite's TRUE pixel size (barrel 24x30,
+      // crate 39x35), making this draw an identity (no distortion) while guaranteeing the
+      // two can never diverge again. Decoration props keep the natural-size draw.
+      isSolid ? sprite(pr.sprite, { width: solidW, height: solidH }) : sprite(pr.sprite),
       pos(pr.x, pr.y),
       // Solid props sit at play depth (SOLID_Z, z(0)) so they visually block; default
       // decoration props stay at the negative Z_SURFACE/Z_BACK depths (behind the player).

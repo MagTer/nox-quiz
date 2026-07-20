@@ -281,8 +281,8 @@ export const LEVEL_04 = {
 
     // On-surface accents on the three wide floors ONLY (y = 320 - spriteHeight) — off
     // every switchback tier, the beam traverse, and the key spur.
-    { sprite: "prop-town-barrel", x: 200, y: 290, layer: "surface", solid: true }, //   POL-04 SOLID jump-over — F0 (moved from x:60; a solid prop must NOT overlap the checkpoint@96 respawn point — the player respawns INSIDE the collider and death-loops — nor SPAWN_X 64, so 200 keeps an 88px gap), before the door@360; 24px collider << 88px jump envelope
-    { sprite: "prop-town-crate", x: 2860, y: 285, layer: "surface", solid: true }, //  POL-04 SOLID jump-over — F1 (moved from 2760: clears the checkpoint@2820 respawn point, ~24px gap, and coin@2900), before the enemy@3100
+    { sprite: "prop-town-barrel", x: 200, y: 290, layer: "surface", solid: true, solidW: 24, solidH: 30 }, //   POL-04 SOLID jump-over — F0 (moved from x:60; a solid prop must NOT overlap the checkpoint@96 respawn point — the player respawns INSIDE the collider and death-loops — nor SPAWN_X 64, so 200 keeps an 88px gap), before the door@360; solidW/H = town-barrel.png's TRUE 24x30 (WYSIWYG collider == art, 2026-07-20), 30px << 88px jump envelope
+    { sprite: "prop-town-crate", x: 2860, y: 285, layer: "surface", solid: true, solidW: 39, solidH: 35 }, //  POL-04 SOLID jump-over — F1 (moved from 2760: clears the checkpoint@2820 respawn point, ~24px gap, and coin@2900 — crate right edge 2899 still left of it), before the enemy@3100; solidW/H = town-crate.png's TRUE 39x35 (WYSIWYG collider == art, 2026-07-20)
     { sprite: "prop-town-sign", x: 4480, y: 276, layer: "surface" }, //   F2 landing corner, before spike@4750
 
     // Phase 36 (MOT-03/MECH-05): the town LIGHT that marks + links the secret alcove — a
