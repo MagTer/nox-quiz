@@ -108,22 +108,13 @@ export const LEVEL_08 = {
       // --- Spawn-area optional hop that hosts the secret alcove (rise 66 from F0) ---
       { x: 280, y: 254, w: 120, h: 16 }, // PA — hosts alcove@320,184
 
-      // --- THE BARBICAN (bridges the 640px moat F2→F3): a MANDATORY 200px climb + DESCENT.
-      // Open air (non-overlapping) so the required descent stays legible. Rises 64–70 (the
-      // gentler non-overlapping band), gaps 40 (the proven level-07 gatehouse spacing). ---
-      { x: 1920, y: 250, w: 120, h: 16 }, // BA — rise 70 from F2 (gap 40 off F2's edge 1880)
-      { x: 2080, y: 184, w: 120, h: 16 }, // BB — rise 66 from BA (gap 40)
-      { x: 2240, y: 120, w: 150, h: 16 }, // BC — rise 64 from BB (gap 40) — the PEAK, y:120 = 200px climb (wide gate top)
-      { x: 2430, y: 200, w: 110, h: 16 }, // BD — the DESCENT: drop 80 from the peak (gap 40), then drop 120 down to F3
-
-      // --- THE BROKEN DRAWBRIDGE (bridges the 520px chasm F5→F6): two raised STONE stepping
-      // stones over a real fall — a miss drops into the chasm — but the REQUIRED crossing
-      // (§3.5: the 520px gap is far past a bare jump, so the stones ARE the route). Sized to
-      // the reach model (34.6-08 lesson): F5→SS1 is a rise (long root ~132 lands inside SS1),
-      // SS1→SS2 is a FLAT hop (fixed ~162 reach lands inside the 120px-wide SS2), SS2→F6 is a
-      // drop. NOT a chain of narrow same-height stones (which overshoot). ---
-      { x: 4560, y: 262, w: 120, h: 16 }, // SS1 — rise 58 from F5 (gap 80 off F5's edge 4480)
-      { x: 4800, y: 262, w: 120, h: 16 }, // SS2 — flat hop from SS1 (gap 120); drop 58 down onto F6 (gap 80)
+      // POL-03 (decision #3, 2026-07-19): the static stepping-stones that used to bridge the
+      // 640px MOAT (F2→F3, the BARBICAN outwork BA/BB/BC/BD) and the 520px DRAWBRIDGE CHASM
+      // (F5→F6, the stones SS1/SS2) are REMOVED. Each pit is now spanned by a FLOOR-LEVEL
+      // MOVING PLATFORM (see geometry.movers below) that ferries the player across; a missed
+      // ride falls into the pit → respawn to the checkpoint before it (@1820 moat / @4440 chasm),
+      // never a true softlock. Removing these frozen `platforms` (+ their coins/checkpoints)
+      // INTENTIONALLY trips check-geometry-frozen — the --write re-baseline is plan 39-08's task.
 
       // ================= THE THRONE KEEP — the 740px switchback finale =================
       // A colossal folding spire off F8. Every overlapping pair rises 74 (h:16 → 26px headroom).
@@ -169,19 +160,16 @@ export const LEVEL_08 = {
       { x: 320, y: 198 }, // PA (near the secret alcove)
       { x: 760, y: 264 }, // F1 (before the door)
       { x: 1040, y: 264 }, // F1 (after the door)
-      // The barbican outwork:
-      { x: 1970, y: 194 }, // BA (ascent)
-      { x: 2310, y: 64 }, // BC (the gate PEAK — the climb's reward)
-      { x: 2480, y: 144 }, // BD (descent)
+      // POL-03: the barbican-outwork coins (BA@1970, BC@2310, BD@2480) were REMOVED with the
+      // stepping-stones that carried them — the moat is now a floor-level ferry (no climb tiers).
       { x: 2620, y: 264 }, // F3 (before spike2)
       { x: 2960, y: 264 }, // F3 (past spike2)
       { x: 3300, y: 264 }, // F4 (before the enemy)
       { x: 3660, y: 264 }, // F4 (past the enemy)
       { x: 4000, y: 264 }, // F5 (before spike3)
       { x: 4380, y: 264 }, // F5 (past spike3, before the chasm)
-      // The broken drawbridge:
-      { x: 4620, y: 206 }, // SS1
-      { x: 4860, y: 206 }, // SS2
+      // POL-03: the drawbridge-stone coins (SS1@4620, SS2@4860) were REMOVED with the stepping-
+      // stones — the chasm is now a floor-level ferry.
       { x: 5100, y: 264 }, // F6 (past the chasm, before spike4)
       { x: 5440, y: 264 }, // F6 (past spike4)
       { x: 5820, y: 264 }, // F7 (before spike5)
@@ -235,19 +223,17 @@ export const LEVEL_08 = {
       { x: 96, y: FLOOR_Y - 48 }, // start (F0)
       { x: 660, y: FLOOR_Y - 48 }, // F1 — before the door@880
       { x: 1360, y: FLOOR_Y - 48 }, // F2 — before spike1@1600
-      { x: 1820, y: FLOOR_Y - 48 }, // before the MOAT + barbican (F2 end)
-      { x: 1960, y: 250 - 48 }, // BA — barbican ascent tier 1
-      { x: 2120, y: 184 - 48 }, // BB — barbican ascent tier 2
-      { x: 2300, y: 120 - 48 }, // BC — the PEAK
-      { x: 2470, y: 200 - 48 }, // BD — barbican descent tier
-      { x: 2560, y: FLOOR_Y - 48 }, // F3 landing (post-moat)
+      { x: 1820, y: FLOOR_Y - 48 }, // before the MOAT ferry (F2 end) — respawn for a missed moat ride
+      // POL-03: the four barbican-tier checkpoints (BA/BB/BC/BD) were REMOVED with the tiers.
+      // A missed moat ferry falls to @1820 (F2, solid, re-approachable) → no true softlock.
+      { x: 2560, y: FLOOR_Y - 48 }, // F3 landing (post-moat ferry)
       { x: 2740, y: FLOOR_Y - 48 }, // before spike2@2800 (F3)
       { x: 3430, y: FLOOR_Y - 48 }, // F4 — before the enemy@3500
       { x: 4130, y: FLOOR_Y - 48 }, // F5 — before spike3@4200
-      { x: 4440, y: FLOOR_Y - 48 }, // before the CHASM + drawbridge (F5 end)
-      { x: 4600, y: 262 - 48 }, // SS1 — drawbridge stone 1
-      { x: 4840, y: 262 - 48 }, // SS2 — drawbridge stone 2
-      { x: 5040, y: FLOOR_Y - 48 }, // F6 landing (post-chasm)
+      { x: 4440, y: FLOOR_Y - 48 }, // before the CHASM ferry (F5 end) — respawn for a missed chasm ride
+      // POL-03: the two drawbridge-stone checkpoints (SS1/SS2) were REMOVED with the stones.
+      // A missed chasm ferry falls to @4440 (F5, solid, re-approachable) → no true softlock.
+      { x: 5040, y: FLOOR_Y - 48 }, // F6 landing (post-chasm ferry)
       { x: 5210, y: FLOOR_Y - 48 }, // before spike4@5280 (F6)
       { x: 5930, y: FLOOR_Y - 48 }, // F7 — before spike5@6000
       { x: 6480, y: FLOOR_Y - 48 }, // F8 — the throne-keep run-up
@@ -304,33 +290,47 @@ export const LEVEL_08 = {
     // ========================= MOTION (Phase 36-08) =========================
     // check-geometry-frozen EXCLUDES geometry.movers / geometry.patrollers — every static
     // array above stays byte-frozen; motion is ADD-ONLY via these two keys.
-    // INTENSE-EVEN density (the castle finale): ONE moving platform + TWO patrollers (3 motion
-    // entities — HEAVIER than the calm-odd 05/07's 2, matching the shipped level-06 intense
-    // template), each authored to the §6a/§6b HARD rules —
-    //   * BOTH mover endpoints reachable RIGHTWARD from spawn (§6a),
-    //   * a checkpoint before each (§6b rule 1),
-    //   * solid castle floor UNDER the mover (a miss = WAIT, no killing pit — §6b rule 2),
-    //   * far end telegraphed (§6b rule 4).
-    // NO-SOFTLOCK OVER SWITCHBACK-DRAMA (the 36-05/36-07 precedent, load-bearing): the THRONE
-    // KEEP is a TIGHT 26px-headroom folding spire over a 740px fall — a mover on a climb tier is
-    // both a softlock hazard AND unmountable by the headless driver (documented on level-04/06).
-    // So the mover rides the WIDE clean F8 keep RUN-UP (the last FLOOR_Y encounter, past the
-    // enemy@3500), and the two wraiths hover over grounded lower-gauntlet lanes. This keeps the
-    // walk-only browser-boot spawn->goal driver clear (the deterministic no-softlock proof) while
-    // a JUMPING player still meets every entity. level-08 stays the SWITCHBACK (its static keep is
-    // untouched); the motion layout is its own, distinct from level-07's staircase.
+    // INTENSE-EVEN density (the castle finale): TWO moving platforms + TWO grounded patrollers.
+    // POL-03 REPLACEMENT (2026-07-19, decision #3): the movers no longer ride solid floor as a
+    // JUMP hazard — they are now the REQUIRED FLOOR-LEVEL FERRIES across L8's two real pits (the
+    // 640px MOAT F2→F3 and the 520px DRAWBRIDGE CHASM F5→F6), replacing the removed static
+    // stepping-stones (the old barbican + drawbridge). Each is authored to the §6a/§6b HARD rules
+    // as a pit-crossing ferry —
+    //   * BOTH endpoints flush on the near/far FLOOR edges (board/alight are trivial walk-on/off),
+    //   * a checkpoint BEFORE each pit (@1820 moat / @4440 chasm, §6b rule 1),
+    //   * a missed ride falls into the pit → respawn to that checkpoint on solid floor (real
+    //     fall-stakes, NEVER a true softlock — the no-true-softlock mandate for a human player).
+    // The walk-only browser-boot driver RIDES each ferry via the shared driveToMover (the plan
+    // 39-03 ride capability; moverBridgesRealPit now fires), and validate-levels' reachability
+    // graph rides them via the POL-03 buildGraph bridge edge. level-08 stays the SWITCHBACK (its
+    // static keep is untouched); the two grounded wraiths patrol the lower-gauntlet floor lanes.
     movers: [
-      // M0 — a gentle castle-slab ferry over the WIDE F8 THRONE-KEEP RUN-UP (6440..7120), the
-      // level's LAST audit encounter (past the enemy@3500; riding it strands no later blocker).
-      // Placed in F8's run-up LEFT stretch, clear of BOTH the F7->F8 landing (~6440..6540) and
-      // the K1 keep-climb takeoff (K1 left edge 6680): right extent (6600+60) = 6660 stays 20px
-      // left of K1, so it never overlaps a keep climb tier and the keep climb reads clean. y:250
-      // = rise 70 from FLOOR_Y 320 -> reachability PASS/WARN (from F8, rightward). Behind
-      // checkpoint@6480; solid F8 under it -> a missed hop lands back on F8 to WAIT (no killing
-      // pit). WALK-REACHED: x1:6560 sits in F8's flat run past the F7->F8 landing (~6440..6540)
-      // and clear of the K1 keep-climb takeoff (K1 left edge 6680; ledge right extent 6660), so
-      // the driver walks straight onto it and the ledge never overhangs the K1 climb arc.
-      { x1: 6560, y1: 250, x2: 6600, y2: 250, w: 60 },
+      // POL-03 (decision #3) — TWO FLOOR-LEVEL FERRIES spanning L8's two REAL pits (replacing
+      // both the old solid-floor M0 AND the removed static stepping-stones). Each rides at
+      // FLOOR_Y (y:320) with its two rest endpoints flush on the near/far floor edges, so the
+      // player WALKS ON at one rest, is carried NATIVELY (body stickToPlatform) across the pit,
+      // and WALKS OFF onto the far floor at the other rest — a horizontal drawbridge. Because the
+      // endpoints sit flush on real surfaces, validate-levels' buildGraph adds a RIDE bridge edge
+      // (POL-03 reachability teach) so the far side validates as reachable; browser-boot's
+      // walk-only driver rides them via the shared driveToMover (moverBridgesRealPit fires now).
+      // A MISSED ride (walking off over the pit before the ferry arrives) falls to respawn at the
+      // checkpoint BEFORE the pit (@1820 moat / @4440 chasm, both on solid re-approachable floor)
+      // — real fall-stakes, NEVER a true softlock. w:120 (wide, forgiving mount).
+
+      // WIDE (w:180) + slow (period:6) for a FORGIVING, reliably-boardable ferry: the walk-only
+      // driver mounts by hopping right off the near floor (its arc lands ~140px past the board
+      // point), so the wide deck catches it regardless of the ferry's phase, and the slow
+      // raised-cosine dwells long at each rest endpoint (a generous board/alight window). Both
+      // far rests stop short of the first post-pit spike (moat far edge 2700 < spike@2800; chasm
+      // far edge 5180 < spike@5280) so the ferry never carries a rider onto a spike.
+
+      // M-MOAT — spans the 640px MOAT (F2 ends 1880 → F3 starts 2520). Near rest [1880,2060]
+      // touches F2's edge (board); far rest [2520,2700] sits on F3 (alight). Behind checkpoint@1820.
+      { x1: 1880, y1: 320, x2: 2520, y2: 320, w: 180, period: 6 },
+      // M-CHASM — spans the 520px DRAWBRIDGE CHASM (F5 ends 4480 → F6 starts 5000). Near rest
+      // [4480,4660] touches F5's edge (board); far rest [5000,5180] sits on F6 (alight). Behind
+      // checkpoint@4440.
+      { x1: 4480, y1: 320, x2: 5000, y2: 320, w: 180, period: 6 },
     ],
     patrollers: [
       // Two castle WRAITHS hovering at y:214 (frame bottom ~266, a 22px gap ABOVE the walking
