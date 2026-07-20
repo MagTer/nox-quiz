@@ -173,39 +173,19 @@ export const LEVEL_06 = {
 
     // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
     // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
-    // HEAVIER density for the intense EVEN level (the density + no-softlock stress test):
-    // ONE moving platform + TWO patrollers (3 motion entities vs level-01's 2), each
-    // authored to the §6a/§6b HARD rules —
-    //   * BOTH mover endpoints reachable RIGHTWARD from spawn (§6a),
-    //   * a checkpoint before each (§6b rule 1),
-    //   * solid catacomb floor UNDER the mover (a miss = WAIT, no killing pit — §6b rule 2),
-    //   * far end telegraphed (§6b rule 4),
-    //   * NOTHING on the F4 goal runway — it stays a clean full-speed lane (the level-06
-    //     goal-drive invariant).
-    // Placement discipline (verified against the in-engine driver): level-06's vertical
-    // switchback keeps the player AIRBORNE across wide bands (the DS4->F1 landing
-    // ~x1540..1650, the PL1->F2 landing ~x2350..2440, the PL2->F3 landing ~x3120..3190, and
-    // the spike/gap jumps). A SOLID mover ledge in an airborne band catches the descending
-    // player ("never landed"); a hovering wraith in one respawns it mid-hop. AND a ridden
-    // mover leaves the player parked ON it (elevated), which strands the NEXT blocker-drive
-    // in the x-sorted audit — so the mover is placed as the LAST encounter (after the
-    // enemy, mirroring level-01's ridden F4 mover), while the two wraiths hover over
-    // grounded walk-lanes (patrollers pass through at floor level and never strand a later
-    // drive). This keeps the walk-only spawn->goal driver clear (no-softlock browser-boot
-    // proof) and the audit's ride/cross reliable, while a JUMPING player still meets each.
-    movers: [
-      // M1 — coffin-slab ferry over the WIDE goal floor F4 (3790..4470), the level's LAST
-      // audit encounter (riding it strands no later drive). F4 is the only catacomb floor
-      // wide enough to give the audit's rightward-hop mount room to overshoot-and-retry
-      // without running off the ledge (on the cramped F3 the mount overshot across the
-      // F3->F4 gap and could never recover). Placed in F4's LEFT-CENTRE, clear of BOTH the
-      // bare-gap landing (~3850) and the goal@4300 runway: rightmost extent (3990 + 130)
-      // stays 180px left of the goal so the driven player still sweeps the goal collider at
-      // full speed. y:250 = rise 70 from FLOOR_Y 320 → reachability PASS (from F4,
-      // rightward). Wide (w130) for a reliable mount; solid F4 under it → miss = WAIT; the
-      // goal-drive walks under it (22px head clearance).
-      { x1: 3900, y1: 250, x2: 3990, y2: 250, w: 130 },
-    ],
+    // TWO grounded skeleton patrollers on the flat F1/F2 catacomb lanes (§6a/§6b HARD
+    // rules: checkpoint before each; contact = respawn only) + a NEW sliding ground spike
+    // on F3 (Batch-2, below). Placement discipline: level-06's vertical switchback keeps
+    // the player AIRBORNE across wide bands (the DS4->F1 landing ~x1540..1650, the
+    // PL1->F2 landing ~x2350..2440, the PL2->F3 landing ~x3120..3190, and the spike/gap
+    // jumps) — nothing moving is placed in those bands.
+    // Batch-2 (2026-07-20): the F4 goal-floor mover ({x1:3900, x2:3990, w:130} at y:250)
+    // was REMOVED — it floated pointlessly above the solid catacomb goal floor
+    // (live-playthrough flag: nothing to reach from it, the route walks under it). F4 is
+    // plain solid ground beneath its old sweep, so removing it strands nothing — and the
+    // F4 goal runway stays the clean full-speed lane the goal-drive invariant wants.
+    // EXEMPT motion key; frozen-hash-neutral.
+    movers: [],
     patrollers: [
       // POL-01 (Phase 39): both crypt skeletons GROUNDED (y:214 hover -> y:268, feet on
       // FLOOR_Y 320, 44x52 frame) and widened @speed 80 so each visibly WALKS its catacomb
@@ -227,6 +207,18 @@ export const LEVEL_06 = {
       // past it. Coin@2380 sits left of the sweep. Contact respawns to checkpoint@2370
       // (still on F2; door already open — no re-gate).
       { x1: 2435, y1: 268, x2: 2540, y2: 268, speed: 80 },
+    ],
+
+    // ===================== SLIDING SPIKES (POL-02 pattern; Batch-2 2026-07-20) =====================
+    // The proven L5/L7 shadow recipe (sweep = static spike +30..+100; the planned
+    // static-spike hop arcs over the whole cluster). EXEMPT from the freeze hash.
+    slidingSpikes: [
+      // S0 — slides along the F3 catacomb floor (3120..3640) just past the static
+      // spike@3300, sweeping 3330<->3400 (70px). checkpoint@3220 sits BEFORE the static
+      // spike (safe run-up, never inside the sweep); clear of coin@3500 (right of the
+      // sweep, walked through after the hop) and the F3->F4 bare-gap takeoff (~3610).
+      // Default 3s period.
+      { x1: 3330, y1: FLOOR_Y - CONFIG.SPIKE_SIZE, x2: 3400, y2: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
   },
 
