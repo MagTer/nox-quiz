@@ -1226,13 +1226,20 @@ export async function driveToMover(page, encounter, geometry) {
   // (`gm` — this mover's descriptor — is hoisted above the phase-gated mount block, which
   // reads the same authored x1/x2/period data.)
   if (gm) {
-    const farEndX = Math.max(gm.x1, gm.x2); // rightward travel toward the goal
-    // Deposit the rider MINIMALLY — just onto the far floor's near edge (farEndX sits flush on
-    // it), not walked all the way to the mover's far edge. Over-walking parks her hard against
-    // the first hazard past the pit with no run-up (observed: level-08's F3 spike@2800 sits
-    // ~280px past the moat's far edge 2520; a rider dumped at 2784 could never build a clearing
-    // hop and the drive stalled). Stopping at the pit edge preserves the full far-floor run-up.
-    const offThreshold = farEndX + 12;
+    const farEndX = Math.max(gm.x1, gm.x2); // deck LEFT edge at its far rest (rightward travel)
+    // Off = grounded past the deck's far EDGE (left edge + width), i.e. genuinely standing on
+    // the far floor — NOT merely past the far rest's left-corner x. 2026-07-20 regression fix:
+    // the L8 ferry retune docks the deck at the pit LIP (far rest left edge 2360/4840 hangs
+    // OVER the pit; only the deck's right 20px laps onto the far floor), so the old
+    // `farEndX + 12` threshold was satisfied by a grounded rider still mid-pit ON the deck —
+    // the dismount exited early, the deck ferried the stranded rider back, and the follow-up
+    // walk marched into the pit (browser-boot's L8 stall: repeated deaths to checkpoint@1820,
+    // then 8 doomed floor-2 -> floor-3 jump attempts). Pre-retune this was benign only because
+    // the far rest parked the WHOLE deck on the far floor. Adding the deck width makes "off"
+    // provably on-floor for both dock styles. Deposit stays MINIMAL — just past the deck's far
+    // edge (moat: 2360+180+12 = 2552, preserving ~248px of run-up to the F3 spike@2800; the
+    // over-walk-to-hazard class the original comment warned about stays impossible).
+    const offThreshold = farEndX + (gm.w ?? CONFIG.MOVER.WIDTH) + 12;
     const dismountDeadline = Date.now() + 10_000;
     let off = false;
     while (!off && Date.now() < dismountDeadline) {
