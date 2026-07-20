@@ -5,10 +5,10 @@ milestone_name: SNES-Fidelity World
 current_phase: 39
 current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 status: executing
-stopped_at: 39-08 paused at human playthrough checkpoint — user found issues during UAT, needs rework
+stopped_at: "Phase 39 post-UAT bug-fix rounds done + DEPLOYED (sha-3755b61); awaiting 2nd human playthrough on nox.falle.se"
 last_updated: "2026-07-20T00:08:10.151Z"
 last_activity: 2026-07-20
-last_activity_desc: "Phase 39: 7/8 plans committed + audit harness fixed (Fable); 39-08 blocked on playthrough issues"
+last_activity_desc: "Phase 39: Batch 1 (mechanics) + Batch 2 (level cleanup) fixed the 1st-playthrough bugs; deployed to nox.falle.se; awaiting 2nd playthrough"
 progress:
   total_phases: 14
   completed_phases: 10
