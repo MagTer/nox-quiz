@@ -182,25 +182,13 @@ export const LEVEL_05 = {
     // ========================= MOTION (Phase 36-08) =========================
     // check-geometry-frozen EXCLUDES geometry.movers / geometry.patrollers — every static
     // array above stays byte-frozen; motion is ADD-ONLY via these two keys.
-    // CALM-ODD density (the cemetery calm intro): ONE moving platform + ONE patroller (2 motion
-    // entities — LIGHTER than the intense-even 06/08's 3, but never mover-free), each authored to
-    // the §6a/§6b HARD rules with generous margins — both mover endpoints reachable RIGHTWARD
-    // from spawn, a checkpoint before each, solid basin floor UNDER the mover (miss = WAIT, no
-    // killing pit), far end telegraphed. Layout distinct from level-06 (the cemetery pair): a
-    // basin-F6 ferry (not level-06's goal-floor F4) + a crypt wraith over F2 before the enemy
-    // (not level-06's F1/F2 lanes).
-    movers: [
-      // M0 — a coffin-slab ferry over the WIDE basin far-end floor F6 (4780..5280), the level's
-      // LAST audit encounter (past the enemy@1850; riding it strands no later blocker). F6 is the
-      // out-climb launch floor; the mover sits in its CENTRE, clear of BOTH the PL5->F6 drop
-      // landing (~4680..4780) and the F6->OC1 out-climb takeoff (OC1 left edge 5310, off F6's
-      // right edge 5280): right extent (5070+130) = 5200 stays 80px left of the takeoff, so the
-      // climb-out reads clean. y:250 = rise 70 from FLOOR_Y 320 -> reachability PASS/WARN (from
-      // F6, rightward). Behind checkpoint@4800 (F6 out-climb approach); solid F6 under it -> a
-      // missed hop lands back on F6 to WAIT (no killing pit). The goal-drive walks under it
-      // (22px head clearance), then climbs OC1->XL to the goal.
-      { x1: 4980, y1: 250, x2: 5070, y2: 250, w: 130 },
-    ],
+    // Batch-2 (2026-07-20): the F6 basin mover ({x1:4980, x2:5070, w:130} at y:250) was
+    // REMOVED — it floated pointlessly above the solid basin floor in the middle of the
+    // level (live-playthrough flag: nothing to reach from it, the route walks under it).
+    // F6 is plain solid ground beneath its old sweep, so removing it strands nothing.
+    // EXEMPT motion key; frozen-hash-neutral. The level keeps its grounded F1 skeleton
+    // patroller and its F3 sliding spike (human-approved: "L5's sliding spike is good").
+    movers: [],
     patrollers: [
       // P0 — POL-01 (Phase 39): GROUNDED skeleton walking the F1 basin lane AFTER the
       // door@1080 and BEFORE the F1->PL1 takeoff (~1350). Dropped from the old y:214 hover to
