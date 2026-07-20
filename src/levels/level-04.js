@@ -71,11 +71,15 @@ export const LEVEL_04 = {
       { x: 740, y: 24, w: 220, h: 16 }, //  A4 [3] rise 74, up-right — Tower A top, y:24 (296px), onto the traverse
 
       // ================= THE HIGH BEAM TRAVERSE at y:24 (the "across") =================
-      { x: 1080, y: 24, w: 150, h: 16 }, // BM1 [4] flat from A4 (gap 120, spanMax 270)
-      { x: 1330, y: 24, w: 150, h: 16 }, // BM2 [5] flat (gap 100)
-      { x: 1580, y: 24, w: 150, h: 16 }, // BM3 [6] flat (gap 100)
-      { x: 1830, y: 24, w: 150, h: 16 }, // BM4 [7] flat (gap 100)
-      { x: 2080, y: 24, w: 150, h: 16 }, // BM5 [8] flat (gap 100)
+      // Batch-2 (2026-07-20): BM2 + BM3 (two of the five identical flat beams — flagged
+      // monotonous in the live playthrough) are REMOVED; the widened 600px gap
+      // (BM1 ends 1230 -> BM4 starts 1830) is ferried by a BEAM-LEVEL moving platform
+      // (see geometry.movers) whose rest endpoints sit flush on BM1/BM4, so the ride
+      // validates via the buildGraph surface-flush bridge edge and browser-boot rides it
+      // via the shared driveToMover. Their two beam coins + the BM3 checkpoint went too.
+      { x: 1080, y: 24, w: 150, h: 16 }, // BM1 [4] flat from A4 (gap 120, spanMax 270); ferry board beam
+      { x: 1830, y: 24, w: 150, h: 16 }, // BM4 [5] ferry alight beam
+      { x: 2080, y: 24, w: 150, h: 16 }, // BM5 [6] flat (gap 100)
 
       // ================= DESCENT to the mid valley floor F1 (walk-off-safe gaps) =========
       { x: 2280, y: 120, w: 180, h: 16 }, // BD1 [9]  drop 96 from BM5 (gap 50)
@@ -108,8 +112,8 @@ export const LEVEL_04 = {
       { x: 720, y: 42 }, //  A3
       { x: 850, y: -32 }, // A4 (tower A top)
       { x: 1150, y: -32 }, // BM1 (beam)
-      { x: 1400, y: -32 }, // BM2 (beam)
-      { x: 1650, y: -32 }, // BM3 (beam)
+      // Batch-2: the BM2/BM3 beam coins (@1400/@1650, y:-32) were removed with their beams
+      // (the ferried stretch has no static surface to witness them from).
       { x: 1900, y: -32 }, // BM4 (beam)
       { x: 2150, y: -32 }, // BM5 (beam)
       { x: 2370, y: 64 }, //  BD1 (descent)
@@ -156,8 +160,8 @@ export const LEVEL_04 = {
       { x: 800, y: 172 - 48 }, // A2
       { x: 680, y: 98 - 48 }, //  A3
       { x: 800, y: 24 - 48 }, //  A4 (tower A top)
-      { x: 1120, y: 24 - 48 }, // BM1 (traverse)
-      { x: 1620, y: 24 - 48 }, // BM3 (traverse)
+      { x: 1120, y: 24 - 48 }, // BM1 (traverse — also the pre-ferry checkpoint, §6b rule 1: a missed board falls into the pit and respawns here)
+      // Batch-2: the BM3 checkpoint (@1620) was removed with its beam.
       { x: 2120, y: 24 - 48 }, // BM5 (traverse end)
       { x: 2360, y: 120 - 48 }, // BD1 (descent)
       { x: 2590, y: 240 - 48 }, // BD2 (descent)
@@ -198,44 +202,24 @@ export const LEVEL_04 = {
 
     // --- Phase 36 MOTION (MOT-01/MOT-02) — ADD-ONLY keys, EXCLUDED from the
     // check-geometry-frozen snapshot (36-01); every static array above stays byte-frozen.
-    // HEAVIER density for the INTENSE-EVEN twin-towers town: ONE moving platform + TWO
-    // patrollers (3 motion entities, the level-06 intense template), each authored to the
-    // §6a/§6b HARD rules — both mover endpoints reachable RIGHTWARD from spawn, a checkpoint
-    // before each, solid floor UNDER the mover (miss = WAIT), far end telegraphed. The mover
-    // rides the WIDE F2 goal floor's LANDING (the level's LAST audit encounter, past the
-    // enemy@3100 and both towers — riding it strands no later blocker-drive). The two
-    // patrollers are HOVERING WRAITHS at y:214 over FLAT grounded walk-lanes (walk under /
-    // jump into) OFF every tower climb tier, the beam traverse, the descents, and every
-    // takeoff/landing band. Layout DISTINCT from level-02 (swamp spire, F8 last-floor mover).
+    // Batch-2 (2026-07-20) reshuffle, from the live playthrough:
+    //   * The old F2 mover ({x1:4460, x2:4540, w:120, period:10} at y:250) is REMOVED —
+    //     it floated pointlessly above the solid goal floor right before the finish flag
+    //     (and was the documented audit-unrideable one). F2 is plain solid ground beneath
+    //     its old sweep, so removing it strands nothing.
+    //   * The level's ONE mover is now the BEAM FERRY across the widened traverse gap
+    //     (replacing the removed BM2/BM3 static beams) — a mover that finally EARNS its
+    //     place: it is the only way across the 600px beam gap.
     movers: [
-      // M0 — a WIDE (w120), SLOW (period 10s) lateral ferry over the F2 goal floor's LANDING
-      // (4460..5260), in the flat stretch AFTER the BD5->F2 descent landing (~4460), placed
-      // CLEAR of the spike@4750: right extent (4540+120 = 4660) stays ~30px LEFT of the
-      // goal-drive's spike-jump takeoff (~4690) so the deterministic browser-boot goal-drive
-      // jumps the spike UNOBSTRUCTED (a wider ledge that overhangs the takeoff wedged the
-      // goal-drive at x~4581 — a NO-SOFTLOCK failure that this placement fixes; no-softlock
-      // is the load-bearing safety and OVERRIDES the audit-mount convenience).
-      // KNOWN LIMITATION (36-07, honest): the interactive headless audit's mount-driver does
-      // NOT reliably ride THIS mover. On the frozen twin-towers F2 the audit's ~200px running
-      // mount-jump lands at ~x4700 — inside the spike-jump zone — so the ONLY ledge the
-      // headless driver can mount is one that reaches x4700, which is exactly the ledge that
-      // blocks the goal-drive. Every no-softlock-safe placement (spike-clear F2, after-spike,
-      // F0/F1) was play-tested against the driver and none rode; the two constraints are
-      // irreconcilable on this one level's geometry. This is a HEADLESS-DRIVER limitation, not
-      // a game defect: a real player mounts a w120 ledge at rise 70 trivially, the mover is
-      // reachability-GREEN, and levels 02/03 movers + all five wraith patrollers DO ride the
-      // audit. `period: 10` keeps it a slow telegraphed near-static ride (the calm end of the
-      // audit-vs-safety trade). Behind checkpoint@4500; solid F2 under it → a missed hop lands
-      // on F2 to WAIT; an overshoot to the spike@4750 is a gentle respawn to checkpoint@4560
-      // ~2s away (§8.5 rule 4) — NOT a killing pit. Both endpoints y:250 = rise 70 from
-      // FLOOR_Y 320 → reachability PASS/WARN. Goal-drive walks under it (head 288 vs 250..266).
-      // POL-03 (Phase 39): the ~40px near-zero sweep is WIDENED to 80px (4460..4540) so the
-      // ferry VISIBLY slides. Only x1 moved LEFT (4500 -> 4460, the F2 left edge) — x2 and w
-      // are held so the rightmost extent stays x2+w = 4660, ~30px LEFT of the goal-drive's
-      // spike-jump takeoff (~4690): the documented NO-SOFTLOCK constraint above is preserved
-      // byte-for-byte. Both endpoints y:250 ride solid F2 (miss = WAIT, no pit). EXEMPT motion
-      // key — frozen-hash-neutral.
-      { x1: 4460, y1: 250, x2: 4540, y2: 250, w: 120, period: 10 },
+      // M0 — the BEAM FERRY at traverse altitude (y:24), spanning BM1 (ends 1230) ->
+      // BM4 (starts 1830) over the tower pit. Rest endpoints are SURFACE-FLUSH on the two
+      // beams (the L8 POL-03 ferry recipe at altitude): near rest deck [1230,1410] flush
+      // on BM1's right edge (walk-on board); far rest deck [1670,1850] laps 20px onto BM4
+      // (alight at the lip). w:180 + period:6 = the forgiving, reliably boardable L8 ferry
+      // tune. Behind checkpoint@1120 on BM1 (§6b rule 1); a missed board falls into the
+      // pit -> fall-respawn there (solid, re-approachable — the sanctioned POL-03
+      // fall-stakes pattern, never a true softlock).
+      { x1: 1230, y1: 24, x2: 1670, y2: 24, w: 180, period: 6 },
     ],
     patrollers: [
       // P0 — a GROUNDED town SKELETON (POL-01, Phase 39) walking the FLAT F0 spawn lane
@@ -255,6 +239,18 @@ export const LEVEL_04 = {
       // — no re-gate). Distinct "patroller" walk sprite (36-10) reads apart from the
       // math-blocker enemy@3100.
       { x1: 3140, y1: 268, x2: 3300, y2: 268, speed: 80 },
+    ],
+
+    // ===================== SLIDING SPIKES (POL-02 pattern; Batch-2 2026-07-20) =====================
+    // The proven L5/L7 shadow recipe (sweep = static spike +30..+100; the planned
+    // static-spike hop arcs over the whole cluster). EXEMPT from the freeze hash.
+    slidingSpikes: [
+      // S0 — slides along the F2 goal floor (4460..5260) just past the static spike@4750,
+      // sweeping 4780<->4850 (70px). checkpoint@4560 sits BEFORE the static spike (190px
+      // runway, never inside the sweep); the goal@5000 leaves ~130px of clear floor past
+      // the sweep for the hop landing. With the old F2 mover gone the spike-jump takeoff
+      // (~4690) is unobstructed. Default 3s period.
+      { x1: 4780, y1: FLOOR_Y - CONFIG.SPIKE_SIZE, x2: 4850, y2: FLOOR_Y - CONFIG.SPIKE_SIZE },
     ],
   },
 

@@ -340,9 +340,10 @@ const deepEqual = (a, b) => {
       { x: 740, y: 172, w: 220, h: 16 },
       { x: 620, y: 98, w: 220, h: 16 },
       { x: 740, y: 24, w: 220, h: 16 },
+      // Re-baselined 2026-07-20 (Batch-2 level cleanup): BM2 (@1330) and BM3 (@1580)
+      // removed from the beam traverse — the widened gap is spanned by a beam-level
+      // ferry (geometry.movers, a freeze-EXEMPT motion key stripped below).
       { x: 1080, y: 24, w: 150, h: 16 },
-      { x: 1330, y: 24, w: 150, h: 16 },
-      { x: 1580, y: 24, w: 150, h: 16 },
       { x: 1830, y: 24, w: 150, h: 16 },
       { x: 2080, y: 24, w: 150, h: 16 },
       { x: 2280, y: 120, w: 180, h: 16 },
@@ -366,8 +367,8 @@ const deepEqual = (a, b) => {
       { x: 720, y: 42 },
       { x: 850, y: -32 },
       { x: 1150, y: -32 },
-      { x: 1400, y: -32 },
-      { x: 1650, y: -32 },
+      // Re-baselined 2026-07-20 (Batch-2): the BM2/BM3 beam coins (@1400/@1650) were
+      // removed with their beams.
       { x: 1900, y: -32 },
       { x: 2150, y: -32 },
       { x: 2370, y: 64 },
@@ -399,7 +400,8 @@ const deepEqual = (a, b) => {
       { x: 680, y: 50 },
       { x: 800, y: -24 },
       { x: 1120, y: -24 },
-      { x: 1620, y: -24 },
+      // Re-baselined 2026-07-20 (Batch-2): the BM3 checkpoint (@1620) was removed
+      // with its beam.
       { x: 2120, y: -24 },
       { x: 2360, y: 72 },
       { x: 2590, y: 192 },
@@ -438,7 +440,9 @@ const deepEqual = (a, b) => {
   // keys) is unchanged, exactly like scripts/check-geometry-frozen.mjs excludes them. level-04
   // legitimately gained motion in Phase 36-07; check-geometry-frozen confirms the static arrays
   // stayed byte-identical, so this deepEqual must ignore the add-only motion keys too.
-  const { movers, patrollers, ...actual } = getLevel("level-04").geometry;
+  // Batch-2 (2026-07-20): strip the Phase-39 slidingSpikes key too — level-04 gained a
+  // sliding ground spike; check-geometry-frozen strips the same three motion keys.
+  const { movers, patrollers, slidingSpikes, ...actual } = getLevel("level-04").geometry;
   check(deepEqual(actual, expectedGeometry),
     `LVL-02 regression: getLevel("level-04").geometry (static keys) must match the authored descriptor`);
 }
