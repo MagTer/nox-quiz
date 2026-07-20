@@ -14,9 +14,10 @@
         - pointer:fine (desktop/mouse) → fixed 960x540, so 640x360 letterboxes
           up exactly 1.5x into a 16:9 box with ZERO bars — the kid-validated
           desktop look is preserved geometry-for-geometry.
-        - pointer:coarse (touch)       → full viewport, so the engine adds
-          pillar/letterbox bars to fit any screen; the canvas is responsive
-          (Kaplay's onResize refits on rotate/resize automatically).
+        - pointer:coarse (touch)       → a fill-width 16:9 box ANCHORED TO THE
+          VISIBLE BOTTOM (see the coarse media block below for the full story);
+          the canvas is responsive (Kaplay's onResize refits on rotate/resize
+          automatically).
       The body still flex-centers #stage on both axes so the fixed desktop
       wrapper sits centered in the viewport.
 
@@ -39,7 +40,37 @@
     canvas { display: block; }
     #game { touch-action: none; }  /* suppress pinch-zoom/scroll/double-tap-zoom over the canvas */
     @media (pointer: fine)   { #stage { width: 960px; height: 540px; } }
-    @media (pointer: coarse) { #stage { width: 100vw;  height: 100vh; } }
+
+    /* Mobile framing (quick 260720-mob; real-phone play-test 2026-07-19):
+       the old `#stage { width:100vw; height:100vh }` was the bug — on Android
+       Chrome 100vh is the LARGE viewport (it counts the space UNDER the dynamic
+       toolbar), so the letterboxed game was taller than the visible screen and
+       the BOTTOM (ground + player + touch buttons) fell below the fold.
+       Fix: size #stage to a 16:9 box that FILLS THE WIDTH (exactly 16:9 → the
+       Kaplay letterbox fits 640x360 with ZERO bars, and the single Qe
+       mouse+touch transform is preserved), then ANCHOR it to the BOTTOM of the
+       VISIBLE viewport with position:fixed — fixed elements track the visible
+       bottom edge as Chrome's toolbar shows/hides. On screens wider than 16:9
+       the box is taller than the viewport and the overflow (the TOP of the box,
+       i.e. sky) spills above the fold — ground/player/action stay pinned to the
+       visible bottom. body is capped at the DYNAMIC viewport height (100dvh,
+       with a 100vh fallback for pre-dvh engines) + overflow:hidden so nothing
+       scrolls. Desktop (pointer:fine) above is byte-untouched. */
+    @media (pointer: coarse) {
+      body {
+        height: 100vh;      /* fallback for engines without dvh */
+        height: 100dvh;
+        min-height: 0;      /* neutralize the base min-height:100vh (large viewport) */
+        overflow: hidden;
+      }
+      #stage {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100vw;
+        height: calc(100vw * 9 / 16);
+      }
+    }
 
     /* Portrait "rotate your device" overlay — hidden by default; only ever
        shown on a coarse-pointer device in portrait (see media query below). */

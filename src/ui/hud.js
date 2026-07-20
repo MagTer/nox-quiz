@@ -48,11 +48,25 @@ import { CONFIG } from "../config.js"; // HUD layout constants — the only non-
 export function mountHud(progress) {
   const M = CONFIG.HUD;
 
+  // Mobile top-crop compensation (quick 260720-mob): on a coarse-pointer device the
+  // fill-width bottom-anchored #stage (index.html) crops the TOP of the frame on
+  // screens wider than 16:9, which would hide the top-band HUD. Shift every top-band
+  // element down by CONFIG.HUD.MOBILE_DY there. Feature-detect the PRIMARY pointer via
+  // matchMedia (same guard idiom as touchControls.js — a BROWSER global, not an engine
+  // global, and guarded for node/headless so an import can never throw). Desktop
+  // (pointer: fine) resolves to 0 — the kid-validated desktop HUD stays byte-identical.
+  const mobileDy =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches
+      ? M.MOBILE_DY
+      : 0;
+
   // Level badge — neon-green text, top-left, fixed() + high z() so it floats over the
   // level and ignores the camera. Tagged "hud" → destroyed on scene teardown.
   const badge = add([
     text("LVL " + progress.getLevel(), { size: M.BADGE_SIZE }),
-    pos(M.X, M.Y),
+    pos(M.X, M.Y + mobileDy),
     color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
     fixed(),
     z(9000),
@@ -62,7 +76,7 @@ export function mountHud(progress) {
   // XP track — the empty bar (#333 grunge grey) the fill grows across.
   add([
     rect(M.BAR_W, M.BAR_H),
-    pos(M.X, M.Y + M.BAR_DY),
+    pos(M.X, M.Y + M.BAR_DY + mobileDy),
     color(CONFIG.PALETTE.BORDER[0], CONFIG.PALETTE.BORDER[1], CONFIG.PALETTE.BORDER[2]),
     fixed(),
     z(9000),
@@ -73,7 +87,7 @@ export function mountHud(progress) {
   // sets its width. The rect comp's width is a live, settable property.
   const fill = add([
     rect(1, M.BAR_H),
-    pos(M.X, M.Y + M.BAR_DY),
+    pos(M.X, M.Y + M.BAR_DY + mobileDy),
     color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
     fixed(),
     z(9001),
@@ -107,7 +121,7 @@ export function mountHud(progress) {
   // HUD on scene teardown (anti-leak — same contract as the badge/bar above).
   const keyIndicator = add([
     text(CONFIG.HUD.KEY_GLYPH, { size: CONFIG.HUD.KEY_SIZE }),
-    pos(CONFIG.HUD.KEY_X, CONFIG.HUD.KEY_Y),
+    pos(CONFIG.HUD.KEY_X, CONFIG.HUD.KEY_Y + mobileDy),
     color(CONFIG.PALETTE.REWARD[0], CONFIG.PALETTE.REWARD[1], CONFIG.PALETTE.REWARD[2]),
     fixed(),
     z(9000),

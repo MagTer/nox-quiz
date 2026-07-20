@@ -82,13 +82,25 @@ export function selectScene(data) {
     return { id, i, state };
   });
 
+  // Mobile top-crop compensation (quick 260720-mob): the badge (y 56) sits inside the
+  // top band the bottom-anchored mobile stage crops away (see index.html / hud.js), so
+  // badge + heading shift down by CONFIG.SELECT.MOBILE_DY on a coarse-pointer device.
+  // matchMedia is a BROWSER global (not an engine global), guarded for node/headless.
+  // Desktop resolves to 0 — byte-identical.
+  const mobileDy =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches
+      ? S.MOBILE_DY
+      : 0;
+
   // Baked "NOX RUN" badge logo (BRAND-01/BRAND-03; Phase 26 Plan 07) —
   // small UI-badge size, sits just above the heading text (does not
   // replace it).
   add([
     sprite("logo-badge"),
     anchor("center"),
-    pos(center().x, S.ROW_Y - S.TILE_H - 28),
+    pos(center().x, S.ROW_Y - S.TILE_H - 28 + mobileDy),
     fixed(),
     z(9000),
     "select",
@@ -98,7 +110,7 @@ export function selectScene(data) {
   add([
     text("Select a Level", { size: S.HEADING_SIZE }),
     anchor("center"),
-    pos(center().x, S.ROW_Y - S.TILE_H),
+    pos(center().x, S.ROW_Y - S.TILE_H + mobileDy),
     color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
     fixed(),
     z(9000),

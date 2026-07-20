@@ -446,6 +446,15 @@ export const CONFIG = {
     FLASH_SIZE: 36, // px — level-up flash text size
     FLASH_MS: 450, // ms — level-up flash duration (ADHD-safe window; NOT archive's 800)
 
+    // Mobile top-crop compensation (quick 260720-mob): on a coarse-pointer device the
+    // fill-width bottom-anchored #stage (index.html) crops the TOP of the 640x360 frame
+    // on screens wider than 16:9 — up to ~72 game px on a 20:9 phone (360 - 640/aspect;
+    // ~86 px on an extreme 21:9). Everything pinned to the top screen band (HUD badge/bar,
+    // key indicator, mute icon, select-screen header) shifts DOWN by this many game px on
+    // coarse pointer ONLY — desktop applies 0 and stays byte-identical. Consumed by
+    // src/ui/hud.js, src/audio.js (mute icon), and via SELECT.MOBILE_DY by select.js.
+    MOBILE_DY: 80, // px — coarse-pointer-only downward shift for top-band HUD elements
+
     // --- Key-held indicator (Phase 34.5, KEY-01) ---
     // Persistent while the key is held; placed clear of the top-left badge/bar
     // (HUD.X:16/HUD.Y:16 + BAR_W:160) and the top-right mute icon (AUDIO.ICON_X:600).
@@ -568,6 +577,11 @@ export const CONFIG = {
     LABEL_SIZE: 28, // px — tile number label text size
     GLYPH_SIZE: 22, // px — lock/check state-glyph text size
     HEADING_SIZE: 24, // px — "Select a Level" heading text size
+    // Mobile top-crop compensation (quick 260720-mob; see HUD.MOBILE_DY): the select
+    // screen's logo badge (ROW_Y - TILE_H - 28 = 56) sits inside the cropped top band on
+    // phones wider than 16:9. Badge + heading shift down by this on coarse pointer only —
+    // capped at 30 so they stay clear of row 1's tile top (ROW_Y - TILE_H/2 = 132).
+    MOBILE_DY: 30, // px — coarse-pointer-only downward shift for the badge + heading
 
     // --- Secret-found star marker (MECH-06; Phase 29 Plan 02) ---
     SECRET_SIZE: 14, // px — secret-found star marker text size

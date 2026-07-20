@@ -127,9 +127,21 @@ export function toggleMute() {
 export function wireAudioUI() {
   applyMuteState(); // re-sync master gain to the persisted flag on every scene mount
 
+  // Mobile top-crop compensation (quick 260720-mob): the top-band mute icon shifts down
+  // by CONFIG.HUD.MOBILE_DY on a coarse-pointer device (the bottom-anchored mobile stage
+  // crops the top of the frame — see hud.js / index.html). matchMedia is a BROWSER
+  // global (not an engine global) and the guard keeps node/headless imports safe.
+  // Desktop resolves to 0 — byte-identical.
+  const iconDy =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches
+      ? CONFIG.HUD.MOBILE_DY
+      : 0;
+
   const icon = add([
     text(isMuted() ? "MUTE" : "SND", { size: CONFIG.AUDIO.ICON_SIZE }),
-    pos(CONFIG.AUDIO.ICON_X, CONFIG.AUDIO.ICON_Y),
+    pos(CONFIG.AUDIO.ICON_X, CONFIG.AUDIO.ICON_Y + iconDy),
     color(
       CONFIG.PALETTE.TEXT_DIM[0],
       CONFIG.PALETTE.TEXT_DIM[1],
