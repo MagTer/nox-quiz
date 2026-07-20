@@ -674,7 +674,14 @@ function emitLegTakeoff(leg, takeoffs, spikes, absorbedSpikes) {
  */
 export function planTakeoffs(geometry, targetX, envelope = JUMP_ENVELOPE, targetY = undefined) {
   const nodes = buildNodes(geometry);
-  const graph = buildGraph(nodes, envelope);
+  // POL-03 (Phase 39): thread movers so a pit that is now bridged ONLY by a floor-level ferry
+  // (its static stepping-stones removed) still yields a spawn→target PATH. Without the ride
+  // bridge edge, bottleneckPath returns null for any target past such a pit, planTakeoffs emits
+  // ZERO takeoffs, and driveToXPlanned then has no spike-hop marks for the hazards beyond the
+  // pit (the driver walked straight into level-08's F3 spike@2800 and stalled). The mover
+  // crossing itself is driven separately by driveToMover; this only lets the planner emit the
+  // DOWNSTREAM legs/hazard marks. Inert for shipped raised movers (not surface-flush → no edge).
+  const graph = buildGraph(nodes, envelope, geometry.movers ?? []);
   const startNode = nodeContaining(nodes, SPAWN_X);
   // Phase 30 (MECH-04) fix: thread an optional targetY through to nodeContaining so an
   // x that falls within BOTH a floor's span AND an overlapping platform's span (e.g. a

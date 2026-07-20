@@ -1105,6 +1105,49 @@ export async function driveToMover(page, encounter, geometry) {
     prev = cur;
   }
 
+  // DISMOUNT (POL-03, Phase 39): step off onto the FAR-side solid floor. A mover that now
+  // BRIDGES A REAL PIT has no solid ground under its mid-span, so if driveToMover returned
+  // with the rider still parked on the platform, the caller's very next walk marches straight
+  // off it into the pit and dies (observed on level-08's relocated moat/chasm ferries — the
+  // driver looped 8 deaths back to the pre-pit checkpoint). So ride until the ferry is near its
+  // FAR rest (its far edge overlapping the far floor), then walk right until grounded on ground
+  // PAST the mover's far edge. Bounded + best-effort: for a solid-floor mover the far side is
+  // already floor, so this simply walks off onto it (harmless); the return value is unchanged.
+  const gm = (geometry.movers ?? [])[idx];
+  if (gm) {
+    const farEndX = Math.max(gm.x1, gm.x2); // rightward travel toward the goal
+    // Deposit the rider MINIMALLY — just onto the far floor's near edge (farEndX sits flush on
+    // it), not walked all the way to the mover's far edge. Over-walking parks her hard against
+    // the first hazard past the pit with no run-up (observed: level-08's F3 spike@2800 sits
+    // ~280px past the moat's far edge 2520; a rider dumped at 2784 could never build a clearing
+    // hop and the drive stalled). Stopping at the pit edge preserves the full far-floor run-up.
+    const offThreshold = farEndX + 12;
+    const dismountDeadline = Date.now() + 10_000;
+    let off = false;
+    while (!off && Date.now() < dismountDeadline) {
+      const st = await page.evaluate((i) => {
+        const p = get("player")[0];
+        const m = get("mover")[i];
+        return p && m ? { mx: m.pos.x } : null;
+      }, idx);
+      if (!st) break;
+      // The raised-cosine ferry DWELLS at its endpoints; only walk off when it is near its far
+      // rest (far edge overlapping the far floor), else the walk-off lands in the pit.
+      if (Math.abs(st.mx - farEndX) <= 24) {
+        await page.keyboard.down("ArrowRight");
+        await page.waitForTimeout(360);
+        await page.keyboard.up("ArrowRight");
+        await page.waitForTimeout(120);
+      } else {
+        await page.waitForTimeout(80); // let the ferry carry back toward its far rest
+      }
+      off = await page.evaluate((thr) => {
+        const p = get("player")[0];
+        return !!p && p.isGrounded() && p.pos.x + 8 > thr;
+      }, offThreshold);
+    }
+  }
+
   return { triggered: true, resolved: carried >= NEED };
 }
 
