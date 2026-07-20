@@ -26,7 +26,7 @@
 // press/release edge + vel.y sign in player.js — this module only forwards the two edges.
 // No setTimeout/setInterval/wait()/loop()/lifespan() anywhere.
 //
-// ENGINE-GLOBAL DISCIPLINE (a727c13): every Kaplay primitive (add, rect, pos, color,
+// ENGINE-GLOBAL DISCIPLINE (a727c13): every Kaplay primitive (add, circle, pos, color,
 // opacity, fixed, z, text, anchor, onTouchStart, onTouchEnd, destroyAll) is referenced
 // ONLY inside the mountTouchControls() function body — never at module top level. matchMedia
 // is a browser global (not an engine global), so it is safe inside the body too.
@@ -67,10 +67,16 @@ export function mountTouchControls(isFrozen = () => false) {
   // the no-injection canvas-object convention (challenge.js/audio.js) continues. Dark-grunge
   // fill (PALETTE.MUTED) at CONFIG.TOUCH.OPACITY, with a centered glyph label. All tagged
   // "touchctl" so destroyAll("touchctl") sweeps every piece on teardown.
+  //
+  // Roblox-style circular visual (quick 260720-mob): the VISIBLE button is a circle()
+  // inscribed in the config rect (diameter = W, centered on the rect's center) — but the
+  // HIT zone stays the full CONFIG.TOUCH AABB square below (deliberately MORE generous
+  // than the visible circle; a near-miss thumb still lands the press). circle() draws
+  // centered on the object's pos, so pos is the rect center, not the rect origin.
   for (const b of buttons) {
     b.box = add([
-      rect(b.r.W, b.r.H),
-      pos(b.r.X, b.r.Y),
+      circle(b.r.W / 2),
+      pos(b.r.X + b.r.W / 2, b.r.Y + b.r.H / 2),
       color(CONFIG.PALETTE.MUTED[0], CONFIG.PALETTE.MUTED[1], CONFIG.PALETTE.MUTED[2]),
       outline(2, rgb(CONFIG.PALETTE.MUTED_BORDER[0], CONFIG.PALETTE.MUTED_BORDER[1], CONFIG.PALETTE.MUTED_BORDER[2])),
       opacity(T.OPACITY),
