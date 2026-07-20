@@ -363,6 +363,19 @@ export const LEVEL_08 = {
       // on a coin. Contact → respawn to checkpoint@3430 (F4; enemy@3500 stays cleared).
       { x1: 3540, y1: 268, x2: 3700, y2: 268, speed: 80 },
     ],
+
+    // ===================== SLIDING SPIKES (POL-02 pattern; Batch-2 2026-07-20) =====================
+    // The proven L5/L7 shadow recipe (sweep = static spike +30..+100; the planned
+    // static-spike hop arcs over the whole cluster). EXEMPT from the freeze hash.
+    slidingSpikes: [
+      // S0 — slides along the F3 gauntlet floor (2520..3080) just past the static
+      // spike@2800, sweeping 2830<->2900 (70px) — the finale's timed cluster, right after
+      // the moat-ferry landing beat. checkpoint@2740 sits BEFORE the static spike (safe
+      // run-up, never inside the sweep); clear of coin@2960 (right of the sweep, walked
+      // through after the hop), the candles prop@3040 (collider-free), and the F3->F4 gap
+      // takeoff (~3050). Default 3s period.
+      { x1: 2830, y1: FLOOR_Y - CONFIG.SPIKE_SIZE, x2: 2900, y2: FLOOR_Y - CONFIG.SPIKE_SIZE },
+    ],
   },
 
   mechanics: [],
@@ -392,13 +405,16 @@ export const LEVEL_08 = {
     { sprite: "prop-castle-column", x: 3320, y: 130, layer: "back" }, //  on solid F4 (3240..3760) before the enemy@3500; off the old F3/F4 gap (3080..3240)
     { sprite: "prop-castle-column", x: 6500, y: 130, layer: "back" }, //  on solid F8 (6440..7120) framing the THRONE KEEP run-up; off the old F7/F8 gap (6280..6440)
 
-    // Background arch windows (layer "back", z -8) dressing the TALL switchback shaft at
-    // climb altitude so the keep never reads as an empty parallax void — anchored to the
-    // far wall on the OPEN side of each switchback fold (behind the tiers, never over a
-    // lane). These are the T-35-11 climb-legibility dressing the climb shot verifies.
-    { sprite: "prop-castle-arch", x: 7460, y: -140, layer: "back" }, //  right far-wall window behind the mid switchback (K5/K7)
-    { sprite: "prop-castle-arch", x: 6600, y: -320, layer: "back" }, //  left far-wall window behind the upper switchback (K8/K9)
-    { sprite: "prop-castle-arch", x: 7280, y: -620, layer: "back" }, //  crowning window above the keep summit/apex
+    // Batch-2 (2026-07-20): the three shaft arch windows (@7460,-140 / @6600,-320 /
+    // @7280,-620) were REMOVED — investigated from the live playthrough's "2 suspended
+    // doorways mid-air in the big vertical climb": they are NOT geometry.doors gates (L8
+    // has exactly ONE door, the portcullis on solid F1@880) but 32x64 prop-castle-arch
+    // props whose dark pointed-door art hung in open air between the keep tiers with no
+    // wall behind them, reading as floating doorways. They gate nothing (props are
+    // collider-free) -> all three removed (the third, above the summit, is the same
+    // defect class the player saw twice). The keep shaft keeps its parallax backdrop
+    // windows for depth (those are screen-locked backdrop art, clearly background —
+    // T-35-11's "black mess" concern stays covered).
 
     // On-surface castle light-sources (layer "surface", z -3) on the lower-gauntlet floors
     // ONLY, at clear margins — restrained, off the switchback climb entirely.
