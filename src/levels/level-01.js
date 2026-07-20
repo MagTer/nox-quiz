@@ -59,7 +59,20 @@ export const LEVEL_01 = {
       { x: 640, w: 440 }, // F1 — water gap 480..640 (160, bridged by S1); the one DOOR (@820)
       { x: 1620, w: 360 }, // F2 — post-log island (the fallen-log climb bridges 1080..1620)
       { x: 2520, w: 460 }, // F3 — fork rejoin island; the one ENEMY (@2700) + spike1
-      { x: 3360, w: 340 }, // F4 — after the ripple crossing (2980..3360)
+      // Batch-2 playthrough fix (2026-07-20): the old F4 {x:3360,w:340} was a solid island
+      // with the M0 mover floating POINTLESSLY above it ("platform with no hole under it").
+      // The floor beneath the mover is carved out into a REAL 160px water gap (3480..3640)
+      // so the mover — now a floor-level ferry, see geometry.movers — genuinely bridges it
+      // and earns its place. 160px is deliberately the §2 comfortable-max BARE gap, not a
+      // ferry-only pit: L1 is the most forgiving level, so a confident kid can still jump
+      // it while the ferry carries everyone else — and the reachability model keeps a
+      // direct F4a->F4b edge, so no route ever depends on ride timing. A missed ride falls
+      // in the bog and respawns at checkpoint@3380 on F4a (solid, re-approachable).
+      // Island sizing is model-constrained: F4a's right edge (3480) must stay >= ~3466 so
+      // the M2-crest descent candidate (reach ~206 from M2's right edge 3260) still lands
+      // inside it — an 80px F4a broke spawn-goal reachability (found by validate-levels).
+      { x: 3360, w: 120 }, // F4a — ripple landing island (M2/M3 descents land here); ferry board lip
+      { x: 3640, w: 60 }, //  F4b — ferry alight island; the N-mound launches from its right edge (3700)
       { x: 4060, w: 360 }, // F5 — after the mini-mound (3700..4060); spike2
       { x: 4900, w: 360 }, // F6 — after the low pad-chain water crossing (4420..4900); spike3
       { x: 5680, w: 340 }, // F7 — meander island (5260..5680); spike4
@@ -114,12 +127,14 @@ export const LEVEL_01 = {
       { x: 5285, y: 254, w: 160, h: 16 }, // Q1 [17] rise 66 from F6 (gap 25)
       { x: 5490, y: 254, w: 160, h: 16 }, // Q2 [18] flat hop (gap 45, spanMax 205); then walk off onto F7 (gap 30)
 
-      // --- FINAL crossing 6020..6360 ---
-      { x: 6045, y: 254, w: 150, h: 16 }, // R1 [19] rise 66 from F7 (gap 25)
-      { x: 6240, y: 254, w: 120, h: 16 }, // R2 [20] flat hop (gap 45, spanMax 165); ends at F8 — walk off onto F8
+      // --- FINAL crossing 6020..6360: FERRIED (Batch-2, 2026-07-20) ---
+      // R1/R2 (two more flat y:254 pads — the third near-identical "transport" crossing in
+      // a row, flagged monotonous in the live playthrough) are REMOVED; the crossing is now
+      // a floor-level moving-platform ferry (see geometry.movers) — a genuinely different
+      // final beat. Their two pad coins went with them.
 
       // --- OPTIONAL final MOUND on F8 (a last gentle up-and-over before the goal) ---
-      { x: 6640, y: 254, w: 110, h: 16 }, // PD  [21] well left of goal@6820; walk-off descent back to F8
+      { x: 6640, y: 254, w: 110, h: 16 }, // PD  [19] well left of goal@6820; walk-off descent back to F8
     ],
 
     // ~34 coins — every one a fly-through box at walk height (surfaceY-56) or on a pad's
@@ -146,7 +161,7 @@ export const LEVEL_01 = {
       { x: 2900, y: 264 }, // F3 (past the enemy, before spike1)
       { x: 3060, y: 194 }, // M1 (ripple)
       { x: 3205, y: 130 }, // M2 (ripple crest)
-      { x: 3430, y: 264 }, // F4
+      { x: 3400, y: 264 }, // F4a (Batch-2: was 3430 — pulled fully inside the 3360..3440 board island, walked through on the ferry approach)
       { x: 3785, y: 194 }, // N1 (mini-mound)
       { x: 3925, y: 128 }, // N2 (mound top)
       { x: 4130, y: 264 }, // F5
@@ -156,8 +171,8 @@ export const LEVEL_01 = {
       { x: 5335, y: 198 }, // Q1 (meander pad)
       { x: 5525, y: 198 }, // Q2 (meander pad)
       { x: 5750, y: 264 }, // F7
-      { x: 6100, y: 198 }, // R1 (final pad)
-      { x: 6285, y: 198 }, // R2 (final pad)
+      // Batch-2: the R1/R2 pad coins (@6100/@6285, y:198) were removed with their pads —
+      // the final crossing is now the floor-level ferry (no static surface to witness them).
       { x: 6430, y: 264 }, // F8
       { x: 6695, y: 198 }, // PD (optional mound)
       { x: 6780, y: 264 }, // F8 (final step to the goal)
@@ -193,6 +208,7 @@ export const LEVEL_01 = {
       { x: 4100, y: FLOOR_Y - 48 }, // F5 — before spike2@4180
       { x: 4920, y: FLOOR_Y - 48 }, // F6 — before spike3@5020
       { x: 5720, y: FLOOR_Y - 48 }, // F7 — before spike4@5800
+      { x: 5960, y: FLOOR_Y - 48 }, // F7 — before the FINAL ferry pit (6020..6360): a missed ride respawns here at the lip, past spike4 (Batch-2; mirrors L8's pre-pit checkpoint pattern)
       { x: 6380, y: FLOOR_Y - 48 }, // F8 — the final calm run to the goal
     ],
 
@@ -220,15 +236,25 @@ export const LEVEL_01 = {
     //   * a solid floor UNDER each so a miss means WAIT, never a killing pit (§6b rule 2),
     //   * the far end visible from the mount ledge (§6b rule 4, telegraphed).
     movers: [
-      // M0 — a lateral ferry shuttling over the CLEAN F4 island (3360..3700), WHOLLY above
-      // solid floor: a missed hop just lands back on F4 to wait (no killing pit). Behind
-      // checkpoint@3380. Both endpoints at y:250 = rise 70 from FLOOR_Y 320, inside the
-      // ~88px jump envelope → mover-reachability PASS (from F4 floor, rightward). The
-      // running goal-drive WALKS UNDER it (player head 288 vs ledge collider 250..266 =
-      // 22px clearance); the audit mounts it with a rightward hop from F4. w110 (NOT wider:
-      // a wider ledge pushes its right extent to the F4 edge@3700, and the audit mount's
-      // rightward overshoot then runs off into the water and cannot recover).
-      { x1: 3420, y1: 250, x2: 3560, y2: 250, w: 110 },
+      // Batch-2 (2026-07-20): BOTH movers are now FLOOR-LEVEL FERRIES over REAL pits (the
+      // proven L8 POL-03 pattern — deck at FLOOR_Y, rest endpoints flush on the near/far
+      // floor edges so validate-levels' buildGraph ride edge + mover-reachability's
+      // surface-flush walk-on branch both fire, and browser-boot rides them via the shared
+      // driveToMover). The old M0 floated pointlessly ABOVE solid F4 (live-playthrough flag:
+      // "platform with no hole under it"); the floor beneath it was carved out instead.
+      //
+      // M0 — the F4 BOG FERRY across the carved 3480..3640 gap (F4a ends 3480 → F4b starts
+      // 3640). Near rest deck [3480,3600] flush on F4a's edge (walk-on board); far rest deck
+      // [3540,3660] laps 20px onto F4b (alight at the lip). Behind checkpoint@3380 on F4a;
+      // a missed ride falls into the bog → respawn there (solid, re-approachable).
+      { x1: 3480, y1: 320, x2: 3540, y2: 320, w: 120, period: 6 },
+      // M1 — the FINAL-CROSSING FERRY across the old R1/R2 water (F7 ends 6020 → F8 starts
+      // 6360), replacing the third monotonous flat-pad transport section with a ride. Near
+      // rest deck [6020,6200] flush on F7's edge; far rest deck [6200,6380] laps 20px onto
+      // F8. Behind the new checkpoint@5960 (past spike4, at the pit lip); a missed ride
+      // falls in the bog → respawn there. w:180 + period:6 = the forgiving, reliably
+      // boardable L8 ferry tune.
+      { x1: 6020, y1: 320, x2: 6200, y2: 320, w: 180, period: 6 },
     ],
     patrollers: [
       // P0 — a grounded, telegraphed swamp SKELETON walking the CLEAN F2 island
@@ -269,7 +295,8 @@ export const LEVEL_01 = {
     // base at the floor line (y = 320 - 159), crown up in the background band. Placed
     // on F2 / F4 / the F8 run-in, all clear of every mechanic.
     { sprite: "prop-swamp-tree", x: 1700, y: 161, layer: "back" }, // behind F2 post-log island
-    { sprite: "prop-swamp-tree", x: 3450, y: 161, layer: "back" }, // behind F4 (no spike here)
+    // Batch-2: the F4 tree (@3450) was REMOVED — its island is now the carved ferry pit
+    // (3440..3620) and a tree floating over open water read wrong.
     { sprite: "prop-swamp-tree", x: 6400, y: 161, layer: "back" }, // behind F8, left of the goal
 
     // On-surface reeds / fern / vine resting on clear floor tops (y = 320 - height).
