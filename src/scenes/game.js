@@ -215,6 +215,33 @@ export function gameScene(data) {
   // marker renders faintly so checkpoint placement is inspectable during playtests.
   const DEBUG =
     typeof location !== "undefined" && new URLSearchParams(location.search).has("debug");
+
+  // --- Debug coordinate readout (?debug=1 ONLY; quick 2026-07-20 play-test request:
+  // "it would be good to see coordinates to describe the location of issues") ---
+  // A fixed() screen-space line showing the player's world x,y and the world coordinate
+  // under the mouse cursor — hover a problem spot and read its coords straight off the
+  // screen. toWorld(mousePos()) maps through the camera transform, and Kaplay's own
+  // offsetX/offsetY mouse mapping already accounts for the 1.5x CSS display scale (the
+  // main.js transform:scale rule), so the numbers are true world-space. Updated via
+  // `onUpdate` only (SAFE-01, no scheduler); display-only (no area()/body(), never added
+  // outside ?debug=1) so gameplay and the audit harness are untouched. All layout numbers
+  // live in CONFIG.DEBUG_READOUT (binding rule: no magic numbers here).
+  if (DEBUG) {
+    const readout = add([
+      text("", { size: CONFIG.DEBUG_READOUT.SIZE }),
+      pos(CONFIG.DEBUG_READOUT.X, CONFIG.DEBUG_READOUT.Y),
+      fixed(), // screen-space — never scrolls with the camera
+      z(CONFIG.DEBUG_READOUT.Z),
+      color(CONFIG.PALETTE.TEXT[0], CONFIG.PALETTE.TEXT[1], CONFIG.PALETTE.TEXT[2]),
+    ]);
+    readout.onUpdate(() => {
+      const mw = toWorld(mousePos());
+      readout.text =
+        `player ${Math.round(player.pos.x)},${Math.round(player.pos.y)}` +
+        `  mouse ${Math.round(mw.x)},${Math.round(mw.y)}`;
+    });
+  }
+
   function addCheckpoint(x, y) {
     return add([rect(8, 48), pos(x, y), area(), opacity(DEBUG ? 0.5 : 0.001), "checkpoint"]);
   }

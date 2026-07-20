@@ -168,6 +168,21 @@ export const CONFIG = {
 
   TITLE_BG_Z: -100, // z-order for shared title/select backdrop
 
+  // --- Debug coordinate readout (?debug=1 ONLY; src/scenes/game.js consumes) ---
+  // A fixed() screen-space text line showing the player's world x,y plus the world
+  // coordinate under the mouse cursor (toWorld(mousePos())), so play-test issues can be
+  // reported as exact coordinates ("the gap at x 4480"). Rendered ONLY when the existing
+  // ?debug=1 flag is set — invisible in normal play, zero gameplay/audit effect (the
+  // harness drives the non-debug URL, and the readout adds no collider). Placed in the
+  // top band CLEAR of the top-left HUD badge/bar (HUD.X 16 + BAR_W 160), the top-right
+  // SKIP-KEY indicator (HUD.KEY_X 540) and mute icon (AUDIO.ICON_X 600).
+  DEBUG_READOUT: {
+    X: 210, // px — top-center-left band, right of the HUD XP bar's extent (~176)
+    Y: 8, // px — level with the top HUD band
+    SIZE: 10, // px — small monospace-ish text, unobtrusive even in debug sessions
+    Z: 9999, // z — above every overlay (banner text tops out at 9994) so coords are always readable
+  },
+
   COIN_FRAMES: 8, // count — coin.png is a 256x32 sheet of 8 evenly-gridded 32px frames (sliceX)
   COIN_SPIN_SPEED: 12, // fps — coin spin anim frame rate
   // (No COIN_SIZE: coin placement is intentionally data-driven via raw {x, y} in
