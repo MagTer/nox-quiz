@@ -174,6 +174,7 @@ All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (20
 |---|-------------|------|--------|-----------|
 | 260717-j24 | Re-play polish: enlarge goal flag to 32px (decoupled from 16px load-bearing collider) + lower ear-piercing level-clear sound to 0.4 gain | 2026-07-17 | da1cd94 | [260717-j24-re-play-polish-enlarge-goal-flag-to-32px](./quick/260717-j24-re-play-polish-enlarge-goal-flag-to-32px/) |
 | 260719-iuv | Phase 38 BRAND-01: baked N0X logo A "Emerald Chisel" → logo-hero (360×90) + logo-badge (144×36); rebuilt title-bg from Gothicvania castle-interior source at native SNES-fidelity color (was grey silhouette). All gates + browser-boot green; awaiting human BRAND-01 sign-off | 2026-07-19 | ee35994 | [260719-iuv-phase-38-brand-01-bake-n0x-logo-a-emeral](./quick/260719-iuv-phase-38-brand-01-bake-n0x-logo-a-emeral/) |
+| 260720-mob | Real-phone Android-Chrome-landscape fixes: fill-width bottom-anchored mobile framing (100vh large-viewport crop root-caused; ground/player now pinned to visible bottom, sky crops off top), HUD/mute/select-header moved below the cropped band (CONFIG.HUD.MOBILE_DY / SELECT.MOBILE_DY, coarse-only), bigger raised Roblox-style circular touch controls (CONFIG.TOUCH retune). Touch Qe mapping proven with synthesized CDP taps (jump + walk) at negative canvas top; all gates + browser-boot green; desktop byte-identical | 2026-07-20 | 18ad866, 923c767 | [260720-mob-mobile-framing-hud-roblox-touch](./quick/260720-mob-mobile-framing-hud-roblox-touch/) |
 
 ## Deferred Items
 
