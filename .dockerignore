@@ -1,0 +1,17 @@
+# Trim the Docker build context. docker/Dockerfile only copies src/, lib/,
+# assets/, and docker/nginx.conf — everything else is dead weight (or sensitive)
+# and must stay out of the image build. Keeps CI context uploads small.
+.git
+.gitignore
+.github
+.dockerignore
+.claude
+.planning
+archive
+docs
+scripts
+CREDITS.md
+README.md
+*.md
+**/.DS_Store
+node_modules

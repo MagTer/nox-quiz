@@ -1,0 +1,81 @@
+# Build the static Nox Run site into a container image and publish it to GHCR.
+#
+# The image is a single-stage nginx:alpine static server (docker/Dockerfile) —
+# no build step, just src/ + lib/ + assets/ served over plaintext HTTP on :80.
+# In production it sits behind Dokploy's Traefik, which terminates TLS and
+# forwards plain HTTP to the container (SSL offloading), so :80 plaintext is
+# correct and the image needs no TLS/auth of its own.
+#
+# This workflow ONLY builds + pushes the image. It does NOT deploy: deploys
+# happen in the MagTer/home-server repo by bumping the pinned image tag in that
+# app's compose file (Dokploy autoDeploy fires on that repo's push, not on a
+# GHCR push). Pin an immutable tag there — a `sha-<sha>` or a `vX.Y.Z` — never a
+# floating tag. (home-server convention: docs/runbooks/new-app.md, updates.md.)
+
+name: Publish image to GHCR
+
+on:
+  push:
+    branches: [main]      # every commit to main → immutable sha-<sha> (+ moving `main`) tag
+    tags: ['v*']          # release tags v1.2.3 → semver tags (1.2.3, 1.2, 1)
+  workflow_dispatch: {}    # manual "Run workflow" button
+
+concurrency:
+  group: publish-image-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  # metadata-action lowercases this → ghcr.io/magter/nox-quiz (matches the
+  # home-server ghcr.io/magter/<name> convention even though the org is MagTer).
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read      # checkout
+      packages: write     # push to GHCR via GITHUB_TOKEN — no extra secrets
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive tags and OCI labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # No :latest — the home-server pins immutable tags for reproducible
+          # redeploys (floating tags are explicitly rejected there).
+          flavor: |
+            latest=false
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64        # Dokploy VM is amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # OCI source label links the GHCR package to this repo.
+          provenance: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
