@@ -634,12 +634,15 @@ export const CONFIG = {
     // the AABB HIT zones (generous squares); touchControls.js draws a circular button
     // INSCRIBED in each rect (diameter = W) for the Roblox look — the hit area is the
     // full square, deliberately larger than the visible circle.
-    LEFT: { X: 20, Y: 220, W: 96, H: 96 }, // px — walk-left pad, bottom-left (bottom edge 316, 44px clear of the 360 floor)
-    RIGHT: { X: 132, Y: 220, W: 96, H: 96 }, // px — walk-right pad, 16px right of LEFT (20+96+16=132), same raised band
-    JUMP: { X: 508, Y: 208, W: 112, H: 112 }, // px — jump pad, bottom-RIGHT (right edge 620, bottom edge 320; largest zone — the most-tapped button)
+    // Re-tuned quick 260721-ban: −30% + hugged to the outer edges (real-phone landscape
+    // play-test) — 96→67 / 112→78 (both still ≥64px hit zones), LEFT/RIGHT cluster pushed
+    // to the LEFT edge and JUMP to the RIGHT edge, same raised bottom band.
+    LEFT: { X: 8, Y: 247, W: 67, H: 67 }, // px — walk-left pad, hugs the left edge (left edge 8, bottom 314, 46px clear of the 360 floor)
+    RIGHT: { X: 85, Y: 247, W: 67, H: 67 }, // px — walk-right pad, 10px right of LEFT (8+67+10=85), same raised band
+    JUMP: { X: 556, Y: 240, W: 78, H: 78 }, // px — jump pad, hugs the right edge (right edge 634, bottom 318; largest zone — the most-tapped button)
     OPACITY: 0.35, // 0..1 — resting button fill opacity (semi-transparent dark-grunge; unobtrusive over level art)
     PRESSED_OPACITY: 0.55, // 0..1 — brighter fill while a finger holds the button (press feedback; still non-strobing)
-    GLYPH_SIZE: 32, // px — button glyph/label text size (scaled with the bigger pads)
+    GLYPH_SIZE: 26, // px — button glyph/label text size (scaled with the smaller pads)
     GLYPHS: { LEFT: "<", RIGHT: ">", JUMP: "JUMP" }, // ASCII-only glyphs (TOFU-safe); real art/icons are tuned on-device at MOB-06 (Phase 38)
   },
 };

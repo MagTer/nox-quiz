@@ -41,20 +41,21 @@
     #game { touch-action: none; }  /* suppress pinch-zoom/scroll/double-tap-zoom over the canvas */
     @media (pointer: fine)   { #stage { width: 960px; height: 540px; } }
 
-    /* Mobile framing (quick 260720-mob; real-phone play-test 2026-07-19):
-       the old `#stage { width:100vw; height:100vh }` was the bug — on Android
-       Chrome 100vh is the LARGE viewport (it counts the space UNDER the dynamic
-       toolbar), so the letterboxed game was taller than the visible screen and
-       the BOTTOM (ground + player + touch buttons) fell below the fold.
-       Fix: size #stage to a 16:9 box that FILLS THE WIDTH (exactly 16:9 → the
-       Kaplay letterbox fits 640x360 with ZERO bars, and the single Qe
-       mouse+touch transform is preserved), then ANCHOR it to the BOTTOM of the
-       VISIBLE viewport with position:fixed — fixed elements track the visible
-       bottom edge as Chrome's toolbar shows/hides. On screens wider than 16:9
-       the box is taller than the viewport and the overflow (the TOP of the box,
-       i.e. sky) spills above the fold — ground/player/action stay pinned to the
-       visible bottom. body is capped at the DYNAMIC viewport height (100dvh,
-       with a 100vh fallback for pre-dvh engines) + overflow:hidden so nothing
+    /* Mobile framing — SCALE-TO-FIT / CONTAIN (quick 260721-ban; real-phone
+       landscape play-test 2026-07-21). The prior quick-260720-mob approach sized
+       #stage to a fill-width 16:9 box (`height: calc(100vw * 9 / 16)`) anchored to
+       the visible bottom; in landscape that box is TALLER than the screen, so the
+       sky overflowed above the fold — too much of the frame was lost.
+       Fix: give #stage the full VISIBLE viewport height and let Kaplay's existing
+       `letterbox: true` (main.js) CONTAIN the whole 640x360 buffer inside it. The
+       full sky + ground + player + touch buttons all stay on-screen; thin PILLARBOX
+       bars appear on the SIDES in landscape — the accepted trade-off. The single Qe
+       mouse+touch transform is preserved (letterbox owns the mapping), so tap zones
+       still register. Height uses `100dvh` (the DYNAMIC/visible viewport, which
+       EXCLUDES the space under Chrome's dynamic toolbar) with a `100vh` fallback for
+       pre-dvh engines — this is exactly what avoids the original `100vh` bug, where
+       the LARGE viewport counted the space under the toolbar and hid the bottom.
+       body is capped at the same 100dvh (100vh fallback) + overflow:hidden so nothing
        scrolls. Desktop (pointer:fine) above is byte-untouched. */
     @media (pointer: coarse) {
       body {
@@ -68,7 +69,8 @@
         left: 0;
         bottom: 0;
         width: 100vw;
-        height: calc(100vw * 9 / 16);
+        height: 100vh;      /* fallback for engines without dvh */
+        height: 100dvh;     /* visible viewport → Kaplay letterbox CONTAINS 640×360, nothing cropped */
       }
     }
 
