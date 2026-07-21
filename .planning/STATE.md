@@ -5,10 +5,10 @@ milestone_name: SNES-Fidelity World
 current_phase: 39
 current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 status: executing
-stopped_at: "Phase 39 post-UAT bug-fix rounds done + DEPLOYED (sha-3755b61); awaiting 2nd human playthrough on nox.falle.se"
-last_updated: "2026-07-20T00:08:10.151Z"
-last_activity: 2026-07-20
-last_activity_desc: "Phase 39: Batch 1 (mechanics) + Batch 2 (level cleanup) fixed the 1st-playthrough bugs; deployed to nox.falle.se; awaiting 2nd playthrough"
+stopped_at: "Phase 39 DEPLOYED (sha-3755b61); kid-UAT (VER-02) APPROVED 2026-07-21 — Nadja likes it. Distinctness gate split to SEED-003 (v7)."
+last_updated: "2026-07-21T00:00:00.000Z"
+last_activity: 2026-07-21
+last_activity_desc: "Game/state review: kid-UAT (VER-02) approved by Nadja; level-02≈level-08 distinctness gate deferred to SEED-003 for v7; Nadja now playing (expect feature requests)"
 progress:
   total_phases: 14
   completed_phases: 10
@@ -45,7 +45,9 @@ Status: NEEDS REWORK — user ran the playthrough/kid-UAT and found "a lot of is
 - Big root-cause win: Kaplay `patrol()` "born-finished" bug fixed (skeletons were frozen since Phase 36) — commit `938faae`.
 - Audit harness (`audit-phase21-mechanics.mjs`) substantially fixed by a Fable subagent — commit `6bae6d1` (isolated L1/L5/L8 now 18/18 triggered+resolved; 4 residual mover rows need a QUIET-machine sequential re-run to confirm — likely a parallel-run fps artifact).
 - MODEL NOTE: Opus struggled on this game's mechanic debugging; Fable found the root causes. Per user, escalate hard bugs to Fable (see memory `escalate-to-fable-on-issues`).
-Also open (Phase 38 human gates — all need USER + device/kid): BRAND-01 logo sign-off; VER-01 live Dokploy playthrough; VER-02 kid-UAT (now ALSO covers Phase-39 revised platforming); VER-03/MOVE-05 non-60Hz; MOB-05 real-device audio; MOB-06 kid touch-layout tuning
+**VER-02 kid-UAT APPROVED 2026-07-21** — Nadja played the deployed build (nox.falle.se) covering the Phase-34.6 rebuilt levels + Phase-39 revised platforming, and likes it. Sign-off is genuine (real play session), not a rubber stamp.
+**Known RED gate DEFERRED to v7:** `check-level-distinctness.mjs` HARD-FAILs level-02≈level-08 (ySeqSim 0.77 ≥ 0.72), a Phase-39-07 side effect — split to `.planning/seeds/SEED-003-level-08-climb-distinctness.md`, NOT a v6.0 blocker.
+Still open (other Phase 38 human gates — need USER + device): VER-01 live Dokploy playthrough confirmation; VER-03/MOVE-05 non-60Hz feel; MOB-05 real-device audio; MOB-06 kid touch-layout tuning. (BRAND-01 logo already signed off.)
 Last activity: 2026-07-21 — Completed quick task 260721-cct: touch controls → HTML viewport overlay (screen-edge based, screen-relative size) (commit 28e1abb)
 NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.
 Ignore untracked strays (pre-existing, not ours): .planning/phases/26-*/ + assets/enemy-{1,2,3}.png
