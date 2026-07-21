@@ -613,36 +613,11 @@ export const CONFIG = {
     ICON_Y: 8, // px — top-right corner Y
   },
 
-  // --- Touch controls (MOB-02; Phase 37) — virtual thumb-button tunables ---
-  // Geometry + look for the on-screen virtual buttons drawn by src/ui/touchControls.js
-  // (Phase 37-06). ALL numbers the touch UI needs live HERE (binding rule: zero magic
-  // numbers in touchControls.js). This plan (37-03) only lands the tunables + the input
-  // seam; nothing draws yet. Rects are in the internal 640x360 GAME space (letterbox maps
-  // taps into this space via the engine's single Qe transform — 37-RESEARCH §2), so X/Y/W/H
-  // are directly the coordinates the button's area()/AABB hit-test uses. LEFT/RIGHT sit
-  // bottom-LEFT (walk pad for one thumb); JUMP sits bottom-RIGHT (the other thumb).
-  // Every W and H is >=64px — deliberately OVERSIZED for a 12-year-old's thumbs (CONTEXT
-  // "≥64px effective hit zones"). Dark-grunge + semi-transparent (OPACITY) so the buttons
-  // never fight the level art for attention. Visible ONLY on touch devices (feature-detect
-  // in 37-06, NOT here). Each rect is a top-left {X,Y} origin + {W,H} size.
-  TOUCH: {
-    // Retuned quick 260720-mob (real-phone play-test 2026-07-19: "too small / too low —
-    // hard to hit; mimic the Roblox control experience"): Roblox layout kept (movement
-    // bottom-LEFT, jump bottom-RIGHT), every pad grown well past the old 72px and RAISED
-    // off the very bottom edge (old bottom edges 336 → 316/320; ~40+ px of clearance) so
-    // a thumb wrapped around the phone edge lands on them naturally. The rects below stay
-    // the AABB HIT zones (generous squares); touchControls.js draws a circular button
-    // INSCRIBED in each rect (diameter = W) for the Roblox look — the hit area is the
-    // full square, deliberately larger than the visible circle.
-    // Re-tuned quick 260721-ban: −30% + hugged to the outer edges (real-phone landscape
-    // play-test) — 96→67 / 112→78 (both still ≥64px hit zones), LEFT/RIGHT cluster pushed
-    // to the LEFT edge and JUMP to the RIGHT edge, same raised bottom band.
-    LEFT: { X: 8, Y: 247, W: 67, H: 67 }, // px — walk-left pad, hugs the left edge (left edge 8, bottom 314, 46px clear of the 360 floor)
-    RIGHT: { X: 85, Y: 247, W: 67, H: 67 }, // px — walk-right pad, 10px right of LEFT (8+67+10=85), same raised band
-    JUMP: { X: 556, Y: 240, W: 78, H: 78 }, // px — jump pad, hugs the right edge (right edge 634, bottom 318; largest zone — the most-tapped button)
-    OPACITY: 0.35, // 0..1 — resting button fill opacity (semi-transparent dark-grunge; unobtrusive over level art)
-    PRESSED_OPACITY: 0.55, // 0..1 — brighter fill while a finger holds the button (press feedback; still non-strobing)
-    GLYPH_SIZE: 26, // px — button glyph/label text size (scaled with the smaller pads)
-    GLYPHS: { LEFT: "<", RIGHT: ">", JUMP: "JUMP" }, // ASCII-only glyphs (TOFU-safe); real art/icons are tuned on-device at MOB-06 (Phase 38)
-  },
+  // --- Touch controls (MOB-02; Phase 37) ---
+  // The virtual thumb-button geometry/look was RETIRED in quick 260721-cct: the buttons
+  // are now an HTML VIEWPORT OVERLAY (#touch-controls in src/index.html), screen-edge based
+  // and sized in viewport units via CSS — not Kaplay draw objects in the 640x360 buffer.
+  // All size/position/color now lives in that CSS block; there are no game-space tunables to
+  // keep here (nothing imports CONFIG.TOUCH anymore). See src/index.html's #touch-controls
+  // CSS and src/ui/touchControls.js's DOM pointer wiring.
 };

@@ -100,6 +100,57 @@
       #rotate { display: flex; }
       #stage  { display: none; }
     }
+
+    /* Touch controls overlay (quick 260721-cct) — the virtual thumb buttons live
+       in an HTML overlay pinned to the PHYSICAL viewport, NOT inside the Kaplay
+       640x360 buffer. That is the whole point of the rewrite: the letterbox/contain
+       framing (quick 260721-ban) draws the game with pillarbox bars on the SIDES,
+       so in-buffer buttons sat over the art and their fixed game-space px size could
+       never reach the bars. Positioning against the real viewport edges + sizing in
+       viewport units (vw/vh) puts the buttons at the physical screen corners / bar
+       region and makes them naturally bigger and per-device responsive.
+       Shown ONLY on a coarse-pointer device in landscape, and ONLY while the game
+       scene has mounted them (.active, toggled by src/ui/touchControls.js). Desktop
+       (pointer:fine) never matches the media query AND touchControls.js never adds
+       .active on a fine pointer → the overlay is display:none and byte-inert there.
+       Palette matches CONFIG.PALETTE (MUTED rgb(68,68,68), MUTED_BORDER rgb(112,112,112),
+       TEXT rgb(232,232,232); resting opacity 0.35 / pressed 0.55). safe-area-inset-*
+       keeps the buttons clear of notches/rounded corners (viewport meta sets
+       viewport-fit=cover). */
+    #touch-controls { display: none; }
+    @media (pointer: coarse) and (orientation: landscape) {
+      #touch-controls.active {
+        display: block;                    /* override the base `display:none` so the overlay actually paints */
+        position: fixed; inset: 0; z-index: 9500;
+        pointer-events: none;              /* container is transparent to touches… */
+      }
+      #touch-controls.active .tc-btn {
+        position: fixed;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 3vh);
+        display: flex; align-items: center; justify-content: center;
+        box-sizing: border-box;
+        width: min(15vw, 26vh); height: min(15vw, 26vh);
+        border-radius: 50%;
+        background: rgba(68, 68, 68, 0.35);
+        border: 2px solid rgba(112, 112, 112, 0.6);
+        color: rgb(232, 232, 232);
+        font: 600 6vh/1 system-ui, sans-serif;
+        padding: 0;
+        -webkit-user-select: none; user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: none;                /* …the buttons own the touch (no scroll/zoom) */
+        pointer-events: auto;
+      }
+      #touch-controls.active .tc-btn.pressed { background: rgba(68, 68, 68, 0.55); }
+      /* movement cluster hugs the LEFT screen edge; jump hugs the RIGHT screen edge */
+      #touch-controls.active #tc-left  { left: calc(env(safe-area-inset-left, 0px) + 2vw); }
+      #touch-controls.active #tc-right { left: calc(env(safe-area-inset-left, 0px) + 2vw + min(15vw, 26vh) + 3vw); }
+      #touch-controls.active #tc-jump  {
+        right: calc(env(safe-area-inset-right, 0px) + 2vw); left: auto;
+        width: min(18vw, 30vh); height: min(18vw, 30vh);
+        font-size: 3.4vh;                  /* "JUMP" word fits the larger circle */
+      }
+    }
   </style>
   <!--
     file:// protocol guard — runs FIRST as a non-module inline script.
@@ -139,6 +190,16 @@
   <div id="rotate">
     <div class="rotate-glyph" aria-hidden="true">&#x21BB;</div>
     <div>Rotate your device to play</div>
+  </div>
+  <!-- Touch controls: an HTML overlay pinned to the PHYSICAL viewport (NOT the
+       Kaplay canvas), so the thumb buttons base on the real screen edges / pillarbox
+       bars rather than the letterboxed game frame. Shown only on a coarse-pointer
+       device in landscape, and only while the game scene mounts them (.active,
+       toggled by src/ui/touchControls.js). Desktop never renders it. -->
+  <div id="touch-controls" aria-hidden="true">
+    <button type="button" id="tc-left"  class="tc-btn" aria-label="Move left">&lt;</button>
+    <button type="button" id="tc-right" class="tc-btn" aria-label="Move right">&gt;</button>
+    <button type="button" id="tc-jump"  class="tc-btn tc-jump" aria-label="Jump">JUMP</button>
   </div>
   <!-- Relative src so src/ is the import base; resolves identically in dev and container. -->
   <script type="module" src="main.js"></script>
