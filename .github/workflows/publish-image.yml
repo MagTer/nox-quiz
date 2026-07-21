@@ -18,6 +18,15 @@ on:
   push:
     branches: [main]      # every commit to main → immutable sha-<sha> (+ moving `main`) tag
     tags: ['v*']          # release tags v1.2.3 → semver tags (1.2.3, 1.2, 1)
+    # Documentation-only commits don't change the served image, so skip the build.
+    # paths-ignore applies to BOTH the branch and tag triggers above; a release
+    # tag placed on a docs-only commit would therefore also skip — use the manual
+    # "Run workflow" button (workflow_dispatch) to force a build in that rare case.
+    paths-ignore:
+      - '.planning/**'    # GSD planning state (STATE/ROADMAP/seeds/phases…)
+      - 'docs/**'         # project docs (DEPLOY, LEVEL-DESIGN…)
+      - '.claude/**'      # agent/project config, not shipped
+      - '**.md'           # any Markdown anywhere (README, CREDITS, CLAUDE.md…)
   workflow_dispatch: {}    # manual "Run workflow" button
 
 concurrency:
