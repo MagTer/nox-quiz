@@ -1,8 +1,10 @@
 ---
 id: SEED-001
-status: dormant
+status: harvested
 planted: 2026-07-07
 planted_during: v5.0 Phase 26 (Grunge Palette & Nox Run Rebrand)
+harvested: 2026-07-21
+harvested_by: v6.0 SNES-Fidelity World (Phases 29–39) — this seed WAS the v6.0 milestone (art overhaul, world motion, mechanic cleanup, level quality/rebuild, mobile)
 trigger_when: v6.0 milestone kickoff — surface at the next /gsd-new-milestone after v5.0 closes
 scope: large (full milestone)
 ---

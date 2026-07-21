@@ -94,23 +94,28 @@ Both seeds (SEED-001 SNES-fidelity overhaul, SEED-002 mobile touch controls) and
 - ✓ Audio layer: 7 CC0 SFX (jump, pickup, correct, soft-neutral wrong, door/gate, level-clear — land SFX deliberately removed at sign-off, it triggered erratically during normal walking and read as stressful) wired at the shared mechanic seams; a calm CC0 ambient music loop ("Flowing Rocks," ~30.8s) that starts only on the title screen's first gesture; an M-key mute toggle (clickable icon added at sign-off) persisted in its own localStorage key, distinct from the progress save; an idempotent music manager proven never to stack/leak across scene transitions (AUD-01..04) — Validated in Phase 27: Audio & ADHD-Safe Sound, v5.0. Human sound sign-off took 5 iterative rounds (land SFX removed, jump SFX re-sourced twice + gain-tuned down twice, ambient music re-sourced for length/repetitiveness, mute icon made clickable) before an explicit "audio approved" — not a rubber stamp.
 - ✓ Full v5.0 verification and interactive sign-off: the consolidated 8-command automated gate suite (check-safety/import-safety/gate/progress/audio/rebrand + validate-levels.mjs + browser-boot.mjs) confirmed green in one run, extended with two new proofs — audio genuinely starts only after the first title-screen gesture (AudioContext.state, not the vacuous DOM-audio-element count the original plan spec assumed — Kaplay 3001.0.19 never DOM-attaches audio), and a save under the current key (`noxrun_platformer_v1`) persists and resumes into genuinely reachable gameplay across a real page reload; a genuine, non-rubber-stamped consolidated human sign-off (all 8 levels start→goal, themes/logo/audio together) closed the milestone's one deliberately non-automatable requirement (VALID-03) — Validated in Phase 28: Full Verification & Interactive Sign-off, v5.0. ROADMAP's stale "a pre-rebrand save still resumes" clause (written before Phase 26's intentional save-key rename) was documented as superseded rather than silently dropped or literally attempted. Code review found and fixed 1 blocker (CR-01: isolated save-resume proof context had no error listeners, so a genuine crash there could have silently reported PASS) plus 2 warnings; re-review came back clean of anything above info-level. **v5.0's full requirement set (25/25) is now complete.**
 
-### Active
+### Validated (v6.0 — shipped 2026-07-21, override close)
 
-<!-- v6.0 SNES-Fidelity World — scoped in .planning/REQUIREMENTS.md -->
+- ✓ SNES-fidelity sourced biome art: cohesive CC0/CC-BY collection (4 biomes), style-board human sign-off before integration — v6.0 Phase 31
+- ✓ Filled terrain (autotiled ground mass), real multi-layer parallax backgrounds per biome — v6.0 Phase 32
+- ✓ Fully animated player (idle/run/jump/fall/land) and real animated art for mechanic entities — v6.0 Phase 33
+- ✓ Props layer (visual-only, validator-neutral) — v6.0 Phase 35
+- ✓ World motion: patrolling enemies, moving platforms (validator-aware, native carry), ambient animation — v6.0 Phase 36 + 39 (patrol() born-finished engine bug fixed; grounded skeletons + sliding-spike hazard added)
+- ✓ Collect-the-answer mechanic removed; math pacing rebalanced (locked at 1 door + 1 enemy + end gate) — v6.0 Phase 29
+- ✓ Secret alcove on-touch discovery feedback + automated reachability/trigger coverage + persistent lit-torch ambient change + positive-only select marker — v6.0 Phase 29/30/36
+- ✓ Level quality pass: unreachable pickups fixed, 07/08 climbs differentiated, LEVEL-DESIGN.md soft-rules review — v6.0 Phase 34
+- ✓ Key/lock mechanic (first non-math gate), softlock-validator- + audit-covered — v6.0 Phase 34.5 (repurposed as an even-level "math-skip token" in Phase 34.6)
+- ✓ Rebuild + ~double every level to the §8.5 raised bar (vertical, multi-route, action) — v6.0 Phase 34.6
+- ✓ New "n0x" logo treatment (baked N0X mark, castle-interior title backdrop), BRAND-01 signed off — v6.0 Phase 38 (quick task 260719-iuv)
+- ✓ Mobile: touch input layer (HTML viewport overlay) + responsive letterbox canvas scaling, keyboard stays primary — v6.0 Phase 37 + quick tasks 260720/260721
+- ✓ Kid-UAT live sign-off (VER-02): Nadja played the deployed, rebuilt, re-platformed build and approved — v6.0, 2026-07-21
 
-- [x] SNES-fidelity sourced biome art: cohesive CC0/CC-BY collection (3–4 biomes), style-board human sign-off before integration — Phase 31
-- [x] Filled terrain (autotiled ground mass), real multi-layer parallax backgrounds per biome — Phase 32
-- [x] Fully animated player (idle/run/jump/fall/land) and real animated art for mechanic entities — Phase 33
-- [ ] Props layer (visual-only, validator-neutral)
-- [ ] World motion: patrolling cosmetic enemies, moving platforms (validator-aware), ambient animation
-- [ ] Collect-the-answer mechanic removed; math pacing rebalanced in affected levels
-- [ ] Secret alcove on-touch discovery feedback cue + automated reachability/trigger coverage; discovered alcoves leave a persistent ambient change and a positive-only secret-found marker on level select
-- [x] Level quality pass: unreachable pickups/ledges fixed, level-07/08 end climbs differentiated, LEVEL-DESIGN.md soft-rules review — Phase 34
-- [x] Key/lock mechanic (first non-math gate), softlock-validator- + audit-covered — Phase 34.5 (repurposed as an even-level "math-skip token" in Phase 34.6)
-- [x] Rebuild + ~double every level to the §8.5 raised bar (vertical, multi-route, action); LEN-01/LEN-02 — Phase 34.6
-- [ ] New "n0x" logo treatment under human sign-off
-- [ ] Mobile: touch input layer + responsive canvas scaling (keyboard stays primary); touch layout validated with the kid on a real device
-- [ ] Live Dokploy URL playthrough confirmed; kid-UAT live sign-off; MOVE-05 feel check
+### Active (open at v6.0 close — human/device gates, carried forward)
+
+- [ ] Live Dokploy URL end-to-end playthrough confirmation (VER-01) — user action
+- [ ] MOVE-05 / VER-03 movement feel on a throttled/non-60Hz display — user action
+- [ ] MOB-05 real-device audio-after-first-touch + MOB-06 kid touch-layout tuning on a real device — user action
+- [ ] level-02 ≈ level-08 structural-distinctness gate (SEED-003) — deferred to v7
 
 
 ### Out of Scope
@@ -201,4 +206,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-16 — Phase 34.6 (Level Redesign) complete: all 8 levels rebuilt to the §8.5 raised bar (Opus executors) after a 3-round human prototype sign-off; LEN-01, LEN-02 satisfied. Also complete since last footer: Phase 33 (player/entity animation), Phase 34 (level quality pass), Phase 34.5 (key/lock mechanic). Next: Phase 35 (Biome Re-dress & Props).*
+*Last updated: 2026-07-21 — v6.0 SNES-Fidelity World SHIPPED (override close). All 31 v6.0 requirements delivered across Phases 29–39; kid-UAT (VER-02) approved. Open at close: 4 human/device verification gates (VER-01/03, MOB-05/06) + the level-02≈level-08 distinctness gate (SEED-003) — all deferred, none block play. Next: `/gsd-new-milestone` for v7.*

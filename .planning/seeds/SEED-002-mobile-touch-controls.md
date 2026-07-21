@@ -1,8 +1,10 @@
 ---
 id: SEED-002
-status: dormant
+status: harvested
 planted: 2026-07-08
 planted_during: v5.0 Phase 27 (Audio & ADHD-Safe Sound)
+harvested: 2026-07-21
+harvested_by: v6.0 Phase 37 (Mobile — Responsive Canvas & Touch Controls) + quick tasks 260720-mob/260721-ban/260721-cct (framing + Roblox-style HTML touch overlay). Device tuning MOB-06 remains a deferred human gate.
 trigger_when: whenever mobile/tablet play becomes an actual goal — e.g. a future milestone kickoff where she wants to play away from the Windows laptop
 scope: medium (likely its own phase or two, not a full milestone)
 ---

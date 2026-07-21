@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
-current_phase: 39
-current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
-status: executing
-stopped_at: "Phase 39 DEPLOYED (sha-3755b61); kid-UAT (VER-02) APPROVED 2026-07-21 — Nadja likes it. Distinctness gate split to SEED-003 (v7)."
-last_updated: "2026-07-21T00:00:00.000Z"
+status: Awaiting next milestone
+stopped_at: Completed 39-07-PLAN.md
+last_updated: "2026-07-21T10:26:08.738Z"
 last_activity: 2026-07-21
-last_activity_desc: "Game/state review: kid-UAT (VER-02) approved by Nadja; level-02≈level-08 distinctness gate deferred to SEED-003 for v7; Nadja now playing (expect feature requests)"
+last_activity_desc: Milestone v6.0 completed and archived
 progress:
   total_phases: 14
   completed_phases: 10
   total_plans: 80
   completed_plans: 77
   percent: 71
+current_phase: 39
+current_phase_name: playthrough-polish-grounded-patrolling-skeletons-sliding-spi
 ---
 
 # Project State: Nox Run (formerly Math Lab)
@@ -36,23 +36,10 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 39 (playthrough-polish-grounded-patrolling-skeletons-sliding-spi) — EXECUTING (7/8 plans done, 39-08 BLOCKED at human gate)
-Plan: 39-08 of 8 — IN PROGRESS, paused at human playthrough sign-off checkpoint
-Status: NEEDS REWORK — user ran the playthrough/kid-UAT and found "a lot of issues" (NOT enumerated in this session). Resume by capturing those specific issues first, then fixing before the phase can close.
-
-**Phase 39 handoff → see `.planning/phases/39-playthrough-polish-grounded-patrolling-skeletons-sliding-spi/.continue-here.md` for full detail.** Quick state:
-- 39-01..39-07 committed WITH SUMMARYs; 39-08 Task 1 (frozen re-baseline `71137e7`) + Task 2 (gate suite) done; Task 3 (human playthrough + VER-02 kid-UAT) NOT approved.
-- Big root-cause win: Kaplay `patrol()` "born-finished" bug fixed (skeletons were frozen since Phase 36) — commit `938faae`.
-- Audit harness (`audit-phase21-mechanics.mjs`) substantially fixed by a Fable subagent — commit `6bae6d1` (isolated L1/L5/L8 now 18/18 triggered+resolved; 4 residual mover rows need a QUIET-machine sequential re-run to confirm — likely a parallel-run fps artifact).
-- MODEL NOTE: Opus struggled on this game's mechanic debugging; Fable found the root causes. Per user, escalate hard bugs to Fable (see memory `escalate-to-fable-on-issues`).
-**VER-02 kid-UAT APPROVED 2026-07-21** — Nadja played the deployed build (nox.falle.se) covering the Phase-34.6 rebuilt levels + Phase-39 revised platforming, and likes it. Sign-off is genuine (real play session), not a rubber stamp.
-**Known RED gate DEFERRED to v7:** `check-level-distinctness.mjs` HARD-FAILs level-02≈level-08 (ySeqSim 0.77 ≥ 0.72), a Phase-39-07 side effect — split to `.planning/seeds/SEED-003-level-08-climb-distinctness.md`, NOT a v6.0 blocker.
-Still open (other Phase 38 human gates — need USER + device): VER-01 live Dokploy playthrough confirmation; VER-03/MOVE-05 non-60Hz feel; MOB-05 real-device audio; MOB-06 kid touch-layout tuning. (BRAND-01 logo already signed off.)
-Last activity: 2026-07-21 — Completed quick task 260721-cct: touch controls → HTML viewport overlay (screen-edge based, screen-relative size) (commit 28e1abb)
-NOT PUSHED: local main is ~77 commits ahead of origin/main — push before a dev-host switch for an off-machine backup.
-Ignore untracked strays (pre-existing, not ours): .planning/phases/26-*/ + assets/enemy-{1,2,3}.png
-
-Progress: [██████████] 96%  (12 of 13 phases complete: 29–34, 34.5, 34.6, 34.6.1, 35, 36, 37; remaining: 38)
+Phase: Milestone v6.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-21 — Milestone v6.0 completed and archived
 
 ## v6.0 Roadmap Summary
 
@@ -182,21 +169,17 @@ All 5 pre-v6.0 pending todos were absorbed into v6.0 requirements at kickoff (20
 
 ## Deferred Items
 
-All prior deferred items were absorbed into v6.0 requirements: SETUP-02 live Dokploy playthrough → VER-01; SAFE-05 kid-UAT live sign-off → VER-02; MOVE-05 non-60Hz feel check → VER-03.
+Acknowledged and deferred at the v6.0 **override closeout** on 2026-07-21 (user chose "fast override-close"). The game is shipped (nox.falle.se), deployed, and kid-approved (VER-02 ✓); the items below are open **human/device verification gates** I cannot perform, plus two phases left without formal SUMMARY bookkeeping. None block play. Carry into a v6.x verification pass or v7 kickoff.
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none — all absorbed into v6.0 scope)* | | | |
-| Phase 34.6 P01 | 23min | 2 tasks | 2 files |
-| Phase 34.6 P02 | 51min | 2 tasks | 2 files |
-| Phase 34.6 P03 | 48min | 2 tasks | 3 files |
-| Phase 34.6 P05 | 70min | 2 tasks | 2 files |
-| Phase 34.6 P06 | 45min | 1 tasks | 1 files |
-| Phase 34.6 P07 | 55min | 1 tasks | 1 files |
-| Phase 34.6 P08 | 41min | 1 tasks | 1 files |
-| Phase 34.6 P09 | 54min | 1 tasks | 1 files |
-| Phase 34.6 P10 | 50min | 2 tasks | 2 files |
-| Phase 34.6 P11 | 40min | 2 tasks | 1 files |
+| verification | VER-01 — live Dokploy URL end-to-end playthrough confirmation (deployed build works where she plays) | open — user action, ~2 min at nox.falle.se | v6.0 close 2026-07-21 |
+| verification | VER-03 / MOVE-05 — movement feel on a throttled/non-60Hz display | open — user action, device check | v6.0 close 2026-07-21 |
+| verification | MOB-05 — audio genuinely starts after first touch on a real device | open — user action, real-device check | v6.0 close 2026-07-21 |
+| verification | MOB-06 — kid touch-layout tuning by watching her hands on a real device | open — user action, real-device check | v6.0 close 2026-07-21 |
+| bookkeeping | Phase 38 (n0x Logo & Closing Verification) — never formally plan/executed; BRAND-01 delivered via quick task 260719-iuv, VER-02 approved; no phase SUMMARY | deferred — override close | v6.0 close 2026-07-21 |
+| bookkeeping | Phase 39 (Playthrough Polish) — 39-01..07 have SUMMARYs; 39-08 closed by this override without its own SUMMARY/VERIFICATION | deferred — override close | v6.0 close 2026-07-21 |
+| design-gate | check-level-distinctness RED (level-02 ≈ level-08, ySeqSim 0.77) → tracked as SEED-003 for v7 | deferred to v7 | v6.0 close 2026-07-21 |
 
 ## Session Continuity
 
@@ -208,3 +191,7 @@ Resume file: None
 
 **State initialized:** 2026-06-20
 **Last updated:** 2026-07-11 (Phase 32 complete — next: `/gsd-plan-phase 33`)
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
