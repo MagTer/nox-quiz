@@ -1,61 +1,31 @@
-# Deploying Nox Run to a web URL (Dokploy)
+# Deploying Nox Run
 
-Nox Run ships as **static files served by an nginx container** — no backend, no
-database, no server-side logic. This document is the deploy checklist you run
-**once the Dokploy host is provisioned**.
+Nox Run ships as **static files served by an nginx container**: no backend, no
+database, no server-side logic. It runs on the home-server production cluster and is
+public at **`https://nox.ternstrom.net/`** (public by home-server's ADR-010; an edge rate
+limit and a GET/HEAD-only route stand in front of it).
 
-> **Status: live deploy is DEFERRED.** Plan 07-02 delivers the deploy *config*
-> (`docker/Dockerfile`, `docker/nginx.conf`) and *this checklist*, which together
-> satisfy **SETUP-02 now**. Bringing the game live at a public URL is a
-> **user-triggered follow-up** — it is *not* a phase blocker. Run the steps below
-> when the host is ready (~2 days out).
+*Rewritten 2026-10-24.* This file was a Dokploy checklist; Dokploy was retired on
+2026-10-02 and the game has been on the cluster since before that. Its history is
+`git log docs/DEPLOY.md`.
 
-The image and its `.mjs` MIME behaviour are already proven locally by curl
-against the running container (see "Local verification" at the bottom), so the
-only unknowns at deploy time are Dokploy-side (domain + TLS).
+## The path
 
----
-
-## Prerequisites
-
-- A running Dokploy instance you can log into.
-- This repository reachable by Dokploy over Git (branch `main`).
-- A DNS record you can point at the Dokploy host (for the custom domain + HTTPS step).
-
-## Deploy checklist
-
-1. **Create the Application.** In Dokploy, open your project and create a **new
-   Application**.
-2. **Source.** Connect this **Git repository** and select branch **`main`**.
-3. **Build.** Set:
-   - **Build Type:** `Dockerfile`
-   - **Dockerfile Path:** `docker/Dockerfile`
-   - **Docker Context Path:** `.` (the repo root — the `COPY src/ lib/ assets/`
-     paths in the Dockerfile resolve relative to the repo root, so the context
-     must be `.`, not `docker/`).
-4. **Build args / secrets.** None. This is a static site — leave build args and
-   environment secrets empty.
-5. **Deploy.** Trigger the deploy so Dokploy builds the image and starts the
-   container.
-6. **Domain + HTTPS.** Open the **Domains** tab → **add your domain** → set the
-   **container port to `80`** → **enable HTTPS / Let's Encrypt**. Dokploy
-   terminates TLS and proxies to container port 80.
-7. **Smoke test in a browser.** Open the assigned URL and confirm the Kaplay
-   canvas renders "hello" with a clean DevTools console (no module-load errors).
-8. **Verify the production `.mjs` MIME** (the one thing that historically breaks
-   in prod):
+1. **Push to `main`.** `.github/workflows/publish-image.yml` builds `docker/Dockerfile`
+   and publishes `ghcr.io/magter/nox-quiz` with an immutable `sha-<sha>` tag (and
+   semver tags for a `v*` tag). Nothing deploys from this repo.
+2. **Pin it in home-server.** The image digest in `clusters/base/nox/deployment.yaml`
+   is bumped there; Flux applies it, the lab cluster before production. home-server's
+   `docs/runbooks/new-app.md` and `updates.md` are the procedure.
+3. **Verify the production `.mjs` MIME** (the one thing that historically breaks):
 
    ```bash
-   curl -sI https://<your-domain>/lib/kaplay.mjs | grep -i content-type
+   curl -sI https://nox.ternstrom.net/lib/kaplay.mjs | grep -i content-type
    ```
 
-   Expect `application/javascript` (or `text/javascript`) — **never**
-   `application/octet-stream`. If you see octet-stream, the custom nginx config
-   did not take effect (confirm Build Type is `Dockerfile`, not a Static preset).
-
-> **Note on UI labels.** Exact Dokploy field names may differ between versions
-> (Assumption A1). Match by meaning: *Build Type → Dockerfile*, *Dockerfile path*,
-> *context path*, *domain → container port 80 → HTTPS*. Verify against the live UI.
+   Expect `application/javascript` (or `text/javascript`), **never**
+   `application/octet-stream`; octet-stream means the custom nginx config did not
+   take effect.
 
 ## Why a custom Dockerfile (not the Static preset)
 

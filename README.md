@@ -15,7 +15,7 @@ src/        index.html (entry shell) + JS modules (main.js, future game code)
 lib/        vendored Kaplay engine (kaplay.mjs) — committed, never installed
 assets/     sprites / audio (added in phases 8–9)
 docker/     Dockerfile + nginx.conf for static hosting (added in plan 07-02)
-docs/       DEPLOY.md — Dokploy deployment steps (added in plan 07-02)
+docs/       DEPLOY.md — how the image reaches production (home-server's cluster)
 archive/    math-lab.html — the v2 single-file quiz, kept as reference for the
             Phase 10 "math brain" port (do not edit; it is verbatim history)
 ```
@@ -59,8 +59,9 @@ serving convention.
 ## Production play path
 
 She just **visits the hosted URL** — no install, no launcher, no local server. The
-static files are served by an nginx Docker container deployed via Dokploy (set up in
-plan 07-02 / `docs/DEPLOY.md`). Hosting over HTTP also sidesteps the `file://` block
+static files are served by an nginx container on the home-server production cluster, at
+`https://nox.ternstrom.net/` (`docs/DEPLOY.md`; *corrected 2026-10-24: this said Dokploy,
+retired on 2026-10-02*). Hosting over HTTP also sidesteps the `file://` block
 entirely. The `python3 -m http.server` dev server above is for **development only**.
 
 ## Kaplay engine pin
