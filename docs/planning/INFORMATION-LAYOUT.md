@@ -4,7 +4,7 @@
 — *"GSD är avinstallerat sedan länge. Vi vill inte tappa information, men det ska hanteras
 enligt gemensamma rutiner och inte bloat'a sessionen. Repots readme i rooten är främst för
 människor, agents.md är projektspecifika tillägg."* The rule is agent-config
-`proposals/2026-10-29-project-information-layout.md` (U1 there, unsigned) and `shared/core.md`
+`docs/planning/2026-10-29-project-information-layout.md` (U1 there, unsigned) and `shared/core.md`
 "Session state" (agent-config `b3f6829`). **Runs only after that U1 is signed.**
 
 Replaces the first draft of the same day (`docs/SESSION-STATE-ALIGNMENT.md`, commit
