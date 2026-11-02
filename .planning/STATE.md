@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: SNES-Fidelity World
 status: Awaiting next milestone
-stopped_at: Completed 39-07-PLAN.md
+stopped_at: "Not a position since 2026-11-01: GSD, which wrote this file, is uninstalled, and its last run completed 39-07-PLAN.md (2026-07-21). Where a session stands is .agent-state.md at the repository root; the agent instructions are AGENTS.md."
 last_updated: "2026-07-21T10:26:08.738Z"
-last_activity: 2026-07-21
-last_activity_desc: Milestone v6.0 completed and archived
+last_activity: "2026-07-21"
+last_activity_desc: "Milestone v6.0 completed and archived"
 progress:
   total_phases: 14
   completed_phases: 10
