@@ -19,3 +19,6 @@ __pycache__/
 # differs from the assets/_kenney-src/ and assets/_opengameart-src/ convention
 # (which IS committed) because of this pack's larger size and per Phase 31's plan.
 assets/_gothicvania-src/
+
+# Agent session position file (local to this checkout)
+.agent-state.md

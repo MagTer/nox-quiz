@@ -221,7 +221,7 @@ Found at the Phase-34.6 human checkpoint: rebuilt prototype levels passed every 
 
 ### 9.1 "Extend kid-validated levels by appending, never edit inside" — SUSPENDED for Phase 34.5
 
-The standing convention (still the default, and still recorded in `CLAUDE.md`) is: levels 01–03 are kid-validated, so extend them by **appending after** existing geometry and never edit inside it.
+The standing convention (still the default, and still recorded in `AGENTS.md`) is: levels 01–03 are kid-validated, so extend them by **appending after** existing geometry and never edit inside it.
 
 **That convention is DELIBERATELY SUSPENDED for Phase 34.5**, at the user's explicit instruction: 34.5 rebuilds **every level from scratch** against this rulebook and doubles the level count. Appending is not available to a rebuild.
 

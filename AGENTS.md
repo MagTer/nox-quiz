@@ -1,8 +1,10 @@
-<!-- GSD:project-start source:PROJECT.md -->
+# Nox Run — instructions for agents
+
+Read `README.md` first; it is for people. This file is read on every turn.
 
 ## Project
 
-**Math Lab**
+**Nox Run** (formerly Math Lab)
 
 A real 2D platformer for a 12-year-old girl, played in the browser with the keyboard — run, jump across platforms, reach the goal — where multiplication is the *gate to progress*, modeled on the Mario-style math game she plays at school. The platforming is the intrinsically fun part; math (weighted toward the 6–9 tables) is what stands between her and the next stage. Dark grunge aesthetic, no pink, no timers, no pressure.
 
@@ -13,18 +15,14 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 ### Constraints
 
 - **Tech stack**: Vanilla JS + Kaplay (one vendored game library). No JS build step, no npm install to run — vendor the library file directly.
-- **Deployment**: Static files served from a Docker container (nginx) deployed via Dokploy, reachable at a web URL. This is *packaging + static hosting*, NOT a backend — no database, no accounts, no server-side logic, no data leaves her browser. Docker is not a JS build step.
+- **Deployment**: Static files served from a Docker container (nginx) on the home-server cluster, reachable at a web URL (`docs/DEPLOY.md`). This is *packaging + static hosting*, NOT a backend — no database, no accounts, no server-side logic, no data leaves her browser. Docker is not a JS build step.
 - **Persistence**: Browser `localStorage` only — XP, level, and practice history live client-side, scoped to the URL's origin (clearing browser data resets it, like her school game).
 - **Design**: Grunge/dark aesthetic; explicitly no pink, no bubbly or childish elements. Holds for pixel art too — dark, edgy sprites.
 - **No timers / no pressure**: Carries over from v1/v2 — ADHD-safe. Platforming hazards are fine; *countdown* pressure is not.
 
-<!-- GSD:project-end -->
-
-<!-- GSD:stack-start source:codebase/STACK.md -->
-
 ## Technology Stack
 
-## Shipped Stack (v5.0-era, verified against the live tree 2026-07-07)
+### Shipped Stack (v5.0-era, verified against the live tree 2026-07-07)
 
 - **This is the CURRENT-STATE stack doc** — `.planning/research/STACK.md` is per-milestone research (v5.0: audio/validation/logo/palette additions only) and must NOT be read as the full stack.
 
@@ -32,11 +30,11 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 |-------|------|-------|
 | Engine | Kaplay 3001.0.19, vendored at `lib/kaplay.mjs` | Pinned (sha256 in header); `kaplay({ global: true })` — engine globals exist only AFTER init (a727c13 rule). Code against Kaplay 3001 API only; ignore `kaboom(` snippets. Never upgrade without re-testing. |
 | Language | Vanilla ES2020 modules under `src/` | No TypeScript, no JSX, no framework, no npm, no build step, no node_modules. |
-| Serving | MUST be over HTTP — `file://` is blocked (guard in `src/index.html`) | Dev: run `python3 -m http.server 8000` from the **repo root** (not `src/` — `lib/` is a sibling of `src/`, not nested inside it, so a server rooted at `src/` 404s on `lib/kaplay.mjs`), then browse to `http://localhost:8000/src/index.html`. Matches `scripts/browser-boot.mjs`'s serving convention and the Dockerfile's flattened production layout. Production: nginx Docker static container via Dokploy (`docker/`, `docs/DEPLOY.md`) — packaging, not a build. |
+| Serving | MUST be over HTTP — `file://` is blocked (guard in `src/index.html`) | Dev: run `python3 -m http.server 8000` from the **repo root** (not `src/` — `lib/` is a sibling of `src/`, not nested inside it, so a server rooted at `src/` 404s on `lib/kaplay.mjs`), then browse to `http://localhost:8000/src/index.html`. Matches `scripts/browser-boot.mjs`'s serving convention and the Dockerfile's flattened production layout. Production: nginx Docker static container on the home-server cluster (`docker/`, `docs/DEPLOY.md`) — packaging, not a build. |
 | Canvas | Internal 640×360, displayed 1.5× via CSS `transform: scale(1.5)` | NEVER scale via width/height — desyncs Kaplay's offsetX/offsetY mouse mapping and silently breaks `box.onClick()` (documented in `src/main.js`). |
-| Persistence | localStorage key `mathlab_platformer_v2`, version 2 (pre-Phase-26 value) | **Superseded 2026-07-07:** Phase 26's CONTEXT.md records the user's explicit decision to rename/change the save key as part of the Nox Run rebrand, intentionally resetting pre-rebrand player progress (no migration). All access still goes through guarded `src/progress.js` seams (never throw, forgiving defaults) — only the key literal's stability guarantee changed. |
+| Persistence | localStorage key `noxrun_platformer_v1`, save-format version 3 (`CONFIG.SAVE` in `src/config.js`, read 2026-11-01) | The Phase 26 Nox Run rebrand changed the key on purpose, resetting pre-rebrand progress with no migration (the user's explicit decision); version 3 added `secretFound`, again with no migration. All access still goes through guarded `src/progress.js` seams (never throw, forgiving defaults). |
 | Assets | Curated CC0 pixel art under `assets/` | Licenses in `assets/LICENSES/`, credits in `CREDITS.md`; some baked by `scripts/build-art-assets.py` (Pillow). |
-| Test harness | Playwright driven from `scripts/*.mjs` | Resolved dynamically (project dep → `PLAYWRIGHT_MJS_PATH` env → nvm-wide gsd-pi search). No JS test framework — the shell gates + browser scripts ARE the suite. |
+| Test harness | Playwright driven from `scripts/*.mjs` | Resolved dynamically (project dep → `PLAYWRIGHT_MJS_PATH` env → every nvm node version, newest first, checking each for a global `playwright` and then the old `gsd-pi` bundle). No JS test framework — the shell gates + browser scripts ARE the suite. |
 
 ## Verification gates (run after any `src/` or level change)
 
@@ -55,13 +53,9 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 - Serve with `?debug=1` (e.g. `http://localhost:8000/?debug=1`) to render normally-invisible entities: merged colliders, tall door/gate/enemy blockers, answer zones, pickup slots, checkpoints, secret alcoves (magenta markers).
 - Display-only; never hand-edit `opacity(0)` in production code for playtesting.
 
-<!-- GSD:stack-end -->
-
-<!-- GSD:conventions-start source:CONVENTIONS.md -->
-
 ## Conventions
 
-## Binding rules (verified against the live tree 2026-07-07)
+### Binding rules (verified against the live tree 2026-07-07)
 
 - **a727c13 rule (critical):** never reference a Kaplay engine global (`add`, `rect`, `go`, `onKeyPress`, …) at module top level — they exist only after `kaplay({ global: true })` runs; a top-level ref throws at import and blanks the game. Engine refs live INSIDE function bodies only. Enforced by `check-import-safety.sh`.
 - **No timers/schedulers** (`setTimeout`, `setInterval`, `wait()`, `loop()`, `lifespan()`) and **no punishment constructs** anywhere in `src/`. Delayed effects use the `tween().onEnd()` self-clean idiom. Enforced by `check-safety.sh`.
@@ -75,13 +69,9 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 - **Playwright script duplication is deliberate** (`browser-boot.mjs` / `audit-phase21-mechanics.mjs` / `calibrate-jump-envelope.mjs` share copied server/guard code): fix a bug identically in every copy by hand; do not extract a shared module.
 - **Verification standard:** no phase closes on greps/automation alone — interactive proof, and human sign-off where claimed. "Checks that don't play the game lie."
 
-<!-- GSD:conventions-end -->
-
-<!-- GSD:architecture-start source:ARCHITECTURE.md -->
-
 ## Architecture
 
-## Module map (verified against the live tree 2026-07-07)
+### Module map (verified against the live tree 2026-07-07)
 
 | Module | Role |
 |--------|------|
@@ -105,7 +95,7 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 | `src/ui/mathGate.js` | end-of-level gate → LEVEL CLEAR |
 | `src/ui/hud.js` | level badge + XP bar + level-up flash |
 
-## Data flow
+### Data flow
 
 - **Boot:** `main.js` inits Kaplay → registers title/select/game scenes → `go("title")`.
 - **Level entry:** select passes `{ levelId }` via `go()` payload → `game.js` loads the descriptor from the registry → `buildLevel()` emits tagged entities → mechanics modules wire `player.onCollide` handlers against tags.
@@ -114,37 +104,4 @@ A real 2D platformer for a 12-year-old girl, played in the browser with the keyb
 
 ## Planning layer
 
-- Planning state lives in `.planning/` (GSD): `STATE.md` = current position, `ROADMAP.md` = phase plan, `PROJECT.md` = product definition.
-- Milestone history is archived under `.planning/milestones/`; per-milestone research under `.planning/research/` (milestone-scoped — not a current-state stack description).
-
-<!-- GSD:architecture-end -->
-
-<!-- GSD:skills-start source:skills/ -->
-
-## Project Skills
-
-No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, `.github/skills/`, or `.codex/skills/` with a `SKILL.md` index file.
-<!-- GSD:skills-end -->
-
-<!-- GSD:workflow-start source:GSD defaults -->
-
-## GSD Workflow Enforcement
-
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
-
-Use these entry points:
-
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
-
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
-<!-- GSD:workflow-end -->
-
-<!-- GSD:profile-start -->
-
-## Developer Profile
-
-> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
-> This section is managed by `generate-claude-profile` -- do not edit manually.
-<!-- GSD:profile-end -->
+- `.planning/` is this project's research and milestone archive, written by GSD while it was in use (it is uninstalled), and the art pipeline's working area: `scripts/build-art-assets.py` reads `research/v6-scouting/styleboard.py` and writes into `phases/`, as most `screenshot-phase*.mjs` scripts do. It stays where it is (decided 2026-11-01): `.dockerignore`, `docker/Dockerfile` and `publish-image.yml`'s `paths-ignore` exclude it by name. `ROADMAP.md` there is the phase plan, `PROJECT.md` the product definition, `milestones/` the history and `research/` per-milestone research. A new plan goes in `docs/planning/`. Where a session stands is `.agent-state.md` at the root (gitignored), not `.planning/STATE.md`.
