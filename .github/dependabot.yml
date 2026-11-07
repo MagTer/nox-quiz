@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    # Patch and minor only. Major bumps are a deliberate change (operator, 2026-11-07).
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
