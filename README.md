@@ -1,3 +1,9 @@
+---
+purpose: A static 2D platformer where multiplication is the gate to progress.
+owns: [the game, its levels and assets, its static-site image]
+does_not_own: [its production hosting (home-server)]
+depends_on: []
+---
 # Nox Run — The Platformer
 
 A 2D platformer (built with [Kaplay](https://kaplayjs.com/)) where multiplication is
